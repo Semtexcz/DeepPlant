@@ -36,6 +36,7 @@ The semantic engineering model is the product core.
 - Rendering and presentation data must remain separate from engineering semantics.
 - Prefer small vertical changes with executable tests.
 - Do not build abstractions for hypothetical future features unless a current requirement justifies them.
+- The directional roadmap provides product context, not implementation authorization. Implement only the currently scoped vertical slice.
 
 
 
