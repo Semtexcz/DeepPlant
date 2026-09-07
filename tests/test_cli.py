@@ -62,3 +62,16 @@ def test_validate_reports_missing_file(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "cannot read plant file" in result.output
+
+
+def test_validate_returns_nonzero_for_unknown_field(tmp_path: Path) -> None:
+    invalid = tmp_path / "typo.yaml"
+    invalid.write_text(
+        "plant:\n  id: demo\n  unknown_field: value\nequipment: []\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", str(invalid)])
+
+    assert result.exit_code == 1
+    assert "not permitted" in result.output

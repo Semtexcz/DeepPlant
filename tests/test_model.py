@@ -86,3 +86,69 @@ def test_duplicate_equipment_ids_fail() -> None:
                 Equipment(id="T-101", type="pump"),
             ],
         )
+
+
+def test_unknown_top_level_field_fails() -> None:
+    with pytest.raises(ValidationError):
+        PlantModel.model_validate(
+            {
+                "plant": {"id": "demo"},
+                "equipment": [],
+                "equipmnt": [],
+            }
+        )
+
+
+def test_unknown_plant_field_fails() -> None:
+    with pytest.raises(ValidationError):
+        PlantModel.model_validate(
+            {
+                "plant": {"id": "demo", "unknown_field": "value"},
+                "equipment": [],
+            }
+        )
+
+
+def test_unknown_equipment_field_fails() -> None:
+    with pytest.raises(ValidationError):
+        PlantModel.model_validate(
+            {
+                "plant": {"id": "demo"},
+                "equipment": [{"id": "P-101", "type": "pump", "nam": "Feed Pump"}],
+            }
+        )
+
+
+@pytest.mark.parametrize("blank", ["", "   ", "\t"])
+def test_blank_plant_id_fails(blank: str) -> None:
+    with pytest.raises(ValidationError):
+        PlantModel(plant=Plant(id=blank), equipment=[])
+
+
+@pytest.mark.parametrize("blank", ["", "   ", "\t"])
+def test_blank_equipment_id_fails(blank: str) -> None:
+    with pytest.raises(ValidationError):
+        PlantModel(
+            plant=Plant(id="demo"),
+            equipment=[Equipment(id=blank, type="tank")],
+        )
+
+
+@pytest.mark.parametrize("blank", ["", "   ", "\t"])
+def test_blank_equipment_type_fails(blank: str) -> None:
+    with pytest.raises(ValidationError):
+        PlantModel(
+            plant=Plant(id="demo"),
+            equipment=[Equipment(id="P-101", type=blank)],
+        )
+
+
+def test_semantic_strings_are_stripped() -> None:
+    model = PlantModel(
+        plant=Plant(id="  demo  "),
+        equipment=[Equipment(id="  P-101  ", type="  pump  ")],
+    )
+
+    assert model.plant.id == "demo"
+    assert model.equipment[0].id == "P-101"
+    assert model.equipment[0].type == "pump"

@@ -47,9 +47,12 @@ DeepPlant domain model (PlantModel -> Plant + list[Equipment])
   every expected failure (missing file, invalid YAML, invalid model) raises
   `PlantLoadError` with a concise message, so the CLI never shows raw
   tracebacks for normal user errors.
-- Structural validation so far: `plant.id` and `equipment.id` must not be
-  empty; equipment ids must be unique within a `PlantModel`. No full tag naming
-  standard and no fixed equipment taxonomy exist yet.
+- Structural validation so far: unknown fields are rejected on all semantic
+  models; `plant.id`, `equipment.id`, and `equipment.type` must be non-empty,
+  non-whitespace strings. Semantic input is fail-fast rather than permissive, so
+  typos and unsupported engineering data cannot be silently discarded.
+  Equipment ids must additionally be unique within a `PlantModel`. No full tag
+  naming standard and no fixed equipment taxonomy exist yet.
 - Runnable example: `examples/minimal-process/plant.yaml`.
 - `make run` executes the package module; `make test`, `make lint`,
   `make typecheck`, and `make build` verify the local package lifecycle.

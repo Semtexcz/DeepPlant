@@ -5,27 +5,36 @@
 
 This module is the product core (ADR-0002). It must not import the CLI, YAML,
 file I/O, rendering, or any other consumer-specific concern.
+
+Semantic input is fail-fast: models forbid unknown fields, and semantic strings
+such as ids and equipment types must be non-empty, non-whitespace values.
 """
 
-from typing import Self
+from typing import Annotated, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 __all__ = ["Equipment", "Plant", "PlantModel"]
+
+NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class Plant(BaseModel):
     """A process plant being engineered."""
 
-    id: str = Field(min_length=1)
+    model_config = ConfigDict(extra="forbid")
+
+    id: NonEmptyString
     name: str | None = None
 
 
 class Equipment(BaseModel):
     """A single equipment item inside a plant."""
 
-    id: str = Field(min_length=1)
-    type: str
+    model_config = ConfigDict(extra="forbid")
+
+    id: NonEmptyString
+    type: NonEmptyString
     name: str | None = None
 
 
@@ -35,6 +44,8 @@ def _default_equipment() -> list[Equipment]:
 
 class PlantModel(BaseModel):
     """Root container of a DeepPlant semantic model."""
+
+    model_config = ConfigDict(extra="forbid")
 
     plant: Plant
     equipment: list[Equipment] = Field(default_factory=_default_equipment)

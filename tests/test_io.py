@@ -135,3 +135,93 @@ def test_top_level_scalar_fails_cleanly(tmp_path: Path) -> None:
         load_plant(path)
 
     assert "top level must be a mapping" in str(exc_info.value)
+
+
+def test_unknown_top_level_key_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment: []
+equipmnt: []
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "not permitted" in str(exc_info.value)
+
+
+def test_unknown_plant_field_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+  unknown_field: value
+equipment: []
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "not permitted" in str(exc_info.value)
+
+
+def test_unknown_equipment_field_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: P-101
+    type: pump
+    nam: Feed Pump
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "not permitted" in str(exc_info.value)
+
+
+def test_whitespace_plant_id_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: "   "
+equipment: []
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "at least 1 character" in str(exc_info.value)
+
+
+def test_whitespace_equipment_type_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: P-101
+    type: "   "
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "at least 1 character" in str(exc_info.value)
