@@ -50,7 +50,8 @@ automated checks, and eventual exchange with the DEXPI ecosystem.
 
 ## Long-Term Capability Vision
 
-Not implemented yet; the order of work lives in [roadmap.md](roadmap.md):
+Implemented so far: the minimal semantic model and its YAML load path. The
+remaining order of work lives in [roadmap.md](roadmap.md):
 
 - semantic plant model (`Plant`, `Equipment`, `Port`, `Connection`, ...)
 - YAML serialization
@@ -70,6 +71,10 @@ Not implemented yet; the order of work lives in [roadmap.md](roadmap.md):
 - YAML is a serialization format, not the domain model.
 - Connectivity is expressed through generic `Component -> Ports -> Connections`
   relationships, not hard-coded equipment-to-equipment links.
+- Consumer-specific representation concerns must not leak into the semantic
+  domain model. The domain model may evolve when integration with DEXPI,
+  simulators, or real engineering use cases reveals a genuine missing
+  engineering concept.
 
 ## Long-Term Non-Goals
 
@@ -77,5 +82,3 @@ Not implemented yet; the order of work lives in [roadmap.md](roadmap.md):
   requirement justifies them.
 - Do not embed drawing coordinates or SVG concepts into core engineering
   objects.
-- Do not let any consumer (renderer, adapter, agent) become the reason the
-  domain model changes shape.
