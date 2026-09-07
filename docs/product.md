@@ -212,10 +212,12 @@ Current working hypotheses, not validated facts:
 
 ## Long-Term Capability Vision
 
-The semantic plant model is implemented: `Plant`, `Equipment`, equipment-owned
-`Port` objects, `Connection` edges over `PortRef(component, port)` endpoints,
-and reference validation. The open pipes/process-stream representation question
-is the next modeling decision. The remaining order of work lives in
+The initial semantic core is implemented: `Plant`, `Equipment`, equipment-owned
+`Port` objects, `PortRef` endpoints, directed `Connection` edges, and reference
+validation. This is not yet the complete canonical plant model — process
+streams, pipes / pipelines, nozzle semantics, and instrumentation topology
+remain unresolved. The open pipes/process-stream representation question is the
+next modeling decision. The remaining order of work lives in
 [roadmap.md](roadmap.md):
 
 - pipes / process-stream representation (open modeling question)

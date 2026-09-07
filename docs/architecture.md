@@ -19,9 +19,12 @@ Governance: `lightweight`.
 
 This document separates what exists from what is only direction.
 
-- **Current Architecture** describes implemented components and boundaries.
+- **Current Architecture** describes implemented components and boundaries —
+  the exact implemented state.
 - **Directional Architecture (Principles Only)** describes durable target
-  principles and invariants. Nothing under that heading is implemented yet.
+  principles and future architectural direction. Some primitives referenced in
+  that section may already exist; future components are not implemented unless
+  explicitly stated.
 
 ## Current Architecture
 

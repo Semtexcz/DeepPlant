@@ -158,12 +158,14 @@ Goal: represent basic engineering objects explicitly and validate their
 structure. Example concepts: `Plant`, `Equipment`, `Ports`, `Connections`,
 identity, references.
 
-Relationship to today: this stage is implemented on `main`. Shipped:
-`PlantModel`, `Plant`, `Equipment`, equipment-owned `Port` objects,
-`Connection` edges over `PortRef(component, port)` endpoints, reference
-validation, YAML load, and strict structural validation. The open pipes /
-process-stream representation question — the first item on the Current
-Implementation Roadmap above — is the next semantic decision.
+Relationship to today: the core primitives of Stage 1 are implemented on
+`main` — `PlantModel`, `Plant`, `Equipment`, equipment-owned `Port`,
+`PortRef`, directed `Connection`, reference validation, YAML load, and
+strict structural validation. Implemented primitives are not the same as a
+completed capability stage: the Stage 1 exit signal below has not yet been
+demonstrated on a real process fragment. The open pipes / process-stream
+representation question — the first item on the Current Implementation
+Roadmap above — is the next semantic decision.
 
 Exit signal:
 
