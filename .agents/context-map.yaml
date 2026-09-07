@@ -1,0 +1,113 @@
+schema_version: 1
+
+always:
+  - AGENTS.md
+  - project/brief.md
+  - docs/architecture.md
+  - docs/workflow.md
+  - docs/quality.md
+  - docs/roadmap.md
+  - docs/decisions/index.md
+
+task:
+  include:
+    - project/tasks/{task_id}-*.md
+
+managed:
+  include:
+    - project/state.yaml
+    - project/index.md
+    - project/board.md
+
+project_type:
+  script:
+    - pyproject.toml
+    - src/
+    - tests/
+  library:
+    - pyproject.toml
+    - src/
+    - tests/
+  backend:
+    - backend/pyproject.toml
+    - backend/src/app/main.py
+    - backend/tests/
+  frontend:
+    - frontend/package.json
+    - frontend/nuxt.config.ts
+    - frontend/pages/
+    - frontend/tests/
+  fullstack:
+    - backend/pyproject.toml
+    - backend/src/app/main.py
+    - backend/tests/
+    - frontend/package.json
+    - frontend/nuxt.config.ts
+    - frontend/pages/
+    - frontend/tests/
+    - artifacts/openapi.json
+    - frontend/shared/api/
+  fullstack-production:
+    - compose.yaml
+    - backend/Dockerfile
+    - frontend/Dockerfile
+
+change_patterns:
+  "src/**/*.py":
+    - pyproject.toml
+    - tests/
+  "tests/**/*.py":
+    - pyproject.toml
+    - src/
+  "backend/**/*.py":
+    - docs/architecture.md
+    - docs/quality.md
+    - backend/tests/
+  "frontend/**/*":
+    - docs/quality.md
+    - frontend/tests/
+  "artifacts/openapi.json":
+    - backend/src/app/main.py
+    - frontend/shared/api/
+  "project/**":
+    - project/roadmap.md
+    - project/brief.md
+  ".agents/**":
+    - .agents/README.md
+  "**/Dockerfile":
+    - docs/architecture.md
+
+checks:
+  "src/**/*.py":
+    - make test
+  "tests/**/*.py":
+    - make test
+  "backend/**/*.py":
+    - make test
+  "frontend/**/*":
+    - make test
+  "artifacts/openapi.json":
+    - make api-check
+  "project/**":
+    - make validate-docs
+  ".agents/**":
+    - make validate-agent-skills
+  ".codex/**":
+    - make validate-agent-skills
+  "**/Dockerfile":
+    - make image-build
+
+exclude:
+  - "**/.env"
+  - "**/.env.*"
+  - "**/*.pem"
+  - "**/*.key"
+  - "**/credentials*"
+  - "**/secrets*"
+  - "**/.git/**"
+  - "**/node_modules/**"
+  - "**/.venv/**"
+  - "**/dist/**"
+  - "**/.output/**"
+  - "**/coverage/**"
+  - "**/cache/**"

@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY.
+_commit: v1.1.1-17-gcacc7c1
+_src_path: https://github.com/Semtexcz/_ai_project_template
+governance: lightweight
+include_reference_feature: false
+preset: none
+project_name: DeepPlant
+project_slug: deepplant
+project_type: script
+python_package: deepplant
+runtime_level: shared
+workflow_mode: pr

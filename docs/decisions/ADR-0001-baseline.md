@@ -1,0 +1,31 @@
+# ADR-0001: Accept the Generated Baseline
+
+> Status: Accepted
+> Date: 2026-09-07
+
+## Context
+
+The project starts from the golden-path template with project type `script` and runtime level `shared`.
+
+## Options
+
+- Start from an ad hoc structure.
+- Start from the generated baseline.
+
+## Decision
+
+Use the generated baseline and add infrastructure only when a concrete requirement, ADR, and appropriate human approval justify it.
+
+## Consequences
+
+### Positive
+
+- The project starts with clear workflow, testing, and documentation.
+
+### Negative
+
+- Template updates need merge review for project-owned files.
+
+## Revisit When
+
+The baseline blocks a concrete product or operational requirement.

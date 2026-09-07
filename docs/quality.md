@@ -1,0 +1,72 @@
+---
+type: quality
+status: active
+source_of_truth_for:
+  - quality-gates
+read_when:
+  - prepare-task
+  - implement-change
+  - review-change
+update_when:
+  - test-strategy-change
+  - runtime-level-change
+---
+
+# Quality
+
+## Baseline
+
+- Formatting and linting run through `make lint`.
+- Type checking runs through `make typecheck`.
+- Tests run through `make test`.
+- `make check` is the fast local/pre-review gate for DeepPlant.
+- The template repository has a separate full release-candidate gate across
+  every generated profile and workflow.
+
+## Test Expectations
+
+- Domain rules have unit tests.
+- Database adapters have integration tests once a database exists.
+- Main workflows have E2E tests for frontend or full-stack projects.
+- Authorization has negative tests once authorization exists.
+- External calls have timeouts and test doubles.
+- Migrations are tested once migrations exist.
+
+## DeepPlant Expectations
+
+- Domain rules must be unit-tested independently of the CLI and any transport.
+- Validation behavior is exercised through the public Python API and the CLI
+  entry point once the domain model exists.
+- `make check` is the local gate before every commit and pull request.
+
+## Security Baseline
+
+- No committed secrets.
+- No destructive data action without explicit human approval.
+- Dependencies are updated intentionally.
+- Sensitive data handling requires explicit requirements.
+
+## Observability
+
+Critical operations should be diagnosable. Production projects require logs, readiness checks, rollback, incident workflow, and tested restore for stateful systems.
+
+## Production Runtime Checks
+
+Production full-stack projects verify the runtime artifact path with:
+
+```bash
+make image-build
+make image-inspect
+make prod-up
+make prod-status
+make prod-smoke
+make e2e-production
+make prod-down
+```
+
+These checks prove local OCI image buildability, production process startup,
+image metadata, non-root runtime users, absence of development runtime
+commands, health/readiness, API contract availability, browser behavior,
+frontend security headers, and graceful Compose shutdown. They do not replace
+environment-specific deployment, capacity, backup, compliance validation, or
+the external TLS/HSTS ingress contract.
