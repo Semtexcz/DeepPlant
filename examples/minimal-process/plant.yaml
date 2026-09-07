@@ -6,7 +6,20 @@ equipment:
   - id: T-101
     type: tank
     name: Feed Tank
+    ports:
+      - id: outlet
 
   - id: P-101
     type: pump
     name: Feed Pump
+    ports:
+      - id: suction
+      - id: discharge
+
+connections:
+  - source:
+      component: T-101
+      port: outlet
+    target:
+      component: P-101
+      port: suction

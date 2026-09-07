@@ -16,12 +16,12 @@ update_when:
 Project type: `script`. Runtime level: `shared`.
 Governance: `lightweight`. Workflow mode: `pr`.
 
-DeepPlant is past the project-foundation state: the first semantic vertical
-slice (minimal `PlantModel`/`Plant`/`Equipment` domain model, YAML load,
-structural validation, and `deepplant validate`) is implemented. Work proceeds
-as small vertical changes; the next item is `Port` + `Connection` + reference
-validation; see [roadmap.md](roadmap.md). Do not implement renderers, adapters,
-or DEXPI before the roadmap reaches them.
+DeepPlant is past the project-foundation state: two semantic vertical slices
+(minimal `PlantModel`/`Plant`/`Equipment` domain model, then `Port` +
+`Connection` + reference validation) are implemented. Work proceeds as small
+vertical changes; the next step is deliberately reconsidered from the open
+pipes/streams modeling question in [roadmap.md](roadmap.md). Do not implement
+renderers, adapters, or DEXPI before the roadmap reaches them.
 
 ## Change Loop
 

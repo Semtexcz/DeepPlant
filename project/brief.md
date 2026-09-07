@@ -21,11 +21,12 @@ Code** for process plants. It will grow into a Git-native semantic engineering
 platform in which a process plant is represented by a machine-readable semantic
 model that can be validated, versioned, diffed, reviewed, and rendered.
 
-This repository currently ships the project foundation plus the first semantic
-vertical slice: a minimal domain model (`PlantModel`, `Plant`, `Equipment`), a
-YAML loading boundary into typed Pydantic models, structural validation, and a
-`deepplant validate` command. Rendering, adapters, DEXPI, and the interactive
-editor do **not** exist yet.
+This repository currently ships the project foundation plus two semantic
+vertical slices: a minimal domain model (`PlantModel`, `Plant`, `Equipment`)
+and the first topology slice (`Port`, `Connection`, reference validation), a
+YAML loading boundary into typed Pydantic models, strict structural and
+reference validation, and a `deepplant validate` command. Rendering, adapters,
+DEXPI, and the interactive editor do **not** exist yet.
 
 ## Problem
 
@@ -55,36 +56,39 @@ A validated, versionable semantic model of a process plant where CLI tools,
 renderers, DEXPI adapters, simulation adapters, and AI agents all depend on the
 model — never the reverse.
 
-Milestone 1 so far: DeepPlant loads a small process model from YAML and reports
-structural errors through the CLI. Reference validation comes with
-`Port`/`Connection` in the next iteration.
+Milestone 1 so far: DeepPlant loads a small process model from YAML, reports
+structural errors through the CLI, and validates `Connection` references against
+equipment-owned `Port` objects.
 
 ## Main Use Case
 
-The first vertical slice: an engineer writes a small process fragment as YAML,
-loads it with the DeepPlant CLI, and receives a clear validation report for
-structural errors. Reference errors are the next slice.
+An engineer writes a small process fragment as YAML, loads it with the DeepPlant
+CLI, and receives a clear validation report for structural and reference errors
+(unknown components or ports in connections).
 
 ## Scope
 
 - In scope (done): clean, tested project foundation; durable DeepPlant
   documentation; ADRs for the core architecture principles; minimal CLI package.
-- In scope (first semantic vertical slice): minimal domain model (`PlantModel`,
-  `Plant`, `Equipment`); YAML load boundary into typed Pydantic models;
-  structural validation (non-empty ids, unique equipment ids); `deepplant
-  validate <path>`; runnable `examples/minimal-process/plant.yaml`.
-- Out of scope (this slice): `Port`, `Connection`, `Pipeline`, `Instrument`,
-  reference validation, full tag naming standards, fixed equipment taxonomy,
-  YAML save, rendering, DEXPI, interactive editor, simulators, databases, ORMs,
-  network services, and container runtimes.
+- In scope (second semantic vertical slice): equipment-owned `Port` objects;
+  top-level `Connection` objects over structured `PortRef(component, port)`
+  endpoints; reference validation (endpoint components and ports must exist);
+  strict unknown-field rejection extended to the new models; CLI reports
+  equipment, port, and connection counts; runnable
+  `examples/minimal-process/plant.yaml`.
+- Out of scope (so far): pipes/pipelines/streams/signal semantics and their
+  canonical representation, `Pipeline`, `Instrument`, full tag naming standards,
+  fixed equipment taxonomy, YAML save, rendering, DEXPI, interactive editor,
+  simulators, databases, ORMs, network services, and container runtimes.
 
 ## Success Criteria
 
 - `deepplant --help` and `deepplant version` work from the installed entry point.
 - `deepplant validate examples/minimal-process/plant.yaml` succeeds with concise
-  output reporting the plant id and equipment count.
-- Invalid YAML syntax, missing files, and structurally invalid models exit
-  non-zero with a clear message and no raw traceback.
+  output reporting the plant id, equipment count, port count, and connection
+  count.
+- Invalid YAML syntax, missing files, structurally invalid models, and invalid
+  connection references exit non-zero with a clear message and no raw traceback.
 - `make check` and `make build` pass.
 - The documentation states the semantic-model-first architecture and the ADRs
   record the core decisions.

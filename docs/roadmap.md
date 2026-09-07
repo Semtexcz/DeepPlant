@@ -12,19 +12,25 @@ update_when:
 
 # Roadmap
 
-DeepPlant now ships the project foundation plus the first executable semantic
-vertical slice:
+DeepPlant ships the project foundation plus two executable semantic vertical
+slices: the minimal domain model and the first topology slice.
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
+- equipment-owned `Port` objects; port identity is local to the owning equipment
+- top-level `Connection` edges over structured `PortRef(component, port)`
+  endpoints
+- reference validation: every endpoint component must resolve to existing
+  equipment and its port must exist on that equipment
 - YAML load through a small boundary into typed Pydantic models
-- basic structural validation (non-empty ids, unique equipment ids within a
-  model)
+- strict semantic input: unknown fields rejected, non-empty semantic ids,
+  unique equipment ids, unique port ids per equipment item
 - a runnable example: `examples/minimal-process/plant.yaml`
-- `deepplant validate <path>`
+- `deepplant validate <path>` reporting plant, equipment, port, and connection
+  counts
 
-Ports, connections, and reference validation are **not** implemented yet. Work
-proceeds as small vertical changes with executable tests; no item below requires
-`PlantModel`, `Equipment`, `Port`, and `Connection` to land in one change.
+Work proceeds as small vertical changes with executable tests. The next
+topology concept is deliberately reconsidered before implementation, not
+auto-selected.
 
 ## Completed
 
@@ -32,22 +38,33 @@ proceeds as small vertical changes with executable tests; no item below requires
 |---|---|
 | Define `PlantModel` | Root container and composition of the model |
 | Define `Plant` | Plant identity: `id`, `name` |
-| Define `Equipment` | First engineering objects: `id`, `type`, `name`; no fixed taxonomy yet |
+| Define `Equipment` | Engineering objects: `id`, `type`, `name`, owned `Port[]`; no fixed taxonomy yet |
+| Define `Port` | Typed connection points owned by equipment; id local to the owning equipment |
+| Define `Connection` | Semantic topology only: `source`/`target` as `PortRef(component, port)` |
+| Reference validation | Connections resolve to existing equipment and owned ports; referential integrity only |
 | YAML load | YAML as serialization, validated via Pydantic into the domain model |
-| Semantic validation (structural) | Non-empty `plant.id`/`equipment.id`; unique equipment ids within a model |
+| Semantic validation (structural) | Non-empty ids; unknown fields rejected; unique equipment ids; unique port ids per equipment |
 | First executable example | `examples/minimal-process/plant.yaml` runs through the CLI |
 
 ## Backlog (Suggested Order)
 
+The next step is an open architectural question, recorded for the next
+iteration:
+
+> What should represent process piping / streams in the canonical model: a
+> component with ports, a connection with engineering properties, or a separate
+> semantic entity?
+
+Do not answer it from habit or because rendering needs it; answer it from a real
+fragment requirement.
+
 | # | Item | Note |
 |---|---|---|
-| 1 | Define `Port` | Typed connection points on components |
-| 2 | Define `Connection` | Generic `Port -> Connection -> Port` edges |
-| 3 | Reference validation | Validate that connections reference existing ports/components |
-| 4 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 5 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 6 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 7 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Decide the pipes/streams representation | Open modeling question above; do not guess pipe, stream, or signal semantics yet |
+| 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ## Milestones
 
@@ -56,8 +73,8 @@ proceeds as small vertical changes with executable tests; no item below requires
 > DeepPlant can load a small process model from YAML, validate its semantic
 > structure and report invalid references through the CLI.
 
-The structural-validation half of this milestone is done for the first slice.
-The reference-validation half still requires `Port` and `Connection`.
+Complete: structural validation and reference validation ship in the first two
+slices.
 
 ### Milestone 2 — prototype fragment and renderer
 
@@ -67,13 +84,15 @@ The reference-validation half still requires `Port` and `Connection`.
 
 ## Next Task
 
-Implement `Port` + `Connection` + reference validation as the next vertical
-change: extend the example fragment with typed connection points on equipment
-and validate that connections reference existing model objects. Keep rendering,
-YAML save, and DEXPI out of that change.
+Deliberately open. The next vertical change starts from the pipes/streams
+representation question in the Backlog; it must not be auto-assumed to be YAML
+save or rendering. Keep rendering, YAML save, and DEXPI out of that decision
+unless the chosen fragment proves otherwise.
 
 ## Scope Discipline
 
 - No database, ORM, web backend, containers, or external services.
 - No empty architecture trees before real code exists.
 - Schema and model design come from real example fragments, not abstraction.
+- `Connection` is topology only; do not attach pipe/stream/signal engineering
+  semantics until a real requirement justifies them.

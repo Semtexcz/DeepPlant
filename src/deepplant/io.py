@@ -63,12 +63,12 @@ def _first_line(exc: BaseException) -> str:
 def _format_validation_errors(exc: ValidationError) -> str:
     parts: list[str] = []
     for error in exc.errors(include_url=False):
-        location = ".".join(str(part) for part in error["loc"]) or "<document>"
+        location = ".".join(str(part) for part in error["loc"])
         context = error.get("ctx")
         cause: object = context.get("error") if context else None
         if isinstance(cause, BaseException):
             message = str(cause)
         else:
             message = error["msg"]
-        parts.append(f"{location}: {message}")
+        parts.append(f"{location}: {message}" if location else message)
     return "; ".join(parts)

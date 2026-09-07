@@ -36,9 +36,12 @@ def validate(path: Path) -> None:
     except PlantLoadError as exc:
         typer.echo(f"✗ {exc}", err=True)
         raise typer.Exit(code=1) from exc
+    total_ports = sum(len(item.ports) for item in model.equipment)
     typer.echo("✓ valid DeepPlant model")
     typer.echo(f"✓ plant: {model.plant.id}")
     typer.echo(f"✓ equipment: {len(model.equipment)}")
+    typer.echo(f"✓ ports: {total_ports}")
+    typer.echo(f"✓ connections: {len(model.connections)}")
 
 
 def main() -> None:

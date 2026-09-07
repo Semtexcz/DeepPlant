@@ -4,7 +4,7 @@ import pytest
 
 from deepplant import load_plant
 from deepplant.io import PlantLoadError
-from deepplant.model import Equipment, Plant, PlantModel
+from deepplant.model import Connection, Equipment, Plant, PlantModel, Port, PortRef
 
 EXAMPLE = Path(__file__).parents[1] / "examples" / "minimal-process" / "plant.yaml"
 
@@ -24,6 +24,120 @@ def test_example_yaml_loads() -> None:
     assert [item.id for item in model.equipment] == ["T-101", "P-101"]
     assert model.equipment[0].type == "tank"
     assert model.equipment[1].type == "pump"
+    assert [port.id for port in model.equipment[0].ports] == ["outlet"]
+    assert [port.id for port in model.equipment[1].ports] == ["suction", "discharge"]
+    assert len(model.connections) == 1
+    connection = model.connections[0]
+    assert (connection.source.component, connection.source.port) == ("T-101", "outlet")
+    assert (connection.target.component, connection.target.port) == ("P-101", "suction")
+
+
+def test_load_returns_typed_ports_and_connections(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - source:
+      component: T-101
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+""",
+    )
+
+    model = load_plant(path)
+
+    assert isinstance(model.equipment[0].ports[0], Port)
+    connection = model.connections[0]
+    assert isinstance(connection, Connection)
+    assert isinstance(connection.source, PortRef)
+    assert isinstance(connection.target, PortRef)
+
+
+def test_connection_with_unknown_component_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - source:
+      component: X-999
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "connections[0].source: unknown component 'X-999'" in str(exc_info.value)
+
+
+def test_connection_with_unknown_port_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - source:
+      component: T-101
+      port: missing
+    target:
+      component: T-101
+      port: outlet
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "connections[0].source: component 'T-101' has no port 'missing'" in str(exc_info.value)
+
+
+def test_unknown_port_field_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+        nozzle: N1
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "not permitted" in str(exc_info.value)
 
 
 def test_load_returns_typed_domain_model(tmp_path: Path) -> None:

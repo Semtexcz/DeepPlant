@@ -5,7 +5,7 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 
 from deepplant.io import PlantLoadError, load_plant
-from deepplant.model import Equipment, Plant, PlantModel
+from deepplant.model import Connection, Equipment, Plant, PlantModel, Port, PortRef
 
 try:
     __version__ = _distribution_version("deepplant")
@@ -14,9 +14,12 @@ except PackageNotFoundError:
 
 __all__ = [
     "__version__",
+    "Connection",
     "Equipment",
     "Plant",
     "PlantLoadError",
     "PlantModel",
+    "Port",
+    "PortRef",
     "load_plant",
 ]

@@ -42,17 +42,44 @@ DeepPlant domain model (PlantModel -> Plant + list[Equipment])
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict).
 - The CLI exposes `--help`, `version`, and `validate <path>`.
 - Domain model (`src/deepplant/model.py`): `PlantModel`, `Plant`, `Equipment`,
-  Pydantic v2 models that import nothing consumer-specific.
+  `Port`, `PortRef`, `Connection` as Pydantic v2 models that import nothing
+  consumer-specific.
 - Loading boundary (`src/deepplant/io.py`): `load_plant(path) -> PlantModel`;
   every expected failure (missing file, invalid YAML, invalid model) raises
   `PlantLoadError` with a concise message, so the CLI never shows raw
   tracebacks for normal user errors.
-- Structural validation so far: unknown fields are rejected on all semantic
-  models; `plant.id`, `equipment.id`, and `equipment.type` must be non-empty,
-  non-whitespace strings. Semantic input is fail-fast rather than permissive, so
-  typos and unsupported engineering data cannot be silently discarded.
-  Equipment ids must additionally be unique within a `PlantModel`. No full tag
-  naming standard and no fixed equipment taxonomy exist yet.
+- Structural validation: unknown fields are rejected on all semantic models;
+  semantic ids (`plant.id`, `equipment.id`, `equipment.type`, `port.id`, and the
+  `component`/`port` fields of a reference) must be non-empty, non-whitespace
+  strings. Semantic input is fail-fast rather than permissive, so typos and
+  unsupported engineering data cannot be silently discarded. Equipment ids must
+  be unique within a `PlantModel`; port ids must be unique within one equipment
+  item. No full tag naming standard and no fixed equipment taxonomy exist yet.
+- Reference validation: every connection endpoint must resolve to existing
+  equipment and to a port owned by that equipment. `component` in a reference
+  resolves only to `Equipment` today; there is no generic `Component` base
+  class. This enforces referential integrity only, not process-engineering
+  topology rules.
+
+Semantic topology in this iteration:
+
+```text
+Equipment
+   ↓ owns
+Port
+
+Connection
+├── source -> PortRef(component, port)
+└── target -> PortRef(component, port)
+```
+
+- Port identity is local to its owning component. The same port id may exist on
+  different equipment; a globally resolvable endpoint is the pair
+  `(component id, port id)`.
+- `Connection` represents semantic topology only. It is not yet a pipe, stream,
+  signal, or other physical engineering object, and it carries no engineering
+  properties.
+
 - Runnable example: `examples/minimal-process/plant.yaml`.
 - `make run` executes the package module; `make test`, `make lint`,
   `make typecheck`, and `make build` verify the local package lifecycle.
@@ -98,9 +125,10 @@ Stated constraints:
   validation / rendering / adapters
   ```
 
-- The future connectivity model uses generic `Component -> Ports -> Connections`
-  relationships (e.g. `P-101.discharge -> connection -> L-101.inlet`), not
-  hard-coded `pump connected to pipe` fields.
+- Connectivity uses generic `Component -> Ports -> Connections` relationships
+  (e.g. `P-101.discharge -> connection -> L-101.inlet`), not hard-coded
+  `pump connected to pipe` fields. Equipment-owned ports and top-level
+  connections ship in the current slice.
 
 Do not create packages for `model/`, `rendering/`, `dexpi/`, or `simulation/`
 until real code needs them.
@@ -119,8 +147,8 @@ make check
 Do not treat this list as implemented architecture. Add any item only when a
 concrete requirement and ADR justify it:
 
-- semantic model growth: `Port`, `Connection`, reference validation, further
-  engineering concepts, and the YAML save path
+- semantic model growth: further engineering concepts (starting with the open
+  pipes/streams representation question) and the YAML save path
 - rendering and the SVG symbol specification
 - DEXPI and simulator adapters
 - interactive editor
