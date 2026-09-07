@@ -76,9 +76,17 @@ Connection
 - Port identity is local to its owning component. The same port id may exist on
   different equipment; a globally resolvable endpoint is the pair
   `(component id, port id)`.
-- `Connection` represents semantic topology only. It is not yet a pipe, stream,
-  signal, or other physical engineering object, and it carries no engineering
+- `Connection` is currently a directed semantic topological relationship from
+  `source` to `target`. Direction records which endpoint is the source and
+  which is the target; it does not add flow or process-stream semantics.
+- A `Connection` is not yet a pipe, process stream, signal, cable, or other
+  physical engineering object. It is topology only and carries no engineering
   properties.
+- The deliberate distinction is: directional topology != process-stream
+  semantics. What should represent process piping / streams in the canonical
+  model — a component with ports, a connection with engineering properties, or
+  a separate semantic entity — remains an open modeling question that this
+  iteration does not answer.
 
 - Runnable example: `examples/minimal-process/plant.yaml`.
 - `make run` executes the package module; `make test`, `make lint`,

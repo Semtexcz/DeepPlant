@@ -85,10 +85,12 @@ class PortRef(BaseModel):
 
 
 class Connection(BaseModel):
-    """Semantic topology between a source port and a target port.
+    """Directed semantic topology from a source port to a target port.
 
-    A connection is only topology between the two endpoints. It is not yet a
-    pipe, pipeline, process stream, signal line, or other physical engineering
+    ``source`` and ``target`` record direction, so a connection is currently a
+    directed semantic topological relationship from ``source`` to ``target``.
+    It is only topology between the two endpoints; it is not yet a pipe,
+    pipeline, process stream, signal line, or other physical engineering
     object and carries no engineering properties in this iteration.
     """
 
