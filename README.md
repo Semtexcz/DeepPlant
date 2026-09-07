@@ -66,6 +66,11 @@ make check
 Build the smallest useful vertical slice, learn from it, then refine the brief,
 architecture notes, ADRs, or the roadmap when the learning is durable.
 
+## License
+
+DeepPlant is licensed under the GNU Affero General Public License, version 3
+only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
+
 ## Navigation
 
 | Need | Open |
