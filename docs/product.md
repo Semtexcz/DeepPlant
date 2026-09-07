@@ -50,10 +50,13 @@ automated checks, and eventual exchange with the DEXPI ecosystem.
 
 ## Long-Term Capability Vision
 
-Implemented so far: the minimal semantic model and its YAML load path. The
-remaining order of work lives in [roadmap.md](roadmap.md):
+Implemented so far: the minimal semantic model, ports, semantic connections,
+reference validation, and their YAML load path. The remaining order of work
+lives in [roadmap.md](roadmap.md):
 
-- semantic plant model (`Plant`, `Equipment`, `Port`, `Connection`, ...)
+- semantic plant model (`Plant`, `Equipment`, `Port`, `Connection`, reference
+  validation — implemented; the open pipes/streams representation question is
+  next)
 - YAML serialization
 - PFD / P&ID rendering
 - interactive editor

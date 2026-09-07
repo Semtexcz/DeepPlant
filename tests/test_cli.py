@@ -39,6 +39,8 @@ def test_validate_succeeds_for_example() -> None:
     assert "✓ valid DeepPlant model" in result.output
     assert "✓ plant: demo" in result.output
     assert "✓ equipment: 2" in result.output
+    assert "✓ ports: 3" in result.output
+    assert "✓ connections: 1" in result.output
 
 
 def test_validate_returns_nonzero_for_invalid_model(tmp_path: Path) -> None:
@@ -53,6 +55,39 @@ def test_validate_returns_nonzero_for_invalid_model(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "duplicate equipment id" in result.output
+
+
+def test_validate_returns_nonzero_for_invalid_port_reference(tmp_path: Path) -> None:
+    invalid = tmp_path / "invalid-reference.yaml"
+    invalid.write_text(
+        """\
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+  - id: P-101
+    type: pump
+    ports:
+      - id: suction
+connections:
+  - source:
+      component: T-101
+      port: nope
+    target:
+      component: P-101
+      port: suction
+""",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["validate", str(invalid)])
+
+    assert result.exit_code == 1
+    assert "has no port 'nope'" in result.output
+    assert "Traceback" not in result.output
 
 
 def test_validate_reports_missing_file(tmp_path: Path) -> None:
