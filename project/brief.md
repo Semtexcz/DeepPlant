@@ -21,9 +21,11 @@ Code** for process plants. It will grow into a Git-native semantic engineering
 platform in which a process plant is represented by a machine-readable semantic
 model that can be validated, versioned, diffed, reviewed, and rendered.
 
-This repository is the project foundation only. The semantic domain model, the
-YAML schema, rendering, adapters, and the interactive editor do **not** exist
-yet and must not be implemented during this bootstrap.
+This repository currently ships the project foundation plus the first semantic
+vertical slice: a minimal domain model (`PlantModel`, `Plant`, `Equipment`), a
+YAML loading boundary into typed Pydantic models, structural validation, and a
+`deepplant validate` command. Rendering, adapters, DEXPI, and the interactive
+editor do **not** exist yet.
 
 ## Problem
 
@@ -53,27 +55,36 @@ A validated, versionable semantic model of a process plant where CLI tools,
 renderers, DEXPI adapters, simulation adapters, and AI agents all depend on the
 model — never the reverse.
 
-First milestone: DeepPlant can load a small process model from YAML, validate its
-semantic structure, and report invalid references through the CLI.
+Milestone 1 so far: DeepPlant loads a small process model from YAML and reports
+structural errors through the CLI. Reference validation comes with
+`Port`/`Connection` in the next iteration.
 
 ## Main Use Case
 
 The first vertical slice: an engineer writes a small process fragment as YAML,
 loads it with the DeepPlant CLI, and receives a clear validation report for
-structural and reference errors.
+structural errors. Reference errors are the next slice.
 
 ## Scope
 
-- In scope: clean, tested project foundation; durable DeepPlant documentation;
-  ADRs for the core architecture principles; minimal CLI package; example
-  directory placeholder.
-- Out of scope (bootstrap): domain model classes, YAML schema design, semantic
-  validation rules, rendering, DEXPI, interactive editor, simulators, databases,
-  ORMs, network services, and container runtimes.
+- In scope (done): clean, tested project foundation; durable DeepPlant
+  documentation; ADRs for the core architecture principles; minimal CLI package.
+- In scope (first semantic vertical slice): minimal domain model (`PlantModel`,
+  `Plant`, `Equipment`); YAML load boundary into typed Pydantic models;
+  structural validation (non-empty ids, unique equipment ids); `deepplant
+  validate <path>`; runnable `examples/minimal-process/plant.yaml`.
+- Out of scope (this slice): `Port`, `Connection`, `Pipeline`, `Instrument`,
+  reference validation, full tag naming standards, fixed equipment taxonomy,
+  YAML save, rendering, DEXPI, interactive editor, simulators, databases, ORMs,
+  network services, and container runtimes.
 
 ## Success Criteria
 
 - `deepplant --help` and `deepplant version` work from the installed entry point.
+- `deepplant validate examples/minimal-process/plant.yaml` succeeds with concise
+  output reporting the plant id and equipment count.
+- Invalid YAML syntax, missing files, and structurally invalid models exit
+  non-zero with a clear message and no raw traceback.
 - `make check` and `make build` pass.
 - The documentation states the semantic-model-first architecture and the ADRs
   record the core decisions.
@@ -89,7 +100,7 @@ structural and reference errors.
 
 ## Risks
 
-- Designing the YAML schema too early, or from habit instead of from the needed
-  semantics. The next task must design the schema deliberately from example
-  process fragments.
+- Designing taxonomy, tag standards, or schema fields from habit instead of from
+  needed semantics. The next model growth must be driven by real example
+  fragments (`Port`, `Connection`, and references).
 

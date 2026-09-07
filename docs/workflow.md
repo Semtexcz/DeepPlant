@@ -16,10 +16,12 @@ update_when:
 Project type: `script`. Runtime level: `shared`.
 Governance: `lightweight`. Workflow mode: `pr`.
 
-DeepPlant is currently in the project-foundation state. The next work item is
-the deliberate design of the first YAML schema against example process
-fragments; see [roadmap.md](roadmap.md). Do not implement the semantic model,
-renderers, or adapters during this phase.
+DeepPlant is past the project-foundation state: the first semantic vertical
+slice (minimal `PlantModel`/`Plant`/`Equipment` domain model, YAML load,
+structural validation, and `deepplant validate`) is implemented. Work proceeds
+as small vertical changes; the next item is `Port` + `Connection` + reference
+validation; see [roadmap.md](roadmap.md). Do not implement renderers, adapters,
+or DEXPI before the roadmap reaches them.
 
 ## Change Loop
 

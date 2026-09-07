@@ -1,0 +1,12 @@
+plant:
+  id: demo
+  name: Minimal Process
+
+equipment:
+  - id: T-101
+    type: tank
+    name: Feed Tank
+
+  - id: P-101
+    type: pump
+    name: Feed Pump

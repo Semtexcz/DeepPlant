@@ -5,10 +5,11 @@ the first product implementing the idea of **Engineering as Code**: engineering
 intent is expressed as a semantic model that can be validated, versioned,
 diffed, and rendered.
 
-This repository currently contains the project foundation only: a minimal Python
-CLI package, durable documentation, and architectural ADRs. The semantic domain
-model, the YAML schema, renderers, DEXPI, and the interactive editor are planned
-but not implemented.
+This repository currently ships the project foundation plus the first executable
+semantic vertical slice: a minimal `PlantModel`/`Plant`/`Equipment` domain model,
+YAML load into typed Pydantic models, structural validation, and a
+`deepplant validate` command. Rendering, DEXPI, adapters, and the interactive
+editor are planned but not implemented.
 
 Selected profile: `script-shared` (Python CLI package). Governance: `lightweight`.
 Workflow mode: `pr`.
@@ -41,6 +42,7 @@ Run the CLI:
 ```bash
 make run
 uv run deepplant version
+uv run deepplant validate examples/minimal-process/plant.yaml
 ```
 
 

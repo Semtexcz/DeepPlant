@@ -22,16 +22,38 @@ that shape it. Nothing under "Target Architecture" is implemented yet.
 
 ## Current Architecture
 
-The system is a Python CLI package.
+The system is a Python CLI package implementing the first semantic vertical
+slice: YAML file -> Pydantic validation -> typed domain model -> `validate` CLI.
 
 ```text
-tests -> src/deepplant/__main__.py (Typer CLI) -> package code
+tests -> CLI (src/deepplant/__main__.py) -> io.load_plant -> model
+```
+
+```text
+YAML file
+   ↓  PyYAML
+Python data structure (dict)
+   ↓  Pydantic validation
+DeepPlant domain model (PlantModel -> Plant + list[Equipment])
 ```
 
 - Python >= 3.12, managed with `uv`.
 - Runtime dependencies: Typer (CLI), Pydantic v2, PyYAML.
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict).
-- The CLI exposes only `--help` and `version`.
+- The CLI exposes `--help`, `version`, and `validate <path>`.
+- Domain model (`src/deepplant/model.py`): `PlantModel`, `Plant`, `Equipment`,
+  Pydantic v2 models that import nothing consumer-specific.
+- Loading boundary (`src/deepplant/io.py`): `load_plant(path) -> PlantModel`;
+  every expected failure (missing file, invalid YAML, invalid model) raises
+  `PlantLoadError` with a concise message, so the CLI never shows raw
+  tracebacks for normal user errors.
+- Structural validation so far: unknown fields are rejected on all semantic
+  models; `plant.id`, `equipment.id`, and `equipment.type` must be non-empty,
+  non-whitespace strings. Semantic input is fail-fast rather than permissive, so
+  typos and unsupported engineering data cannot be silently discarded.
+  Equipment ids must additionally be unique within a `PlantModel`. No full tag
+  naming standard and no fixed equipment taxonomy exist yet.
+- Runnable example: `examples/minimal-process/plant.yaml`.
 - `make run` executes the package module; `make test`, `make lint`,
   `make typecheck`, and `make build` verify the local package lifecycle.
 
@@ -97,7 +119,8 @@ make check
 Do not treat this list as implemented architecture. Add any item only when a
 concrete requirement and ADR justify it:
 
-- semantic model packages and the YAML schema
+- semantic model growth: `Port`, `Connection`, reference validation, further
+  engineering concepts, and the YAML save path
 - rendering and the SVG symbol specification
 - DEXPI and simulator adapters
 - interactive editor

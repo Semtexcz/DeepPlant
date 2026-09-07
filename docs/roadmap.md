@@ -12,25 +12,42 @@ update_when:
 
 # Roadmap
 
-DeepPlant currently ships only the project foundation: a Python CLI package with
-a `version` command, a minimal dependency set, durable documentation, ADRs, and
-automated checks. Nothing in the backlog below is implemented yet. Work proceeds
-as small vertical changes with executable tests.
+DeepPlant now ships the project foundation plus the first executable semantic
+vertical slice:
+
+- minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
+- YAML load through a small boundary into typed Pydantic models
+- basic structural validation (non-empty ids, unique equipment ids within a
+  model)
+- a runnable example: `examples/minimal-process/plant.yaml`
+- `deepplant validate <path>`
+
+Ports, connections, and reference validation are **not** implemented yet. Work
+proceeds as small vertical changes with executable tests; no item below requires
+`PlantModel`, `Equipment`, `Port`, and `Connection` to land in one change.
+
+## Completed
+
+| Item | Notes |
+|---|---|
+| Define `PlantModel` | Root container and composition of the model |
+| Define `Plant` | Plant identity: `id`, `name` |
+| Define `Equipment` | First engineering objects: `id`, `type`, `name`; no fixed taxonomy yet |
+| YAML load | YAML as serialization, validated via Pydantic into the domain model |
+| Semantic validation (structural) | Non-empty `plant.id`/`equipment.id`; unique equipment ids within a model |
+| First executable example | `examples/minimal-process/plant.yaml` runs through the CLI |
 
 ## Backlog (Suggested Order)
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Define `PlantModel` | Root container and composition of the model |
-| 2 | Define `Equipment` | First engineering objects |
-| 3 | Define `Port` | Typed connection points on components |
-| 4 | Define `Connection` | Generic `Port -> Connection -> Port` edges |
-| 5 | YAML load/save | YAML as serialization, validated via Pydantic into the domain model |
-| 6 | Semantic validation | Structural and reference validation on the domain model |
-| 7 | First executable example | `examples/minimal-process` becomes runnable |
-| 8 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 9 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 10 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Define `Port` | Typed connection points on components |
+| 2 | Define `Connection` | Generic `Port -> Connection -> Port` edges |
+| 3 | Reference validation | Validate that connections reference existing ports/components |
+| 4 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 5 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 6 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 7 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ## Milestones
 
@@ -38,6 +55,9 @@ as small vertical changes with executable tests.
 
 > DeepPlant can load a small process model from YAML, validate its semantic
 > structure and report invalid references through the CLI.
+
+The structural-validation half of this milestone is done for the first slice.
+The reference-validation half still requires `Port` and `Connection`.
 
 ### Milestone 2 — prototype fragment and renderer
 
@@ -47,10 +67,10 @@ as small vertical changes with executable tests.
 
 ## Next Task
 
-Design the first YAML schema deliberately, driven by example process fragments,
-and implement the minimal domain model (`PlantModel`, `Equipment`, `Port`,
-`Connection`) in the same vertical change so the schema is never invented in the
-abstract.
+Implement `Port` + `Connection` + reference validation as the next vertical
+change: extend the example fragment with typed connection points on equipment
+and validate that connections reference existing model objects. Keep rendering,
+YAML save, and DEXPI out of that change.
 
 ## Scope Discipline
 
