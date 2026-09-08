@@ -121,13 +121,23 @@ def _default_equipment() -> list[Equipment]:
 
 
 class PlantModel(BaseModel):
-    """Root container of a DeepPlant semantic model."""
+    """Root container of a DeepPlant semantic model.
+
+    Owns the physical/topology layer (``plant``, ``equipment``,
+    ``connections``) and, optionally, one process-domain submodel under
+    ``process``. ``ProcessModel`` stays independently constructible and owns
+    the S1-S4 validation boundary; ``PlantModel`` does not duplicate or extend
+    that internal validation and introduces no cross-layer rules between the
+    physical and process graphs yet (ADR-0005). ``None`` means no process model
+    is authored; an explicitly present empty ``ProcessModel`` is a valid value.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     plant: Plant
     equipment: list[Equipment] = Field(default_factory=_default_equipment)
     connections: list[Connection] = Field(default_factory=_default_connections)
+    process: "ProcessModel | None" = None
 
     @model_validator(mode="after")
     def _validate_unique_equipment_ids(self) -> Self:
@@ -255,8 +265,10 @@ class ProcessModel(BaseModel):
     process-domain submodel (ADR-0005). Step ids and stream ids live in separate
     namespaces, so a step and a stream may share one string id. It validates
     only the structural rules S1-S4; it neither depends on the physical layer
-    (``Equipment``, ``Port``, ``Connection``) nor is it part of ``PlantModel``
-    yet.
+    (``Equipment``, ``Port``, ``Connection``) nor does ``PlantModel`` duplicate
+    that validation. ``PlantModel`` may own exactly one optional
+    ``ProcessModel``; process and physical ids remain separate namespaces and no
+    cross-layer rules exist yet.
     """
 
     model_config = ConfigDict(extra="forbid")

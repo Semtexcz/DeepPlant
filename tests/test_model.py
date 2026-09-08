@@ -1,7 +1,19 @@
 import pytest
 from pydantic import ValidationError
 
-from deepplant.model import Connection, Equipment, Plant, PlantModel, Port, PortRef
+from deepplant.model import (
+    Connection,
+    Equipment,
+    Plant,
+    PlantModel,
+    Port,
+    PortRef,
+    ProcessModel,
+    ProcessPort,
+    ProcessRef,
+    ProcessStep,
+    ProcessStream,
+)
 
 
 def test_valid_model_from_objects() -> None:
@@ -42,6 +54,69 @@ def test_optional_names_default_to_none() -> None:
 
     assert model.plant.name is None
     assert model.equipment[0].name is None
+
+
+def test_plant_model_defaults_process_to_none() -> None:
+    model = PlantModel(plant=Plant(id="demo"))
+
+    assert model.process is None
+
+
+def test_process_model_is_independently_constructible() -> None:
+    process = ProcessModel(
+        steps=[
+            ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+        ],
+        streams=[
+            ProcessStream(
+                id="S-001",
+                source=ProcessRef(step="A", port="out"),
+                target=ProcessRef(step="B", port="in"),
+            )
+        ],
+    )
+
+    assert isinstance(process, ProcessModel)
+    assert (process.streams[0].source.step, process.streams[0].source.port) == ("A", "out")
+
+
+def test_plant_model_can_own_one_process_model() -> None:
+    model = PlantModel(
+        plant=Plant(id="demo"),
+        process=ProcessModel(
+            steps=[
+                ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
+                ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ],
+            streams=[
+                ProcessStream(
+                    id="S-001",
+                    source=ProcessRef(step="A", port="out"),
+                    target=ProcessRef(step="B", port="in"),
+                )
+            ],
+        ),
+    )
+
+    assert isinstance(model.process, ProcessModel)
+    assert [step.id for step in model.process.steps] == ["A", "B"]
+    assert (model.process.streams[0].target.step, model.process.streams[0].target.port) == (
+        "B",
+        "in",
+    )
+
+
+def test_process_step_and_equipment_may_share_the_same_id() -> None:
+    model = PlantModel(
+        plant=Plant(id="demo"),
+        equipment=[Equipment(id="P-101", type="pump")],
+        process=ProcessModel(steps=[ProcessStep(id="P-101", type="pump")]),
+    )
+
+    assert model.equipment[0].id == "P-101"
+    assert model.process is not None
+    assert model.process.steps[0].id == "P-101"
 
 
 def test_missing_required_fields_fail() -> None:

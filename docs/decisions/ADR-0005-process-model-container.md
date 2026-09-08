@@ -70,14 +70,20 @@ process models are not introduced.
 
 ## Deferred
 
-- Final `PlantModel` field name and optionality for one process model.
-- YAML/document/file layout.
-- Multiple process models, scenario-specific graphs, and operating-state
-  overlays.
+Resolved by ADR-0006:
+- final `PlantModel` field name / optionality for the first slice
+  (`process: ProcessModel | None = None`)
+- first YAML process-section boundary (`process: { steps, streams }`)
+
+Still deferred:
+- broader YAML document / file layout beyond the single root `process` section
+- multiple process models, scenario-specific graphs, and operating-state
+  overlays
 - Process↔Equipment, ProcessPort↔Nozzle/current `Port`, and
-  ProcessStream↔physical-realization mappings.
+  ProcessStream↔physical-realization mappings
+- YAML save / round-trip serialization mapping
 - Physical piping, process-port roles, step-type rules, stream designations,
-  rendering, DEXPI adapters, and simulator interfaces.
+  rendering, DEXPI adapters, and simulator interfaces
 
 ## Revisit When
 
