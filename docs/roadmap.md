@@ -26,7 +26,8 @@ executable tasks.
 
 ## Current Implementation Roadmap
 
-DeepPlant ships the project foundation plus four semantic vertical slices:
+DeepPlant ships the project foundation plus four semantic vertical slices and a
+realistic process-fragment validation example:
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -55,6 +56,14 @@ DeepPlant ships the project foundation plus four semantic vertical slices:
   YAML that the existing `load_plant()` reads back as a semantically equal
   model; `process: None` is omitted while an explicitly empty `ProcessModel`
   stays present; formatting, comments, and quoting are not preserved
+- realistic process fragment as a loadable public example:
+  `examples/realistic-process-fragment/plant.yaml` encodes the documented PFD
+  fragment (fresh feed, mixing, pump, heat exchanger, splitting, vessel,
+  downstream boundary, recycle) through the production models, loads via
+  `load_plant()`, and round-trips via `save_plant()`; mixing/splitting stay
+  explicit `ProcessStep`s without `Equipment`, `FV-101` stays physical without a
+  `ProcessStep`, recycle is an ordinary cycle, and no new schema, mappings, or
+  piping model were introduced
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
@@ -87,28 +96,21 @@ never imply equipment, and no cross-layer rules exist yet.
 | Process structural validation | S1 duplicate step/stream ids rejected; S3 endpoints resolve to process steps and owned process ports; S4 identical source/target endpoints rejected; cycles/recycle/mixing/splitting structurally allowed; no dependency on `Equipment`/`Port`/`Connection` |
 | Integrate `ProcessModel` into the root/loadable model | `PlantModel.process: ProcessModel \| None`; YAML `process` section (`steps`, `streams`) loads through the existing loader; missing `process` and `process: null` load as no process model, `process: {}` as an empty one; S1–S4 stay on the process-domain models; process and physical ids remain separate namespaces; root/YAML shape recorded in ADR-0006 |
 | YAML save / semantic round-trip | Canonical `save_plant()` through Pydantic `model_dump(exclude_none=True)` + PyYAML (`sort_keys=False`, `allow_unicode=True`); `load_plant(save_plant(model)) == model`; `None` optionals omitted; `process: None` omitted; explicit empty `ProcessModel` preserved; deterministic field order; UTF-8 with a trailing newline; comments/formatting not preserved; no domain-model changes; no CLI save/format command |
+| Realistic process fragment as a loadable example | Synthetic public YAML (`examples/realistic-process-fragment/plant.yaml`) encodes the documented PFD fragment: seven `ProcessStep`s and seven `ProcessStream`s including recycle, mixing, and splitting; loads through `load_plant()` via `PlantModel.process` and round-trips through `save_plant()`; physical bootstrap layer (`T-101`, `P-101`, `FV-101`, `E-101`, `V-101`) stays independent; `PS-mix`/`PS-split` have no `Equipment` counterpart and `FV-101` has no `ProcessStep`; no new schema, process↔physical mappings, or piping model |
 
 ### Backlog (Suggested Order)
 
-The realistic process fragment documented in
-[process-fragment-prototype.md](process-fragment-prototype.md) already exercises
-fresh feed, mixing, a pump, a heat exchanger, splitting, a vessel, a downstream
-boundary, and recycle; it is the preferred evidence base for the symbol and
-rendering work that follows. ADR-0005 is accepted: `PlantModel` remains the
-overall aggregate while one independently valid `ProcessModel` owns the process
-graph and defines the S1–S4 reference-validation boundary. The root/loadable
-integration and the canonical YAML save/round-trip are implemented (see
-Completed): `PlantModel.process: ProcessModel | None`, YAML loading of the
-`process` section (ADR-0006), and a deterministic `save_plant()` whose output
-`load_plant()` reads back into a semantically equal model. The next task is the
-first row below.
+The documented realistic process fragment is now implemented as a loadable
+public example through the production semantic model (see Completed):
+[examples/realistic-process-fragment/plant.yaml](examples/realistic-process-fragment/plant.yaml).
+It exposed no blocking semantic gap for the process graph, so presentation work
+can start from that example. The next task is the first row below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Realistic process fragment as a loadable example | Turn the fragment in [process-fragment-prototype.md](process-fragment-prototype.md) into synthetic public YAML, load it through the real `PlantModel` via `load_plant()`, and validate it through the existing production models so missing semantic requirements surface before presentation design; do not introduce new schema merely to make the fixture fit; document any genuine model gap the executable example reveals |
-| 2 | SVG symbol specification | Deliberate symbol/geometry/layout spec, separate from semantics (ADR-0003); prerequisite for the renderer |
-| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model using the symbol spec |
-| 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | SVG symbol specification | Deliberate symbol/geometry/layout spec, separate from semantics (ADR-0003); prerequisite for the renderer; the loadable realistic process-fragment example is its reference fragment |
+| 2 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model using the symbol spec |
+| 3 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -126,25 +128,27 @@ slices.
 > objects, render it as a basic PFD/P&ID-like diagram and validate at least 10
 > classes of engineering/model consistency errors.
 
-Order within this milestone: the realistic process fragment first becomes a
-loadable synthetic example through the production semantic model (backlog
-row 1); the SVG symbol specification and the basic renderer (backlog rows 2–3)
-then derive the diagram from that example.
+Order within this milestone: the realistic process fragment is now a loadable
+synthetic example through the production semantic model (see Completed); the
+SVG symbol specification and the basic renderer (backlog rows 1–2) then derive
+the diagram from that example.
 
 ### Next Task
 
-The next task is to turn the documented realistic process fragment into a
-loadable synthetic example using the production semantic model. The fragment is
-documented in [process-fragment-prototype.md](process-fragment-prototype.md);
-the example itself is not implemented in this PR.
+The next task is the SVG symbol specification: a deliberate
+symbol/geometry/layout specification kept separate from engineering semantics
+(ADR-0003) and the prerequisite for the basic renderer. The loadable realistic
+process fragment
+([examples/realistic-process-fragment/plant.yaml](examples/realistic-process-fragment/plant.yaml))
+is its reference fragment.
 
-This comes before SVG/presentation work because schema and presentation
-decisions should be tested against a realistic engineering fragment rather than
-the current trivial FEED → PUMP → PRODUCT example
-([examples/process-graph/plant.yaml](examples/process-graph/plant.yaml)).
+The realistic fragment exposed no blocking semantic gap for the process graph,
+so no further process-model decision is required before starting presentation
+work. The open physical-piping / process-to-physical-realization question
+remains a tracked, unresolved semantic decision, but it is not a prerequisite
+for the SVG symbol specification.
 
-The subsequent tasks are the SVG symbol specification (backlog row 2) and then
-the basic read-only renderer (backlog row 3).
+The subsequent task is the basic read-only renderer (backlog row 2).
 
 ### Scope Discipline
 
@@ -200,14 +204,17 @@ identity, references.
 
 Relationship to today: the core primitives of Stage 1 are implemented on
 `main` — `PlantModel`, `Plant`, `Equipment`, equipment-owned `Port`,
-`PortRef`, directed `Connection`, reference validation, YAML load, and
-strict structural validation. Implemented primitives are not the same as a
-completed capability stage: the Stage 1 exit signal below has not yet been
-demonstrated on a real process fragment. The next task above — turning the
-documented realistic fragment into a loadable synthetic example — is the vehicle
-for that demonstration; the open physical-piping / process-to-physical-realization
-question is the semantic decision that example is expected to inform before
-presentation design.
+`PortRef`, directed `Connection`, reference validation, YAML load, strict
+structural validation, the standalone process model (`ProcessModel`, S1–S4),
+its root/loadable integration (`PlantModel.process`), and canonical YAML
+save/round-trip. Implemented primitives are not the same as a completed
+capability stage: the Stage 1 exit signal below has now been exercised on the
+documented realistic fragment encoded as a loadable synthetic example
+([examples/realistic-process-fragment/plant.yaml](examples/realistic-process-fragment/plant.yaml))
+through the production models. The open physical-piping /
+process-to-physical-realization question remains an unresolved semantic
+decision; the fragment exposed it but did not require it — no new schema was
+needed to represent the fragment.
 
 Exit signal:
 
