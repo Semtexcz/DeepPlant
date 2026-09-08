@@ -83,11 +83,12 @@ process graph and its mappings.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Review and approve/reject the revised process-layer model | Human decision on `docs/process-topology.md` (ProcessStep/Equipment, ProcessPort/Port, ProcessStream/Connection, explicit junctions, mapping cardinalities); no semantic-model implementation until then |
-| 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Prototype and review one realistic process-layer fragment | Use proposed `ProcessStep` / `ProcessPort` / `ProcessStream` concepts with explicit Mixing/Splitting and explicit mappings to current Equipment / Port / Connection; no code yet |
+| 2 | Approve the smallest semantic implementation slice | Human architectural decision after fragment review |
+| 3 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 4 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 5 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 6 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -107,11 +108,27 @@ slices.
 
 ### Next Task
 
-Human review of the proposed process-topology model
-([process-topology.md](process-topology.md)). If approved, the next vertical
-change implements the approved first increment (a separate `ProcessStream`
-entity) on a real fragment with tests. Rendering, YAML save, and DEXPI stay out
-of scope until that decision lands.
+Create and review one realistic PFD process-model prototype using:
+
+- `ProcessStep`
+- `ProcessPort`
+- `ProcessStream`
+- explicit Mixing / Splitting where required
+- recycle topology where relevant
+- explicit conceptual mappings to the current Equipment / Port / Connection model
+
+This is still a documentation/prototyping step. No production semantic-model
+implementation is approved yet. Only after human review of that fragment should
+the roadmap name the smallest concrete code increment.
+
+```text
+research proposal
+→ realistic fragment prototype
+→ human review
+→ only then implementation scope
+```
+
+Rendering, YAML save, and DEXPI stay out of scope until that decision lands.
 
 ### Scope Discipline
 

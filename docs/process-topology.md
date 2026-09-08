@@ -379,6 +379,14 @@ No implementation increment is named by this research.
 
 ## Sources
 
+> **Source-status note:** DEXPI 2.0 is the current primary reference used by this
+> research. DEXPI has announced work on 2.0.1, including corrections and
+> clarifications to the Process Model. When 2.0.1 becomes the recommended
+> published baseline, this research should be rechecked against it before any
+> detailed DEXPI mapping is encoded in an ADR or adapter. This is not a reason to
+> delay DeepPlant: the engineering distinctions in this research are stable
+> enough for research, while the exact DEXPI class mapping remains provisional.
+
 - **[S1] DEXPI e.V., _DEXPI Specification_, Release 2.0.0 (10 October 2025),
   Chapter 3 “Models”, Process model entries including `ProcessStep`,
   `ProcessConnection`, `MaterialPort`, `EnergyPort`, `Mixing`, `Splitting`, and
