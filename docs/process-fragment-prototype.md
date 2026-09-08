@@ -875,6 +875,61 @@ PlantModel                               Process graph (conceptual)
 8. Do parallel lines between the same two steps (multiple trains) need
    distinct ports or distinct streams? Not exercised by this fragment.
 
+## Process-Model Container Decision
+
+[ADR-0005](decisions/ADR-0005-process-model-container.md) proposes **C1**:
+`PlantModel` remains the overall semantic aggregate for one plant and contains
+one independently constructible `ProcessModel`; `ProcessModel` owns the process
+graph and defines its structural reference-validation boundary. This resolves a
+false dichotomy: a domain submodel may live inside one plant aggregate without
+being a separate YAML document or repository-level artifact.
+
+### Decision matrix
+
+| Criterion | C1 `ProcessModel` | C2 direct `PlantModel` ownership |
+|---|---|---|
+| Semantic cohesion | Keeps steps, ports, and streams as one graph | Keeps graph collections at the aggregate root |
+| Validation boundary clarity | S1–S4 reside with the graph they describe | `PlantModel` combines process and physical validators |
+| Current implementation simplicity | Adds one semantic container | Fewer immediate fields/classes |
+| Independent process testing | Process graph can be constructed alone | Tests must construct an otherwise irrelevant root/plant |
+| Adapter boundary | Natural input for PFD, process exchange, and simulation consumers | Consumers must select process collections from the root |
+| Process/physical decoupling | Explicit: graph validity has no physical dependency | Possible, but easier to blur at the root |
+| Future cross-layer mapping | Leaves mappings above/between two valid graphs | Encourages root-level coupling pressure |
+| Risk of premature abstraction | One boundary justified by the real graph | Lowest immediate abstraction cost |
+| Root-model complexity | Keeps root aggregate focused | Root accumulates unrelated validation domains |
+| Git/YAML impact | Not decisive under ADR-0004 | Not decisive under ADR-0004 |
+
+The fragment supports C1 because `PS-mix`, `PS-split`, and `PS-consumer` are
+valid steps despite no corresponding `Equipment`; `S-001`, `S-002`, and an
+invalid `S-004` endpoint can be resolved or rejected wholly within the process
+graph. Under the proposed boundary, the invalid `ProcessModel` is the invalid
+object — not the unrelated physical/bootstrap graph.
+
+The authorized validator shape after human approval is:
+
+```text
+ProcessStep
+    validates unique local ProcessPort ids (S2)
+
+ProcessModel
+    validates unique ProcessStep ids (S1)
+    validates unique ProcessStream ids
+    validates ProcessStream endpoint resolution (S3)
+    validates source endpoint != target endpoint (S4)
+
+PlantModel
+    retains physical Equipment/Connection validation
+```
+
+`ProcessStep.id` and `ProcessStream.id` are unique within one `ProcessModel`;
+`ProcessPort.id` is unique within its `ProcessStep`; and `ProcessRef.step` /
+`ProcessRef.port` resolves within that model. Those identities are separate from
+physical `Equipment` and current `Port` identities, so cross-layer id collisions
+remain legal by default. The first production slice assumes at most one process
+model per plant aggregate; multiple abstractions, scenario graphs, and operating
+state overlays remain deferred. Future mapping relations are higher-level
+cross-layer concerns and must not make the process graph require `Equipment`.
+
 ## Decision Status
 
 > **Proposed — requires human architectural review.** This change is

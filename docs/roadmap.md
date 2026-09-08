@@ -65,26 +65,15 @@ reconsidered before implementation, not auto-selected.
 
 ### Backlog (Suggested Order)
 
-The pipes/streams modeling question was researched and refined in
-[process-topology.md](process-topology.md). The decision remains **not resolved**:
-
-> Review and approve the revised process-layer model, including the relationship
-> among `ProcessStep`, current `Equipment`, `ProcessPort`, current `Port`,
-> `ProcessStream`, and `Connection`—including explicit split/merge semantics and
-> process-to-plant mapping cardinalities—before naming any implementation
-> increment.
-
-The research rejects independently authored duplicate process-stream and
-`Connection` endpoints. It treats the current `Connection` as today’s generic
-low-level adjacency/bootstrap abstraction, not a universal graph by assumption.
-Do not implement pipes, streams, process steps, ports, or mappings from habit or
-because rendering needs them; human review must first approve a real-fragment
-process graph and its mappings.
+The process fragment is documented in
+[process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 now
+proposes the remaining ownership decision; it is not accepted and authorizes no
+production implementation.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Review the realistic process-fragment prototype | Human review of the documentation-only prototype in [process-fragment-prototype.md](process-fragment-prototype.md): explicit `ProcessStep` / `ProcessPort` / `ProcessStream` instances, Mixing/Splitting, recycle, and mappings to current Equipment / Port / Connection; decision-gated, no code yet |
-| 2 | Approve the smallest semantic implementation slice | Human architectural decision after fragment review |
+| 1 | Review ADR-0005 and approve or reject the proposed process-model ownership boundary | Human architectural review of [ADR-0005](decisions/ADR-0005-process-model-container.md). Documentation-only decision; no production process-model implementation is included. |
+| 2 | Implement the approved first process-model vertical slice | Only after ADR-0005 is accepted: chosen process container, `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`, and structural rules S1–S4. |
 | 3 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
 | 4 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
 | 5 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
@@ -108,29 +97,15 @@ slices.
 
 ### Next Task
 
-The realistic process-fragment prototype now exists and is under human review in
-[process-fragment-prototype.md](process-fragment-prototype.md). The remaining
-architectural decision before any production implementation is the owning
-process-model / validation boundary:
+Review ADR-0005 and approve or reject the proposed process-model ownership
+boundary. It proposes C1: `PlantModel` remains the overall semantic aggregate,
+while one independently valid `ProcessModel` owns `ProcessStep[]` and
+`ProcessStream[]` (with `ProcessPort[]` owned by their steps) and defines the
+S1–S4 reference-validation boundary.
 
-- **C1 — separate `ProcessModel`**
-  - owns `ProcessStep[]`
-  - owns `ProcessStream[]`
-  - `ProcessPort[]` remain owned by their `ProcessStep`
-- **C2 — direct `PlantModel` ownership**
-  - `PlantModel` owns `ProcessStep[]`
-  - `PlantModel` owns `ProcessStream[]`
-  - process validation remains scoped to those process collections
-
-This decision defines the reference-validation boundary for the proposed
-process graph (hard structural rules S1–S4 only).
-
-Only after C1 vs C2 is approved may the smallest production semantic-model
-slice be authorized.
-
-No production process-model implementation is approved yet.
-
-Rendering, YAML save, and DEXPI stay out of scope until that decision lands.
+No production process-model implementation is approved until human review
+accepts this ADR. YAML shape, process-model multiplicity, mappings, rendering,
+YAML save, DEXPI, and simulator interfaces remain out of scope.
 
 ### Scope Discipline
 
