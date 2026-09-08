@@ -19,6 +19,6 @@ update_when:
 | ADR-0002 | Accepted | The semantic engineering model is the product core; all consumers depend on it. |
 | ADR-0003 | Accepted | Keep semantic engineering data and presentation/rendering data strictly separate. |
 | ADR-0004 | Accepted | YAML is a serialization format validated into the domain model, not the domain model itself. |
-| ADR-0005 | Proposed | Use `ProcessModel` as the process-graph container and S1–S4 validation boundary while `PlantModel` remains the overall aggregate. |
+| ADR-0005 | Accepted | Use `ProcessModel` as the process-graph container and S1–S4 validation boundary while `PlantModel` remains the overall aggregate. |
 
 Create an ADR for architecture style changes, databases, external services, authentication, cache, queues, events, deployment, vendor lock-in, and data ownership changes.

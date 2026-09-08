@@ -1,15 +1,15 @@
 # ADR-0005: Use ProcessModel as the Process-Graph Container
 
-> Status: Proposed
+> Status: Accepted
 > Date: 2026-09-08
 
 ## Context
 
 The validated process fragment establishes an independently meaningful process
 graph: `ProcessStep` owns `ProcessPort`; `ProcessStream` connects
-`ProcessRef(step, port)` endpoints. The first hard structural rules are unique
-step ids (S1), step-local port ids (S2), endpoint resolution (S3), and distinct
-source and target endpoints (S4).
+`ProcessRef(step, port)` endpoints. The first hard structural rules are ids
+unique within their owning collections (S1), step-local port ids (S2), endpoint
+resolution (S3), and distinct source and target endpoints (S4).
 
 The unresolved question is whether `PlantModel` owns process collections
 directly or contains a dedicated semantic `ProcessModel`. This is a domain
@@ -31,11 +31,19 @@ reference-validation boundary.
 
 `ProcessModel` is independently constructible and structurally valid without
 `Equipment`, current `Port`, `Connection`, or a physical realization. It owns
-process-graph identity: `ProcessStep.id` and `ProcessStream.id` are unique
-within that `ProcessModel`; `ProcessPort.id` is unique within its owning step;
-and `ProcessRef(step, port)` resolves within that same model. Process and
-physical ids have separate namespaces, so a process id may equal an equipment
-id unless a future cross-layer rule proves otherwise.
+process-graph identity through the S1–S4 boundary. Step ids and stream ids live
+in separate namespaces: a `ProcessStep` and a `ProcessStream` may use the same
+string id. Process and physical ids are also separate namespaces, so a process
+id may equal an equipment id unless a future cross-layer rule proves otherwise.
+
+The structural rules this boundary defines are:
+
+- **S1** — ids are unique within their owning collections: `ProcessStep.id`
+  unique within `ProcessModel.steps`; `ProcessStream.id` unique within
+  `ProcessModel.streams`. The two collections are separate namespaces.
+- **S2** — `ProcessPort.id` is unique within the owning `ProcessStep`.
+- **S3** — `ProcessRef` endpoints resolve within the `ProcessModel`.
+- **S4** — source endpoint != target endpoint.
 
 The first slice assumes zero or one `ProcessModel` per `PlantModel`; multiple
 process models are not introduced.

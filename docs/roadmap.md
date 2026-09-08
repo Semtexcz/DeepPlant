@@ -62,22 +62,24 @@ reconsidered before implementation, not auto-selected.
 | YAML load | YAML as serialization, validated via Pydantic into the domain model |
 | Semantic validation (structural) | Non-empty ids; unknown fields rejected; unique equipment ids; unique port ids per equipment |
 | First executable example | `examples/minimal-process/plant.yaml` runs through the CLI |
+| Decide process-model container | ADR-0005 accepted (C1): `PlantModel` remains the overall aggregate; one independently valid `ProcessModel` owns the process graph and the S1–S4 validation boundary |
 
 ### Backlog (Suggested Order)
 
 The process fragment is documented in
-[process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 now
-proposes the remaining ownership decision; it is not accepted and authorizes no
-production implementation.
+[process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
+accepted: `PlantModel` remains the overall aggregate while one independently
+valid `ProcessModel` owns the process graph and defines the S1–S4
+reference-validation boundary. This authorizes the first production
+process-model vertical slice.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Review ADR-0005 and approve or reject the proposed process-model ownership boundary | Human architectural review of [ADR-0005](decisions/ADR-0005-process-model-container.md). Documentation-only decision; no production process-model implementation is included. |
-| 2 | Implement the approved first process-model vertical slice | Only after ADR-0005 is accepted: chosen process container, `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`, and structural rules S1–S4. |
-| 3 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 4 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 5 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 6 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Implement the first process-model vertical slice | ADR-0005 accepted: `ProcessModel`, `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`, and structural rules S1–S4. |
+| 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -97,15 +99,32 @@ slices.
 
 ### Next Task
 
-Review ADR-0005 and approve or reject the proposed process-model ownership
-boundary. It proposes C1: `PlantModel` remains the overall semantic aggregate,
-while one independently valid `ProcessModel` owns `ProcessStep[]` and
-`ProcessStream[]` (with `ProcessPort[]` owned by their steps) and defines the
-S1–S4 reference-validation boundary.
+Implement the first production process-model vertical slice authorized by the
+accepted ADR-0005:
 
-No production process-model implementation is approved until human review
-accepts this ADR. YAML shape, process-model multiplicity, mappings, rendering,
-YAML save, DEXPI, and simulator interfaces remain out of scope.
+- `ProcessModel` — zero or one per `PlantModel`; owns `ProcessStep[]` and
+  `ProcessStream[]`, with `ProcessPort[]` owned by their steps
+- `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`
+- structural rules S1–S4:
+  - S1 — ids are unique within their owning collections: `ProcessStep.id`
+    unique within `ProcessModel.steps`; `ProcessStream.id` unique within
+    `ProcessModel.streams` (separate namespaces)
+  - S2 — `ProcessPort.id` unique within the owning `ProcessStep`
+  - S3 — `ProcessRef` endpoints resolve within the `ProcessModel`
+  - S4 — source endpoint != target endpoint
+
+Explicitly out of scope for this slice:
+
+- process↔physical mappings
+- DEXPI
+- rendering
+- physical piping
+- stream designations
+- controlled step-type taxonomy
+- operating-state implementation
+
+Multiplicity beyond zero-or-one `ProcessModel` per plant remains deferred
+(ADR-0005).
 
 ### Scope Discipline
 

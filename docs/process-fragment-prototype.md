@@ -636,16 +636,16 @@ in this change.
 ### First hard structural rules
 
 These rules require a clearly defined process-model/container boundary: S1 is
-scoped to that process model, and S3 resolves references against its owned steps
-and streams. No reference-validation rule should be implemented without that
-boundary.
+scoped to the owning process model's collections, and S3 resolves references
+against its owned steps and streams. No reference-validation rule should be
+implemented without that boundary.
 
 | # | Rule | Fragment evidence |
 |---|---|---|
-| S1 | Unique ProcessStep ids within the process model | needed for stream endpoints and graph identity |
-| S2 | Unique ProcessPort ids within the owning ProcessStep | mirrors current equipment-local `Port` uniqueness; all 14 ports distinct within their steps |
-| S3 | Every ProcessStream endpoint resolves to an existing ProcessStep and a ProcessPort owned by that step | all seven streams resolve; equivalent in kind to today’s `Connection` reference validation |
-| S4 | Source endpoint ≠ target endpoint | no self-edge exists or is meaningful in this fragment |
+| S1 | Ids unique within their owning collections: `ProcessStep.id` within `ProcessModel.steps`; `ProcessStream.id` within `ProcessModel.streams`; the two collections are separate namespaces | needed for stream endpoints and graph identity; step and stream ids may coincide |
+| S2 | `ProcessPort.id` unique within the owning `ProcessStep` | mirrors current equipment-local `Port` uniqueness; all 14 ports distinct within their steps |
+| S3 | `ProcessRef` endpoints resolve within the `ProcessModel` | all seven streams resolve; equivalent in kind to today’s `Connection` reference validation |
+| S4 | source endpoint != target endpoint | no self-edge exists or is meaningful in this fragment |
 
 ### Proposed / deferred consistency rule
 
@@ -825,9 +825,11 @@ class ProcessStream:
 
 
 # Hard structural checks, after the owner/validation boundary is approved:
-# S1 unique ProcessStep ids within the process model
-# S2 unique ProcessPort ids within the owning ProcessStep
-# S3 every ProcessStream endpoint resolves within that process model
+# S1 ids unique within owning collections:
+#    ProcessStep.id unique within ProcessModel.steps
+#    ProcessStream.id unique within ProcessModel.streams (separate namespaces)
+# S2 ProcessPort.id unique within the owning ProcessStep
+# S3 ProcessRef endpoints resolve within the ProcessModel
 # S4 source endpoint != target endpoint
 ```
 
@@ -877,11 +879,11 @@ PlantModel                               Process graph (conceptual)
 
 ## Process-Model Container Decision
 
-[ADR-0005](decisions/ADR-0005-process-model-container.md) proposes **C1**:
-`PlantModel` remains the overall semantic aggregate for one plant and contains
-one independently constructible `ProcessModel`; `ProcessModel` owns the process
-graph and defines its structural reference-validation boundary. This resolves a
-false dichotomy: a domain submodel may live inside one plant aggregate without
+[ADR-0005](decisions/ADR-0005-process-model-container.md) (Accepted) selects
+**C1**: `PlantModel` remains the overall semantic aggregate for one plant and
+contains one independently constructible `ProcessModel`; `ProcessModel` owns the
+process graph and defines its S1–S4 reference-validation boundary. This resolves
+a false dichotomy: a domain submodel may live inside one plant aggregate without
 being a separate YAML document or repository-level artifact.
 
 ### Decision matrix
@@ -902,33 +904,38 @@ being a separate YAML document or repository-level artifact.
 The fragment supports C1 because `PS-mix`, `PS-split`, and `PS-consumer` are
 valid steps despite no corresponding `Equipment`; `S-001`, `S-002`, and an
 invalid `S-004` endpoint can be resolved or rejected wholly within the process
-graph. Under the proposed boundary, the invalid `ProcessModel` is the invalid
+graph. Under this boundary, the invalid `ProcessModel` is the invalid
 object — not the unrelated physical/bootstrap graph.
 
-The authorized validator shape after human approval is:
+The authorized validator shape is:
 
 ```text
 ProcessStep
     validates unique local ProcessPort ids (S2)
 
 ProcessModel
-    validates unique ProcessStep ids (S1)
-    validates unique ProcessStream ids
-    validates ProcessStream endpoint resolution (S3)
+    validates ids unique within their owning collections (S1):
+        ProcessStep.id unique within steps
+        ProcessStream.id unique within streams
+        (step and stream collections are separate namespaces)
+    validates ProcessRef endpoint resolution (S3)
     validates source endpoint != target endpoint (S4)
 
 PlantModel
     retains physical Equipment/Connection validation
 ```
 
-`ProcessStep.id` and `ProcessStream.id` are unique within one `ProcessModel`;
-`ProcessPort.id` is unique within its `ProcessStep`; and `ProcessRef.step` /
-`ProcessRef.port` resolves within that model. Those identities are separate from
-physical `Equipment` and current `Port` identities, so cross-layer id collisions
-remain legal by default. The first production slice assumes at most one process
-model per plant aggregate; multiple abstractions, scenario graphs, and operating
-state overlays remain deferred. Future mapping relations are higher-level
-cross-layer concerns and must not make the process graph require `Equipment`.
+Under S1, `ProcessStep.id` is unique within `ProcessModel.steps` and
+`ProcessStream.id` is unique within `ProcessModel.streams`; the two collections
+are separate namespaces, so a step and a stream may use the same string id.
+`ProcessPort.id` is unique within its `ProcessStep` (S2), and `ProcessRef.step`
+/ `ProcessRef.port` resolves within that model (S3). Those identities are
+separate from physical `Equipment` and current `Port` identities, so cross-layer
+id collisions remain legal by default. The first production slice assumes at
+most one process model per plant aggregate; multiple abstractions, scenario
+graphs, and operating state overlays remain deferred. Future mapping relations
+are higher-level cross-layer concerns and must not make the process graph
+require `Equipment`.
 
 ## Decision Status
 
@@ -971,10 +978,12 @@ Answers and approvals this prototype now makes explicit:
    `ProcessModel`) and C2 (collections directly on `PlantModel`) have been
    evaluated, but this fragment does not decide between them. Approval is
    required before implementation because it defines the validation boundary.
-9. **What structural validation is justified after that approval?** S1–S4 only:
-   unique ProcessStep ids within the process model; unique ProcessPort ids per
-   owning step; resolved ProcessStream endpoints; and distinct source/target
-   endpoints. Former S5 is deferred, not a production invariant.
+9. **What structural validation is justified?** S1–S4 only: ids unique within
+   their owning collections (`ProcessStep.id` within `ProcessModel.steps`;
+   `ProcessStream.id` within `ProcessModel.streams`; separate namespaces);
+   `ProcessPort.id` per owning step; `ProcessRef` endpoints resolving within
+   the `ProcessModel`; and distinct source/target endpoints. Former S5 is
+   deferred, not a production invariant.
 10. **What is the `type` decision?** A non-empty open string discriminator,
     consistent with current `Equipment.type`; no enum, controlled vocabulary,
     or subclasses yet.
