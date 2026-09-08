@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from deepplant import load_plant
-from deepplant.model import PlantModel, ProcessModel
+from deepplant.model import Equipment, PlantModel, ProcessModel
 
 EXAMPLE = Path(__file__).parents[1] / "examples" / "realistic-process-fragment" / "plant.yaml"
 
@@ -30,11 +30,12 @@ EXPECTED_STREAMS: dict[str, tuple[str, str, str, str]] = {
     "S-007": ("PS-split", "out_branch", "PS-consumer", "in"),
 }
 
+# Truthful physical/bootstrap subset: only directly known adjacency. The
+# mixing tee, splitting tee, and recycle piping are intentionally not jumped
+# over by Connections.
 EXPECTED_PHYSICAL_CONNECTIONS = {
-    ("T-101", "outlet", "P-101", "suction"),
-    ("P-101", "discharge", "E-101", "process_inlet"),
-    ("E-101", "process_outlet", "V-101", "feed_inlet"),
-    ("V-101", "bottoms_outlet", "FV-101", "inlet"),
+    ("P-101", "discharge", "FV-101", "inlet"),
+    ("FV-101", "outlet", "E-101", "process_inlet"),
 }
 
 
@@ -45,6 +46,12 @@ def _model() -> PlantModel:
 def _process(model: PlantModel) -> ProcessModel:
     assert model.process is not None
     return model.process
+
+
+def _equipment(model: PlantModel, equipment_id: str) -> Equipment:
+    matches = [item for item in model.equipment if item.id == equipment_id]
+    assert len(matches) == 1
+    return matches[0]
 
 
 def _stream_edges(model: PlantModel) -> dict[str, tuple[str, str, str, str]]:
@@ -177,13 +184,31 @@ def test_mixing_and_splitting_have_no_equipment_counterpart() -> None:
     assert {"PS-mix", "PS-split"}.isdisjoint(equipment_ids)
 
 
-def test_control_valve_is_physical_without_a_process_step() -> None:
+def test_fv101_is_the_inline_flow_control_valve_without_a_process_step() -> None:
     model = _model()
+    fv = _equipment(model, "FV-101")
     equipment_ids = {item.id for item in model.equipment}
     step_ids = {step.id for step in _process(model).steps}
 
     assert "FV-101" in equipment_ids
     assert "FV-101" not in step_ids
+    # Neutral documented role: inline control valve between pump and exchanger.
+    assert fv.name == "Flow Control Valve"
+    assert [port.id for port in fv.ports] == ["inlet", "outlet"]
+
+
+def test_vessel_recycle_outlet_is_unconnected_in_the_bootstrap_graph() -> None:
+    model = _model()
+    vessel = _equipment(model, "V-101")
+    port_ids = {port.id for port in vessel.ports}
+
+    assert "recycle_outlet" in port_ids
+    assert "bottoms_outlet" not in port_ids
+    assert not any(
+        (connection.source.component == "V-101" and connection.source.port == "recycle_outlet")
+        or (connection.target.component == "V-101" and connection.target.port == "recycle_outlet")
+        for connection in model.connections
+    )
 
 
 def test_physical_bootstrap_layer_has_equipment_ports_and_connections() -> None:

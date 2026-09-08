@@ -4,11 +4,14 @@ plant:
 
 # Physical / bootstrap layer.
 #
-# This is an equipment inventory with a few partial, explicitly non-exhaustive
-# Connections. It is NOT a physical piping model: mixing/splitting tees,
-# valve-in-line routing downstream of FV-101, nozzles, and the second E-101
-# side are intentionally not modeled. Physical edges imply no mapping to the
-# process layer below.
+# Equipment inventory with a few Connections that represent only directly
+# known physical adjacency. This is NOT a physical piping model and the graph
+# is intentionally incomplete, not approximately continuous: the mixing tee
+# (fresh feed + recycle into P-101.suction), the splitting tee after E-101,
+# and the recycle piping are not modeled, so physical continuity is broken at
+# those points. DeepPlant does not invent direct Connections across omitted
+# physical realization. Physical edges imply no mapping to the process layer
+# below.
 
 equipment:
   - id: T-101
@@ -26,7 +29,7 @@ equipment:
 
   - id: FV-101
     type: control-valve
-    name: Recycle Flow Control Valve
+    name: Flow Control Valve
     ports:
       - id: inlet
       - id: outlet
@@ -43,36 +46,22 @@ equipment:
     name: Process Vessel
     ports:
       - id: feed_inlet
-      - id: bottoms_outlet
+      - id: recycle_outlet
 
 connections:
-  - source:
-      component: T-101
-      port: outlet
-    target:
-      component: P-101
-      port: suction
-
   - source:
       component: P-101
       port: discharge
     target:
-      component: E-101
-      port: process_inlet
-
-  - source:
-      component: E-101
-      port: process_outlet
-    target:
-      component: V-101
-      port: feed_inlet
-
-  - source:
-      component: V-101
-      port: bottoms_outlet
-    target:
       component: FV-101
       port: inlet
+
+  - source:
+      component: FV-101
+      port: outlet
+    target:
+      component: E-101
+      port: process_inlet
 
 # Process layer: the documented PFD fragment.
 #

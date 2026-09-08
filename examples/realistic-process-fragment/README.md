@@ -43,20 +43,40 @@ Concretely (process layer):
 - **Not every ProcessStep maps to Equipment.** `PS-mix` and `PS-split` are
   process functions (mixing and splitting) with no required physical equipment
   counterpart at this PFD abstraction.
-- **Not every Equipment appears as a ProcessStep.** `FV-101` (recycle flow
-  control valve) is a physical inline item that is transparent at this PFD
-  abstraction and therefore has no process step.
+- **Not every Equipment appears as a ProcessStep.** `FV-101` is a physical
+  flow control valve on the pump discharge, between `P-101` and `E-101`. It is
+  transparent at this PFD abstraction and therefore has no process step.
 - **Recycle is an ordinary cycle.** S-002 returns from `PS-vessel` to `PS-mix`;
   no recycle-specific stream kind, flag, or metadata is used.
 - **Mixing and splitting are explicit `ProcessStep`s** (2 in → 1 out and
   1 in → 2 out respectively) rather than implicit shared-port branching.
 
-The physical layer contains `T-101`, `P-101`, `FV-101`, `E-101`, and `V-101`
-with ports and a few partial connections. It is intentionally **not** a
-physical piping model: physical mixing/splitting tees, routing downstream of
-`FV-101.outlet`, nozzles, and the second `E-101` side are not modeled, and no
-`ProcessStream ↔ piping` mapping is implied. This fixture exists to validate
-the semantic model, not to hide those open questions.
+The physical/bootstrap layer contains `T-101`, `P-101`, `FV-101`, `E-101`, and
+`V-101`. Its `Connection`s represent only physical relationships that are
+genuinely direct and known. The only represented physical chain is:
+
+```text
+P-101.discharge → FV-101.inlet
+FV-101.outlet   → E-101.process_inlet
+```
+
+These real physical paths are intentionally **not** represented as direct
+`Connection`s, because the physical tees / piping realization does not yet
+exist in the production model:
+
+```text
+T-101 → mixing point → P-101
+E-101 → splitting point → V-101
+V-101 → recycle piping → mixing point
+```
+
+For this fixture, **absence of `Connection` ≠ absence of real physical
+connectivity**. The physical graph is deliberately incomplete, not
+approximately continuous. `V-101.recycle_outlet` is therefore unconnected in
+the bootstrap graph (the mixing tee / recycle-piping realization is not
+modeled), while the recycle itself is fully represented in the process layer as
+`S-002`. This fixture exists to validate the semantic model, not to hide the
+open physical-piping questions.
 
 Validate it from the repository root:
 
@@ -71,7 +91,7 @@ Expected output (the CLI reports the physical/bootstrap layer counts):
 ✓ plant: demo
 ✓ equipment: 5
 ✓ ports: 9
-✓ connections: 4
+✓ connections: 2
 ```
 
 See [docs/roadmap.md](../../docs/roadmap.md) and

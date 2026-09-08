@@ -66,7 +66,7 @@ def test_validate_succeeds_for_realistic_process_fragment_example() -> None:
     assert "✓ plant: demo" in result.output
     assert "✓ equipment: 5" in result.output
     assert "✓ ports: 9" in result.output
-    assert "✓ connections: 4" in result.output
+    assert "✓ connections: 2" in result.output
 
 
 def test_validate_returns_nonzero_for_invalid_model(tmp_path: Path) -> None:

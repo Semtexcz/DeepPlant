@@ -48,17 +48,22 @@ ProcessStep[] (ProcessPort[]) + ProcessStream[] (ProcessRef endpoints)
 - recycle (`S-002`, `PS-vessel -> PS-mix`) is an ordinary directed graph cycle;
   mixing and splitting remain explicit process functions with no required
   `Equipment` counterpart;
-- `FV-101` is present physically (with ports and a partial connection) without
-  a `ProcessStep`; process and physical ids remain separate namespaces;
+- `FV-101` is present physically (inline between `P-101` and `E-101`, with
+  ports and `Connection`s) without a `ProcessStep`; process and physical ids
+  remain separate namespaces;
 - **no new semantic schema was required for the process graph.** No enum, no
   stream or recycle kind, no step-type rule, and no process↔physical mapping
   fields were introduced to make the fixture fit.
 
-The fixture deliberately keeps physical piping, physical mixing/splitting
-hardware (tees), nozzles, valve-in-line routing, and the second `E-101` side
-unmodeled. Those limitations are recorded rather than hidden in names or ids;
-they are the same deferred concepts listed later in this document and remain
-open engineering decisions, not blockers for this fragment.
+The physical/bootstrap `Connection`s represent only directly known adjacency
+(`P-101 -> FV-101 -> E-101`). The fixture deliberately keeps physical piping
+segments, the mixing and splitting tees, nozzles, recycle piping, and the
+second `E-101` side unmodeled, so the physical graph is intentionally
+incomplete rather than approximately continuous: DeepPlant does not invent
+`Connection`s across omitted physical realization. Those limitations are
+recorded rather than hidden in names or ids; they are the same deferred
+concepts listed later in this document and remain open engineering decisions,
+not blockers for this fragment.
 
 Example identifiers (`PS-*`, `S-0xx`) remain example-scoped labels, consistent
 with the naming note below; they do not decide the final DeepPlant
