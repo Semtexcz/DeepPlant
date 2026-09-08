@@ -101,10 +101,15 @@ CLI, and receives a clear validation report for structural and reference errors
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
 - Do not create empty architecture directories before real code exists.
+- Long-term vision lives in `docs/product.md`; the two-level roadmap (current
+  implementation vs directional capability) lives in `docs/roadmap.md`. The
+  directional roadmap is product context, not implementation authorization:
+  implement only the currently scoped vertical slice.
 
 ## Risks
 
 - Designing taxonomy, tag standards, or schema fields from habit instead of from
-  needed semantics. The next model growth must be driven by real example
-  fragments (`Port`, `Connection`, and references).
+  needed semantics. The next model growth (starting with the open
+  pipes/streams representation question) must be driven by real example
+  fragments.
 

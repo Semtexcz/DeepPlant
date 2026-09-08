@@ -17,13 +17,21 @@ update_when:
 Project type: `script`. Runtime level: `shared`.
 Governance: `lightweight`.
 
-This document describes the architecture now and the durable target principles
-that shape it. Nothing under "Target Architecture" is implemented yet.
+This document separates what exists from what is only direction.
+
+- **Current Architecture** describes implemented components and boundaries —
+  the exact implemented state.
+- **Directional Architecture (Principles Only)** describes durable target
+  principles and future architectural direction. Some primitives referenced in
+  that section may already exist; future components are not implemented unless
+  explicitly stated.
 
 ## Current Architecture
 
-The system is a Python CLI package implementing the first semantic vertical
-slice: YAML file -> Pydantic validation -> typed domain model -> `validate` CLI.
+The system is a Python CLI package implementing two executable semantic vertical
+slices — the minimal domain model and the topology slice (`Port`, `Connection`,
+reference validation): YAML file -> Pydantic validation -> typed domain model
+-> `validate` CLI.
 
 ```text
 tests -> CLI (src/deepplant/__main__.py) -> io.load_plant -> model
@@ -34,7 +42,7 @@ YAML file
    ↓  PyYAML
 Python data structure (dict)
    ↓  Pydantic validation
-DeepPlant domain model (PlantModel -> Plant + list[Equipment])
+DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
 ```
 
 - Python >= 3.12, managed with `uv`.
@@ -61,20 +69,20 @@ DeepPlant domain model (PlantModel -> Plant + list[Equipment])
   class. This enforces referential integrity only, not process-engineering
   topology rules.
 
-Semantic topology in this iteration:
+Current semantic model:
 
 ```text
-Equipment
-   ↓ owns
-Port
-
-Connection
-├── source -> PortRef(component, port)
-└── target -> PortRef(component, port)
+PlantModel
+├── Plant
+├── Equipment[]
+│   └── Port[]
+└── Connection[]
+    ├── source: PortRef
+    └── target: PortRef
 ```
 
-- Port identity is local to its owning component. The same port id may exist on
-  different equipment; a globally resolvable endpoint is the pair
+- Port identity is local to the owning equipment/component. The same port id may
+  exist on different equipment; a globally resolvable port endpoint is the pair
   `(component id, port id)`.
 - `Connection` is currently a directed semantic topological relationship from
   `source` to `target`. Direction records which endpoint is the source and
@@ -95,9 +103,10 @@ Connection
 No service runtime, browser runtime, container runtime, database, or external
 infrastructure exists in this profile.
 
-## Target Architecture (Principles Only)
+## Directional Architecture (Principles Only)
 
-The semantic engineering model is the product core; everything else depends on it:
+The semantic engineering model is the product core; everything else depends on
+it:
 
 ```text
 CLI
@@ -136,10 +145,39 @@ Stated constraints:
 - Connectivity uses generic `Component -> Ports -> Connections` relationships
   (e.g. `P-101.discharge -> connection -> L-101.inlet`), not hard-coded
   `pump connected to pipe` fields. Equipment-owned ports and top-level
-  connections ship in the current slice.
+  `Connection` objects (directed `source`/`target` `PortRef`s) already ship in
+  the current implementation.
+
+Integration/control-plane direction:
+
+```text
+                    DeepPlant
+               canonical plant model
+                       │
+       ┌────────┬──────┼───────┬────────────┐
+       ▼        ▼      ▼       ▼            ▼
+     DEXPI    COMOS  AVEVA  simulators  calculations
+                                     
+                       │
+                       ▼
+             other engineering systems
+```
+
+DeepPlant may ultimately act as a semantic and automation layer across
+heterogeneous engineering tools rather than replace them (see
+[product.md](product.md)). DEXPI, COMOS, AVEVA, simulators, calculations, and
+other engineering systems are peer consumers/adapters around the canonical
+model, not stages below one another. Consumer-specific representation concerns
+must not leak into the semantic domain model; a genuine engineering concept
+discovered through DEXPI, simulation, or another integration may legitimately
+cause the domain model to evolve, but an external schema shape alone must not
+dictate the canonical model. This control-plane idea is analogous in spirit to
+Infrastructure as Code, without claiming identical architecture.
 
 Do not create packages for `model/`, `rendering/`, `dexpi/`, or `simulation/`
-until real code needs them.
+until real code needs them. A future stage in the directional roadmap is
+product context, not implementation authorization (see the Anti-Roadmap in
+[roadmap.md](roadmap.md)).
 
 ## Current Quality Gates
 
@@ -150,16 +188,19 @@ make validate-agent-skills
 make check
 ```
 
-## Possible Future Extensions
+## Directional Extensions
 
-Do not treat this list as implemented architecture. Add any item only when a
-concrete requirement and ADR justify it:
+Not implemented. Add any item only when a concrete requirement and an ADR
+justify it:
 
 - semantic model growth: further engineering concepts (starting with the open
   pipes/streams representation question) and the YAML save path
 - rendering and the SVG symbol specification
-- DEXPI and simulator adapters
+- DEXPI, COMOS, AVEVA, and simulator adapters
 - interactive editor
+- engineering rules / validation engine
+- safety (HAZOP / SIS) concepts
+- AI-assisted engineering workflows
 - database or durable persistence
 - cache, queue, broker, or background worker
 - public deployment, Kubernetes, or service mesh
