@@ -108,25 +108,27 @@ slices.
 
 ### Next Task
 
-Create and review one realistic PFD process-model prototype using:
+The realistic process-fragment prototype now exists and is under human review in
+[process-fragment-prototype.md](process-fragment-prototype.md). The remaining
+architectural decision before any production implementation is the owning
+process-model / validation boundary:
 
-- `ProcessStep`
-- `ProcessPort`
-- `ProcessStream`
-- explicit Mixing / Splitting where required
-- recycle topology where relevant
-- explicit conceptual mappings to the current Equipment / Port / Connection model
+- **C1 — separate `ProcessModel`**
+  - owns `ProcessStep[]`
+  - owns `ProcessStream[]`
+  - `ProcessPort[]` remain owned by their `ProcessStep`
+- **C2 — direct `PlantModel` ownership**
+  - `PlantModel` owns `ProcessStep[]`
+  - `PlantModel` owns `ProcessStream[]`
+  - process validation remains scoped to those process collections
 
-This is still a documentation/prototyping step. No production semantic-model
-implementation is approved yet. Only after human review of that fragment should
-the roadmap name the smallest concrete code increment.
+This decision defines the reference-validation boundary for the proposed
+process graph (hard structural rules S1–S4 only).
 
-```text
-research proposal
-→ realistic fragment prototype
-→ human review
-→ only then implementation scope
-```
+Only after C1 vs C2 is approved may the smallest production semantic-model
+slice be authorized.
+
+No production process-model implementation is approved yet.
 
 Rendering, YAML save, and DEXPI stay out of scope until that decision lands.
 
