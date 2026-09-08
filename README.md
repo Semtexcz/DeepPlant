@@ -84,6 +84,7 @@ only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
 | Project brief | [project/brief.md](project/brief.md) |
 | Workflow | [docs/workflow.md](docs/workflow.md) |
 | Quality gates | [docs/quality.md](docs/quality.md) |
+| Standards & asset provenance | [docs/standards.md](docs/standards.md) |
 | Decisions | [docs/decisions/index.md](docs/decisions/index.md) |
 | Agent instructions | [AGENTS.md](AGENTS.md) |
 | Example area | [examples/minimal-process/README.md](examples/minimal-process/README.md) |

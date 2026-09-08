@@ -209,6 +209,7 @@ justify it:
 
 - [product.md](product.md)
 - [roadmap.md](roadmap.md)
+- [standards.md](standards.md)
 - [workflow.md](workflow.md)
 - [quality.md](quality.md)
 - [decisions/index.md](decisions/index.md)
