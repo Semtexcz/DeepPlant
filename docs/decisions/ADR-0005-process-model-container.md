@@ -25,7 +25,7 @@ file layout, or a separate repository-level document (ADR-0004).
 
 ## Decision
 
-Propose C1. `PlantModel` remains the overall semantic aggregate for one plant;
+C1 is accepted. `PlantModel` remains the overall semantic aggregate for one plant;
 `ProcessModel` is its coherent process-domain submodel and the S1–S4
 reference-validation boundary.
 

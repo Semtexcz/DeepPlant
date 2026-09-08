@@ -12,8 +12,9 @@ update_when:
 
 # Process Fragment Prototype
 
-> Decision status: **proposed — requires human architectural review before
-> implementation.**
+> Decision status: the process-model container decision is **resolved by
+> ADR-0005 (Accepted)**. Remaining open questions in this document do not block
+> the first production process-model slice.
 
 Documentation-only modeling prototype. No production semantic-model class, no
 Pydantic change, no YAML schema, no ADR, no dependency, and no
@@ -749,17 +750,17 @@ the current root (C2). Avoiding premature nesting favors C2; separation and
 validation clarity favor C1. Git/YAML readability is a trade-off rather than
 decisive evidence.
 
-**Conclusion: container ownership remains unresolved.** `ProcessStep`,
-`ProcessPort`, `ProcessStream`, and `ProcessRef` are justified concepts, but
-production implementation remains blocked until their owning
-process-model/container boundary is decided. No reference-validation rules may
-be implemented until that boundary defines the process model in which S1–S4
-apply.
+**Conclusion: the fragment alone did not decide container ownership.** The
+fragment leaves the choice between C1 and C2 open; ADR-0005 (Accepted) now
+resolves it. `ProcessStep`, `ProcessPort`, `ProcessStream`, and `ProcessRef`
+are justified concepts, and their owning boundary is decided: C1, with
+`ProcessModel` defining the process model in which S1–S4 apply.
 
 ### Slice outcome
 
-**Outcome B — concepts validated, implementation still blocked.** The concepts
-must be introduced together once the owning boundary is approved:
+**Outcome B — concepts validated; the owning boundary is now decided
+(ADR-0005, C1).** The concepts are introduced together by the first production
+process-model vertical slice:
 
 - `ProcessStep { id, type, name?, ports }`
 - `ProcessPort { id }` — identity only, no direction/kind
@@ -772,10 +773,11 @@ with the current model. It must not add a tag/designation field, a ProcessPort
 direction/kind field, mappings, a governed step-type vocabulary, or the deferred
 port-role rule merely to complete this fragment.
 
-**Do not begin production implementation until the owning
-process-model/container boundary is approved.**
+**The owning process-model/container boundary is approved by ADR-0005
+(Accepted); the first production process-model vertical slice is the next
+roadmap task.**
 
-Deliberately out of scope after that approval:
+Deliberately out of scope for that slice:
 
 - process-stream designation / stream-number standard (Identity Findings)
 - direction/kind on ProcessPort; energy/information ports
@@ -789,13 +791,15 @@ Deliberately out of scope after that approval:
 
 ## Candidate Schema
 
-> Conceptual shape only — **not a production schema and not approved for
-> implementation until the container boundary is decided.**
+> Conceptual shape only — **not a production schema.** The container boundary
+> is decided by ADR-0005 (C1, Accepted); the shapes below become production
+> code only through the first process-model vertical slice.
 
-The fragment justifies the object shapes below, but not their parent container.
-Detailed YAML is intentionally **not** provided: field names for an eventual
-container, ownership, mapping relations, and the unresolved items above are not
-yet approved, and a YAML shape would falsely imply they are.
+The fragment justifies the object shapes below; ADR-0005 (Accepted) fixes
+their parent container as `ProcessModel`. Detailed YAML is intentionally
+**not** provided: field names, YAML shape, mapping relations, and the remaining
+unresolved items above are not yet approved, and a YAML shape would falsely
+imply they are.
 
 ```python
 # Conceptual sketch only — not a production schema.
@@ -824,7 +828,7 @@ class ProcessStream:
     target: ProcessRef  # source → target carries intended/design flow direction
 
 
-# Hard structural checks, after the owner/validation boundary is approved:
+# Hard structural checks enforced by the approved ProcessModel boundary (ADR-0005):
 # S1 ids unique within owning collections:
 #    ProcessStep.id unique within ProcessModel.steps
 #    ProcessStream.id unique within ProcessModel.streams (separate namespaces)
@@ -854,9 +858,9 @@ PlantModel                               Process graph (conceptual)
 | Question | Status after this prototype |
 |---|---|
 | What stays unchanged | Current `PlantModel` / `Plant` / `Equipment` / `Port` / `Connection`, the existing YAML example, and the CLI remain untouched by this iteration. `Connection` remains the low-level adjacency/bootstrap relation of the physical layer. |
-| What new concepts are justified | `ProcessStep` (with an open non-empty `type` discriminator), `ProcessPort`, `ProcessStream`, and `ProcessRef`; they must be introduced together once their owner is approved. Hard structural rules are S1–S4 only. |
+| What new concepts are justified | `ProcessStep` (with an open non-empty `type` discriminator), `ProcessPort`, `ProcessStream`, and `ProcessRef`; ADR-0005 (Accepted) fixes their owner as `ProcessModel` (C1) and they are introduced together by the first production slice. Hard structural rules are S1–S4 only. |
 | What current concepts are not reused | `Connection` is not reused as the process relation; current `Port` is not reused as a process port; `Equipment` is not reused as a process step (junctions and `FV-101` make 1:1 substitution impossible). ProcessStream endpoint references need a distinct `ProcessRef` type, not current `PortRef`. |
-| What remains blocked or deferred | The owning process-model/container boundary; ProcessStep ↔ Equipment; ProcessPort ↔ current Port / future Nozzle; ProcessStream ↔ physical piping route; the heat-exchanger both-sides decision; process-stream designation standards; controlled step-`type` vocabulary; process-layer YAML serialization; operating-state overlay design. |
+| What remains blocked or deferred | ProcessStep ↔ Equipment; ProcessPort ↔ current Port / future Nozzle; ProcessStream ↔ physical piping route; the heat-exchanger both-sides decision; process-stream designation standards; controlled step-`type` vocabulary; process-layer YAML serialization; operating-state overlay design. |
 
 ## Open Questions
 
@@ -864,17 +868,14 @@ PlantModel                               Process graph (conceptual)
    or one ProcessStep → several independent material port pairs?
 2. Should junction-port ↔ physical mappings be authored at all before a
    physical piping/nozzle layer exists, or remain documentation-only?
-3. Which owning boundary should contain the process collections — a separate
-   `ProcessModel` (C1) or direct `PlantModel` ownership (C2)? This is the
-   implementation blocker because it defines S1–S4 reference-validation scope.
-4. When do engineering rules justify governing the currently open step `type`
+3. When do engineering rules justify governing the currently open step `type`
    discriminator?
-5. Is a pass-through port (one port used as both sink and source) ever
+4. Is a pass-through port (one port used as both sink and source) ever
    legitimate? This is not a first-slice validation rule.
-6. How are source/sink boundaries represented deliberately — implicit via graph
+5. How are source/sink boundaries represented deliberately — implicit via graph
    degree, or an explicit boundary marker?
-7. Which deterministic authoring order makes process-graph diffs stable?
-8. Do parallel lines between the same two steps (multiple trains) need
+6. Which deterministic authoring order makes process-graph diffs stable?
+7. Do parallel lines between the same two steps (multiple trains) need
    distinct ports or distinct streams? Not exercised by this fragment.
 
 ## Process-Model Container Decision
@@ -939,16 +940,24 @@ require `Equipment`.
 
 ## Decision Status
 
-> **Proposed — requires human architectural review.** This change is
-> decision-gated: it introduces no production semantic schema.
+ADR-0005 is **Accepted** and resolves the process-model ownership boundary:
+
+```text
+PlantModel = overall semantic aggregate
+ProcessModel = process-graph container and S1–S4 validation boundary
+```
+
+The container decision is no longer Proposed and requires no further
+architectural approval before the first production process-model vertical
+slice. This document remains the record of the reviewed fragment prototype.
 
 The realistic fragment **did not break the core process-layer proposal**, but
 it did invalidate the earlier temporary 1:1 “Equipment stands in for
 ProcessStep” MVP assumption, and it exposed decisions that any production slice
 must face: the exchanger multi-side modeling rule, junction-port physical
-mapping, and the process-graph container shape. The first roadmap backlog item
-now asks a human reviewer to read this prototype and decide whether the
-proposed model is mature enough for its first production implementation slice.
+mapping, and the process-graph container shape. The container shape is now
+decided (ADR-0005, C1); the exchanger and junction-port mapping questions
+remain open and deferred, not blockers.
 
 ### Reviewer Decision Checklist
 
@@ -974,10 +983,9 @@ Answers and approvals this prototype now makes explicit:
 7. **Can one heat-exchanger Equipment support the chosen abstraction?** Yes for
    the selected one-side abstraction (rule A7); the both-sides modeling rule is
    unresolved.
-8. **Is process-container ownership resolved?** No. C1 (separate
-   `ProcessModel`) and C2 (collections directly on `PlantModel`) have been
-   evaluated, but this fragment does not decide between them. Approval is
-   required before implementation because it defines the validation boundary.
+8. **Is process-container ownership resolved?** Yes. ADR-0005 accepts C1:
+   `ProcessModel` is the process-graph container and the S1–S4 validation
+   boundary, under the `PlantModel` aggregate root.
 9. **What structural validation is justified?** S1–S4 only: ids unique within
    their owning collections (`ProcessStep.id` within `ProcessModel.steps`;
    `ProcessStream.id` within `ProcessModel.streams`; separate namespaces);
@@ -996,7 +1004,8 @@ Answers and approvals this prototype now makes explicit:
     disabled recycle, bypass use, and abnormal/reverse flow are future operating
     state/scenario concerns by default, not reasons to duplicate or delete the
     canonical graph.
-13. **What is the production-slice recommendation?** Outcome B: the concepts
+13. **What is the production-slice recommendation?** The concepts
     `ProcessStep`, `ProcessPort`, `ProcessStream`, and `ProcessRef` are
-    validated, but do not begin production implementation until the owning
-    process-model/container boundary is approved.
+    validated. ADR-0005 (Accepted) approves the owning boundary (C1), so the
+    next roadmap task is the first production process-model vertical slice
+    with S1–S4.
