@@ -43,12 +43,15 @@ The semantic engineering model is the product core.
 DeepPlant references engineering standards by identifier and never redistributes
 their restricted normative content. See `docs/standards.md` and ADR-0007.
 
-- Do not commit copyrighted standards or standards PDFs to the repository.
+- Do not commit restricted standards content or standards PDFs unless the
+  applicable licence explicitly permits redistribution.
 - Do not provide licensed ISO, IEC, ISA, or other restricted standards content
   to AI tools unless the applicable licence explicitly permits that use.
-- Agents may use official public metadata, openly licensed specifications (for
-  example DEXPI under CC BY 4.0, with attribution), and project-authored
-  summaries.
+- Agents may use openly licensed specifications (for example DEXPI under CC BY
+  4.0, with attribution), project-authored summaries, and public material whose
+  applicable terms explicitly permit AI use. For ISO, use only ISO Open Data or
+  other material explicitly licensed for such use; public availability alone is
+  not permission for AI ingestion.
 - Reference standards by identifier and official source.
 - Do not reproduce normative figures, tables, symbol artwork, or substantial
   standard text without verified permission.

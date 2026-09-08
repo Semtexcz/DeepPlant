@@ -38,21 +38,25 @@ It answers the six governance questions:
 |---|---|
 | Which standards guide DeepPlant? | ISO 10628-1/-2, ISO 14617-1/-2, ANSI/ISA-5.1, IEC 62424 as normative engineering references; DEXPI 2.0 as the open semantic/interchange specification. |
 | Which standard content may be stored in the repository? | Official metadata, identifiers, and DeepPlant-authored summaries only. No normative tables, figures, symbol artwork, or substantial text from ISO/ISA/IEC publications. DEXPI 2.0 content may be stored where its CC BY 4.0 licence covers it, with attribution. |
-| Which material may AI agents inspect? | Official public metadata pages, openly licensed specifications (DEXPI under CC BY 4.0), and project-authored summaries. Not licensed ISO/ISA/IEC content. |
+| Which material may AI agents inspect? | Openly licensed specifications (DEXPI under CC BY 4.0), DeepPlant-authored summaries, and public material whose licence/terms explicitly permit AI use. For ISO, only ISO Open Data or other explicitly permitted material. Public availability alone is not permission for AI ingestion. |
 | Where may graphical assets come from? | DeepPlant-original geometry and clearly permissively licensed sources with explicit provenance. Not from tracing or extracting restricted standard artwork. |
 | When may DeepPlant claim standards alignment or compliance? | Only after human verification against an authorized copy. Until then the vocabulary is `reference` / `candidate-alignment`. Visual similarity is not compliance. |
 | How must symbol provenance and licensing be recorded? | Every distributed symbol needs a provenance record covering author/origin, licence, modification state, upstream revision, intended standard, and verification state. See [Symbol Provenance Policy](#symbol-provenance-policy). |
 
 ## Restricted standards: copyright and AI constraints
 
-ISO, ISA, and IEC publications are restricted copyrighted works. They are not
-released under open licences, and their normative content is not free to copy,
-redistribute, trace, or feed into AI systems.
+ISO, ISA, and IEC publications are restricted copyrighted works. Their
+restricted normative content is not free to copy, redistribute, trace, or feed
+into AI systems. Copyright and redistribution are separate questions: a
+copyrighted work may be openly licensed for reuse, while restricted content is
+not open-licensed.
 
 - ISO's public copyright policy states that ISO copyrighted content may not be
   used in AI/machine-learning systems except where ISO explicitly provides it
-  as ISO Open Data under its applicable terms. Purchased ISO PDFs and licensed
-  ISO content stay restricted.
+  as ISO Open Data under its applicable terms. Publicly visible does not mean
+  AI-usable: agents must not ingest ISO-hosted catalogue or web content unless
+  its applicable terms explicitly permit AI use. Purchased ISO PDFs, licensed
+  ISO content, and other restricted ISO material stay restricted.
 - ISA's published notice on its official standards pages states that ISA
   prohibits entering ISA intellectual property (standards, publications,
   training, or other materials) into any form of AI tool, and prohibits
@@ -74,6 +78,13 @@ redistribute, trace, or feed into AI systems.
 - Send purchased/licensed standards to an AI system.
 - Ask an AI system to derive SVG assets from those PDFs.
 - Claim compliance from visual similarity or secondary sources.
+
+### Human catalogue verification versus AI ingestion
+
+Humans may manually use official catalogue pages to verify a standard's
+identifier, edition, status, and official source. That manual verification does
+not authorize AI ingestion of the page. For ISO, agents may use only ISO Open
+Data or other material whose applicable terms explicitly permit AI use.
 
 ### What may be stored in the repository
 
@@ -126,9 +137,10 @@ The licence conclusion was confirmed from two official public sources on
 2026-09-08: the DEXPI e.V. announcement (publication date 2025-10-10; published
 under the Creative Commons Attribution 4.0 International (CC BY 4.0) license)
 and the official GitLab specification repository, whose specification
-documentation carries the CC BY 4.0 notice (“This specification is provided by
-the DEXPI Initiative under the terms of the Creative Commons Attribution 4.0
-International License (CC BY 4.0)”).
+documentation carries the CC BY 4.0 notice. DEXPI's 25 August 2026 update says
+DEXPI 2.0.1 is being prepared; re-check the recommended DEXPI version before
+implementing an adapter. This is a freshness note, not a claim that 2.0.1 has
+been released.
 
 The important distinction:
 
@@ -221,10 +233,13 @@ covered by CC BY 4.0 (the repository also contains tooling and build content).
 
 ### IPD Studio historical/current symbol assets
 
-Not verifiable from a public, clearly licensed, redistributable release at
-research time. **Rejected as a source** until a public release with an explicit
-licence, named copyright holder, and provenance statement exists. Unclear
-provenance is a rejection reason, not a “maybe later”.
+| Scope | Finding | Verdict |
+|---|---|---|
+| Current IPD Studio (`v0.13.0+`) | The public upstream repository states that `v0.13.0` and later use PolyForm Noncommercial 1.0.0. It also identifies the project copyright as © 2026 Praharsh Nagpure. Current symbols/assets are therefore not acceptable for DeepPlant's commercially usable public symbol library. | **REJECTED** for DeepPlant asset reuse: PolyForm Noncommercial is incompatible with the project's commercial-use requirement. |
+| Historical IPD Studio (`<= v0.12.1`) | Upstream states that versions through `v0.12.1` were AGPL-3.0-only and that the grant remains perpetual for recipients. This makes historical assets a possible licensing candidate, not an approved source. | **POTENTIAL CANDIDATE ONLY.** Before reuse, verify the exact tag/ref, exact asset path, copyright/provenance, that the asset existed under that AGPL release, whether it was independently authored, and whether it was modified later. |
+
+A repository-level or historical licence alone is not sufficient evidence for a
+concrete symbol import. No IPD Studio asset is approved or imported in this PR.
 
 ### Other open-source SVG P&ID libraries
 
@@ -364,10 +379,12 @@ Official/public sources consulted on 2026-09-08:
 | [DEXPI announcement (dexpi.org)](https://dexpi.org/dexpi-2-0-specification-published-a-new-standard-for-process-industry-data-exchange/) | DEXPI 2.0 release date and CC BY 4.0 licence. | Machine-readable; quoted above. |
 | [gitlab.com/dexpi/Specification](https://gitlab.com/dexpi/Specification) | DEXPI licence text in the specification documentation (default branch `master`, tag `V2.0.0`). | Shallow clone inspected locally; licence notice confirmed in `src/documentation/index.rst`. |
 | [ISA-5.1 committee page (isa.org)](https://www.isa.org/standards-and-publications/isa-standards/isa-standards-committees/isa5-1) | ANSI/ISA-5.1-2024 currency, scope, and ISA's AI-use prohibition notice. | Machine-readable; notice quoted in summary above. |
-| ISO catalogue and ISO copyright policy (iso.org) | ISO 10628 / ISO 14617 edition status and ISO's copyright/AI policy. | iso.org blocked automated retrieval on 2026-09-08; identifiers/editions come from the project scope and the restriction statements come from ISO's public copyright policy as summarized by the project owner. A human should re-open the catalogue pages before compliance-sensitive use. |
+| ISO catalogue and ISO copyright policy (iso.org) | ISO 10628 / ISO 14617 edition status and ISO's copyright/AI policy. | ISO policy permits AI use only for ISO Open Data under applicable terms; publicly accessible ISO catalogue/web pages are not thereby AI-usable. A human may manually re-open catalogue pages to verify identifier, edition, status, and official source before compliance-sensitive use. |
 | IEC Webstore (webstore.iec.ch) | IEC 62424:2016 status. | Automated retrieval blocked/JS-only; treat as restricted; confirm status on the Webstore before compliance-sensitive use. |
 | [iot-solutions-ru/ispf](https://github.com/iot-solutions-ru/ispf) | ispf-pid-v1 pack licence and provenance. | Inspected at file level: `docs/en/pid-symbols-legal.md`, pack `LICENSE.md`, repo `NOTICE`/`LICENSE`, generator `tools/symbol-pack-isa/README.md`, pack JSON contents. |
 | [jgraph/drawio](https://github.com/jgraph/drawio) | P&ID asset licensing context. | Inspected at file level: repository `LICENSE` (Apache-2.0) and `src/main/webapp/shapes/pid2/mxPidInstruments.js` copyright header. |
+| [Coldbari/IPD-Studio](https://github.com/Coldbari/IPD-Studio) | Current and historical IPD Studio licensing assessment. | Upstream README states `v0.13.0+` are PolyForm Noncommercial 1.0.0 and versions through `v0.12.1` were AGPL-3.0-only with a perpetual recipient grant; this is not per-asset provenance approval. |
+| [DEXPI August 2026 update](https://dexpi.org/dexpi-august-2026-update/) | DEXPI version freshness. | Published 2026-08-25; reports DEXPI 2.0.1 is being prepared, without a release-date claim. |
 
 Related project documents:
 

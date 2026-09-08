@@ -34,9 +34,11 @@ Detailed research and the standards registry live in
 - DeepPlant does **not** redistribute restricted standards content. Normative
   standards are referenced by identifier and verified by humans where
   necessary.
-- AI agents work only from public/openly licensed standards material; licensed
-  ISO/IEC/ISA content is never provided to AI tools unless the applicable
-  licence explicitly permits it.
+- AI agents work only from openly licensed standards material, DeepPlant-authored
+  summaries, and public material whose applicable terms explicitly permit AI
+  use. For ISO, public availability alone is not permission for AI ingestion;
+  licensed, restricted, or otherwise non-permitted ISO/IEC/ISA content is never
+  provided to AI tools.
 - All distributed symbol assets require explicit redistributable provenance:
   origin/author, licence, modification state, upstream revision, intended
   standard, and human-verification state.
