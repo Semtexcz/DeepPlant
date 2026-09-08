@@ -205,9 +205,9 @@ strict structural validation. Implemented primitives are not the same as a
 completed capability stage: the Stage 1 exit signal below has not yet been
 demonstrated on a real process fragment. The next task above — turning the
 documented realistic fragment into a loadable synthetic example — is the vehicle
-for that demonstration; the open pipes / process-stream representation question
-is the semantic decision that example is expected to inform before presentation
-design.
+for that demonstration; the open physical-piping / process-to-physical-realization
+question is the semantic decision that example is expected to inform before
+presentation design.
 
 Exit signal:
 
@@ -219,9 +219,12 @@ Exit signal:
 Goal: represent meaningful connectivity and distinguish different engineering
 relationship concepts.
 
-Open questions (deliberately unresolved here):
+Open questions (deliberately unresolved here) — all on the physical-realization
+side; `ProcessStream` itself is decided as the process-layer directed edge,
+distinct from `Connection`:
 
-- process stream vs pipe vs generic connection
+- physical piping representation
+- `ProcessStream` ↔ physical realization mapping
 - equipment nozzles
 - instrumentation connectivity
 - utilities
@@ -322,7 +325,7 @@ Concrete examples:
 - the editor stage does not justify web architecture now
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
-- the open pipes/streams representation question does not justify attaching
-  pipe or process-stream semantics to `Connection` now
+- the open physical-piping / process-to-physical-realization question does not
+  justify attaching pipe or process-stream semantics to `Connection` now
 
 Think broadly about the destination. Build narrowly in the current iteration.
