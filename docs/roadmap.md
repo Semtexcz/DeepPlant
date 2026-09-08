@@ -26,8 +26,7 @@ executable tasks.
 
 ## Current Implementation Roadmap
 
-DeepPlant ships the project foundation plus two executable semantic vertical
-slices:
+DeepPlant ships the project foundation plus three semantic vertical slices:
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -41,12 +40,17 @@ slices:
 - a runnable example: `examples/minimal-process/plant.yaml`
 - `deepplant validate <path>` reporting plant, equipment, port, and connection
   counts
+- standalone process-domain model: `ProcessModel` owning `ProcessStep[]` with
+  `ProcessPort[]`, plus `ProcessStream[]` over `ProcessRef(step, port)`
+  endpoints; structural rules S1–S4; independently constructible and valid in
+  Python, not yet wired into `PlantModel`, YAML, or the CLI
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
 stream, signal, cable, or physical line. Work proceeds as small vertical
-changes with executable tests. The next topology concept is deliberately
-reconsidered before implementation, not auto-selected.
+changes with executable tests. The standalone `ProcessModel` slice now ships;
+how it enters the loadable `PlantModel`/YAML representation is the deliberately
+open next decision, not one this slice made.
 
 ### Completed
 
@@ -63,6 +67,10 @@ reconsidered before implementation, not auto-selected.
 | Semantic validation (structural) | Non-empty ids; unknown fields rejected; unique equipment ids; unique port ids per equipment |
 | First executable example | `examples/minimal-process/plant.yaml` runs through the CLI |
 | Decide process-model container | ADR-0005 accepted (C1): `PlantModel` remains the overall aggregate; one independently valid `ProcessModel` owns the process graph and the S1–S4 validation boundary |
+| Define `ProcessModel` | Standalone process-domain container owning `ProcessStep[]` and `ProcessStream[]`; step and stream ids are separate namespaces (S1); not yet part of `PlantModel` |
+| Define `ProcessStep` / `ProcessPort` | Process steps with `id`, open non-empty `type`, `name`, owned `ProcessPort[]`; process-port ids local to the owning step (S2) |
+| Define `ProcessRef` / `ProcessStream` | `ProcessRef(step, port)` endpoints; binary directed `ProcessStream` with `id`, optional `name`; no flow/designation/physical semantics |
+| Process structural validation | S1 duplicate step/stream ids rejected; S3 endpoints resolve to process steps and owned process ports; S4 identical source/target endpoints rejected; cycles/recycle/mixing/splitting structurally allowed; no dependency on `Equipment`/`Port`/`Connection` |
 
 ### Backlog (Suggested Order)
 
@@ -70,16 +78,16 @@ The process fragment is documented in
 [process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
 accepted: `PlantModel` remains the overall aggregate while one independently
 valid `ProcessModel` owns the process graph and defines the S1–S4
-reference-validation boundary. This authorizes the first production
-process-model vertical slice.
+reference-validation boundary. The standalone `ProcessModel` slice is
+implemented (see Completed); its `PlantModel`/YAML integration remains an open
+decision tracked as the next task below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Implement the first process-model vertical slice | ADR-0005 accepted: `ProcessModel`, `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`, and structural rules S1–S4. |
-| 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 2 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -99,32 +107,13 @@ slices.
 
 ### Next Task
 
-Implement the first production process-model vertical slice authorized by the
-accepted ADR-0005:
-
-- `ProcessModel` — zero or one per `PlantModel`; owns `ProcessStep[]` and
-  `ProcessStream[]`, with `ProcessPort[]` owned by their steps
-- `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`
-- structural rules S1–S4:
-  - S1 — ids are unique within their owning collections: `ProcessStep.id`
-    unique within `ProcessModel.steps`; `ProcessStream.id` unique within
-    `ProcessModel.streams` (separate namespaces)
-  - S2 — `ProcessPort.id` unique within the owning `ProcessStep`
-  - S3 — `ProcessRef` endpoints resolve within the `ProcessModel`
-  - S4 — source endpoint != target endpoint
-
-Explicitly out of scope for this slice:
-
-- process↔physical mappings
-- DEXPI
-- rendering
-- physical piping
-- stream designations
-- controlled step-type taxonomy
-- operating-state implementation
-
-Multiplicity beyond zero-or-one `ProcessModel` per plant remains deferred
-(ADR-0005).
+The next task is a separate scoped change: decide how the standalone
+`ProcessModel` becomes part of the loadable root representation. ADR-0005
+deferred the exact `PlantModel` field name and optionality for one process
+model and the YAML/document/file shape. The completed process-model slice
+deliberately did not decide either, so no root API or serialization shape is
+implied yet. Multiplicity beyond zero-or-one `ProcessModel` per plant also
+remains deferred (ADR-0005).
 
 ### Scope Discipline
 
