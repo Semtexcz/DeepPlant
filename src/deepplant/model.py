@@ -164,10 +164,10 @@ class PlantModel(BaseModel):
 class ProcessPort(BaseModel):
     """A named connection point owned by a single process step.
 
-    Process-port identity is local to the owning process step: the same id may
-    exist on different process steps, and a globally resolvable process endpoint
-    is the pair ``(step id, port id)``. A ProcessPort is a process-graph object,
-    not an equipment ``Port`` and not a nozzle.
+    Process-port identity is local to the owning ``ProcessStep``. Within one
+    ``ProcessModel``, a process endpoint is identified by the pair
+    ``(step id, port id)``. A ProcessPort is a process-graph object, not an
+    equipment ``Port`` and not a nozzle.
     """
 
     model_config = ConfigDict(extra="forbid")

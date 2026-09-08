@@ -84,10 +84,11 @@ decision tracked as the next task below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 2 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Integrate `ProcessModel` into the root/loadable model | Next decision, deliberately not implemented by the standalone process-model slice: exact `PlantModel` field name/optionality and the serialization boundary (ADR-0005 deferred) |
+| 2 | YAML process serialization / round-trip | `load`/`save` symmetry once the root/loadable integration is decided |
+| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
