@@ -83,7 +83,7 @@ process graph and its mappings.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Prototype and review one realistic process-layer fragment | Use proposed `ProcessStep` / `ProcessPort` / `ProcessStream` concepts with explicit Mixing/Splitting and explicit mappings to current Equipment / Port / Connection; no code yet |
+| 1 | Review the realistic process-fragment prototype | Human review of the documentation-only prototype in [process-fragment-prototype.md](process-fragment-prototype.md): explicit `ProcessStep` / `ProcessPort` / `ProcessStream` instances, Mixing/Splitting, recycle, and mappings to current Equipment / Port / Connection; decision-gated, no code yet |
 | 2 | Approve the smallest semantic implementation slice | Human architectural decision after fragment review |
 | 3 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
 | 4 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
