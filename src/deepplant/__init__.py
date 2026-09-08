@@ -5,7 +5,19 @@ from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 
 from deepplant.io import PlantLoadError, load_plant
-from deepplant.model import Connection, Equipment, Plant, PlantModel, Port, PortRef
+from deepplant.model import (
+    Connection,
+    Equipment,
+    Plant,
+    PlantModel,
+    Port,
+    PortRef,
+    ProcessModel,
+    ProcessPort,
+    ProcessRef,
+    ProcessStep,
+    ProcessStream,
+)
 
 try:
     __version__ = _distribution_version("deepplant")
@@ -21,5 +33,10 @@ __all__ = [
     "PlantModel",
     "Port",
     "PortRef",
+    "ProcessModel",
+    "ProcessPort",
+    "ProcessRef",
+    "ProcessStep",
+    "ProcessStream",
     "load_plant",
 ]
