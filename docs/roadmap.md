@@ -26,7 +26,7 @@ executable tasks.
 
 ## Current Implementation Roadmap
 
-DeepPlant ships the project foundation plus three semantic vertical slices:
+DeepPlant ships the project foundation plus four semantic vertical slices:
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -43,14 +43,21 @@ DeepPlant ships the project foundation plus three semantic vertical slices:
 - standalone process-domain model: `ProcessModel` owning `ProcessStep[]` with
   `ProcessPort[]`, plus `ProcessStream[]` over `ProcessRef(step, port)`
   endpoints; structural rules S1–S4; independently constructible and valid in
-  Python, not yet wired into `PlantModel`, YAML, or the CLI
+  Python
+- root/loadable process-model integration: `PlantModel.process: ProcessModel |
+  None`; a YAML `process` section with `steps`/`streams` loads through the
+  existing `load_plant` boundary into the typed submodel; missing `process` and
+  `process: null` mean no authored process model, while `process: {}` is an
+  explicitly empty `ProcessModel`; S1–S4 remain owned by `ProcessModel` and
+  no cross-layer mappings or validation exist
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
 stream, signal, cable, or physical line. Work proceeds as small vertical
-changes with executable tests. The standalone `ProcessModel` slice now ships;
-how it enters the loadable `PlantModel`/YAML representation is the deliberately
-open next decision, not one this slice made.
+changes with executable tests. `PlantModel` now owns zero or one `ProcessModel`
+under `process`, and the loader can populate it from YAML. Process and physical
+graphs stay independently valid: process step/port ids never imply equipment,
+and no save/round-trip or cross-layer rules exist yet.
 
 ### Completed
 
@@ -71,6 +78,7 @@ open next decision, not one this slice made.
 | Define `ProcessStep` / `ProcessPort` | Process steps with `id`, open non-empty `type`, `name`, owned `ProcessPort[]`; process-port ids local to the owning step (S2) |
 | Define `ProcessRef` / `ProcessStream` | `ProcessRef(step, port)` endpoints; binary directed `ProcessStream` with `id`, optional `name`; no flow/designation/physical semantics |
 | Process structural validation | S1 duplicate step/stream ids rejected; S3 endpoints resolve to process steps and owned process ports; S4 identical source/target endpoints rejected; cycles/recycle/mixing/splitting structurally allowed; no dependency on `Equipment`/`Port`/`Connection` |
+| Integrate `ProcessModel` into the root/loadable model | `PlantModel.process: ProcessModel \| None`; YAML `process` section (`steps`, `streams`) loads through the existing loader; missing `process` and `process: null` load as no process model, `process: {}` as an empty one; S1–S4 stay on the process-domain models; process and physical ids remain separate namespaces |
 
 ### Backlog (Suggested Order)
 
@@ -78,17 +86,16 @@ The process fragment is documented in
 [process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
 accepted: `PlantModel` remains the overall aggregate while one independently
 valid `ProcessModel` owns the process graph and defines the S1–S4
-reference-validation boundary. The standalone `ProcessModel` slice is
-implemented (see Completed); its `PlantModel`/YAML integration remains an open
-decision tracked as the next task below.
+reference-validation boundary. The root/loadable integration is implemented
+(see Completed): `PlantModel.process: ProcessModel | None` and YAML loading of
+the `process` section. YAML save/round-trip is the next task below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Integrate `ProcessModel` into the root/loadable model | Next decision, deliberately not implemented by the standalone process-model slice: exact `PlantModel` field name/optionality and the serialization boundary (ADR-0005 deferred) |
-| 2 | YAML process serialization / round-trip | `load`/`save` symmetry once the root/loadable integration is decided |
-| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | YAML save / round-trip | `load`/`save` symmetry for `PlantModel` including the `process` section; deliberately not implemented by the root/loadable integration |
+| 2 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -108,13 +115,13 @@ slices.
 
 ### Next Task
 
-The next task is a separate scoped change: decide how the standalone
-`ProcessModel` becomes part of the loadable root representation. ADR-0005
-deferred the exact `PlantModel` field name and optionality for one process
-model and the YAML/document/file shape. The completed process-model slice
-deliberately did not decide either, so no root API or serialization shape is
-implied yet. Multiplicity beyond zero-or-one `ProcessModel` per plant also
-remains deferred (ADR-0005).
+The next task is YAML save / round-trip: `load`/`save` symmetry for the root
+model including the `process` section. The first root/YAML shapes are now
+accepted for the first slice — `PlantModel.process: ProcessModel | None` and a
+YAML `process` section with `steps`/`streams` — and existing YAML without
+`process` remains backward compatible. Save must not be implemented before this
+task. Multiplicity beyond zero-or-one `ProcessModel` per plant also remains
+deferred (ADR-0005).
 
 ### Scope Discipline
 

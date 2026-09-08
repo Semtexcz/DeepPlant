@@ -4,9 +4,19 @@ import pytest
 
 from deepplant import load_plant
 from deepplant.io import PlantLoadError
-from deepplant.model import Connection, Equipment, Plant, PlantModel, Port, PortRef
+from deepplant.model import (
+    Connection,
+    Equipment,
+    Plant,
+    PlantModel,
+    Port,
+    PortRef,
+    ProcessModel,
+    ProcessRef,
+)
 
 EXAMPLE = Path(__file__).parents[1] / "examples" / "minimal-process" / "plant.yaml"
+PROCESS_EXAMPLE = Path(__file__).parents[1] / "examples" / "process-graph" / "plant.yaml"
 
 
 def write(tmp_path: Path, content: str) -> Path:
@@ -30,6 +40,253 @@ def test_example_yaml_loads() -> None:
     connection = model.connections[0]
     assert (connection.source.component, connection.source.port) == ("T-101", "outlet")
     assert (connection.target.component, connection.target.port) == ("P-101", "suction")
+
+
+def test_process_example_yaml_loads_and_resolves() -> None:
+    model = load_plant(str(PROCESS_EXAMPLE))
+
+    assert model.plant.id == "demo"
+    assert isinstance(model.process, ProcessModel)
+    assert model.process is not None
+    assert [step.id for step in model.process.steps] == ["FEED", "PUMP", "PRODUCT"]
+    assert [port.id for port in model.process.steps[1].ports] == ["suction", "discharge"]
+    assert [stream.id for stream in model.process.streams] == ["S-001", "S-002"]
+    first = model.process.streams[0]
+    assert isinstance(first.source, ProcessRef)
+    assert (first.source.step, first.source.port) == ("FEED", "out")
+    assert (first.target.step, first.target.port) == ("PUMP", "suction")
+    second = model.process.streams[1]
+    assert (second.source.step, second.source.port) == ("PUMP", "discharge")
+    assert (second.target.step, second.target.port) == ("PRODUCT", "in")
+
+
+def test_yaml_without_process_loads_with_none_process(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment: []
+connections: []
+""",
+    )
+
+    model = load_plant(path)
+
+    assert model.process is None
+
+
+def test_yaml_with_null_process_loads_with_none_process(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process: null
+""",
+    )
+
+    model = load_plant(path)
+
+    assert model.process is None
+
+
+def test_yaml_with_empty_process_loads_empty_process_model(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process: {}
+""",
+    )
+
+    model = load_plant(path)
+
+    assert isinstance(model.process, ProcessModel)
+    assert model.process is not None
+    assert model.process.steps == []
+    assert model.process.streams == []
+
+
+def test_duplicate_process_step_ids_in_yaml_fail_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process:
+  steps:
+    - id: FEED
+      type: source
+    - id: FEED
+      type: source
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "duplicate ProcessStep id" in str(exc_info.value)
+
+
+def test_duplicate_process_stream_ids_in_yaml_fail_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process:
+  steps:
+    - id: FEED
+      type: source
+      ports:
+        - id: out
+    - id: PRODUCT
+      type: sink
+      ports:
+        - id: in
+  streams:
+    - id: S-001
+      source:
+        step: FEED
+        port: out
+      target:
+        step: PRODUCT
+        port: in
+    - id: S-001
+      source:
+        step: PRODUCT
+        port: in
+      target:
+        step: FEED
+        port: out
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "duplicate ProcessStream id" in str(exc_info.value)
+
+
+def test_unknown_process_step_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process:
+  steps:
+    - id: FEED
+      type: source
+      ports:
+        - id: out
+    - id: PRODUCT
+      type: sink
+      ports:
+        - id: in
+  streams:
+    - id: S-001
+      source:
+        step: X-999
+        port: out
+      target:
+        step: PRODUCT
+        port: in
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "unknown step 'X-999'" in str(exc_info.value)
+
+
+def test_unknown_process_port_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process:
+  steps:
+    - id: FEED
+      type: source
+      ports:
+        - id: out
+    - id: PRODUCT
+      type: sink
+      ports:
+        - id: in
+  streams:
+    - id: S-001
+      source:
+        step: FEED
+        port: missing
+      target:
+        step: PRODUCT
+        port: in
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "step 'FEED' has no port 'missing'" in str(exc_info.value)
+
+
+def test_identical_source_and_target_endpoints_in_yaml_fail_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process:
+  steps:
+    - id: FEED
+      type: source
+      ports:
+        - id: out
+  streams:
+    - id: S-001
+      source:
+        step: FEED
+        port: out
+      target:
+        step: FEED
+        port: out
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "source and target endpoints are identical" in str(exc_info.value)
+
+
+def test_unknown_process_field_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+process:
+  steps: []
+  strems: []
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "not permitted" in str(exc_info.value)
 
 
 def test_load_returns_typed_ports_and_connections(tmp_path: Path) -> None:

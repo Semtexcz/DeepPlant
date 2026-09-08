@@ -1,0 +1,45 @@
+plant:
+  id: demo
+  name: Process Graph Example
+
+equipment: []
+
+connections: []
+
+process:
+  steps:
+    - id: FEED
+      type: source
+      name: Feed
+      ports:
+        - id: out
+
+    - id: PUMP
+      type: pump
+      name: Transfer Pump
+      ports:
+        - id: suction
+        - id: discharge
+
+    - id: PRODUCT
+      type: sink
+      name: Product
+      ports:
+        - id: in
+
+  streams:
+    - id: S-001
+      source:
+        step: FEED
+        port: out
+      target:
+        step: PUMP
+        port: suction
+
+    - id: S-002
+      source:
+        step: PUMP
+        port: discharge
+      target:
+        step: PRODUCT
+        port: in
