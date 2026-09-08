@@ -65,23 +65,30 @@ reconsidered before implementation, not auto-selected.
 
 ### Backlog (Suggested Order)
 
-The next step is an open architectural question, recorded for the next
-iteration:
+The pipes/streams modeling question was researched and refined in
+[process-topology.md](process-topology.md). The decision remains **not resolved**:
 
-> What should represent process piping / streams in the canonical model: a
-> component with ports, a connection with engineering properties, or a separate
-> semantic entity?
+> Review and approve the revised process-layer model, including the relationship
+> among `ProcessStep`, current `Equipment`, `ProcessPort`, current `Port`,
+> `ProcessStream`, and `Connection`—including explicit split/merge semantics and
+> process-to-plant mapping cardinalities—before naming any implementation
+> increment.
 
-Do not answer it from habit or because rendering needs it; answer it from a real
-fragment requirement.
+The research rejects independently authored duplicate process-stream and
+`Connection` endpoints. It treats the current `Connection` as today’s generic
+low-level adjacency/bootstrap abstraction, not a universal graph by assumption.
+Do not implement pipes, streams, process steps, ports, or mappings from habit or
+because rendering needs them; human review must first approve a real-fragment
+process graph and its mappings.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Decide the pipes/streams representation | Open modeling question above; do not guess pipe, stream, or signal semantics yet |
-| 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Prototype and review one realistic process-layer fragment | Use proposed `ProcessStep` / `ProcessPort` / `ProcessStream` concepts with explicit Mixing/Splitting and explicit mappings to current Equipment / Port / Connection; no code yet |
+| 2 | Approve the smallest semantic implementation slice | Human architectural decision after fragment review |
+| 3 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 4 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 5 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 6 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -101,10 +108,27 @@ slices.
 
 ### Next Task
 
-Deliberately open. The next vertical change starts from the pipes/streams
-representation question in the Backlog; it must not be auto-assumed to be YAML
-save or rendering. Keep rendering, YAML save, and DEXPI out of that decision
-unless the chosen fragment proves otherwise.
+Create and review one realistic PFD process-model prototype using:
+
+- `ProcessStep`
+- `ProcessPort`
+- `ProcessStream`
+- explicit Mixing / Splitting where required
+- recycle topology where relevant
+- explicit conceptual mappings to the current Equipment / Port / Connection model
+
+This is still a documentation/prototyping step. No production semantic-model
+implementation is approved yet. Only after human review of that fragment should
+the roadmap name the smallest concrete code increment.
+
+```text
+research proposal
+→ realistic fragment prototype
+→ human review
+→ only then implementation scope
+```
+
+Rendering, YAML save, and DEXPI stay out of scope until that decision lands.
 
 ### Scope Discipline
 
