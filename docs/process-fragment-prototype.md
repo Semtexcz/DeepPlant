@@ -484,31 +484,39 @@ material-only slice.
 
 ## Identity Findings
 
-The fragment was used to test whether `id`, `tag`, and `name` are already
-distinct needs. Three concrete rows:
+The fragment was used to test whether semantic identity, engineering-facing
+identification, and human-readable naming are already distinct needs. Three
+concrete rows:
 
-| Object | Semantic `id` | Engineering `tag` / designation | Human `name` |
+| Object | Semantic `id` | Process / physical designation | Human `name` |
 |---|---|---|---|
-| `PS-hx` step | `PS-hx` (process-graph node identity) | none inherent; the equipment tag `E-101` belongs to the *Equipment*, and only via the 1:1 mapping | “Heat exchanger, process side A” |
-| `S-004` stream | `S-004` (graph-edge identity; referenced by nothing else yet but stable) | none at PFD abstraction — PFDs do not number lines; a line tag would appear in a line list / P&ID, not here | “Pump discharge to exchanger” |
+| `PS-hx` step | `PS-hx` (process-graph node identity) | no inherent process-step designation; equipment tag `E-101` belongs to the *Equipment*, and only via the 1:1 mapping | “Heat exchanger, process side A” |
+| `S-004` stream | `S-004` (graph-edge identity; referenced by nothing else yet but stable) | not decided: a PFD may use a process stream number/designation, distinct from a physical piping line number; this prototype does not establish whether `S-004` is either one or only a label | “Pump discharge to exchanger” |
 | `PS-mix` step | `PS-mix` | none — no equipment tag exists at all (untagged junction) | “Fresh feed / recycle mixing point” |
 
 Findings:
 
-- **`id` and `name` are already distinct needs.** `id` is the canonical,
-  referenceable identity inside the model; `name` is a human-readable label for
-  review and rendering. Every prototype step and stream above naturally wants
-  both.
-- **`tag` is not needed inside the process model for this fragment.** Physical
-  tags (`T-101`, `E-101`) belong to Equipment. `PS-mix` and `PS-split` prove
-  that a step may have **no tag at all**, so a tag cannot be a required
-  ProcessStep field. Stream tags/line numbers do not exist at PFD abstraction.
-  Adding a `tag` concept now would invent a standard the fragment does not
-  require.
+- **`id` and `name` are clearly distinct needs.** A semantic `id` is stable,
+  machine identity used by references inside the model. `name` is a
+  human-readable description for review and rendering. Every prototype step and
+  stream naturally wants both.
+- **A process stream number / designation is a separate future identity
+  question.** It is an engineering-facing identifier used on a PFD or stream
+  table. It is not the same thing as a physical piping line number, which
+  identifies a physical line in a P&ID / line-list context. PFDs can number or
+  otherwise designate process streams; this fragment does not establish whether
+  its `S-0xx` labels are stable semantic ids, stream designations, or merely
+  prototype labels.
+- **No designation field is justified in the first slice.** Physical equipment
+  tags (`T-101`, `E-101`) belong to Equipment, and `PS-mix` / `PS-split` prove
+  that a ProcessStep may have no equipment tag. The fragment also does not prove
+  that a process-stream designation must be stored independently from `id` now.
+  Adding `stream_number`, `designation`, or `tag` would therefore invent a
+  standard before it is required.
 - **Prototype-only labeling.** The concrete `PS-*` / `S-0xx` strings are
-  illustrative. The final DeepPlant stream-numbering/tagging standard is not
-  decided here; what is decided is *that identity and designation are separate
-  concerns*, and the first slice needs only `id` (+ optional `name`).
+  illustrative. The fragment clearly justifies `id` and optional `name`; it
+  does **not** decide whether a separate stream number / designation / tag must
+  exist independently from `id`.
 - Port ids are local to the owning step (e.g., `suction`, `discharge`), which
   mirrors the current equipment-local `Port` convention.
 
@@ -594,6 +602,30 @@ This must be explicit before implementation: structural tooling may treat the
 graph as directed and may not assume reversibility; downstream process
 semantics (balance direction, pump/valve orientation checks) build on it.
 
+## Operating-State Stress Test
+
+The directed ProcessStream graph is tested here as the **design / normal intended
+process-flow** topology, not as a record of every transient operating condition.
+The existing fragment remains meaningful when `P-101` is stopped during
+shutdown, `FV-101` is closed, or the recycle is disabled: those conditions do
+not delete `S-003`, `S-004`, or `S-002` if the designed relationships still
+exist. Likewise, a hypothetical bypass around `E-101`, temporary reverse or
+abnormal flow where physically possible, maintenance isolation, and equipment
+out of service do not by default rewrite the canonical graph.
+
+1. **Does absence of flow mean deleting a ProcessStream?** No, not when the
+   design relationship remains present.
+2. **Does temporarily closed or unavailable equipment change the canonical
+   process graph?** No by default; it changes use or availability unless the
+   engineering design topology itself changes.
+3. **What does `ProcessStream.source → target` mean?** It represents intended /
+   design process-flow direction for the selected process model, not a claim
+   that reverse or zero flow is impossible in every operating state.
+4. **Where do operating scenarios belong?** The working hypothesis is a future
+   scenario/operating-state overlay or configuration: it would modify
+   availability, activity, flow/state, or route usage rather than duplicate the
+   canonical graph. This fragment does not prove the eventual overlay shape.
+
 ## Validation Findings
 
 Only rules that the fragment actually justifies are listed. They are separated
@@ -601,20 +633,29 @@ into **structural validity** (provable from references and uniqueness alone)
 and **engineering validity** (needs process meaning). Neither is implemented
 in this change.
 
-### Structural validity (fragment-justified candidates)
+### First hard structural rules
+
+These rules require a clearly defined process-model/container boundary: S1 is
+scoped to that process model, and S3 resolves references against its owned steps
+and streams. No reference-validation rule should be implemented without that
+boundary.
 
 | # | Rule | Fragment evidence |
 |---|---|---|
-| S1 | Unique ProcessStep ids | needed for stream endpoints and graph identity |
-| S2 | Unique ProcessPort ids within the owning step | mirrors current equipment-local `Port` uniqueness; all 14 ports distinct within their steps |
-| S3 | Every ProcessStream endpoint resolves to an existing step and a port owned by that step | all seven streams resolve; equivalent to today’s `Connection` reference validation |
-| S4 | Stream source port ≠ stream target port | no self-edge exists or is meaningful in this fragment |
-| S5 | Derived role consistency: any port with incident streams is exclusively a source or exclusively a target, never both | holds for all 14 ports; mixing/splitting semantics require in/out separation |
+| S1 | Unique ProcessStep ids within the process model | needed for stream endpoints and graph identity |
+| S2 | Unique ProcessPort ids within the owning ProcessStep | mirrors current equipment-local `Port` uniqueness; all 14 ports distinct within their steps |
+| S3 | Every ProcessStream endpoint resolves to an existing ProcessStep and a ProcessPort owned by that step | all seven streams resolve; equivalent in kind to today’s `Connection` reference validation |
+| S4 | Source endpoint ≠ target endpoint | no self-edge exists or is meaningful in this fragment |
 
-S5 is a *derived* consistency check (no extra field). It is listed here rather
-than under engineering validity because it follows from stream direction alone;
-whether a pass-through step may ever legitimately reuse one port as both sink
-and source is a future modeling decision, so S5 should be re-examined then.
+### Proposed / deferred consistency rule
+
+This fragment observes every port as exclusively input or output: input/output
+role is derived from incident ProcessStreams, with a target making a port an
+input and a source making it an output. That observation is not sufficient
+evidence for a canonical invariant. A future pass-through or abstraction case
+may require a different rule. Do **not** implement or recommend “a ProcessPort
+is never both source and target” (former S5) as a production validation rule
+yet.
 
 ### Engineering validity (not structural; deferred)
 
@@ -679,102 +720,116 @@ items 1–3 are real decisions a production slice cannot avoid.
 
 | Option | Shape | Assessment against the fragment |
 |---|---|---|
-| **A** | one `ProcessStep` with a `type` discriminator | Sufficient. `mixing`, `splitting`, `pumping`, etc. differ only in port-count expectations (E1), which validation can express from `type`; no per-type fields occur. |
+| **A** | one `ProcessStep` with a `type` discriminator | Sufficient as a simple semantic discriminator for review and future engineering rules; no per-type fields occur. |
 | **B** | typed subclasses (`MixingStep`, `SplittingStep`, …) | Not justified. The fragment adds no subclass-specific data or behavior; subclassing would build a taxonomy the architecture explicitly postpones. |
-| **C** | generic step, semantic role vocabulary later | Possible, but weaker: this fragment already uses `type` meaningfully for mixing/splitting validation (E1) and for human review, so a discriminated `type` token is the smallest honest representation. |
+| **C** | generic step, semantic role vocabulary later | Weaker for human review because the fragment does use role labels, but it reinforces that those labels need not yet be governed. |
 
-**Recommendation: Option A** — a single `ProcessStep` class with a `type`
-discriminator using a controlled vocabulary of the observed roles. Do not build
-a taxonomy.
+**Recommendation: Option A with an open string.** `type` is a non-empty semantic
+discriminator in the first slice, following the same deliberate simplicity as
+current `Equipment.type`. A controlled vocabulary or typed subclasses are
+deferred until engineering rules require governed type semantics. For example,
+mixing input/output cardinality validation or splitting cardinality validation
+would later justify a governed vocabulary.
+
+### Container / validation boundary: C1 / C2
+
+The fragment proves that the process graph must be distinct from the plant /
+physical graph, but does not prove which minimal owner should contain it.
+
+| Option | Shape | Assessment |
+|---|---|---|
+| **C1** | separate `ProcessModel` owning `ProcessStep[]` and `ProcessStream[]`; ProcessPorts are owned by steps | Strongly expresses the separate process graph and gives one obvious validation boundary. It makes future process↔plant mapping explicitly cross-layer. It adds one nesting level and can make Git/YAML paths longer. |
+| **C2** | `PlantModel` directly owns `ProcessStep[]` and `ProcessStream[]` beside `Equipment[]` and `Connection[]` | Fits the current single root and keeps a compact Git/YAML shape. It can still keep validation scoped to the process collections, but places both graphs under one root and risks implying a closer ownership relationship than the fragment establishes. Future mappings remain possible. |
+
+The current DeepPlant architecture confirms a `PlantModel` root for the existing
+physical/bootstrap collections, while this fragment confirms separate process
+semantics. Neither fact decides whether semantic separation should be expressed
+as a dedicated process container (C1) or as separately scoped collections under
+the current root (C2). Avoiding premature nesting favors C2; separation and
+validation clarity favor C1. Git/YAML readability is a trade-off rather than
+decisive evidence.
+
+**Conclusion: container ownership remains unresolved.** `ProcessStep`,
+`ProcessPort`, `ProcessStream`, and `ProcessRef` are justified concepts, but
+production implementation remains blocked until their owning
+process-model/container boundary is decided. No reference-validation rules may
+be implemented until that boundary defines the process model in which S1–S4
+apply.
 
 ### Slice outcome
 
-**Outcome A — `ProcessStep`, `ProcessPort`, and `ProcessStream` must be
-introduced together.** This is not forced; it follows from the fragment:
-
-- ProcessStream endpoints are ProcessPorts, so streams cannot exist without a
-  port concept.
-- ProcessPorts are owned by ProcessSteps, so ports cannot exist without a step
-  concept.
-- The fragment’s junctions require **port-level** granularity: deferring ports
-  (Outcome B) would blur `in_fresh` vs `in_recycle` at `PS-mix` and
-  `out_vessel` vs `out_branch` at `PS-split`, i.e., exactly the distinct
-  stream identities the fragment demands.
-
-The recommended first production slice is limited to:
+**Outcome B — concepts validated, implementation still blocked.** The concepts
+must be introduced together once the owning boundary is approved:
 
 - `ProcessStep { id, type, name?, ports }`
 - `ProcessPort { id }` — identity only, no direction/kind
-- `ProcessStream { id, name?, source, target }` where source/target resolve to
-  ProcessStep-owned ProcessPorts (a distinct reference type, not current
-  `PortRef`)
-- structural validation S1–S4, plus the derived role-consistency check S5
-  (see Validation Findings)
-- strictness conventions consistent with the current model (non-empty ids,
-  unknown fields rejected)
+- `ProcessStream { id, name?, source, target }` where source/target use a
+  distinct `ProcessRef`, not current `PortRef`
 
-Deliberately **out of scope** for that slice:
+The subsequently approved production slice may apply only hard structural rules
+S1–S4, with non-empty semantic ids/types and unknown-field rejection consistent
+with the current model. It must not add a tag/designation field, a ProcessPort
+direction/kind field, mappings, a governed step-type vocabulary, or the deferred
+port-role rule merely to complete this fragment.
 
-- `tag`/designation fields and any numbering standard (Identity Findings)
+**Do not begin production implementation until the owning
+process-model/container boundary is approved.**
+
+Deliberately out of scope after that approval:
+
+- process-stream designation / stream-number standard (Identity Findings)
 - direction/kind on ProcessPort; energy/information ports
 - mappings to Equipment / current Port / future Nozzle (documented only)
 - physical piping, valves, nozzles (the physical side of `FV-101` remains
   unmodeled)
-- step-type vocabulary governance beyond the fragment’s observed roles
+- controlled step-type vocabulary, typed subclasses, and type-specific rules
 - YAML serialization details and diff-ordering rules
 - the heat-exchanger both-sides decision (needs a two-sided fragment)
-- operating states / scenarios
+- operating-state overlay design
 
 ## Candidate Schema
 
-> Candidate next implementation shape — **not yet implemented.**
+> Conceptual shape only — **not a production schema and not approved for
+> implementation until the container boundary is decided.**
 
-The fragment survives well enough to justify the following *conceptual* sketch.
-It is deliberately shown in Python shape only. Detailed YAML is intentionally
-**not** provided: schema field names, ownership, mapping relations, and the
-unresolved items above are not yet approved, and a YAML shape would falsely
-imply they are — the same caution that
-[process-topology.md](process-topology.md) applies to itself.
+The fragment justifies the object shapes below, but not their parent container.
+Detailed YAML is intentionally **not** provided: field names for an eventual
+container, ownership, mapping relations, and the unresolved items above are not
+yet approved, and a YAML shape would falsely imply they are.
 
 ```python
 # Conceptual sketch only — not a production schema.
 
 
 class ProcessPort:
-    id: str  # unique within the owning step
+    id: NonEmptyString  # unique within the owning ProcessStep
 
 
 class ProcessStep:
-    id: str  # unique within the process graph
-    type: str  # controlled vocabulary token:
-    # e.g. "storage", "mixing", "pumping",
-    # "heat_exchange", "splitting", "vessel", "consumer"
+    id: NonEmptyString  # unique within the owning process model
+    type: NonEmptyString  # open semantic discriminator, not an enum
     name: str | None
     ports: list[ProcessPort]  # ids unique within this step
 
 
 class ProcessRef:
-    step: str  # resolves to an existing ProcessStep
-    port: str  # resolves to a port owned by that step
+    step: NonEmptyString  # resolves within the owning process model
+    port: NonEmptyString  # resolves to a port owned by that step
 
 
 class ProcessStream:
-    id: str  # unique within the process graph
+    id: NonEmptyString  # unique within the owning process model
     name: str | None
     source: ProcessRef
-    target: ProcessRef  # source → target carries process-flow direction
+    target: ProcessRef  # source → target carries intended/design flow direction
 
 
-# Candidate structural checks on load:
-#  - unique step ids; unique port ids per step
-#  - every ProcessStream endpoint resolves to an existing step-owned port
-#  - source port != target port
-#  - derived role consistency: a port is never both sink and source
+# Hard structural checks, after the owner/validation boundary is approved:
+# S1 unique ProcessStep ids within the process model
+# S2 unique ProcessPort ids within the owning ProcessStep
+# S3 every ProcessStream endpoint resolves within that process model
+# S4 source endpoint != target endpoint
 ```
-
-No container/root shape is committed here (whether a future `PlantModel` gains
-`process_steps` / `process_streams` lists beside `equipment` / `connections`,
-or a separate process container exists, is left open).
 
 ## Comparison with the Current Implemented Model
 
@@ -797,9 +852,9 @@ PlantModel                               Process graph (conceptual)
 | Question | Status after this prototype |
 |---|---|
 | What stays unchanged | Current `PlantModel` / `Plant` / `Equipment` / `Port` / `Connection`, the existing YAML example, and the CLI remain untouched by this iteration. `Connection` remains the low-level adjacency/bootstrap relation of the physical layer. |
-| What new concepts are justified | `ProcessStep` (with `type`), `ProcessPort`, and `ProcessStream` — introduced together; structural rules S1–S5. |
+| What new concepts are justified | `ProcessStep` (with an open non-empty `type` discriminator), `ProcessPort`, `ProcessStream`, and `ProcessRef`; they must be introduced together once their owner is approved. Hard structural rules are S1–S4 only. |
 | What current concepts are not reused | `Connection` is not reused as the process relation; current `Port` is not reused as a process port; `Equipment` is not reused as a process step (junctions and `FV-101` make 1:1 substitution impossible). ProcessStream endpoint references need a distinct `ProcessRef` type, not current `PortRef`. |
-| What mappings are still deferred | ProcessStep ↔ Equipment; ProcessPort ↔ current Port / future Nozzle; ProcessStream ↔ physical piping route; the heat-exchanger both-sides decision; tag/designation standards; step-`type` vocabulary governance; process-layer YAML serialization. |
+| What remains blocked or deferred | The owning process-model/container boundary; ProcessStep ↔ Equipment; ProcessPort ↔ current Port / future Nozzle; ProcessStream ↔ physical piping route; the heat-exchanger both-sides decision; process-stream designation standards; controlled step-`type` vocabulary; process-layer YAML serialization; operating-state overlay design. |
 
 ## Open Questions
 
@@ -807,12 +862,13 @@ PlantModel                               Process graph (conceptual)
    or one ProcessStep → several independent material port pairs?
 2. Should junction-port ↔ physical mappings be authored at all before a
    physical piping/nozzle layer exists, or remain documentation-only?
-3. Where do the process collections live in the future container model — on a
-   root beside `equipment`/`connections`, or in a separate process container?
-4. What is the governed `type` vocabulary for the first slice, and how does it
-   extend without becoming a taxonomy?
+3. Which owning boundary should contain the process collections — a separate
+   `ProcessModel` (C1) or direct `PlantModel` ownership (C2)? This is the
+   implementation blocker because it defines S1–S4 reference-validation scope.
+4. When do engineering rules justify governing the currently open step `type`
+   discriminator?
 5. Is a pass-through port (one port used as both sink and source) ever
-   legitimate? (Revisits structural rule S5.)
+   legitimate? This is not a first-slice validation rule.
 6. How are source/sink boundaries represented deliberately — implicit via graph
    degree, or an explicit boundary marker?
 7. Which deterministic authoring order makes process-graph diffs stable?
@@ -834,7 +890,7 @@ proposed model is mature enough for its first production implementation slice.
 
 ### Reviewer Decision Checklist
 
-Answers to the twelve questions this prototype must make decidable:
+Answers and approvals this prototype now makes explicit:
 
 1. **Does `ProcessStep` need to exist separately from `Equipment`?** Yes —
    junction steps (`PS-mix`, `PS-split`) have no Equipment and `FV-101` is
@@ -856,16 +912,27 @@ Answers to the twelve questions this prototype must make decidable:
 7. **Can one heat-exchanger Equipment support the chosen abstraction?** Yes for
    the selected one-side abstraction (rule A7); the both-sides modeling rule is
    unresolved.
-8. **What process ↔ physical mapping cardinalities actually occur?**
-   ProcessStep → Equipment 0..1; Equipment → ProcessStep 0..1 (a modeled
-   `E-101` side B would make it 2); junction ProcessPorts → `none`/`unresolved`;
-   ProcessStream → one physical route of 1..N segments.
-9. **Are `id`, `tag`, and `name` already distinct needs?** `id` and `name` yes;
-   `tag` is not needed inside the process model at this abstraction.
-10. **Does ProcessPort need explicit direction/type?** No — identity only;
-    input/output roles derive from ProcessStream relationships (rule S5).
-11. **What structural validation rules are now justified?** S1–S5 (see
-    Validation Findings); engineering rules E1–E4 stay separate and deferred.
-12. **What is the smallest production code slice justified by this real
-    fragment?** Outcome A: `ProcessStep` + `ProcessPort` + `ProcessStream`
-    introduced together with S1–S5; nothing more is justified.
+8. **Is process-container ownership resolved?** No. C1 (separate
+   `ProcessModel`) and C2 (collections directly on `PlantModel`) have been
+   evaluated, but this fragment does not decide between them. Approval is
+   required before implementation because it defines the validation boundary.
+9. **What structural validation is justified after that approval?** S1–S4 only:
+   unique ProcessStep ids within the process model; unique ProcessPort ids per
+   owning step; resolved ProcessStream endpoints; and distinct source/target
+   endpoints. Former S5 is deferred, not a production invariant.
+10. **What is the `type` decision?** A non-empty open string discriminator,
+    consistent with current `Equipment.type`; no enum, controlled vocabulary,
+    or subclasses yet.
+11. **What is the stream identity/designation decision?** `id` is stable machine
+    identity and `name` is human-readable. A separate process-stream number /
+    designation remains a future question and is distinct from a piping line
+    number.
+12. **Has the operating-state assumption been tested?** Yes. ProcessStream
+    direction represents intended/design process flow; shutdown, isolation,
+    disabled recycle, bypass use, and abnormal/reverse flow are future operating
+    state/scenario concerns by default, not reasons to duplicate or delete the
+    canonical graph.
+13. **What is the production-slice recommendation?** Outcome B: the concepts
+    `ProcessStep`, `ProcessPort`, `ProcessStream`, and `ProcessRef` are
+    validated, but do not begin production implementation until the owning
+    process-model/container boundary is approved.
