@@ -11,6 +11,9 @@ runner = CliRunner()
 
 EXAMPLE = Path(__file__).parents[1] / "examples" / "minimal-process" / "plant.yaml"
 PROCESS_EXAMPLE = Path(__file__).parents[1] / "examples" / "process-graph" / "plant.yaml"
+REALISTIC_EXAMPLE = (
+    Path(__file__).parents[1] / "examples" / "realistic-process-fragment" / "plant.yaml"
+)
 
 
 def test_version_command() -> None:
@@ -53,6 +56,17 @@ def test_validate_succeeds_for_process_graph_example() -> None:
     assert "✓ equipment: 0" in result.output
     assert "✓ ports: 0" in result.output
     assert "✓ connections: 0" in result.output
+
+
+def test_validate_succeeds_for_realistic_process_fragment_example() -> None:
+    result = runner.invoke(app, ["validate", str(REALISTIC_EXAMPLE)])
+
+    assert result.exit_code == 0
+    assert "✓ valid DeepPlant model" in result.output
+    assert "✓ plant: demo" in result.output
+    assert "✓ equipment: 5" in result.output
+    assert "✓ ports: 9" in result.output
+    assert "✓ connections: 4" in result.output
 
 
 def test_validate_returns_nonzero_for_invalid_model(tmp_path: Path) -> None:

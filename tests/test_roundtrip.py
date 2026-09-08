@@ -20,6 +20,9 @@ from deepplant.model import (
 
 EXAMPLE_MINIMAL = Path(__file__).parents[1] / "examples" / "minimal-process" / "plant.yaml"
 EXAMPLE_PROCESS = Path(__file__).parents[1] / "examples" / "process-graph" / "plant.yaml"
+EXAMPLE_REALISTIC = (
+    Path(__file__).parents[1] / "examples" / "realistic-process-fragment" / "plant.yaml"
+)
 
 MINIMAL_YAML = "plant:\n  id: demo\nequipment: []\nconnections: []\n"
 
@@ -363,8 +366,8 @@ def test_save_to_missing_directory_raises_plant_save_error(tmp_path: Path) -> No
 
 @pytest.mark.parametrize(
     "example",
-    [EXAMPLE_MINIMAL, EXAMPLE_PROCESS],
-    ids=["minimal-process", "process-graph"],
+    [EXAMPLE_MINIMAL, EXAMPLE_PROCESS, EXAMPLE_REALISTIC],
+    ids=["minimal-process", "process-graph", "realistic-process-fragment"],
 )
 def test_existing_example_yaml_round_trips(tmp_path: Path, example: Path) -> None:
     model = load_plant(str(example))

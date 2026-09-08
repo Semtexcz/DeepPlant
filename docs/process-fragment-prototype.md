@@ -15,10 +15,55 @@ update_when:
 > Decision status: the process-model container decision is **resolved by
 > ADR-0005 (Accepted)**. Remaining open questions in this document do not block
 > the first production process-model slice.
+>
+> Production status: the process-model slices this document prototyped have
+> since shipped on `main` — the standalone process model with structural rules
+> S1–S4, the `PlantModel.process` root integration (ADR-0006), and canonical
+> YAML save/round-trip. The documented fragment is now a loadable synthetic
+> example (see **Production Model Result** below). Wording elsewhere in this
+> document that reads as "next slice" or "not yet production" is historical
+> research text.
 
 Documentation-only modeling prototype. No production semantic-model class, no
 Pydantic change, no YAML schema, no ADR, no dependency, and no
-`src/` / `tests/` / `examples/` modification is included in this change.
+`src/` / `tests/` / `examples/` modification is included in the research change
+that introduced this document.
+
+## Production Model Result
+
+The documented fragment is now represented by the production model as synthetic
+public YAML in `examples/realistic-process-fragment/` (with a short README):
+
+```text
+YAML  ->  load_plant()  ->  PlantModel  ->  ProcessModel
+ProcessStep[] (ProcessPort[]) + ProcessStream[] (ProcessRef endpoints)
+```
+
+- loads through the real public boundary (`load_plant()` into typed Pydantic
+  models) and round-trips semantically through the implemented serializer
+  (`load(save(model)) == model`);
+- contains the expected seven `ProcessStep` objects (`PS-feed`, `PS-mix`,
+  `PS-pump`, `PS-hx`, `PS-split`, `PS-vessel`, `PS-consumer`) and the seven
+  streams `S-001`…`S-007` exactly as documented above;
+- recycle (`S-002`, `PS-vessel -> PS-mix`) is an ordinary directed graph cycle;
+  mixing and splitting remain explicit process functions with no required
+  `Equipment` counterpart;
+- `FV-101` is present physically (with ports and a partial connection) without
+  a `ProcessStep`; process and physical ids remain separate namespaces;
+- **no new semantic schema was required for the process graph.** No enum, no
+  stream or recycle kind, no step-type rule, and no process↔physical mapping
+  fields were introduced to make the fixture fit.
+
+The fixture deliberately keeps physical piping, physical mixing/splitting
+hardware (tees), nozzles, valve-in-line routing, and the second `E-101` side
+unmodeled. Those limitations are recorded rather than hidden in names or ids;
+they are the same deferred concepts listed later in this document and remain
+open engineering decisions, not blockers for this fragment.
+
+Example identifiers (`PS-*`, `S-0xx`) remain example-scoped labels, consistent
+with the naming note below; they do not decide the final DeepPlant
+stream-numbering, tagging, or naming standard.
+
 
 ## Purpose
 

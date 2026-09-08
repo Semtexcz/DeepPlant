@@ -1,0 +1,196 @@
+plant:
+  id: demo
+  name: Realistic Process Fragment
+
+# Physical / bootstrap layer.
+#
+# This is an equipment inventory with a few partial, explicitly non-exhaustive
+# Connections. It is NOT a physical piping model: mixing/splitting tees,
+# valve-in-line routing downstream of FV-101, nozzles, and the second E-101
+# side are intentionally not modeled. Physical edges imply no mapping to the
+# process layer below.
+
+equipment:
+  - id: T-101
+    type: tank
+    name: Feed Tank
+    ports:
+      - id: outlet
+
+  - id: P-101
+    type: pump
+    name: Feed Pump
+    ports:
+      - id: suction
+      - id: discharge
+
+  - id: FV-101
+    type: control-valve
+    name: Recycle Flow Control Valve
+    ports:
+      - id: inlet
+      - id: outlet
+
+  - id: E-101
+    type: heat-exchanger
+    name: Heat Exchanger
+    ports:
+      - id: process_inlet
+      - id: process_outlet
+
+  - id: V-101
+    type: vessel
+    name: Process Vessel
+    ports:
+      - id: feed_inlet
+      - id: bottoms_outlet
+
+connections:
+  - source:
+      component: T-101
+      port: outlet
+    target:
+      component: P-101
+      port: suction
+
+  - source:
+      component: P-101
+      port: discharge
+    target:
+      component: E-101
+      port: process_inlet
+
+  - source:
+      component: E-101
+      port: process_outlet
+    target:
+      component: V-101
+      port: feed_inlet
+
+  - source:
+      component: V-101
+      port: bottoms_outlet
+    target:
+      component: FV-101
+      port: inlet
+
+# Process layer: the documented PFD fragment.
+#
+# ProcessSteps are process functions, not equipment items. PS-mix and PS-split
+# deliberately have no Equipment counterpart; recycle (S-002) is an ordinary
+# directed graph cycle. Process ids and equipment ids are separate namespaces.
+
+process:
+  steps:
+    - id: PS-feed
+      type: source
+      name: Fresh Feed Boundary
+      ports:
+        - id: out_feed
+
+    - id: PS-mix
+      type: mixing
+      name: Mixing of Fresh Feed and Recycle
+      ports:
+        - id: in_fresh
+        - id: in_recycle
+        - id: out_mixed
+
+    - id: PS-pump
+      type: pump
+      name: Feed Pumping
+      ports:
+        - id: suction
+        - id: discharge
+
+    - id: PS-hx
+      type: heat_exchanger
+      name: Heat Exchange (One Selected Process Side)
+      ports:
+        - id: in_side_A
+        - id: out_side_A
+
+    - id: PS-split
+      type: splitting
+      name: Splitting to Vessel and Downstream Branch
+      ports:
+        - id: in
+        - id: out_vessel
+        - id: out_branch
+
+    - id: PS-vessel
+      type: vessel
+      name: Process Vessel Function
+      ports:
+        - id: in
+        - id: out_recycle
+
+    - id: PS-consumer
+      type: sink
+      name: Downstream Consumer Boundary
+      ports:
+        - id: in
+
+  streams:
+    - id: S-001
+      name: Fresh Feed
+      source:
+        step: PS-feed
+        port: out_feed
+      target:
+        step: PS-mix
+        port: in_fresh
+
+    - id: S-002
+      name: Recycle
+      source:
+        step: PS-vessel
+        port: out_recycle
+      target:
+        step: PS-mix
+        port: in_recycle
+
+    - id: S-003
+      name: Mixed Feed
+      source:
+        step: PS-mix
+        port: out_mixed
+      target:
+        step: PS-pump
+        port: suction
+
+    - id: S-004
+      name: Pump Discharge
+      source:
+        step: PS-pump
+        port: discharge
+      target:
+        step: PS-hx
+        port: in_side_A
+
+    - id: S-005
+      name: Exchanger Outlet
+      source:
+        step: PS-hx
+        port: out_side_A
+      target:
+        step: PS-split
+        port: in
+
+    - id: S-006
+      name: Vessel Feed
+      source:
+        step: PS-split
+        port: out_vessel
+      target:
+        step: PS-vessel
+        port: in
+
+    - id: S-007
+      name: Downstream Branch
+      source:
+        step: PS-split
+        port: out_branch
+      target:
+        step: PS-consumer
+        port: in
