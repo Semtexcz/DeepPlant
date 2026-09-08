@@ -65,19 +65,21 @@ reconsidered before implementation, not auto-selected.
 
 ### Backlog (Suggested Order)
 
-The next step is an open architectural question, recorded for the next
-iteration:
+The pipes/streams modeling question was researched in
+[process-topology.md](process-topology.md), which proposes a layered model:
+`Connection` stays pure topology; a separate `ProcessStream` entity comes first
+(process/PFD layer); a physical `PipingLine` entity follows later (P&ID layer).
+The decision is **not resolved**:
 
-> What should represent process piping / streams in the canonical model: a
-> component with ports, a connection with engineering properties, or a separate
-> semantic entity?
+> Human review must approve or reject the proposed process-topology model before
+> any semantic-model implementation.
 
-Do not answer it from habit or because rendering needs it; answer it from a real
-fragment requirement.
+Do not implement pipes/streams semantics from habit or because rendering needs
+it; the review decides from the real-fragment evidence in the research document.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Decide the pipes/streams representation | Open modeling question above; do not guess pipe, stream, or signal semantics yet |
+| 1 | Review and approve/reject the proposed process-topology model | Human decision on `docs/process-topology.md`; no semantic-model implementation until then |
 | 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
 | 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
 | 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
@@ -101,10 +103,11 @@ slices.
 
 ### Next Task
 
-Deliberately open. The next vertical change starts from the pipes/streams
-representation question in the Backlog; it must not be auto-assumed to be YAML
-save or rendering. Keep rendering, YAML save, and DEXPI out of that decision
-unless the chosen fragment proves otherwise.
+Human review of the proposed process-topology model
+([process-topology.md](process-topology.md)). If approved, the next vertical
+change implements the approved first increment (a separate `ProcessStream`
+entity) on a real fragment with tests. Rendering, YAML save, and DEXPI stay out
+of scope until that decision lands.
 
 ### Scope Discipline
 
