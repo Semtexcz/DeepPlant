@@ -50,14 +50,21 @@ DeepPlant ships the project foundation plus four semantic vertical slices:
   `process: null` mean no authored process model, while `process: {}` is an
   explicitly empty `ProcessModel`; S1–S4 remain owned by `ProcessModel` and
   no cross-layer mappings or validation exist
+- canonical YAML save / semantic round-trip: `save_plant()` serializes a
+  `PlantModel` through Pydantic (`exclude_none`) into canonical, deterministic
+  YAML that the existing `load_plant()` reads back as a semantically equal
+  model; `process: None` is omitted while an explicitly empty `ProcessModel`
+  stays present; formatting, comments, and quoting are not preserved
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
 stream, signal, cable, or physical line. Work proceeds as small vertical
-changes with executable tests. `PlantModel` now owns zero or one `ProcessModel`
-under `process`, and the loader can populate it from YAML. Process and physical
-graphs stay independently valid: process step/port ids never imply equipment,
-and no save/round-trip or cross-layer rules exist yet.
+changes with executable tests. `PlantModel` owns zero or one `ProcessModel`
+under `process`; the loader populates it from YAML and `save_plant()` writes
+canonical YAML that `load_plant()` reads back into a semantically equal model.
+Round-trip is semantic (`load(save(model)) == model`), not byte-preserving.
+Process and physical graphs stay independently valid: process step/port ids
+never imply equipment, and no cross-layer rules exist yet.
 
 ### Completed
 
@@ -79,6 +86,7 @@ and no save/round-trip or cross-layer rules exist yet.
 | Define `ProcessRef` / `ProcessStream` | `ProcessRef(step, port)` endpoints; binary directed `ProcessStream` with `id`, optional `name`; no flow/designation/physical semantics |
 | Process structural validation | S1 duplicate step/stream ids rejected; S3 endpoints resolve to process steps and owned process ports; S4 identical source/target endpoints rejected; cycles/recycle/mixing/splitting structurally allowed; no dependency on `Equipment`/`Port`/`Connection` |
 | Integrate `ProcessModel` into the root/loadable model | `PlantModel.process: ProcessModel \| None`; YAML `process` section (`steps`, `streams`) loads through the existing loader; missing `process` and `process: null` load as no process model, `process: {}` as an empty one; S1–S4 stay on the process-domain models; process and physical ids remain separate namespaces; root/YAML shape recorded in ADR-0006 |
+| YAML save / semantic round-trip | Canonical `save_plant()` through Pydantic `model_dump(exclude_none=True)` + PyYAML (`sort_keys=False`, `allow_unicode=True`); `load_plant(save_plant(model)) == model`; `None` optionals omitted; `process: None` omitted; explicit empty `ProcessModel` preserved; deterministic field order; UTF-8 with a trailing newline; comments/formatting not preserved; no domain-model changes; no CLI save/format command |
 
 ### Backlog (Suggested Order)
 
@@ -86,16 +94,18 @@ The process fragment is documented in
 [process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
 accepted: `PlantModel` remains the overall aggregate while one independently
 valid `ProcessModel` owns the process graph and defines the S1–S4
-reference-validation boundary. The root/loadable integration is implemented
-(see Completed): `PlantModel.process: ProcessModel | None` and YAML loading of
-the `process` section (ADR-0006). YAML save/round-trip is the next task below.
+reference-validation boundary. The root/loadable integration and the canonical
+YAML save/round-trip are implemented (see Completed):
+`PlantModel.process: ProcessModel | None`, YAML loading of the `process`
+section (ADR-0006), and a deterministic `save_plant()` whose output
+`load_plant()` reads back into a semantically equal model. The next task is
+the first row below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | YAML save / round-trip | `load`/`save` symmetry for `PlantModel` including the `process` section; deliberately not implemented by the root/loadable integration |
-| 2 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | SVG symbol specification | Deliberate symbol/geometry/layout spec, separate from semantics (ADR-0003); prerequisite for the renderer |
+| 2 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model using the symbol spec |
+| 3 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -115,13 +125,18 @@ slices.
 
 ### Next Task
 
-The next task is YAML save / round-trip: `load`/`save` symmetry for the root
-model including the `process` section. The first root/YAML shapes are now
-accepted for the first slice — `PlantModel.process: ProcessModel | None` and a
-YAML `process` section with `steps`/`streams` (ADR-0006) — and existing YAML
-without `process` remains backward compatible. Save must not be implemented
-before this task. Multiplicity beyond zero-or-one `ProcessModel` per plant also
-remains deferred (ADR-0005).
+The next task is the SVG symbol specification (first backlog row above).
+Rendering is deliberately not started directly after YAML save: the roadmap and
+architecture keep presentation strictly separate from semantics (ADR-0003), and
+a renderer slice needs explicit symbol, geometry, port-anchoring, and layout
+semantics before any drawing code is evidence-producing. The symbol
+specification is the smallest next deliverable on that path; the subsequent
+basic renderer slice (second backlog row) will consume it and derive a simple
+PFD/P&ID-like drawing from an existing example. Canonical `save_plant()` now
+gives those slices a deterministic authoring surface (`load` -> edit in Python
+-> `save`), but no renderer or CLI save/format command ships in this PR.
+Multiplicity beyond zero-or-one `ProcessModel` per plant remains deferred
+(ADR-0005).
 
 ### Scope Discipline
 

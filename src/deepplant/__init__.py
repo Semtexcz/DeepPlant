@@ -4,7 +4,7 @@
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _distribution_version
 
-from deepplant.io import PlantLoadError, load_plant
+from deepplant.io import PlantLoadError, PlantSaveError, load_plant, save_plant
 from deepplant.model import (
     Connection,
     Equipment,
@@ -31,6 +31,7 @@ __all__ = [
     "Plant",
     "PlantLoadError",
     "PlantModel",
+    "PlantSaveError",
     "Port",
     "PortRef",
     "ProcessModel",
@@ -39,4 +40,5 @@ __all__ = [
     "ProcessStep",
     "ProcessStream",
     "load_plant",
+    "save_plant",
 ]

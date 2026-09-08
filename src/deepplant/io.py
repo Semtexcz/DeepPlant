@@ -1,10 +1,12 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""YAML loading boundary for DeepPlant plant models.
+"""YAML serialization boundary for DeepPlant plant models.
 
-YAML and file I/O stay outside the semantic domain model (ADR-0004). Every
-expected failure mode raises :class:`PlantLoadError` with a concise message so
+YAML and file I/O stay outside the semantic domain model (ADR-0004). Loading
+validates YAML through Pydantic into typed models; saving serializes a
+:class:`PlantModel` to canonical, semantic YAML. Expected failure modes raise
+:class:`PlantLoadError` or :class:`PlantSaveError` with a concise message so
 callers such as the CLI can report normal user errors without raw tracebacks.
 """
 
@@ -17,11 +19,15 @@ from pydantic import ValidationError
 
 from deepplant.model import PlantModel
 
-__all__ = ["PlantLoadError", "load_plant"]
+__all__ = ["PlantLoadError", "PlantSaveError", "load_plant", "save_plant"]
 
 
 class PlantLoadError(Exception):
     """Raised when a plant YAML file cannot be read or validated."""
+
+
+class PlantSaveError(Exception):
+    """Raised when a plant YAML file cannot be written."""
 
 
 def load_plant(path: str | Path) -> PlantModel:
@@ -53,6 +59,29 @@ def load_plant(path: str | Path) -> PlantModel:
         raise PlantLoadError(
             f"invalid DeepPlant model in '{source}': {_format_validation_errors(exc)}"
         ) from exc
+
+
+def save_plant(model: PlantModel, path: str | Path) -> None:
+    """Serialize ``model`` to canonical, semantic UTF-8 YAML at ``path``.
+
+    ``load_plant(save_plant(model))`` is semantically equal to ``model``.
+    Serialization is canonical, not textual: comments, quoting, blank lines,
+    anchors, aliases, and the original key style are deliberately not
+    preserved. Optional fields whose value is ``None`` are omitted, a
+    ``process`` value of ``None`` is omitted as a missing ``process`` key, and
+    an explicitly empty ``ProcessModel`` stays present. Keys follow the Pydantic
+    model declaration order, so the output is deterministic.
+    """
+    destination = Path(path)
+    document = model.model_dump(mode="python", exclude_none=True)
+    text = yaml.safe_dump(document, sort_keys=False, allow_unicode=True)
+    if not text.endswith("\n"):
+        text += "\n"
+    try:
+        destination.write_text(text, encoding="utf-8")
+    except OSError as exc:
+        reason = exc.strerror or str(exc)
+        raise PlantSaveError(f"cannot write plant file '{destination}': {reason}") from exc
 
 
 def _first_line(exc: BaseException) -> str:
