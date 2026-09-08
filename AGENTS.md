@@ -79,3 +79,42 @@ Project-specific context is in `project/brief.md`, `docs/`, and ADRs under
 `docs/decisions/`. Keep changes small, run `make check`, and update the brief or
 ADRs when implementation teaches something durable.
 
+## Roadmap Reconciliation
+
+For every PR that changes implemented capabilities, architecture decisions,
+examples, or milestone progress, roadmap reconciliation is part of Definition
+of Done.
+
+Before opening or finalizing the PR:
+
+1. Re-read `docs/roadmap.md` against the actual repository state after the
+   change.
+2. Mark an item complete only if the PR actually delivers it.
+3. Re-evaluate the next task from:
+   - current implemented capabilities,
+   - milestone goals,
+   - unresolved evidence gaps,
+   - existing realistic examples/prototypes,
+   - accepted ADRs.
+4. Do not mechanically promote the next existing backlog row.
+5. Prefer the smallest evidence-producing next slice. In particular, prefer
+   testing the semantic model against a realistic executable example before
+   introducing new abstractions or presentation architecture.
+6. Ensure these roadmap sections are mutually consistent:
+   - Current Implementation Roadmap
+   - Completed
+   - Backlog (Suggested Order)
+   - Milestones
+   - Next Task
+7. Search touched documentation for stale statements such as:
+   `next task`, `not yet implemented`, `deferred`, `open decision`,
+   `prerequisite`, and similar status wording.
+8. If the PR genuinely does not affect roadmap state, explicitly verify that
+   no roadmap update is required.
+
+The final task report must include a short `Roadmap check` stating:
+
+- what became complete,
+- what is now the next task,
+- why that next task follows from the current repository state.
+

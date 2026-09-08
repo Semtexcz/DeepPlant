@@ -90,22 +90,25 @@ never imply equipment, and no cross-layer rules exist yet.
 
 ### Backlog (Suggested Order)
 
-The process fragment is documented in
-[process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
-accepted: `PlantModel` remains the overall aggregate while one independently
-valid `ProcessModel` owns the process graph and defines the S1–S4
-reference-validation boundary. The root/loadable integration and the canonical
-YAML save/round-trip are implemented (see Completed):
-`PlantModel.process: ProcessModel | None`, YAML loading of the `process`
-section (ADR-0006), and a deterministic `save_plant()` whose output
-`load_plant()` reads back into a semantically equal model. The next task is
-the first row below.
+The realistic process fragment documented in
+[process-fragment-prototype.md](process-fragment-prototype.md) already exercises
+fresh feed, mixing, a pump, a heat exchanger, splitting, a vessel, a downstream
+boundary, and recycle; it is the preferred evidence base for the symbol and
+rendering work that follows. ADR-0005 is accepted: `PlantModel` remains the
+overall aggregate while one independently valid `ProcessModel` owns the process
+graph and defines the S1–S4 reference-validation boundary. The root/loadable
+integration and the canonical YAML save/round-trip are implemented (see
+Completed): `PlantModel.process: ProcessModel | None`, YAML loading of the
+`process` section (ADR-0006), and a deterministic `save_plant()` whose output
+`load_plant()` reads back into a semantically equal model. The next task is the
+first row below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | SVG symbol specification | Deliberate symbol/geometry/layout spec, separate from semantics (ADR-0003); prerequisite for the renderer |
-| 2 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model using the symbol spec |
-| 3 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Realistic process fragment as a loadable example | Turn the fragment in [process-fragment-prototype.md](process-fragment-prototype.md) into synthetic public YAML, load it through the real `PlantModel` via `load_plant()`, and validate it through the existing production models so missing semantic requirements surface before presentation design; do not introduce new schema merely to make the fixture fit; document any genuine model gap the executable example reveals |
+| 2 | SVG symbol specification | Deliberate symbol/geometry/layout spec, separate from semantics (ADR-0003); prerequisite for the renderer |
+| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model using the symbol spec |
+| 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -123,20 +126,25 @@ slices.
 > objects, render it as a basic PFD/P&ID-like diagram and validate at least 10
 > classes of engineering/model consistency errors.
 
+Order within this milestone: the realistic process fragment first becomes a
+loadable synthetic example through the production semantic model (backlog
+row 1); the SVG symbol specification and the basic renderer (backlog rows 2–3)
+then derive the diagram from that example.
+
 ### Next Task
 
-The next task is the SVG symbol specification (first backlog row above).
-Rendering is deliberately not started directly after YAML save: the roadmap and
-architecture keep presentation strictly separate from semantics (ADR-0003), and
-a renderer slice needs explicit symbol, geometry, port-anchoring, and layout
-semantics before any drawing code is evidence-producing. The symbol
-specification is the smallest next deliverable on that path; the subsequent
-basic renderer slice (second backlog row) will consume it and derive a simple
-PFD/P&ID-like drawing from an existing example. Canonical `save_plant()` now
-gives those slices a deterministic authoring surface (`load` -> edit in Python
--> `save`), but no renderer or CLI save/format command ships in this PR.
-Multiplicity beyond zero-or-one `ProcessModel` per plant remains deferred
-(ADR-0005).
+The next task is to turn the documented realistic process fragment into a
+loadable synthetic example using the production semantic model. The fragment is
+documented in [process-fragment-prototype.md](process-fragment-prototype.md);
+the example itself is not implemented in this PR.
+
+This comes before SVG/presentation work because schema and presentation
+decisions should be tested against a realistic engineering fragment rather than
+the current trivial FEED → PUMP → PRODUCT example
+([examples/process-graph/plant.yaml](examples/process-graph/plant.yaml)).
+
+The subsequent tasks are the SVG symbol specification (backlog row 2) and then
+the basic read-only renderer (backlog row 3).
 
 ### Scope Discipline
 
@@ -195,9 +203,11 @@ Relationship to today: the core primitives of Stage 1 are implemented on
 `PortRef`, directed `Connection`, reference validation, YAML load, and
 strict structural validation. Implemented primitives are not the same as a
 completed capability stage: the Stage 1 exit signal below has not yet been
-demonstrated on a real process fragment. The open pipes / process-stream
-representation question — the first item on the Current Implementation
-Roadmap above — is the next semantic decision.
+demonstrated on a real process fragment. The next task above — turning the
+documented realistic fragment into a loadable synthetic example — is the vehicle
+for that demonstration; the open pipes / process-stream representation question
+is the semantic decision that example is expected to inform before presentation
+design.
 
 Exit signal:
 
