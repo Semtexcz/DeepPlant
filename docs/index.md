@@ -16,4 +16,5 @@ update_when:
 - Roadmap: [roadmap.md](roadmap.md)
 - Workflow: [workflow.md](workflow.md)
 - Quality: [quality.md](quality.md)
+- Standards and symbol assets: [standards.md](standards.md)
 - Decisions: [decisions/index.md](decisions/index.md)
