@@ -50,14 +50,21 @@ DeepPlant ships the project foundation plus four semantic vertical slices:
   `process: null` mean no authored process model, while `process: {}` is an
   explicitly empty `ProcessModel`; S1–S4 remain owned by `ProcessModel` and
   no cross-layer mappings or validation exist
+- canonical YAML save / semantic round-trip: `save_plant()` serializes a
+  `PlantModel` through Pydantic (`exclude_none`) into canonical, deterministic
+  YAML that the existing `load_plant()` reads back as a semantically equal
+  model; `process: None` is omitted while an explicitly empty `ProcessModel`
+  stays present; formatting, comments, and quoting are not preserved
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
 stream, signal, cable, or physical line. Work proceeds as small vertical
-changes with executable tests. `PlantModel` now owns zero or one `ProcessModel`
-under `process`, and the loader can populate it from YAML. Process and physical
-graphs stay independently valid: process step/port ids never imply equipment,
-and no save/round-trip or cross-layer rules exist yet.
+changes with executable tests. `PlantModel` owns zero or one `ProcessModel`
+under `process`; the loader populates it from YAML and `save_plant()` writes
+canonical YAML that `load_plant()` reads back into a semantically equal model.
+Round-trip is semantic (`load(save(model)) == model`), not byte-preserving.
+Process and physical graphs stay independently valid: process step/port ids
+never imply equipment, and no cross-layer rules exist yet.
 
 ### Completed
 
@@ -79,22 +86,28 @@ and no save/round-trip or cross-layer rules exist yet.
 | Define `ProcessRef` / `ProcessStream` | `ProcessRef(step, port)` endpoints; binary directed `ProcessStream` with `id`, optional `name`; no flow/designation/physical semantics |
 | Process structural validation | S1 duplicate step/stream ids rejected; S3 endpoints resolve to process steps and owned process ports; S4 identical source/target endpoints rejected; cycles/recycle/mixing/splitting structurally allowed; no dependency on `Equipment`/`Port`/`Connection` |
 | Integrate `ProcessModel` into the root/loadable model | `PlantModel.process: ProcessModel \| None`; YAML `process` section (`steps`, `streams`) loads through the existing loader; missing `process` and `process: null` load as no process model, `process: {}` as an empty one; S1–S4 stay on the process-domain models; process and physical ids remain separate namespaces; root/YAML shape recorded in ADR-0006 |
+| YAML save / semantic round-trip | Canonical `save_plant()` through Pydantic `model_dump(exclude_none=True)` + PyYAML (`sort_keys=False`, `allow_unicode=True`); `load_plant(save_plant(model)) == model`; `None` optionals omitted; `process: None` omitted; explicit empty `ProcessModel` preserved; deterministic field order; UTF-8 with a trailing newline; comments/formatting not preserved; no domain-model changes; no CLI save/format command |
 
 ### Backlog (Suggested Order)
 
-The process fragment is documented in
-[process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
-accepted: `PlantModel` remains the overall aggregate while one independently
-valid `ProcessModel` owns the process graph and defines the S1–S4
-reference-validation boundary. The root/loadable integration is implemented
-(see Completed): `PlantModel.process: ProcessModel | None` and YAML loading of
-the `process` section (ADR-0006). YAML save/round-trip is the next task below.
+The realistic process fragment documented in
+[process-fragment-prototype.md](process-fragment-prototype.md) already exercises
+fresh feed, mixing, a pump, a heat exchanger, splitting, a vessel, a downstream
+boundary, and recycle; it is the preferred evidence base for the symbol and
+rendering work that follows. ADR-0005 is accepted: `PlantModel` remains the
+overall aggregate while one independently valid `ProcessModel` owns the process
+graph and defines the S1–S4 reference-validation boundary. The root/loadable
+integration and the canonical YAML save/round-trip are implemented (see
+Completed): `PlantModel.process: ProcessModel | None`, YAML loading of the
+`process` section (ADR-0006), and a deterministic `save_plant()` whose output
+`load_plant()` reads back into a semantically equal model. The next task is the
+first row below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | YAML save / round-trip | `load`/`save` symmetry for `PlantModel` including the `process` section; deliberately not implemented by the root/loadable integration |
-| 2 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 1 | Realistic process fragment as a loadable example | Turn the fragment in [process-fragment-prototype.md](process-fragment-prototype.md) into synthetic public YAML, load it through the real `PlantModel` via `load_plant()`, and validate it through the existing production models so missing semantic requirements surface before presentation design; do not introduce new schema merely to make the fixture fit; document any genuine model gap the executable example reveals |
+| 2 | SVG symbol specification | Deliberate symbol/geometry/layout spec, separate from semantics (ADR-0003); prerequisite for the renderer |
+| 3 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model using the symbol spec |
 | 4 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
@@ -113,15 +126,25 @@ slices.
 > objects, render it as a basic PFD/P&ID-like diagram and validate at least 10
 > classes of engineering/model consistency errors.
 
+Order within this milestone: the realistic process fragment first becomes a
+loadable synthetic example through the production semantic model (backlog
+row 1); the SVG symbol specification and the basic renderer (backlog rows 2–3)
+then derive the diagram from that example.
+
 ### Next Task
 
-The next task is YAML save / round-trip: `load`/`save` symmetry for the root
-model including the `process` section. The first root/YAML shapes are now
-accepted for the first slice — `PlantModel.process: ProcessModel | None` and a
-YAML `process` section with `steps`/`streams` (ADR-0006) — and existing YAML
-without `process` remains backward compatible. Save must not be implemented
-before this task. Multiplicity beyond zero-or-one `ProcessModel` per plant also
-remains deferred (ADR-0005).
+The next task is to turn the documented realistic process fragment into a
+loadable synthetic example using the production semantic model. The fragment is
+documented in [process-fragment-prototype.md](process-fragment-prototype.md);
+the example itself is not implemented in this PR.
+
+This comes before SVG/presentation work because schema and presentation
+decisions should be tested against a realistic engineering fragment rather than
+the current trivial FEED → PUMP → PRODUCT example
+([examples/process-graph/plant.yaml](examples/process-graph/plant.yaml)).
+
+The subsequent tasks are the SVG symbol specification (backlog row 2) and then
+the basic read-only renderer (backlog row 3).
 
 ### Scope Discipline
 
@@ -180,9 +203,11 @@ Relationship to today: the core primitives of Stage 1 are implemented on
 `PortRef`, directed `Connection`, reference validation, YAML load, and
 strict structural validation. Implemented primitives are not the same as a
 completed capability stage: the Stage 1 exit signal below has not yet been
-demonstrated on a real process fragment. The open pipes / process-stream
-representation question — the first item on the Current Implementation
-Roadmap above — is the next semantic decision.
+demonstrated on a real process fragment. The next task above — turning the
+documented realistic fragment into a loadable synthetic example — is the vehicle
+for that demonstration; the open physical-piping / process-to-physical-realization
+question is the semantic decision that example is expected to inform before
+presentation design.
 
 Exit signal:
 
@@ -194,9 +219,12 @@ Exit signal:
 Goal: represent meaningful connectivity and distinguish different engineering
 relationship concepts.
 
-Open questions (deliberately unresolved here):
+Open questions (deliberately unresolved here) — all on the physical-realization
+side; `ProcessStream` itself is decided as the process-layer directed edge,
+distinct from `Connection`:
 
-- process stream vs pipe vs generic connection
+- physical piping representation
+- `ProcessStream` ↔ physical realization mapping
 - equipment nozzles
 - instrumentation connectivity
 - utilities
@@ -297,7 +325,7 @@ Concrete examples:
 - the editor stage does not justify web architecture now
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
-- the open pipes/streams representation question does not justify attaching
-  pipe or process-stream semantics to `Connection` now
+- the open physical-piping / process-to-physical-realization question does not
+  justify attaching pipe or process-stream semantics to `Connection` now
 
 Think broadly about the destination. Build narrowly in the current iteration.
