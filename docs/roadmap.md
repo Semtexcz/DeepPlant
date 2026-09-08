@@ -151,10 +151,11 @@ slices.
 Order within this milestone: the realistic process fragment is a loadable
 synthetic example through the production semantic model (see Completed), the
 standards/symbol-licensing governance slice (ADR-0007,
-[docs/standards.md](standards.md)) governs symbol sourcing, and the SVG symbol +
-anchor contract (ADR-0008, [docs/svg-symbols.md](svg-symbols.md)) now ships the
-process/PFD assets and anchor contract. The basic headless read-only process
-renderer (backlog row 1) then derives the diagram from that example.
+[docs/standards.md](standards.md)) governs symbol sourcing, and the SVG +
+anchor + initial basic symbol-pack contract (ADR-0008,
+[docs/svg-symbols.md](svg-symbols.md)) now ships the `basic` process/PFD pack.
+The basic headless read-only process renderer (backlog row 1) then derives the
+diagram from that example.
 
 ### Next Task
 

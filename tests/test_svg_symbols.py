@@ -85,15 +85,9 @@ def test_required_basic_pack_directory_exists() -> None:
 
 
 def test_basic_pack_covers_required_process_roles() -> None:
-    # The required realistic-fragment roles must be present; the pack may also
-    # contain additional valid SVG assets, so an extra symbol must not fail this.
-    symbol_ids = {path.stem for path in _symbol_paths()}
-    assert REQUIRED_PROCESS_ROLES <= symbol_ids
-
-
-def test_additional_svg_assets_are_permitted() -> None:
-    # Subset semantics: nothing requires the pack to contain exactly the
-    # required roles. Adding a further valid asset stays green.
+    # Subset coverage only: the required realistic-fragment roles must be
+    # present, but nothing requires the pack to contain exactly those roles.
+    # Adding a further valid asset stays green.
     symbol_ids = {path.stem for path in _symbol_paths()}
     assert REQUIRED_PROCESS_ROLES <= symbol_ids
 
