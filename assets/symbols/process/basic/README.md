@@ -1,49 +1,59 @@
-# assets/symbols/process — DeepPlant process/PFD symbol assets
+# DeepPlant basic process symbol pack
 
-First DeepPlant presentation-asset slice: a seven-symbol process/PFD set for the
-`ProcessStep.type` values used by
-[examples/realistic-process-fragment](../../../examples/realistic-process-fragment/plant.yaml):
+This directory is the initial `basic` pack under `assets/symbols/process/`. It
+contains DeepPlant-original fallback/reference SVG realizations of the
+`ProcessStep.type` roles used by
+[examples/realistic-process-fragment](../../../../examples/realistic-process-fragment/plant.yaml).
 
 ```text
-source
-mixing
-pump
-heat_exchanger
-splitting
-vessel
-sink
+pack: basic
+origin: DeepPlant-original
+licence: AGPL-3.0-only
+purpose: fallback/reference implementation, contract validation, renderer
+         development, and custom-symbol example
+standards status: non-normative / unverified
 ```
 
-The SVG + anchor contract is defined in [docs/svg-symbols.md](../../../docs/svg-symbols.md)
-and decided in [ADR-0008](../../../docs/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
+The SVG + anchor contract is defined in [docs/svg-symbols.md](../../../../docs/svg-symbols.md)
+and decided in [ADR-0008](../../../../docs/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
+
+## Role, pack, and asset
+
+`ProcessStep.type` identifies a **symbol role**, not a globally canonical SVG
+geometry. This `basic` pack realizes each covered role through the filename
+convention `<role>.svg`; for example, role `pump` is realized here by
+`basic/pump.svg`. A future standards-aligned, company, or custom pack may
+realize the same role with materially different geometry and anchors.
 
 ## Provenance
 
-Every asset in this directory is **DeepPlant-original**: independently authored
-line geometry for this repository. No ISO/ISA/IEC figure was copied, traced, or
-AI-derived; nothing from draw.io, IPD Studio, ISPF, or any other third-party
-pack was copied or adapted. This directory is governed by
-[docs/standards.md](../../../docs/standards.md) and
-[ADR-0007](../../../docs/decisions/ADR-0007-standards-and-symbol-provenance.md).
+Every SVG here is **DeepPlant-original** and independently authored. No
+ISO/ISA/IEC figure was copied, traced, screenshot-reused, or AI-derived. No
+geometry from draw.io, IPD Studio, ISPF, or any other third-party pack was
+copied or adapted. This pack is governed by
+[docs/standards.md](../../../../docs/standards.md) and
+[ADR-0007](../../../../docs/decisions/ADR-0007-standards-and-symbol-provenance.md).
 
-| Symbol id | File | Origin | Licence | Copyright holder | Modification state | Upstream revision | Standards alignment |
+| Role | File | Origin | Licence | Copyright holder | Modification state | Upstream revision | Standards status |
 |---|---|---|---|---|---|---|---|
-| `source` | `source.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — no ISO equipment correspondence forced (process-graph boundary concept) |
-| `mixing` | `mixing.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — no ISO equipment correspondence forced (process-function glyph) |
-| `pump` | `pump.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `candidate-alignment` — intended to read as a pumping function; ISO 10628-2 / ISO 14617 are future human-verification references; not `human-verified` |
-| `heat_exchanger` | `heat_exchanger.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `candidate-alignment` — intended to read as heat exchange; ISO 10628-2 / ISO 14617 are future human-verification references; not `human-verified` |
-| `splitting` | `splitting.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — no ISO equipment correspondence forced (process-function glyph) |
-| `vessel` | `vessel.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `candidate-alignment` — intended to read as containment; ISO 10628-2 / ISO 14617 are future human-verification references; not `human-verified` |
-| `sink` | `sink.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — no ISO equipment correspondence forced (process-graph boundary concept) |
+| `source` | `source.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback process-boundary glyph |
+| `mixing` | `mixing.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback process-function glyph |
+| `pump` | `pump.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback pumping-role glyph; not a standards-aligned pack asset |
+| `heat_exchanger` | `heat_exchanger.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback heat-exchange-role glyph; not a standards-aligned pack asset |
+| `splitting` | `splitting.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback process-function glyph |
+| `vessel` | `vessel.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback containment-role glyph; not a standards-aligned pack asset |
+| `sink` | `sink.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback process-boundary glyph |
 
-No asset in this directory is claimed to be ISO/ISA/standards compliant. Visual
-conventions are ordinary, independently known process-engineering drawing
-vocabulary; correspondence with any restricted standard remains **unverified**
-until a named human checks it against an authorized copy and records the result.
+These are non-normative DeepPlant-original fallback/basic glyphs. They express
+each semantic role sufficiently for the basic renderer and the contract tests.
+They are not the definitive PFD/P&ID symbol library and are not intended to
+replace a standards-aligned equipment-symbol pack. A future standards-aligned
+pack may use materially different geometry after explicit rights, per-asset
+provenance, and human verification against an authorized copy.
 
-## Anchor cardinalities (current variants)
+## Anchor cardinalities (current basic variants)
 
-| Symbol id | Inputs | Outputs |
+| Role | Inputs | Outputs |
 |---|---|---|
 | `source` | 0 | 1 |
 | `mixing` | 2 | 1 |
@@ -53,18 +63,16 @@ until a named human checks it against an authorized copy and records the result.
 | `vessel` | 1 | 1 |
 | `sink` | 1 | 0 |
 
-These are properties of the current symbol variants only. They are not semantic
-invariants: no validator in the domain model enforces them, and future variants
-may differ.
+These counts are properties of the current `basic` variants only. They are not
+semantic invariants, and a different pack can use different geometry and anchor
+cardinalities for the same roles.
 
 ## Scope note
 
-This is a process/PFD presentation set. It represents `ProcessStep` only — not
+This is a process/PFD presentation pack for `ProcessStep` only — not
 `Equipment`, `Port`, `Connection`, physical nozzles, or piping. `FV-101` in the
 realistic fragment is a physical control valve and is intentionally not
 represented here. A future renderer renders `ProcessModel`, not the physical
 P&ID topology.
 
-This is a human-readable provenance record, not a machine-readable provenance
-framework. A machine-readable manifest is deferred until the renderer needs
-runtime asset lookup.
+This is a human-readable provenance record, not a runtime provenance manifest.

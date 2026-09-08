@@ -29,8 +29,8 @@ normative engineering standards          ISO 10628-1/-2, ISO 14617-1/-2,
                                          ANSI/ISA-5.1, IEC 62424 (restricted)
 open interoperability specifications     DEXPI 2.0 (CC BY 4.0)
 DeepPlant implementation                 the semantic engineering model + tooling
-redistributable graphical assets         DeepPlant SVG symbol assets (first
-                                         process set in assets/symbols/process)
+redistributable graphical assets         DeepPlant SVG symbol assets (basic
+                                         process pack in assets/symbols/process/basic)
 ```
 
 It answers the six governance questions:
@@ -368,10 +368,11 @@ DeepPlant SVG library     → implementation asset layer with independent proven
   and its graphics model must not automatically become DeepPlant's visual
   symbol style.
 - The DeepPlant SVG symbol assets are an implementation asset layer with
-  independent provenance. The first process/PFD set ships under
-  `assets/symbols/process/` (contract: [svg-symbols.md](svg-symbols.md)) as
-  DeepPlant-original geometry under AGPL-3.0-only; future sets keep independent
-  provenance and may carry their own licences.
+  independent provenance. The first process/PFD pack ships as the non-normative
+  `basic` pack under `assets/symbols/process/basic/` (contract:
+  [svg-symbols.md](svg-symbols.md)) as DeepPlant-original fallback geometry
+  under AGPL-3.0-only. Future standards-aligned, company, and custom packs keep
+  independent provenance and may carry their own licences.
 
 ## Research sources and access notes
 
