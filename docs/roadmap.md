@@ -65,21 +65,25 @@ reconsidered before implementation, not auto-selected.
 
 ### Backlog (Suggested Order)
 
-The pipes/streams modeling question was researched in
-[process-topology.md](process-topology.md), which proposes a layered model:
-`Connection` stays pure topology; a separate `ProcessStream` entity comes first
-(process/PFD layer); a physical `PipingLine` entity follows later (P&ID layer).
-The decision is **not resolved**:
+The pipes/streams modeling question was researched and refined in
+[process-topology.md](process-topology.md). The decision remains **not resolved**:
 
-> Human review must approve or reject the proposed process-topology model before
-> any semantic-model implementation.
+> Review and approve the revised process-layer model, including the relationship
+> among `ProcessStep`, current `Equipment`, `ProcessPort`, current `Port`,
+> `ProcessStream`, and `Connection`—including explicit split/merge semantics and
+> process-to-plant mapping cardinalities—before naming any implementation
+> increment.
 
-Do not implement pipes/streams semantics from habit or because rendering needs
-it; the review decides from the real-fragment evidence in the research document.
+The research rejects independently authored duplicate process-stream and
+`Connection` endpoints. It treats the current `Connection` as today’s generic
+low-level adjacency/bootstrap abstraction, not a universal graph by assumption.
+Do not implement pipes, streams, process steps, ports, or mappings from habit or
+because rendering needs them; human review must first approve a real-fragment
+process graph and its mappings.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Review and approve/reject the proposed process-topology model | Human decision on `docs/process-topology.md`; no semantic-model implementation until then |
+| 1 | Review and approve/reject the revised process-layer model | Human decision on `docs/process-topology.md` (ProcessStep/Equipment, ProcessPort/Port, ProcessStream/Connection, explicit junctions, mapping cardinalities); no semantic-model implementation until then |
 | 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
 | 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
 | 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
