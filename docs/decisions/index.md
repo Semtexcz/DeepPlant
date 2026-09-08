@@ -20,5 +20,6 @@ update_when:
 | ADR-0003 | Accepted | Keep semantic engineering data and presentation/rendering data strictly separate. |
 | ADR-0004 | Accepted | YAML is a serialization format validated into the domain model, not the domain model itself. |
 | ADR-0005 | Accepted | Use `ProcessModel` as the process-graph container and S1–S4 validation boundary while `PlantModel` remains the overall aggregate. |
+| ADR-0006 | Accepted | Accept `PlantModel.process: ProcessModel \| None` as the first root shape and the YAML `process` section as the first serialization boundary. |
 
 Create an ADR for architecture style changes, databases, external services, authentication, cache, queues, events, deployment, vendor lock-in, and data ownership changes.

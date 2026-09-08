@@ -78,7 +78,7 @@ and no save/round-trip or cross-layer rules exist yet.
 | Define `ProcessStep` / `ProcessPort` | Process steps with `id`, open non-empty `type`, `name`, owned `ProcessPort[]`; process-port ids local to the owning step (S2) |
 | Define `ProcessRef` / `ProcessStream` | `ProcessRef(step, port)` endpoints; binary directed `ProcessStream` with `id`, optional `name`; no flow/designation/physical semantics |
 | Process structural validation | S1 duplicate step/stream ids rejected; S3 endpoints resolve to process steps and owned process ports; S4 identical source/target endpoints rejected; cycles/recycle/mixing/splitting structurally allowed; no dependency on `Equipment`/`Port`/`Connection` |
-| Integrate `ProcessModel` into the root/loadable model | `PlantModel.process: ProcessModel \| None`; YAML `process` section (`steps`, `streams`) loads through the existing loader; missing `process` and `process: null` load as no process model, `process: {}` as an empty one; S1–S4 stay on the process-domain models; process and physical ids remain separate namespaces |
+| Integrate `ProcessModel` into the root/loadable model | `PlantModel.process: ProcessModel \| None`; YAML `process` section (`steps`, `streams`) loads through the existing loader; missing `process` and `process: null` load as no process model, `process: {}` as an empty one; S1–S4 stay on the process-domain models; process and physical ids remain separate namespaces; root/YAML shape recorded in ADR-0006 |
 
 ### Backlog (Suggested Order)
 
@@ -88,7 +88,7 @@ accepted: `PlantModel` remains the overall aggregate while one independently
 valid `ProcessModel` owns the process graph and defines the S1–S4
 reference-validation boundary. The root/loadable integration is implemented
 (see Completed): `PlantModel.process: ProcessModel | None` and YAML loading of
-the `process` section. YAML save/round-trip is the next task below.
+the `process` section (ADR-0006). YAML save/round-trip is the next task below.
 
 | # | Item | Note |
 |---|---|---|
@@ -118,10 +118,10 @@ slices.
 The next task is YAML save / round-trip: `load`/`save` symmetry for the root
 model including the `process` section. The first root/YAML shapes are now
 accepted for the first slice — `PlantModel.process: ProcessModel | None` and a
-YAML `process` section with `steps`/`streams` — and existing YAML without
-`process` remains backward compatible. Save must not be implemented before this
-task. Multiplicity beyond zero-or-one `ProcessModel` per plant also remains
-deferred (ADR-0005).
+YAML `process` section with `steps`/`streams` (ADR-0006) — and existing YAML
+without `process` remains backward compatible. Save must not be implemented
+before this task. Multiplicity beyond zero-or-one `ProcessModel` per plant also
+remains deferred (ADR-0005).
 
 ### Scope Discipline
 
