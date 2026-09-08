@@ -62,33 +62,24 @@ reconsidered before implementation, not auto-selected.
 | YAML load | YAML as serialization, validated via Pydantic into the domain model |
 | Semantic validation (structural) | Non-empty ids; unknown fields rejected; unique equipment ids; unique port ids per equipment |
 | First executable example | `examples/minimal-process/plant.yaml` runs through the CLI |
+| Decide process-model container | ADR-0005 accepted (C1): `PlantModel` remains the overall aggregate; one independently valid `ProcessModel` owns the process graph and the S1–S4 validation boundary |
 
 ### Backlog (Suggested Order)
 
-The pipes/streams modeling question was researched and refined in
-[process-topology.md](process-topology.md). The decision remains **not resolved**:
-
-> Review and approve the revised process-layer model, including the relationship
-> among `ProcessStep`, current `Equipment`, `ProcessPort`, current `Port`,
-> `ProcessStream`, and `Connection`—including explicit split/merge semantics and
-> process-to-plant mapping cardinalities—before naming any implementation
-> increment.
-
-The research rejects independently authored duplicate process-stream and
-`Connection` endpoints. It treats the current `Connection` as today’s generic
-low-level adjacency/bootstrap abstraction, not a universal graph by assumption.
-Do not implement pipes, streams, process steps, ports, or mappings from habit or
-because rendering needs them; human review must first approve a real-fragment
-process graph and its mappings.
+The process fragment is documented in
+[process-fragment-prototype.md](process-fragment-prototype.md). ADR-0005 is
+accepted: `PlantModel` remains the overall aggregate while one independently
+valid `ProcessModel` owns the process graph and defines the S1–S4
+reference-validation boundary. This authorizes the first production
+process-model vertical slice.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Review the realistic process-fragment prototype | Human review of the documentation-only prototype in [process-fragment-prototype.md](process-fragment-prototype.md): explicit `ProcessStep` / `ProcessPort` / `ProcessStream` instances, Mixing/Splitting, recycle, and mappings to current Equipment / Port / Connection; decision-gated, no code yet |
-| 2 | Approve the smallest semantic implementation slice | Human architectural decision after fragment review |
-| 3 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
-| 4 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
-| 5 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
-| 6 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | Implement the first process-model vertical slice | ADR-0005 accepted: `ProcessModel`, `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`, and structural rules S1–S4. |
+| 2 | YAML save / round-trip | `load`/`save` symmetry once the model needs persistence |
+| 3 | SVG symbol specification | Deliberate symbol spec, separate from semantics |
+| 4 | Basic renderer | Derive a simple PFD/P&ID-like drawing from the model |
+| 5 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
 
 ### Milestones
 
@@ -108,29 +99,32 @@ slices.
 
 ### Next Task
 
-The realistic process-fragment prototype now exists and is under human review in
-[process-fragment-prototype.md](process-fragment-prototype.md). The remaining
-architectural decision before any production implementation is the owning
-process-model / validation boundary:
+Implement the first production process-model vertical slice authorized by the
+accepted ADR-0005:
 
-- **C1 — separate `ProcessModel`**
-  - owns `ProcessStep[]`
-  - owns `ProcessStream[]`
-  - `ProcessPort[]` remain owned by their `ProcessStep`
-- **C2 — direct `PlantModel` ownership**
-  - `PlantModel` owns `ProcessStep[]`
-  - `PlantModel` owns `ProcessStream[]`
-  - process validation remains scoped to those process collections
+- `ProcessModel` — zero or one per `PlantModel`; owns `ProcessStep[]` and
+  `ProcessStream[]`, with `ProcessPort[]` owned by their steps
+- `ProcessStep`, `ProcessPort`, `ProcessRef`, `ProcessStream`
+- structural rules S1–S4:
+  - S1 — ids are unique within their owning collections: `ProcessStep.id`
+    unique within `ProcessModel.steps`; `ProcessStream.id` unique within
+    `ProcessModel.streams` (separate namespaces)
+  - S2 — `ProcessPort.id` unique within the owning `ProcessStep`
+  - S3 — `ProcessRef` endpoints resolve within the `ProcessModel`
+  - S4 — source endpoint != target endpoint
 
-This decision defines the reference-validation boundary for the proposed
-process graph (hard structural rules S1–S4 only).
+Explicitly out of scope for this slice:
 
-Only after C1 vs C2 is approved may the smallest production semantic-model
-slice be authorized.
+- process↔physical mappings
+- DEXPI
+- rendering
+- physical piping
+- stream designations
+- controlled step-type taxonomy
+- operating-state implementation
 
-No production process-model implementation is approved yet.
-
-Rendering, YAML save, and DEXPI stay out of scope until that decision lands.
+Multiplicity beyond zero-or-one `ProcessModel` per plant remains deferred
+(ADR-0005).
 
 ### Scope Discipline
 
