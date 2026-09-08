@@ -69,6 +69,16 @@ DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
   class. This enforces referential integrity only, not process-engineering
   topology rules.
 
+The first presentation-asset slice ships outside the Python package: seven
+DeepPlant-original process/PFD SVG symbols with an anchor contract under
+`assets/symbols/process/` (contract: [svg-symbols.md](svg-symbols.md); decision:
+ADR-0008). The assets are presentation-only (never domain objects), monochrome
+`currentColor` line art on the canonical `viewBox="0 0 100 100"`, and carry
+machine-readable generic ordered `anchor-in-N` / `anchor-out-N` slots plus
+per-asset provenance records. No semantic-model fields and no renderer exist
+yet; the renderer is the next roadmap task and will reveal any runtime asset
+lookup it needs.
+
 Current semantic model:
 
 ```text
@@ -195,7 +205,9 @@ justify it:
 
 - semantic model growth: further engineering concepts (starting with the open
   pipes/streams representation question) and the YAML save path
-- rendering and the SVG symbol specification
+- rendering (the SVG symbol + anchor contract and the first process assets
+  already ship under `assets/symbols/process/`; the headless renderer does not
+  yet)
 - DEXPI, COMOS, AVEVA, and simulator adapters
 - interactive editor
 - engineering rules / validation engine
@@ -209,6 +221,7 @@ justify it:
 
 - [product.md](product.md)
 - [roadmap.md](roadmap.md)
+- [svg-symbols.md](svg-symbols.md)
 - [standards.md](standards.md)
 - [workflow.md](workflow.md)
 - [quality.md](quality.md)

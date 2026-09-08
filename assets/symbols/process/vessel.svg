@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Symbol: vessel. DeepPlant-original geometry. Licence: AGPL-3.0-only. Standards alignment: candidate-alignment / unverified. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="50" x2="38" y2="50"/>
+    <path d="M38 34 L38 66 A12 12 0 0 0 62 66 L62 34 A12 12 0 0 0 38 34 Z"/>
+    <line x1="62" y1="50" x2="100" y2="50"/>
+  </g>
+  <g id="deepplant-anchors">
+    <circle id="anchor-in-0" cx="0" cy="50" r="0" fill="none" stroke="none"/>
+    <circle id="anchor-out-0" cx="100" cy="50" r="0" fill="none" stroke="none"/>
+  </g>
+</svg>
