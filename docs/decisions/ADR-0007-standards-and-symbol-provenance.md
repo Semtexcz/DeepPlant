@@ -61,8 +61,9 @@ Detailed research and the standards registry live in
 
 - The public repository stays free of restricted normative artwork and
   standards PDFs, protecting redistributors and downstream users.
-- AI-assisted symbol development is safe: agents work only from public/openly
-  licensed material and DeepPlant-authored summaries.
+- AI-assisted symbol development is safer: agents work only from openly
+  licensed material, DeepPlant-authored summaries, and other material whose
+  applicable terms explicitly permit AI use.
 - Future symbol PRs have deterministic acceptance criteria (provenance +
   licence + verification state) before any file is added.
 - DEXPI interoperability work can proceed openly with attribution.
