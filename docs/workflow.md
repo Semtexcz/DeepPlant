@@ -16,12 +16,16 @@ update_when:
 Project type: `script`. Runtime level: `shared`.
 Governance: `lightweight`. Workflow mode: `pr`.
 
-DeepPlant is past the project-foundation state: two semantic vertical slices
-(minimal `PlantModel`/`Plant`/`Equipment` domain model, then `Port` +
-`Connection` + reference validation) are implemented. Work proceeds as small
-vertical changes; the next step is deliberately reconsidered from the open
-pipes/streams modeling question in [roadmap.md](roadmap.md). Do not implement
-renderers, adapters, or DEXPI before the roadmap reaches them.
+DeepPlant is past the project-foundation state: the semantic domain model
+(minimal `PlantModel`/`Plant`/`Equipment`, `Port` + `Connection` + reference
+validation, and the standalone `ProcessModel` with `ProcessStep[]`/
+`ProcessStream[]`), YAML load/save, the packaged `basic` process symbol pack,
+the headless process renderer, and the narrow DEXPI 2.x Process adapter spike
+are implemented (see [roadmap.md](roadmap.md) and
+[dexpi-process-spike.md](dexpi-process-spike.md)). Work proceeds as small
+vertical changes; the next step is deliberately reconsidered from the roadmap's
+current evidence. Do not implement capabilities ahead of the roadmap slice that
+authorizes them.
 
 ## Change Loop
 

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantUnresolvedReferenceProbe" uri="https://example.org/deepplant/dexpi-2-unresolved-reference-probe">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_FEED" type="Process/Process.Source">
+            <Data property="Identifier"><String>FEED</String></Data>
+            <Components property="Ports">
+              <Object id="Port_FEED_out" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>out</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Step_SINK" type="Process/Process.Sink">
+            <Data property="Identifier"><String>SINK</String></Data>
+            <Components property="Ports">
+              <Object id="Port_SINK_in" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>in</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+        </Components>
+        <Components property="ProcessConnections">
+          <Object id="Stream_S001" type="Process/Process.Stream">
+            <Data property="Identifier"><String>S-001</String></Data>
+            <References objects="#Port_FEED_out" property="Source"/>
+            <References objects="#Port_MISSING" property="Target"/>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

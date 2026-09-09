@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantInformationFlowProbe" uri="https://example.org/deepplant/dexpi-2-information-flow-probe">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_SINK" type="Process/Process.Sink">
+            <Data property="Identifier"><String>SINK</String></Data>
+          </Object>
+        </Components>
+        <Components property="ProcessConnections">
+          <Object id="InformationFlow1" type="Process/Process.InformationFlow">
+            <Data property="Identifier"><String>I-001</String></Data>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

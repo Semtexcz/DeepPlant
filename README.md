@@ -11,10 +11,13 @@ topology slice (`Port`, `Connection`, reference validation), the standalone
 process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]` —
 mixing, splitting, and recycle are legal), YAML load/save into typed Pydantic
 models, strict structural validation, a `deepplant validate` command, the SVG +
-anchor `basic` symbol-pack contract, and a headless read-only process renderer
+anchor `basic` symbol-pack contract, a headless read-only process renderer
 (`render_process_svg()`) that derives standalone PFD-style SVG from a
-`ProcessModel`. DEXPI, adapters, the interactive editor, and P&ID rendering
-are planned but not implemented.
+`ProcessModel`, and a narrow DEXPI 2.x Process import/export adapter spike
+(`deepplant.adapters.dexpi`; evidence and limits in
+[docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)). Full DEXPI, other
+adapters (COMOS, AVEVA), the interactive editor, and P&ID rendering are planned
+but not implemented.
 
 Selected profile: `script-shared` (Python CLI package). Governance: `lightweight`.
 Workflow mode: `pr`.
@@ -86,6 +89,7 @@ only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
 | Roadmap | [docs/roadmap.md](docs/roadmap.md) |
 | Current architecture | [docs/architecture.md](docs/architecture.md) |
 | Headless process renderer | [docs/rendering.md](docs/rendering.md) |
+| DEXPI 2.x Process adapter spike | [docs/dexpi-process-spike.md](docs/dexpi-process-spike.md) |
 | Project brief | [project/brief.md](project/brief.md) |
 | Workflow | [docs/workflow.md](docs/workflow.md) |
 | Quality gates | [docs/quality.md](docs/quality.md) |

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantNonMaterialPortProbe" uri="https://example.org/deepplant/dexpi-2-non-material-port-probe">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_P101" type="Process/Process.Pumping">
+            <Data property="Identifier"><String>P-101</String></Data>
+            <Components property="Ports">
+              <Object id="Port_heat" type="Process/Process.ThermalEnergyPort">
+                <Data property="Identifier"><String>heat_in</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_info" type="Process/Process.InformationPort">
+                <Data property="Identifier"><String>signal</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantPlantOnly" uri="https://example.org/deepplant/dexpi-2-plant-only">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Plant" source="https://data.dexpi.org/models/2.0.0/Plant.xml"/>
+  <Object id="PlantModel1" type="Plant/PlantModel">
+    <Components property="MetaData">
+      <Object type="Plant/Diagram.PlantMetaData">
+        <Data property="BlockName"><Undefined/></Data>
+        <Data property="BlockNumber"><Undefined/></Data>
+        <Data property="CreatorName"><String>DeepPlant Fixture Author</String></Data>
+      </Object>
+    </Components>
+  </Object>
+</Model>

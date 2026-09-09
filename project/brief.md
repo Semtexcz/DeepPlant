@@ -21,12 +21,17 @@ Code** for process plants. It will grow into a Git-native semantic engineering
 platform in which a process plant is represented by a machine-readable semantic
 model that can be validated, versioned, diffed, reviewed, and rendered.
 
-This repository currently ships the project foundation plus two semantic
-vertical slices: a minimal domain model (`PlantModel`, `Plant`, `Equipment`)
-and the first topology slice (`Port`, `Connection`, reference validation), a
-YAML loading boundary into typed Pydantic models, strict structural and
-reference validation, and a `deepplant validate` command. Rendering, adapters,
-DEXPI, and the interactive editor do **not** exist yet.
+This repository currently ships the project foundation plus semantic vertical
+slices: the minimal domain model (`PlantModel`, `Plant`, `Equipment`), the
+topology slice (`Port`, `Connection`, reference validation), the standalone
+process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]`),
+YAML load/save boundaries into typed Pydantic models, strict structural and
+reference validation, a `deepplant validate` command, the `basic` process
+symbol-pack contract, a headless read-only process renderer, and a narrow DEXPI
+2.x Process adapter spike (`deepplant.adapters.dexpi`; see
+[docs/dexpi-process-spike.md](../docs/dexpi-process-spike.md)). The interactive
+editor, full DEXPI and other vendor adapters, and P&ID rendering do **not**
+exist yet.
 
 ## Problem
 
