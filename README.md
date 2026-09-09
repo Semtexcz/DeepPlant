@@ -96,7 +96,17 @@ architecture notes, ADRs, or the roadmap when the learning is durable.
 ## License
 
 DeepPlant is licensed under the GNU Affero General Public License, version 3
-only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
+only (`AGPL-3.0-only`). Commercial use under AGPL is permitted subject to its
+terms; AGPL is not a non-commercial licence. See [LICENSE](LICENSE) for the
+full license text.
+
+Where the Project Owner has sufficient rights, alternative commercial
+licensing may be offered separately in the future. This does not change rights
+already granted under AGPL. Contributions are governed by
+[CONTRIBUTING.md](CONTRIBUTING.md) and [CLA.md](CLA.md); see
+[COMMERCIAL-LICENSING.md](COMMERCIAL-LICENSING.md) for the concise policy.
+Provenance is indexed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and
+project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 
 ## Navigation
 
