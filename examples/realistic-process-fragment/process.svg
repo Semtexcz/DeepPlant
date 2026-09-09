@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1492.7" height="430" viewBox="-12.7 0 1492.7 430"><g data-deepplant-layer="streams" stroke="currentColor" stroke-width="2" fill="none"><g data-deepplant-stream="S-001"><polyline points="140,90 215,90 215,73 290,73" /><polygon points="290,73 280,77 280,69" fill="currentColor" stroke="none" /></g><g data-deepplant-stream="S-002"><polyline points="1390,90 1440,90 1440,390 230,390 230,107 290,107" /><polygon points="290,107 280,111 280,103" fill="currentColor" stroke="none" /></g><g data-deepplant-stream="S-003"><polyline points="390,90 540,90" /><polygon points="540,90 530,94 530,86" fill="currentColor" stroke="none" /></g><g data-deepplant-stream="S-004"><polyline points="640,90 790,90" /><polygon points="790,90 780,94 780,86" fill="currentColor" stroke="none" /></g><g data-deepplant-stream="S-005"><polyline points="890,90 1040,90" /><polygon points="1040,90 1030,94 1030,86" fill="currentColor" stroke="none" /></g><g data-deepplant-stream="S-006"><polyline points="1140,73 1205,73 1205,90 1290,90" /><polygon points="1290,90 1280,94 1280,86" fill="currentColor" stroke="none" /></g><g data-deepplant-stream="S-007"><polyline points="1140,107 1225,107 1225,270 1290,270" /><polygon points="1290,270 1280,274 1280,266" fill="currentColor" stroke="none" /></g></g><g data-deepplant-layer="steps"><g data-deepplant-step="PS-feed" transform="translate(40 40)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="10" y1="50" x2="100" y2="50" />
+    <line x1="10" y1="30" x2="10" y2="70" />
+  </g>
+  </g><g data-deepplant-step="PS-mix" transform="translate(290 40)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="33" x2="44" y2="50" />
+    <line x1="0" y1="67" x2="44" y2="50" />
+    <line x1="44" y1="50" x2="100" y2="50" />
+  </g>
+  </g><g data-deepplant-step="PS-pump" transform="translate(540 40)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="50" x2="38" y2="50" />
+    <circle cx="52" cy="50" r="14" />
+    <line x1="52" y1="36" x2="52" y2="64" />
+    <line x1="38" y1="50" x2="66" y2="50" />
+    <line x1="42.2" y1="40.2" x2="61.8" y2="59.8" />
+    <line x1="42.2" y1="59.8" x2="61.8" y2="40.2" />
+    <line x1="66" y1="50" x2="100" y2="50" />
+  </g>
+  </g><g data-deepplant-step="PS-hx" transform="translate(790 40)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="50" x2="100" y2="50" />
+    <path d="M38 62 A12 12 0 0 1 38 38 L62 38 A12 12 0 0 1 62 62 L38 62 Z" />
+    <line x1="43" y1="41" x2="43" y2="59" />
+    <line x1="57" y1="41" x2="57" y2="59" />
+  </g>
+  </g><g data-deepplant-step="PS-split" transform="translate(1040 40)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="50" x2="56" y2="50" />
+    <line x1="56" y1="50" x2="100" y2="33" />
+    <line x1="56" y1="50" x2="100" y2="67" />
+  </g>
+  </g><g data-deepplant-step="PS-vessel" transform="translate(1290 40)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="50" x2="38" y2="50" />
+    <path d="M38 34 L38 66 A12 12 0 0 0 62 66 L62 34 A12 12 0 0 0 38 34 Z" />
+    <line x1="62" y1="50" x2="100" y2="50" />
+  </g>
+  </g><g data-deepplant-step="PS-consumer" transform="translate(1290 220)"><g stroke="currentColor" stroke-width="2" fill="none">
+    <line x1="0" y1="50" x2="90" y2="50" />
+    <line x1="90" y1="30" x2="90" y2="70" />
+  </g>
+  </g></g><g data-deepplant-layer="labels"><g data-deepplant-step-label="PS-feed"><text x="90" y="156" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-feed</text><text x="90" y="174" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Fresh Feed Boundary</text></g><g data-deepplant-step-label="PS-mix"><text x="340" y="156" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-mix</text><text x="340" y="174" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Mixing of Fresh Feed and Recycle</text></g><g data-deepplant-step-label="PS-pump"><text x="590" y="156" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-pump</text><text x="590" y="174" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Feed Pumping</text></g><g data-deepplant-step-label="PS-hx"><text x="840" y="156" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-hx</text><text x="840" y="174" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Heat Exchange (One Selected Process Side)</text></g><g data-deepplant-step-label="PS-split"><text x="1090" y="156" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-split</text><text x="1090" y="174" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Splitting to Vessel and Downstream Branch</text></g><g data-deepplant-step-label="PS-vessel"><text x="1340" y="156" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-vessel</text><text x="1340" y="174" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Process Vessel Function</text></g><g data-deepplant-step-label="PS-consumer"><text x="1340" y="336" text-anchor="middle" font-family="sans-serif" font-size="13" fill="currentColor" font-weight="bold">PS-consumer</text><text x="1340" y="354" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">Downstream Consumer Boundary</text></g><g data-deepplant-stream-label="S-001"><text x="177.5" y="82" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-001</text></g><g data-deepplant-stream-label="S-002"><text x="835" y="382" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-002</text></g><g data-deepplant-stream-label="S-003"><text x="465" y="82" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-003</text></g><g data-deepplant-stream-label="S-004"><text x="715" y="82" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-004</text></g><g data-deepplant-stream-label="S-005"><text x="965" y="82" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-005</text></g><g data-deepplant-stream-label="S-006"><text x="1247.5" y="82" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-006</text></g><g data-deepplant-stream-label="S-007"><text x="1182.5" y="126" text-anchor="middle" font-family="sans-serif" font-size="11" fill="currentColor">S-007</text></g></g></svg>

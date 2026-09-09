@@ -18,6 +18,7 @@ from deepplant.model import (
     ProcessStep,
     ProcessStream,
 )
+from deepplant.render import ProcessRenderError, render_process_svg
 
 try:
     __version__ = _distribution_version("deepplant")
@@ -37,8 +38,10 @@ __all__ = [
     "ProcessModel",
     "ProcessPort",
     "ProcessRef",
+    "ProcessRenderError",
     "ProcessStep",
     "ProcessStream",
     "load_plant",
+    "render_process_svg",
     "save_plant",
 ]

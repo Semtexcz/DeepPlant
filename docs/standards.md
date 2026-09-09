@@ -18,8 +18,11 @@ update_when:
 
 Governance/research slice behind
 [ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md). Recorded
-2026-09-08. This is a documentation slice: no SVG symbol library, no renderer,
-and no runtime provenance framework are introduced here.
+2026-09-08. This page started as a documentation slice (no SVG symbol library,
+renderer, or runtime provenance framework was introduced there); the basic
+symbol pack and the headless process renderer have since been implemented
+under the rules recorded here (see [svg-symbols.md](svg-symbols.md) and
+[rendering.md](rendering.md)).
 
 This document defines a durable boundary between four concerns that must never
 be collapsed:
@@ -30,7 +33,8 @@ normative engineering standards          ISO 10628-1/-2, ISO 14617-1/-2,
 open interoperability specifications     DEXPI 2.0 (CC BY 4.0)
 DeepPlant implementation                 the semantic engineering model + tooling
 redistributable graphical assets         DeepPlant SVG symbol assets (basic
-                                         process pack in assets/symbols/process/basic)
+                                         process pack, packaged under
+                                         deepplant/assets/symbols/process/basic)
 ```
 
 It answers the six governance questions:
@@ -369,10 +373,12 @@ DeepPlant SVG library     → implementation asset layer with independent proven
   symbol style.
 - The DeepPlant SVG symbol assets are an implementation asset layer with
   independent provenance. The first process/PFD pack ships as the non-normative
-  `basic` pack under `assets/symbols/process/basic/` (contract:
-  [svg-symbols.md](svg-symbols.md)) as DeepPlant-original fallback geometry
-  under AGPL-3.0-only. Future standards-aligned, company, and custom packs keep
-  independent provenance and may carry their own licences.
+  `basic` pack, packaged inside the Python package under
+  `deepplant/assets/symbols/process/basic/` (contract:
+  [svg-symbols.md](svg-symbols.md); consumed by [rendering.md](rendering.md)),
+  as DeepPlant-original fallback geometry under AGPL-3.0-only. Future
+  standards-aligned, company, and custom packs keep independent provenance and
+  may carry their own licences.
 
 ## Research sources and access notes
 

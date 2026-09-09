@@ -1,9 +1,12 @@
 # DeepPlant basic process symbol pack
 
-This directory is the initial `basic` pack under `assets/symbols/process/`. It
-contains DeepPlant-original fallback/reference SVG realizations of the
-`ProcessStep.type` roles used by
-[examples/realistic-process-fragment](../../../../examples/realistic-process-fragment/plant.yaml).
+This directory is the initial `basic` pack. It is the canonical packaged
+asset tree, installed inside the Python package under
+`src/deepplant/assets/symbols/process/basic/`, so the headless process
+renderer (`deepplant.render.render_process_svg`) can resolve it at runtime
+through `importlib.resources`. It contains DeepPlant-original
+fallback/reference SVG realizations of the `ProcessStep.type` roles used by
+[examples/realistic-process-fragment/plant.yaml](../../../../../../examples/realistic-process-fragment/plant.yaml).
 
 ```text
 pack: basic
@@ -14,8 +17,8 @@ purpose: fallback/reference implementation, contract validation, renderer
 standards status: non-normative / unverified
 ```
 
-The SVG + anchor contract is defined in [docs/svg-symbols.md](../../../../docs/svg-symbols.md)
-and decided in [ADR-0008](../../../../docs/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
+The SVG + anchor contract is defined in [docs/svg-symbols.md](../../../../../../docs/svg-symbols.md)
+and decided in [ADR-0008](../../../../../../docs/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
 
 ## Role, pack, and asset
 
@@ -31,8 +34,8 @@ Every SVG here is **DeepPlant-original** and independently authored. No
 ISO/ISA/IEC figure was copied, traced, screenshot-reused, or AI-derived. No
 geometry from draw.io, IPD Studio, ISPF, or any other third-party pack was
 copied or adapted. This pack is governed by
-[docs/standards.md](../../../../docs/standards.md) and
-[ADR-0007](../../../../docs/decisions/ADR-0007-standards-and-symbol-provenance.md).
+[docs/standards.md](../../../../../../docs/standards.md) and
+[ADR-0007](../../../../../../docs/decisions/ADR-0007-standards-and-symbol-provenance.md).
 
 | Role | File | Origin | Licence | Copyright holder | Modification state | Upstream revision | Standards status |
 |---|---|---|---|---|---|---|---|
@@ -72,7 +75,15 @@ cardinalities for the same roles.
 This is a process/PFD presentation pack for `ProcessStep` only — not
 `Equipment`, `Port`, `Connection`, physical nozzles, or piping. `FV-101` in the
 realistic fragment is a physical control valve and is intentionally not
-represented here. A future renderer renders `ProcessModel`, not the physical
-P&ID topology.
+represented here. The renderer (`render_process_svg`) renders `ProcessModel`,
+not the physical P&ID topology.
+
+## Runtime packaging
+
+The canonical copy of this pack ships inside the installed Python package
+(`deepplant/assets/symbols/process/basic/`); the headless process renderer
+resolves it at runtime through `importlib.resources`, so it works from a
+source checkout and from an installed wheel. The wheel is verified to contain
+these SVG assets.
 
 This is a human-readable provenance record, not a runtime provenance manifest.

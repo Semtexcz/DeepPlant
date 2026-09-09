@@ -69,18 +69,27 @@ DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
   class. This enforces referential integrity only, not process-engineering
   topology rules.
 
-The first presentation-asset slice ships outside the Python package as the
+The process presentation assets ship inside the Python package as the
 DeepPlant-original `basic` process symbol pack under
-`assets/symbols/process/basic/` (contract: [svg-symbols.md](svg-symbols.md);
-decision: ADR-0008). `ProcessStep.type` identifies a symbol role, not a
-globally canonical SVG geometry; a future presentation layer selects a symbol
-pack, whose pack-local SVG asset supplies monochrome `currentColor` line art on
-the canonical `viewBox="0 0 100 100"` plus machine-readable generic ordered
-`anchor-in-N` / `anchor-out-N` slots and per-asset provenance records. The
-current `basic` pack is non-normative fallback/reference geometry. No
-semantic-model fields, no runtime pack selection, and no renderer exist yet;
-the renderer is the next roadmap task and must be designed against the
-pack-aware contract.
+`src/deepplant/assets/symbols/process/basic/` — the canonical packaged asset
+tree (contract: [svg-symbols.md](svg-symbols.md); decision: ADR-0008).
+`ProcessStep.type` identifies a symbol role, not a globally canonical SVG
+geometry; the headless renderer selects an explicitly chosen symbol pack
+(currently only `basic`), whose pack-local SVG asset supplies monochrome
+`currentColor` line art on the canonical `viewBox="0 0 100 100"` plus
+machine-readable generic ordered `anchor-in-N` / `anchor-out-N` slots and
+per-asset provenance records. The `basic` pack is non-normative
+fallback/reference geometry.
+
+The basic headless read-only process renderer (`src/deepplant/render.py`,
+documented in [rendering.md](rendering.md)) renders a standalone SVG
+process/PFD diagram from `ProcessModel` only: deterministic layered layout,
+`ProcessStream`-incidence anchor assignment, orthogonal forward routing, and
+dedicated feedback return lanes. It is pack-aware (runtime asset resolution
+through `importlib.resources` from the installed package) and keeps every
+layout/routing value transient — no presentation data is stored on semantic
+models. The physical layer (`Equipment`, `Port`, `Connection`) is never
+rendered.
 
 Current semantic model:
 
@@ -208,9 +217,10 @@ justify it:
 
 - semantic model growth: further engineering concepts (starting with the open
   pipes/streams representation question) and the YAML save path
-- rendering (the SVG + anchor contract and the initial `basic` process pack
-  already ship under `assets/symbols/process/basic/`; the headless renderer does
-  not yet)
+- rendering polish: layout/label refinement and higher-fidelity symbol
+  sourcing (the SVG + anchor contract and the initial `basic` process pack
+  ship under `src/deepplant/assets/symbols/process/basic/`; a basic headless
+  renderer already exists in `src/deepplant/render.py`)
 - DEXPI, COMOS, AVEVA, and simulator adapters
 - interactive editor
 - engineering rules / validation engine
@@ -224,6 +234,7 @@ justify it:
 
 - [product.md](product.md)
 - [roadmap.md](roadmap.md)
+- [rendering.md](rendering.md)
 - [svg-symbols.md](svg-symbols.md)
 - [standards.md](standards.md)
 - [workflow.md](workflow.md)
