@@ -842,7 +842,7 @@ def export_dexpi_process(
     conceptual_model = ET.SubElement(
         ET.SubElement(engineering_model, "Components", {"property": "ConceptualModel"}),
         "Object",
-        {"id": "ProcessModel1", "type": _MODEL_TYPE},
+        {"id": object_ids[("model", "ProcessModel")], "type": _MODEL_TYPE},
     )
 
     steps_container = ET.SubElement(conceptual_model, "Components", {"property": "ProcessSteps"})
@@ -891,10 +891,12 @@ def _deterministic_object_ids(
 ) -> dict[_ObjectIdKey, str]:
     """Assign deterministic DEXPI XML ``id`` attributes (serialization mechanics).
 
-    Keys are ``("step", step_id)``, ``("port", step_id, port_id)`` and
-    ``("stream", stream_id)``. Generated ids only need to be stable, unique and
-    valid DEXPI ``name``/``ID`` tokens; they are explicitly excluded from
-    semantic round-trip comparison (see ``docs/dexpi-process-spike.md``).
+    The ProcessModel envelope key ``("model", "ProcessModel")`` is allocated
+    first in the same namespace as ``("step", step_id)``,
+    ``("port", step_id, port_id)`` and ``("stream", stream_id)``. Generated
+    ids only need to be stable, unique and valid DEXPI ``name``/``ID`` tokens;
+    they are explicitly excluded from semantic round-trip comparison (see
+    ``docs/dexpi-process-spike.md``).
     """
     assigned: dict[_ObjectIdKey, str] = {}
     used: set[str] = set()
@@ -911,6 +913,7 @@ def _deterministic_object_ids(
         used.add(candidate)
         return candidate
 
+    assigned[("model", "ProcessModel")] = allocate("ProcessModel", "ProcessModel1")
     for step in process.steps:
         assigned[("step", step.id)] = allocate("Step", step.id)
         for port in step.ports:
@@ -1010,19 +1013,18 @@ def _append_data_string(object_element: ET.Element, property_name: str, value: s
 
 
 def validate_dexpi_xml_structure(xml_text: str) -> None:
-    """Deterministic structural-subset validation of produced DEXPI XML.
+    """Validate the produced XML structural envelope and reference integrity.
 
     Checks: well-formed XML, a ``<Model>`` root, globally unique non-empty XML
-    ``Object@id`` values (file-local reference mechanics), resolvable
-    ``#``-prefixed references, and the supported structural subset vocabulary.
+    ``Object@id`` values (file-local reference mechanics), local ``#`` reference
+    syntax, and local reference targets resolve.
 
-    This is **not** full DEXPI model/schema conformance. It does not check full
-    DEXPI model cardinalities, complete class semantics, RDL constraints, DEXPI
-    profile constraints, or full normative conformance. The official DEXPI XML
-    schema is a generic envelope schema; model-level class/multiplicity
+    This is **not** full DEXPI model/schema conformance. It does not validate the
+    complete DEXPI class vocabulary, class/property cardinalities, RDL semantics,
+    DEXPI profile constraints, or full normative conformance. The official DEXPI
+    XML schema is a generic envelope schema; model-level class/multiplicity
     conformance is not enforced by it and remains under upstream clarification
-    for DEXPI 2.0.1, so this is labelled exactly as structural subset validation
-    in ``docs/dexpi-process-spike.md``.
+    for DEXPI 2.0.1.
     """
     try:
         root = ET.fromstring(xml_text)

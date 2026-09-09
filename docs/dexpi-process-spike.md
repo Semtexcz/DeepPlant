@@ -511,8 +511,8 @@ for DEXPI export. The exporter (`export_dexpi_process`) is therefore implemented
 but narrow: deterministic DEXPI-native XML, no Proteus, no graphics, explicit
 errors for unsupported/ambiguous canonical step types (including `pump`, which
 is importable normalization but not yet a safe reverse classification) and for
-ports whose DEXPI direction cannot be derived, and an internal
-structural-subset validation of its own output.
+ports whose DEXPI direction cannot be derived, and internal structural envelope/reference-integrity validation of its own
+output.
 
 The two directions must not be conflated:
 
@@ -537,16 +537,16 @@ The two directions must not be conflated:
 
 ### 12.6 Produced-XML validation (honest label)
 
-Produced XML is validated with a deterministic **structural-subset validation**
-(`validate_dexpi_xml_structure`): well-formedness, `<Model>` root, globally
-unique XML object ids, resolvable `#`-references, plus the adapter's
-supported-subset content rules. This is **not** full DEXPI model/schema
-conformance: the official DEXPI XML schema is a generic envelope schema
-(instance classes are data, not schema elements), so XSD validation would only
-check the envelope, and model-level class/cardinality conformance is not
-enforceable from the schema alone. No XML/XSD dependency was added; tests run
-fully offline. The documentation and tests label this exactly as structural
-subset validation.
+Produced XML is validated with deterministic **structural envelope/reference-
+integrity validation** (`validate_dexpi_xml_structure`): well-formed XML, a
+`<Model>` root, globally unique non-empty XML `Object@id` values, local `#`
+reference syntax, and local reference-target resolution. It does **not** prove
+complete DEXPI class vocabulary, class/property cardinalities, RDL semantics,
+DEXPI profile constraints, or full DEXPI conformance. The official DEXPI XML
+schema is a generic envelope schema (instance classes are data, not schema
+elements), so XSD validation would only check the envelope, and model-level
+class/cardinality conformance is not enforceable from the schema alone. No
+XML/XSD dependency was added; tests run fully offline.
 
 ## 13. Answers to the spike's architecture questions
 

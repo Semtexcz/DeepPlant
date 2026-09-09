@@ -707,6 +707,83 @@ def test_exported_xml_is_well_formed() -> None:
     assert root.get("name") == "ProcessModel"
 
 
+def _identifier_by_xml_object_id(root: ET.Element, object_id: str) -> str | None:
+    """Read the Identifier of a unique exported Object for identity assertions."""
+    object_element = _object_by_id(root, object_id)
+    for data in object_element.findall("Data"):
+        if data.get("property") == "Identifier":
+            string = data.find("String")
+            return string.text if string is not None else None
+    return None
+
+
+def test_export_process_model_xml_id_collision_preserves_engineering_identifier() -> None:
+    model = ProcessModel(
+        steps=[
+            ProcessStep(id="ProcessModel1", type="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="SINK", type="sink", ports=[ProcessPort(id="in")]),
+        ],
+        streams=[
+            ProcessStream(
+                id="S-1",
+                source=ProcessRef(step="ProcessModel1", port="out"),
+                target=ProcessRef(step="SINK", port="in"),
+            )
+        ],
+    )
+
+    root = ET.fromstring(export_dexpi_process(model))
+    object_ids = [element.get("id") for element in root.iter("Object") if element.get("id")]
+    assert len(object_ids) == len(set(object_ids))
+
+    source = next(
+        element
+        for element in root.iter("Object")
+        if element.get("type") == "Process/Process.Source"
+    )
+    assert source.get("id") != "ProcessModel1"
+    assert _identifier_by_xml_object_id(root, source.get("id") or "") == "ProcessModel1"
+
+
+def test_export_resolves_sanitized_xml_id_collisions_without_changing_identifiers() -> None:
+    model = ProcessModel(
+        steps=[
+            ProcessStep(id="A-B", type="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="A_B", type="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="SINK-A", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="SINK_B", type="sink", ports=[ProcessPort(id="in")]),
+        ],
+        streams=[
+            ProcessStream(
+                id="S-1",
+                source=ProcessRef(step="A-B", port="out"),
+                target=ProcessRef(step="SINK-A", port="in"),
+            ),
+            ProcessStream(
+                id="S-2",
+                source=ProcessRef(step="A_B", port="out"),
+                target=ProcessRef(step="SINK_B", port="in"),
+            ),
+        ],
+    )
+
+    exported = export_dexpi_process(model)
+    assert exported == export_dexpi_process(model)
+    root = ET.fromstring(exported)
+    source_steps = [
+        element
+        for element in root.iter("Object")
+        if element.get("type") == "Process/Process.Source"
+    ]
+    assert [element.get("id") for element in source_steps] == ["A_B", "A_B_2"]
+    assert [
+        _identifier_by_xml_object_id(root, element.get("id") or "") for element in source_steps
+    ] == [
+        "A-B",
+        "A_B",
+    ]
+
+
 def test_exported_xml_passes_structural_subset_validation() -> None:
     model = _exportable_subset_model()
     exported = export_dexpi_process(model)
