@@ -35,8 +35,10 @@ import preflight also requires exactly the pinned Core/Process model URIs
 (``https://data.dexpi.org/models/2.0.0/Core.xml`` and ``.../Process.xml``), so
 an unsupported DEXPI model version fails explicitly until deliberately reviewed.
 Declared ``Port.ConnectorReference`` values are validated when present; the
-exporter covers only the deliberately symmetric canonical subset (no reverse
-``pump -> Pumping`` assertion). See ``docs/dexpi-process-spike.md`` for the
+exporter covers the deliberately symmetric canonical subset (including reverse
+``pumping -> Pumping`` for material-port-only pumping steps, decided by
+ADR-0009 once canonical ``ProcessStep.function`` separated engineering
+semantics from presentation roles). See ``docs/dexpi-process-spike.md`` for the
 release research, the mapping matrix, identity semantics, fixture provenance,
 and export-feasibility assessment.
 """
@@ -112,8 +114,11 @@ _ObjectIdKey = tuple[str, str] | tuple[str, str, str]
 
 # --- Supported DEXPI 2.x Process subset (explicit, never generic) -------------
 # Keys are the full DEXPI XML ``type`` values. Values are the canonical
-# DeepPlant ``ProcessStep.type`` strings produced by the mapping. The mapping
-# table is the spike contract; it is never derived from the DEXPI class name.
+# DeepPlant ``ProcessStep.function`` engineering functions produced by the
+# mapping (ADR-0009). The mapping table is the spike contract; it is never
+# derived from the DEXPI class name, and DeepPlant-native function vocabulary
+# (``pumping``, ``splitting_material``, ...) stays canonical rather than
+# adopting DEXPI class identifiers.
 _MODEL_TYPE = "Process/ProcessModel"
 _MATERIAL_PORT_TYPE = "Process/Process.MaterialPort"
 _STREAM_TYPE = "Process/Process.Stream"
@@ -122,23 +127,27 @@ _STEP_TYPE_MAP: dict[str, str] = {
     "Process/Process.Source": "source",
     "Process/Process.Sink": "sink",
     "Process/Process.Mixing": "mixing",
-    "Process/Process.SplittingMaterial": "splitting",
-    "Process/Process.Pumping": "pump",
+    "Process/Process.SplittingMaterial": "splitting_material",
+    "Process/Process.Pumping": "pumping",
 }
 
-# Reverse (DeepPlant -> DEXPI) mapping. Deliberately excludes "pump": DEXPI
-# ``Pumping -> type="pump"`` is a lossy import normalization (DEXPI Pumping may
-# carry an energy port / driver semantics, Head, Method, VolumeFlow that
-# DeepPlant does not store), and canonical type="pump" currently doubles as a
-# presentation role. ``pump`` is therefore documented as importable
-# normalization, not yet safely exportable classification, until the next
-# ProcessStep.type semantics slice. ``heat_exchanger``/``vessel`` have no
-# unambiguous DEXPI engineering class at all and stay unexportable.
+# Reverse (DeepPlant -> DEXPI) mapping. Since ADR-0009 ``ProcessStep.function``
+# is an engineering classification, reverse export is an
+# engineering-classification assertion for functions with an unambiguous DEXPI
+# class in this adapter slice. ``pumping -> Pumping`` is asserted for
+# material-port-only pumping steps (the energy-port / driver, ``Head``,
+# ``Method``, and ``VolumeFlow`` semantics DEXPI Pumping may carry are not owned
+# by DeepPlant and would be rejected explicitly if present). ``heat_exchange``
+# stays canonical-only (see docs/dexpi-process-spike.md): DEXPI
+# ``ExchangingThermalEnergy`` couples material flows through one step, which
+# canonical ``ProcessStep`` cannot express yet, so no automatic mapping is
+# claimed. ``unspecified`` and other non-mapped functions stay unexportable.
 _REVERSE_STEP_TYPE_MAP: dict[str, str] = {
     "source": "Process/Process.Source",
     "sink": "Process/Process.Sink",
     "mixing": "Process/Process.Mixing",
-    "splitting": "Process/Process.SplittingMaterial",
+    "splitting_material": "Process/Process.SplittingMaterial",
+    "pumping": "Process/Process.Pumping",
 }
 
 _ENUM_PREFIX = "Process/Enumerations.PortDirection."
@@ -538,8 +547,8 @@ def _collect_step(
 ) -> None:
     where = _describe(step_element)
     dexpi_type = step_element.get("type")
-    canonical_type = _STEP_TYPE_MAP.get(dexpi_type or "")
-    if canonical_type is None:
+    canonical_function = _STEP_TYPE_MAP.get(dexpi_type or "")
+    if canonical_function is None:
         raise DexpiImportError(
             f"unsupported DEXPI ProcessStep class '{dexpi_type}' ({where}): this "
             "adapter slice supports only "
@@ -586,7 +595,7 @@ def _collect_step(
                 "supported; DeepPlant ProcessModel has no step hierarchy"
             )
 
-    steps.append(ProcessStep(id=step_id, type=canonical_type, name=name, ports=ports))
+    steps.append(ProcessStep(id=step_id, function=canonical_function, name=name, ports=ports))
 
 
 def _collect_port(
@@ -807,10 +816,10 @@ def export_dexpi_process(
     """Serialize a ``ProcessModel`` to deterministic DEXPI-native XML.
 
     Only the supported subset is exported (see ``docs/dexpi-process-spike.md``);
-    step types outside the explicit reverse mapping table raise
-    :class:`DexpiExportError` instead of producing XML that invents engineering
-    meaning. ``model_name`` / ``model_uri`` are the exchange-file envelope
-    values (serialization mechanics only).
+    ``ProcessStep.function`` values outside the explicit reverse mapping table
+    raise :class:`DexpiExportError` instead of producing XML that invents
+    engineering meaning. ``model_name`` / ``model_uri`` are the exchange-file
+    envelope values (serialization mechanics only).
 
     Nominal directions on exported material ports are derived from
     ``ProcessStream`` incidence (DEXPI ``PortDirection`` is exactly
@@ -929,15 +938,14 @@ def _append_step(
     directions: dict[tuple[str, str], str],
     object_ids: dict[_ObjectIdKey, str],
 ) -> None:
-    dexpi_type = _REVERSE_STEP_TYPE_MAP.get(step.type)
+    dexpi_type = _REVERSE_STEP_TYPE_MAP.get(step.function)
     if dexpi_type is None:
         raise DexpiExportError(
-            f"unsupported canonical ProcessStep type '{step.type}' on step "
+            f"unsupported canonical ProcessStep function '{step.function}' on step "
             f"'{step.id}': this adapter slice can only export "
             + ", ".join(sorted(_REVERSE_STEP_TYPE_MAP))
-            + "; DeepPlant currently has no separate engineering classification "
-            "to map other roles (e.g. heat_exchanger, vessel) onto an exact "
-            "DEXPI class"
+            + "; DeepPlant has no exact DEXPI engineering class for other functions "
+            "(e.g. heat_exchange, unspecified) in this slice"
         )
     where = f"ProcessStep '{step.id}'"
     step_element = ET.SubElement(

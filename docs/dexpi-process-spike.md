@@ -111,30 +111,34 @@ The initial DeepPlant target remains `ProcessModel` with `ProcessStep[]`
 
 ### 3.1 Supported executable subset (explicit)
 
-| DEXPI 2.0 class (XML `type`) | DeepPlant mapping |
-|---|---|
-| `Process/Process.Source` | `ProcessStep(type="source")` |
-| `Process/Process.Sink` | `ProcessStep(type="sink")` |
-| `Process/Process.Mixing` | `ProcessStep(type="mixing")` |
-| `Process/Process.SplittingMaterial` | `ProcessStep(type="splitting")` |
-| `Process/Process.Pumping` | `ProcessStep(type="pump")` |
-| `Process/Process.MaterialPort` | `ProcessPort` |
-| `Process/Process.Stream` | `ProcessStream` (material flow) |
+| DEXPI 2.0 class (XML `type`) | DeepPlant mapping | Status |
+|---|---|---|
+| `Process/Process.Source` | `ProcessStep(function="source")` | `exact` |
+| `Process/Process.Sink` | `ProcessStep(function="sink")` | `exact` |
+| `Process/Process.Mixing` | `ProcessStep(function="mixing")` | `exact` |
+| `Process/Process.SplittingMaterial` | `ProcessStep(function="splitting_material")` | `lossless-normalization` |
+| `Process/Process.Pumping` | `ProcessStep(function="pumping")` | `lossy` (material subset) |
+| `Process/Process.MaterialPort` | `ProcessPort` | `exact` (supported subset) |
+| `Process/Process.Stream` | `ProcessStream` (material flow) | `exact` (supported subset) |
 
 The mapping is an **explicit table** in the adapter. It is never derived by
 generic class-name conversion (no `dexpi_class_name.lower()`), because such a
 conversion would silently pretend that class name spelling is engineering
 semantics.
 
+The mapping produces **DeepPlant-native engineering functions** on
+`ProcessStep.function` (ADR-0009): `source`, `sink`, `mixing`,
+`splitting_material`, and `pumping`. DEXPI class identifiers
+(`Process/Process.Pumping`, …) never enter the canonical model — they stay
+adapter logic.
+
 The import preflight also enforces the pinned DEXPI 2.0.0 Core/Process model
 URIs and requires non-empty XML `Object@id` values to be globally unique
-(file-local reference mechanics) before any mapping starts. `Pumping → pump` is
-an importable lossy normalization; it is **not** part of the reverse map because
-`type="pump"` still doubles as a presentation role and DEXPI `Pumping` may carry
-energy-port/driver, `Head`, `Method`, and `VolumeFlow` semantics that DeepPlant
-cannot represent. The reverse (DeepPlant → DEXPI) serialization covers only the
-deliberately symmetric canonical subset: `source`, `sink`, `mixing`,
-`splitting`.
+(file-local reference mechanics) before any mapping starts. The reverse
+(DeepPlant → DEXPI) serialization covers the deliberately symmetric canonical
+subset: `source`, `sink`, `mixing`, `splitting_material`, and — after ADR-0009
+made `function` an engineering classification — material-port-only `pumping`
+(see §3.2 and §12).
 
 ### 3.2 Why these five step classes?
 
@@ -149,10 +153,12 @@ deliberately symmetric canonical subset: `source`, `sink`, `mixing`,
   and generate a flow") is a defensible material-only function mapping. A
   fully realized DEXPI `Pumping` step may additionally own an energy port to a
   driver; such energy ports are rejected by this slice, which means only
-  material-port Pumping instances import today. Because of that loss, the
-  reverse mapping deliberately excludes `pump` (see §3.1): it is an importable
-  normalization, not yet a safely exportable engineering classification, until
-  the next `ProcessStep.type` semantics slice.
+  material-port Pumping instances import (and reverse-export) today.
+  `ProcessStep.function` now stores the engineering classification `pumping`
+  (ADR-0009), so the reverse map asserts `pumping → Process/Process.Pumping`
+  without inventing the energy-port/driver, `Head`, `Method`, or `VolumeFlow`
+  semantics DeepPlant does not own; an exported material-only Pumping is
+  exactly the shape this slice already imports (see §3.1 and §12).
 
 ### 3.3 Explicitly out of scope (this slice)
 
@@ -273,16 +279,16 @@ detail classes (`ProcessStepDetail` and children). The full class registry is
 a factual part of the official model, not a DeepPlant analysis; this document
 records only the decisions taken.
 
-| DEXPI class | DeepPlant type | Status | Notes |
+| DEXPI class | DeepPlant function | Status | Notes |
 |---|---|---|---|
 | `Source` | `source` | `exact` | Boundary: a flow of material into the process; one material Outlet port. |
 | `Sink` | `sink` | `exact` | Boundary: a flow of material out of the process; one material Inlet port. |
 | `Mixing` | `mixing` | `exact` | Combines material flows; multiple Inlet ports + one Outlet. Children (`Humidifying`, `Kneading`, `MixingSimple`, `RotaryMixing`, `StaticMixing`) are unsupported in this slice. |
-| `SplittingMaterial` | `splitting` | `lossless-normalization` | Material split; one Inlet + several Outlets. Abstract `Splitting` parent and `SplittingEnergy` are not mapped. |
-| `Pumping` | `pump` | `lossy` | Defensible for liquid pumping with material ports only. DEXPI Pumping may own a driver energy port and carries `Head`/`Method`/`VolumeFlow`; the energy port is rejected and those properties are unsupported data. See Q10. `pump` is **not** reverse-exported: it is importable normalization only until the `ProcessStep.type` semantics decision. |
+| `SplittingMaterial` | `splitting_material` | `lossless-normalization` | Material split; one Inlet + several Outlets. Abstract `Splitting` parent and `SplittingEnergy` are not mapped. The older `splitting` string was a presentation symbol role; since ADR-0009 the canonical value is the engineering function `splitting_material`, which the renderer's presentation policy maps back onto the `splitting` role. |
+| `Pumping` | `pumping` | `lossy` (material subset) | Defensible for liquid pumping with material ports only. DEXPI Pumping may own a driver energy port and carries `Head`/`Method`/`VolumeFlow`; the energy port is rejected and those properties are unsupported data. Since ADR-0009 the canonical function `pumping` is an engineering classification, so it **is** reverse-exported as material-only `Process/Process.Pumping` (see §12). |
 
-| `ExchangingThermalEnergy` | (`heat_exchanger`) | `requires-model-change` (not imported) | Realized by a heat exchanger; transfers thermal energy between two or more material streams. DeepPlant's fragment models only one selected side, and canonical `ProcessStep` has no coupling/side/role concept to pair two flows. Energy-utility sides would additionally require EnergyFlow. Not mapped in this slice. |
-| `StoringFluids` / `StoringInTank` / `StoringInPressureVessel` / other `StoringMaterial` children | (`vessel`) | `requires-model-change` (not imported) | DeepPlant `vessel` is a containment *role*; the DEXPI classes also distinguish tank vs pressure-vessel regimes that canonical `type` cannot represent. Not mapped in this slice. |
+| `ExchangingThermalEnergy` | (`heat_exchange`) | `requires-model-change` (not imported) | Realized by a heat exchanger; transfers thermal energy between two or more material streams. DeepPlant's fragment models only one selected side, and canonical `ProcessStep` has no coupling/side/role concept to pair two flows. Energy-utility sides would additionally require EnergyFlow. The DeepPlant function `heat_exchange` stays canonical and renderable (as `heat_exchanger` presentation role) but is **not** claimed to equal `ExchangingThermalEnergy`. Not mapped in this slice. |
+| `StoringFluids` / `StoringInTank` / `StoringInPressureVessel` / other `StoringMaterial` children | (`unspecified`) | `requires-model-change` (not imported) | The DEXPI classes distinguish tank vs pressure-vessel regimes. The realistic fragment's `PS-vessel` is semantically honest as `function: unspecified` (ADR-0009); a storage function would be assigned only with evidence, and tank-vs-pressure-vessel regime remains a deeper distinction canonical does not yet express. Not mapped in this slice. |
 | `ReactingChemicals`, `Separating` subtree, `Transporting*`, `SteeringFlow` subtree, `Emitting`, `Flaring`, `Supplying*`, and the remaining classes | — | `unsupported` (this slice) | Rejected with class name and object identity. Each family needs its own semantic review against a real instance before any mapping claim. |
 | Instrumentation/signal classes (`InstrumentationActivity`, `MeasuringProcessVariable`, `ControllingProcessVariable`, `Calculating*`, `TransformingProcessVariable`, `ConveyingSignal`, `InstrumentationSystemActivity`) | — | `unsupported` | Signal/instrumentation semantics; out of scope. |
 | `ProcessStepDetail` and children (`Agitating`, `ContactingOnTray`, `ContactingInPacking`, ...) | — | `unsupported` | Step-detail refinement; canonical model has no detail level. |
@@ -370,21 +376,25 @@ are reported here; none required a model change to prove the supported subset:
    silently stripped. Any broader DEXPI Process work must first decide the
    canonical representation of engineering property values (units, qualified
    values) — a model-level decision this spike does not make.
-3. **Type-vocabulary conflation** — canonical `ProcessStep.type` is currently the
-   presentation symbol-role string used by the basic pack (ADR-0008), not a
-   process-function engineering classification. DEXPI classes are engineering
-   functions. The mapping table bridges them on import for five classes, but the
-   reverse (DeepPlant → DEXPI) classification is asserted only for the four
-   deliberately symmetric types (`source`, `sink`, `mixing`, `splitting`);
-   `heat_exchanger` and `vessel` cannot be exported without inventing an exact
-   DEXPI function because one canonical role maps to several DEXPI classes or to
-   classes with semantics canonical cannot express. See Q10.
+3. **Type-vocabulary conflation** *(resolved by ADR-0009)* — the original
+   spike found that canonical `ProcessStep.type` doubled as the presentation
+   symbol-role string used by the basic pack (ADR-0008), not as a
+   process-function engineering classification, while DEXPI classes are
+   engineering functions. ADR-0009 replaced `ProcessStep.type` with the
+   canonical engineering field `ProcessStep.function` and moved symbol-role
+   resolution into the renderer's presentation boundary, so the five-class
+   mapping now imports DeepPlant-native functions (`source`, `sink`, `mixing`,
+   `splitting_material`, `pumping`), and reverse export is an
+   engineering-classification assertion for the symmetric subset (now
+   including material-only `pumping`).
 4. **Coupled-flow functions** — `ExchangingThermalEnergy` couples two material
    flows through one step; canonical `ProcessStep` has no side/role/coupling
    concept. Recorded as `requires-model-change` (not imported).
 5. **Storage regime** — `StoringInTank` vs `StoringInPressureVessel` regimes are
-   not representable in the canonical `vessel` role. Recorded as
-   `requires-model-change`.
+   not representable by a single canonical engineering function, and DeepPlant
+   does not store a containment/presentation role for that purpose. The
+   realistic fragment records its vessel step honestly as `function:
+   unspecified` (ADR-0009). Recorded as `requires-model-change`.
 6. **Step/port hierarchy** — `SubProcessSteps` and nested ports have no canonical
    equivalent (rejected).
 7. **Bidirectional ports** — DEXPI has no `InOut` PortDirection; a canonical port
@@ -466,11 +476,11 @@ Reverse-direction fields were separated into the task's four categories.
 
 ### 12.1 Available directly from DeepPlant
 
-Step `type` (via the explicit reverse mapping table — the symmetric subset
-`source`/`sink`/`mixing`/`splitting` only), step/port/
-stream engineering ids, step/port/stream order, step `name`, stream `name`
-(or explicit `Undefined`), stream `source`/`target` endpoints, and the whole
-stream graph topology.
+Step engineering `function` (via the explicit reverse mapping table — the
+symmetric subset `source`/`sink`/`mixing`/`splitting_material`/`pumping`),
+step/port/stream engineering ids, step/port/stream order, step `name`, stream
+`name` (or explicit `Undefined`), stream `source`/`target` endpoints, and the
+whole stream graph topology.
 
 ### 12.2 Can be generated as serialization mechanics
 
@@ -496,23 +506,24 @@ never part of semantic comparison); the `<Model>`/`Import`/`EngineeringModel`/
   reference instance itself omits these despite 1..1 model cardinality; this
   slice mirrors the official instance and does **not** invent originating-system
   metadata.
-- Exact DEXPI classes for canonical roles without an unambiguous function
-  mapping (`heat_exchanger`, `vessel`, and any other role outside the four
-  reverse-exported canonical types; `pump` is included on the import side only)
-  → exporter error.
+- Exact DEXPI classes for canonical functions without an unambiguous mapping
+  (`heat_exchange`, `unspecified`, and any other function outside the five
+  reverse-exported canonical functions — presentation roles such as
+  `heat_exchanger` or `vessel` are never exported as DEXPI classes) →
+  exporter error.
 
 ### 12.5 Conclusion
 
 **Import is feasible for the supported material subset.** Reverse serialization
-is demonstrated only for a deliberately supported DEXPI-compatible canonical
-subset (`source`, `sink`, `mixing`, `splitting`) and is **not** evidence that
-arbitrary `ProcessModel` instances have sufficient engineering classification
-for DEXPI export. The exporter (`export_dexpi_process`) is therefore implemented
-but narrow: deterministic DEXPI-native XML, no Proteus, no graphics, explicit
-errors for unsupported/ambiguous canonical step types (including `pump`, which
-is importable normalization but not yet a safe reverse classification) and for
-ports whose DEXPI direction cannot be derived, and internal structural envelope/reference-integrity validation of its own
-output.
+is demonstrated for a deliberately supported DEXPI-compatible canonical subset
+(`source`, `sink`, `mixing`, `splitting_material`, and material-port-only
+`pumping`) and is **not** evidence that arbitrary `ProcessModel` instances have
+sufficient engineering classification for DEXPI export. The exporter
+(`export_dexpi_process`) is therefore implemented but narrow: deterministic
+DEXPI-native XML, no Proteus, no graphics, explicit errors for canonical
+functions without an unambiguous DEXPI class (`heat_exchange`, `unspecified`,
+and others) and for ports whose DEXPI direction cannot be derived, and internal
+structural envelope/reference-integrity validation of its own output.
 
 The two directions must not be conflated:
 
@@ -525,9 +536,10 @@ The two directions must not be conflated:
 
 **What export cannot honestly do today** (exact blocker summary):
 
-- export arbitrary DeepPlant `ProcessStep.type` values (type vocabulary is a
-  role vocabulary, not an engineering classification) — blocker category:
-  canonical-model decision;
+- export canonical functions whose exact DEXPI engineering class is not yet
+  established (`heat_exchange` stays canonical/renderable but is not asserted
+  to equal `ExchangingThermalEnergy`; `unspecified` is honest uncertainty) —
+  blocker category: canonical-model/evidence decision;
 - export step/stream engineering quantities DeepPlant does not store (any
   DEXPI file *receiving* such data would need canonical property values) —
   blocker category: canonical-model growth;
@@ -591,27 +603,26 @@ XML/XSD dependency was added; tests run fully offline.
 9. **What information is lost on import?** For the supported fixture: nothing
    topological; `Description` free text (documented metadata) is dropped. For
    unsupported constructs the import fails visibly instead of losing data.
-10. **Does `ProcessStep.type` vocabulary need reconsideration?** Yes — this is
-    the spike's clearest vocabulary finding. Canonical `type` currently doubles
-    as the renderer symbol role (ADR-0008), while DEXPI step classes are
-    engineering functions. The five-class mapping works only because the chosen
-    roles happen to coincide with functions; `heat_exchanger` and `vessel` are
-    already ambiguous, and exporter honesty depends on separating a canonical
-    function classification from the presentation symbol role. This is a model
-    decision for the next slice, not a change made here.
+10. **Does `ProcessStep.type` vocabulary need reconsideration?** This was the
+    spike's clearest vocabulary finding, and ADR-0009 resolved it: canonical
+    `type` doubled as the renderer symbol role (ADR-0008) while DEXPI step
+    classes are engineering functions. `ProcessStep.type` was removed and
+    replaced by the canonical engineering field `ProcessStep.function`;
+    symbol-role resolution now lives in the renderer's presentation boundary,
+    and the five-class mapping produces DeepPlant-native functions
+    (`source`, `sink`, `mixing`, `splitting_material`, `pumping`).
 11. **Does the canonical model need any change before broader DEXPI work?**
-    Not for the supported material subset. Broader DEXPI Process work needs,
-    in smallest order: (a) a decision on `ProcessStep.type` semantics /
-    engineering classification, (b) a decision on step/stream engineering
-    property representation (quantities with units), (c) a decision on material
-    data libraries, (d) then energy/information flow modeling. None is
-    authorized by this spike.
-12. **What is the smallest next evidence-producing slice?** Decide the
-    canonical `ProcessStep.type` semantics (separate engineering classification
-    from presentation role) on the realistic fragment with executable examples,
-    because every further DEXPI Process expansion and honest export depends on
-    it; then re-open DEXPI Process subset expansion (or the DEXPI Plant/P&ID
-    mapping spike) from the evidence. See the Roadmap check below.
+    The classification change required by this spike has now been made by
+    ADR-0009. Broader DEXPI Process work still needs, in smallest order:
+    (a) step/stream engineering property representation (quantities with
+    units), (b) a decision on material data libraries, (c) then energy/
+    information flow modeling. None is authorized by this spike.
+12. **What is the smallest next evidence-producing slice?** With the canonical
+    function/role separation delivered (ADR-0009), re-open DEXPI Process
+    subset expansion from fresh evidence (candidates: material-only `pumping`
+    round-trip now proven, `ExchangingThermalEnergy`, `StoringMaterial`
+    storage classes) or the DEXPI Plant/P&ID mapping spike; do not
+    mechanically promote the old backlog row. See the Roadmap check below.
 
 ## 14. Dependencies and semantic-model changes
 
@@ -620,17 +631,20 @@ XML/XSD dependency was added; tests run fully offline.
   `pydantic`/domain-model dependency for canonical construction. No
   `networkx`, `pyDEXPI`, RDF/SPARQL, XML/XSD validator, or generic graph
   dependency was added. `uv.lock` is unchanged.
-- **Semantic-model changes: none.** `src/deepplant/model.py` is unchanged.
-  Adapter-specific information (DEXPI class, XML object ids, target pins) lives
-  in the adapter boundary and in this document, not in canonical fields.
-- **No new ADR was created.** The durable architecture invariants used here
-  (semantic model is the core; presentation data separate; YAML/external
-  formats are serialization boundaries; standards content policy incl. DEXPI
-  CC BY 4.0) are already captured by ADR-0002/0003/0004/0005/0007/0008. The
-  genuinely new findings (identity policy, Port.direction, type-vocabulary
-  conflation) are recorded in this spike document because the next slice must
-  first decide the `ProcessStep.type` question on model evidence before any new
-  ADR is warranted.
+- **Semantic-model changes (after this spike, in the ADR-0009 slice):**
+  `ProcessStep.type` was replaced by `ProcessStep.function`, an open,
+  non-empty engineering-function classification. Adapter-specific information
+  (DEXPI class, XML object ids, target pins) still lives in the adapter
+  boundary and in this document, not in canonical fields; DEXPI class
+  identifiers never enter `function`.
+- **ADR-0009 was created by the follow-up slice** to record the
+  function/role/pack/asset separation the spike's type-vocabulary finding
+  demanded. The durable architecture invariants (semantic model is the core;
+  presentation data separate; YAML/external formats are serialization
+  boundaries; standards content policy incl. DEXPI CC BY 4.0) remain captured
+  by ADR-0002/0003/0004/0005/0007/0008; the type-vocabulary finding is now
+  decided, while the identity policy and Port.direction findings remain
+  recorded here.
 
 ## 15. Quality gates
 
@@ -647,28 +661,22 @@ All tests run offline; research happened during development only.
 
 ## 16. Roadmap check
 
-- **Completed by this PR:** backlog row "DEXPI adapter spike" — executable
-  DEXPI 2.0 Process import for an explicit material subset with a hardened trust
-  boundary (pinned Core/Process 2.0.0 model-URI import preflight, globally
-  unique XML `Object@id` preflight, fail-closed ProcessModel/property parsing,
-  ConnectorReference validation when present), a narrow honest exporter for the
-  deliberately symmetric subset only, fixture provenance, and the
-  mapping/identity/gap analysis above.
-- **Next task (from evidence):** decide the canonical `ProcessStep.type`
-  semantics — separate an engineering process-function classification from the
-  presentation symbol role — using the realistic fragment as the executable
-  example, because (a) exporter honesty and (b) every further DEXPI Process
-  subset expansion (storage, exchange, reaction/separation classes) depend on
-  it, and the spike proved `heat_exchanger`/`vessel` cannot be mapped or
-  exported while `type` is a renderer-role vocabulary.
-- After that decision, re-open either "expand the DEXPI Process subset" or the
+- **Completed by this PR (spike):** backlog row "DEXPI adapter spike" —
+  executable DEXPI 2.0 Process import for an explicit material subset with a
+  hardened trust boundary (pinned Core/Process 2.0.0 model-URI import
+  preflight, globally unique XML `Object@id` preflight, fail-closed
+  ProcessModel/property parsing, ConnectorReference validation when present),
+  a narrow honest exporter for the deliberately symmetric subset only, fixture
+  provenance, and the mapping/identity/gap analysis above.
+- **Completed by the ADR-0009 follow-up slice:** the canonical
+  `ProcessStep.type` semantics decision — `ProcessStep.function` now holds an
+  engineering process-function classification, symbol roles are resolved at
+  the renderer presentation boundary, and the spike's blockers on
+  `heat_exchanger`/`vessel` mapping/export are replaced by explicit
+  presentation-role resolution (`heat_exchange`, `unspecified`, …).
+- **Next task (from evidence):** re-open "expand the DEXPI Process subset"
+  (evidence candidates from this slice and the ADR-0009 follow-up:
+  material-port-only `pumping` reverse round-trip now proven,
+  `ExchangingThermalEnergy`, `StoringMaterial` storage classes) or run the
   "DEXPI Plant/P&ID mapping spike" from fresh evidence; do not mechanically
   promote the old backlog row.
-
-
-
-
-
-
-
-

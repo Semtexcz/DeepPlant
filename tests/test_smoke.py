@@ -29,8 +29,8 @@ def test_public_api_exposes_ports_and_connections() -> None:
 def test_public_api_exposes_process_models() -> None:
     model = ProcessModel(
         steps=[
-            ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="A", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(

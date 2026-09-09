@@ -7,30 +7,44 @@ This module renders a semantic :class:`~deepplant.model.ProcessModel` into a
 complete standalone SVG document. It is the first runtime consumer of the
 pack-aware SVG symbol + anchor contract (ADR-0008, ``docs/svg-symbols.md``).
 
-Architecture:
+Architecture (ADR-0009):
 
 * Input domain: ``ProcessModel`` -> ``ProcessStep[]`` (each owning
   ``ProcessPort[]``) and ``ProcessStream[]``. The physical layer
   (``Equipment``, ``Port``, ``Connection``) is intentionally not rendered.
-* ``ProcessStep.type`` selects a *symbol role*; the chosen *symbol pack* maps
-  that role to a pack-local SVG asset with ordered ``anchor-in-N`` /
-  ``anchor-out-N`` slots. Presentation geometry never touches the semantic
-  models (ADR-0003); every layout/routing value in this module is transient.
+* ``ProcessStep.function`` is canonical engineering semantics. A
+  presentation-layer policy maps each function onto a *symbol role*; an
+  explicit per-step ``symbol_role_overrides`` mapping may replace that policy
+  for a single render call. The chosen *symbol pack* maps a role to a
+  pack-local SVG asset with ordered ``anchor-in-N`` / ``anchor-out-N`` slots.
+  Presentation geometry never touches the semantic models (ADR-0003); every
+  layout/routing value in this module is transient.
 * Output is deterministic: the same ``ProcessModel`` always produces
   byte-for-byte identical SVG. No randomness, timestamps, hash iteration, or
   external resources are used.
 
+Resolution precedence for a step's symbol role is deliberate and simple:
+
+1. an explicit per-step ``symbol_role_overrides`` entry for that step id;
+2. the default ``ProcessStep.function`` -> symbol-role presentation policy;
+3. otherwise :class:`ProcessRenderError` (no silent fallback to arbitrary
+   symbols).
+
 Only the built-in ``basic`` symbol pack is supported by this first
-implementation. An unknown pack, a role missing from the chosen pack, or a
-role whose anchor capacity cannot represent a step's stream incidence raises
-:class:`ProcessRenderError` instead of silently degrading.
+implementation. An unknown pack, a role missing from the chosen pack, a
+function without any resolvable symbol role, or a role whose anchor capacity
+cannot represent a step's stream incidence raises
+:class:`ProcessRenderError` instead of silently degrading. ``unspecified`` is
+a legal engineering function but has no default symbol role: rendering it
+without an explicit presentation override is a presentation error, not a
+semantic-model error.
 """
 
 from __future__ import annotations
 
 import heapq
 import math
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from copy import deepcopy
 from dataclasses import dataclass
 from importlib import resources
@@ -202,6 +216,25 @@ def _point_text(x: float, y: float, text: str, size: float) -> Element:
 # ---------------------------------------------------------------------------
 
 
+# --- Presentation policy: engineering function -> symbol role -----------------
+# ADR-0009: ``ProcessStep.function`` is canonical engineering semantics and is
+# never a symbol role. The renderer owns a small default presentation policy
+# that maps the DeepPlant engineering functions known to have a sensible
+# ``basic``-pack realisation onto their presentation symbol roles. This is
+# presentation-layer policy, not engineering semantics; a future presentation
+# or view policy may resolve functions to roles differently, while a different
+# symbol pack may realise the same resolved role differently. Keep it private
+# unless a concrete public need exists.
+_DEFAULT_SYMBOL_ROLE_BY_FUNCTION: dict[str, str] = {
+    "source": "source",
+    "sink": "sink",
+    "mixing": "mixing",
+    "splitting_material": "splitting",
+    "pumping": "pump",
+    "heat_exchange": "heat_exchanger",
+}
+
+
 def _pack_directory(pack: str) -> Traversable:
     """Resolve a built-in symbol pack through Python package resources.
 
@@ -222,13 +255,83 @@ def _pack_directory(pack: str) -> Traversable:
     return directory
 
 
+def _available_pack_roles(directory: Traversable) -> frozenset[str]:
+    """Return the symbol roles (SVG filename stems) present in one pack.
+
+    Roles are pack-local: this is the set the current pack can actually draw,
+    not an engineering classification and not a claim about other packs.
+    """
+    try:
+        children = directory.iterdir()
+    except OSError as exc:
+        raise ProcessRenderError(f"cannot enumerate symbol pack {directory.name!r}: {exc}") from exc
+    return frozenset(
+        child.name[: -len(".svg")] for child in children if child.name.endswith(".svg")
+    )
+
+
+def _resolve_symbol_role_by_step(
+    process: ProcessModel,
+    symbol_pack: str,
+    overrides: Mapping[str, str] | None,
+) -> dict[str, str]:
+    """Resolve every step to a presentation symbol role for one render call.
+
+    Deterministic precedence (ADR-0009):
+
+    1. an explicit per-step ``overrides[step.id]`` entry, when present;
+    2. the default ``ProcessStep.function`` -> symbol-role presentation policy;
+    3. otherwise :class:`ProcessRenderError`.
+
+    Overrides are validated before use: an override key must reference an
+    existing step id, and an override value must be a non-blank, plain,
+    filename-safe symbol role. Overrides live only at this presentation
+    boundary; nothing here mutates the semantic model.
+    """
+    explicit = dict(overrides or {})
+    step_ids = {step.id for step in process.steps}
+    for step_id in explicit:
+        if step_id not in step_ids:
+            raise ProcessRenderError(
+                f"presentation symbol-role override for unknown step id {step_id!r}: "
+                "override keys must reference ProcessSteps in the rendered model"
+            )
+        role = explicit[step_id]
+        if not role.strip():
+            raise ProcessRenderError(
+                f"presentation symbol-role override for step '{step_id}' has a blank symbol role"
+            )
+        if not _is_plain_role(role):
+            raise ProcessRenderError(
+                f"presentation symbol-role override for step '{step_id}' is not a "
+                f"plain, filename-safe symbol role: {role!r}"
+            )
+
+    resolved: dict[str, str] = {}
+    for step in process.steps:
+        if step.id in explicit:
+            resolved[step.id] = explicit[step.id]
+            continue
+        default_role = _DEFAULT_SYMBOL_ROLE_BY_FUNCTION.get(step.function)
+        if default_role is None:
+            raise ProcessRenderError(
+                f"cannot render step '{step.id}' (engineering function "
+                f"'{step.function}') with symbol pack {symbol_pack!r}: no "
+                "presentation symbol role could be resolved for this step (no "
+                "per-step symbol-role override and no default "
+                "function -> symbol-role mapping for this engineering function)"
+            )
+        resolved[step.id] = default_role
+    return resolved
+
+
 def _is_plain_role(role: str) -> bool:
     """A role must be a plain filename stem usable inside the pack directory.
 
-    ``ProcessStep.type`` is an open semantic string; treating it blindly as a
-    filename would let a step type name files outside the pack. The renderer
-    therefore accepts only plain roles resolving to a pack-local ``<role>.svg``
-    asset.
+    A symbol role is a presentation value chosen by the presentation policy or
+    an explicit override; treating it blindly as a filename would let a role
+    name files outside the pack. The renderer therefore accepts only plain
+    roles resolving to a pack-local ``<role>.svg`` asset.
     """
     return bool(role) and "/" not in role and "\\" not in role and role not in {".", ".."}
 
@@ -531,6 +634,7 @@ def _place_steps_and_assign(
     process: ProcessModel,
     pack: str,
     variant_by_role: dict[str, SymbolVariant],
+    role_by_step: Mapping[str, str],
     outgoing: dict[str, list[ProcessStream]],
     incoming: dict[str, list[ProcessStream]],
     layers: dict[str, int],
@@ -544,8 +648,11 @@ def _place_steps_and_assign(
     ``ProcessStream`` incidence (``target`` -> input, ``source`` -> output).
     Streams map onto ``anchor-in-N`` / ``anchor-out-N`` in stable order
     (semantic port declaration order first, then stream id), matching the
-    pack-local anchor contract. Anchor-capacity errors are presentation
-    compatibility errors and are raised here as :class:`ProcessRenderError`.
+    pack-local anchor contract. ``role_by_step`` carries the already-resolved
+    presentation symbol role for each step (ADR-0009): the chosen variant is
+    ``variant_by_role[role_by_step[step.id]]``, never ``step.function``.
+    Anchor-capacity errors are presentation compatibility errors and are
+    raised here as :class:`ProcessRenderError`.
     """
     step_by_id = {step.id: step for step in process.steps}
     declaration_index = {step.id: index for index, step in enumerate(process.steps)}
@@ -583,15 +690,18 @@ def _place_steps_and_assign(
     out_index: dict[str, int] = {stream.id: 0 for stream in process.streams}
     in_index: dict[str, int] = {stream.id: 0 for stream in process.streams}
     for step in process.steps:
-        variant = variant_by_role[step.type]
+        role = role_by_step[step.id]
+        variant = variant_by_role[role]
         outs = outgoing[step.id]
         ins = incoming[step.id]
         if len(outs) > len(variant.out_anchors):
             raise _anchor_capacity_error(
-                pack, step, "outgoing", len(outs), len(variant.out_anchors)
+                pack, step, role, "outgoing", len(outs), len(variant.out_anchors)
             )
         if len(ins) > len(variant.in_anchors):
-            raise _anchor_capacity_error(pack, step, "incoming", len(ins), len(variant.in_anchors))
+            raise _anchor_capacity_error(
+                pack, step, role, "incoming", len(ins), len(variant.in_anchors)
+            )
         for index, stream in enumerate(outs):
             out_index[stream.id] = index
         for index, stream in enumerate(ins):
@@ -604,7 +714,8 @@ def _place_steps_and_assign(
         row = row_by_id[step.id]
         x = MARGIN + layer * COLUMN_PITCH
         y = MARGIN + row * ROW_PITCH
-        variant = variant_by_role[step.type]
+        role = role_by_step[step.id]
+        variant = variant_by_role[role]
         placed_step = PlacedStep(
             step=step,
             layer=layer,
@@ -627,13 +738,15 @@ def _place_steps_and_assign(
 def _anchor_capacity_error(
     pack: str,
     step: ProcessStep,
+    symbol_role: str,
     direction: str,
     required: int,
     available: int,
 ) -> ProcessRenderError:
     noun = "input" if direction == "incoming" else "output"
     return ProcessRenderError(
-        f"cannot render step '{step.id}' (type/role '{step.type}') with symbol pack "
+        f"cannot render step '{step.id}' (engineering function '{step.function}', "
+        f"resolved symbol role '{symbol_role}') with symbol pack "
         f"{pack!r}: {required} {direction} stream(s) exceed the {available} available "
         f"{noun} anchor(s) in the selected symbol variant"
     )
@@ -803,6 +916,7 @@ def render_process_svg(
     process: ProcessModel,
     *,
     symbol_pack: str = "basic",
+    symbol_role_overrides: Mapping[str, str] | None = None,
 ) -> str:
     """Render a :class:`~deepplant.model.ProcessModel` as a standalone SVG.
 
@@ -811,19 +925,46 @@ def render_process_svg(
     trailing newline) and contains no external resources. Repeated calls with
     the same ``process`` return byte-for-byte identical output.
 
+    Symbol roles are resolved at this presentation boundary (ADR-0009), never
+    read from the semantic model: for each step, an explicit
+    ``symbol_role_overrides`` entry wins over the default engineering
+    ``function`` -> symbol-role presentation policy; an engineering function
+    with neither fails with :class:`ProcessRenderError`.
+
     Args:
         process: The semantic process model to render. Physical-layer objects
             are never rendered by this function.
         symbol_pack: The explicitly chosen symbol pack. Only ``basic`` is
             supported by this first implementation.
+        symbol_role_overrides: Optional transient presentation overrides keyed
+            by ``ProcessStep.id``, each value being the presentation symbol
+            role to draw for that step in this render call. The mapping is
+            read-only and is never stored on the semantic model, in YAML, or
+            in any view file. An override key must reference an existing step
+            id, and an override role must be non-blank, filename-safe, and
+            present in the selected symbol pack.
 
     Raises:
-        ProcessRenderError: If the pack is unknown, a step role is missing
-            from the pack, the pack SVG/anchor contract is broken, or a step
-            needs more input/output anchors than its chosen symbol provides.
+        ProcessRenderError: If the pack is unknown, a step's engineering
+            function has no resolvable presentation symbol role (and no
+            override supplies one), an override is invalid, a resolved role is
+            missing from the pack, the pack SVG/anchor contract is broken, or
+            a step needs more input/output anchors than its chosen symbol
+            provides.
     """
     pack_dir = _pack_directory(symbol_pack)
-    roles = list(dict.fromkeys(step.type for step in process.steps))
+    available_roles = _available_pack_roles(pack_dir)
+    role_by_step = _resolve_symbol_role_by_step(process, symbol_pack, symbol_role_overrides)
+    for step in process.steps:
+        role = role_by_step[step.id]
+        if role not in available_roles:
+            raise ProcessRenderError(
+                f"cannot render step '{step.id}' (engineering function "
+                f"'{step.function}', resolved symbol role '{role}') with symbol pack "
+                f"{symbol_pack!r}: the selected pack has no SVG asset for that "
+                "presentation symbol role"
+            )
+    roles = list(dict.fromkeys(role_by_step[step.id] for step in process.steps))
     variant_by_role = {role: _parse_symbol_variant(pack_dir, role) for role in roles}
 
     outgoing = {step.id: _ordered_outgoing(process.streams, step) for step in process.steps}
@@ -831,7 +972,13 @@ def render_process_svg(
     feedback_ids = set(_detect_feedback(process.steps, outgoing, incoming))
     layers = _assign_layers(process.steps, process.streams, outgoing, feedback_ids)
     placed, placed_by_id, out_index, in_index = _place_steps_and_assign(
-        process, symbol_pack, variant_by_role, outgoing, incoming, layers
+        process,
+        symbol_pack,
+        variant_by_role,
+        role_by_step,
+        outgoing,
+        incoming,
+        layers,
     )
 
     feedback_streams = _ordered_feedback(process, feedback_ids)

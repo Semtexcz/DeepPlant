@@ -124,13 +124,13 @@ def test_process_graph_contains_the_expected_seven_steps() -> None:
     process = _process(_model())
 
     assert [step.id for step in process.steps] == EXPECTED_STEP_IDS
-    assert [step.type for step in process.steps] == [
+    assert [step.function for step in process.steps] == [
         "source",
         "mixing",
-        "pump",
-        "heat_exchanger",
-        "splitting",
-        "vessel",
+        "pumping",
+        "heat_exchange",
+        "splitting_material",
+        "unspecified",
         "sink",
     ]
 
@@ -245,7 +245,7 @@ def test_process_and_equipment_id_namespaces_stay_independent(tmp_path: Path) ->
         "process:\n"
         "  steps:\n"
         "    - id: P-101\n"
-        "      type: pump\n"
+        "      function: pumping\n"
         "      ports:\n"
         "        - id: discharge\n"
         "  streams: []\n",
@@ -256,3 +256,34 @@ def test_process_and_equipment_id_namespaces_stay_independent(tmp_path: Path) ->
 
     assert [item.id for item in model.equipment] == ["P-101"]
     assert [step.id for step in _process(model).steps] == ["P-101"]
+
+
+def test_ps_vessel_is_semantically_unspecified_not_a_vessel_role() -> None:
+    """The realistic fragment keeps PS-vessel semantically honest (ADR-0009).
+
+    The fragment's drawing shows a vessel, but a vessel is a
+    physical/presentation description. Without evidence for storage, reaction,
+    separation, holding, buffering, residence, or another engineering function,
+    the canonical model must say ``unspecified`` — never the presentation role.
+    """
+    process = _process(_model())
+    vessel = next(step for step in process.steps if step.id == "PS-vessel")
+
+    assert vessel.function == "unspecified"
+    assert vessel.function != "vessel"
+    assert not hasattr(vessel, "type")
+
+
+def test_all_process_steps_declare_canonical_engineering_functions() -> None:
+    process = _process(_model())
+    function_by_step = {step.id: step.function for step in process.steps}
+
+    assert function_by_step == {
+        "PS-feed": "source",
+        "PS-mix": "mixing",
+        "PS-pump": "pumping",
+        "PS-hx": "heat_exchange",
+        "PS-split": "splitting_material",
+        "PS-vessel": "unspecified",
+        "PS-consumer": "sink",
+    }

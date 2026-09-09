@@ -13,8 +13,8 @@ from deepplant.model import (
 def test_valid_chain_model() -> None:
     model = ProcessModel(
         steps=[
-            ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="A", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(
@@ -44,8 +44,8 @@ def test_process_model_may_be_empty() -> None:
 def test_process_optional_names_default_to_none() -> None:
     model = ProcessModel(
         steps=[
-            ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="A", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(
@@ -65,8 +65,8 @@ def test_duplicate_process_step_ids_fail() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "source"},
-                    {"id": "A", "type": "sink"},
+                    {"id": "A", "function": "source"},
+                    {"id": "A", "function": "sink"},
                 ]
             }
         )
@@ -77,8 +77,8 @@ def test_duplicate_process_stream_ids_fail() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "t", "ports": [{"id": "in"}, {"id": "out"}]},
-                    {"id": "B", "type": "t", "ports": [{"id": "in"}, {"id": "out"}]},
+                    {"id": "A", "function": "t", "ports": [{"id": "in"}, {"id": "out"}]},
+                    {"id": "B", "function": "t", "ports": [{"id": "in"}, {"id": "out"}]},
                 ],
                 "streams": [
                     {
@@ -100,8 +100,8 @@ def test_step_and_stream_may_share_the_same_id() -> None:
     model = ProcessModel.model_validate(
         {
             "steps": [
-                {"id": "X", "type": "source", "ports": [{"id": "out"}]},
-                {"id": "Y", "type": "sink", "ports": [{"id": "in"}]},
+                {"id": "X", "function": "source", "ports": [{"id": "out"}]},
+                {"id": "Y", "function": "sink", "ports": [{"id": "in"}]},
             ],
             "streams": [
                 {
@@ -121,7 +121,7 @@ def test_duplicate_process_port_ids_on_same_step_fail() -> None:
     with pytest.raises(ValidationError, match="duplicate port id"):
         ProcessStep(
             id="A",
-            type="mix",
+            function="mix",
             ports=[ProcessPort(id="inlet"), ProcessPort(id="inlet")],
         )
 
@@ -129,8 +129,8 @@ def test_duplicate_process_port_ids_on_same_step_fail() -> None:
 def test_same_process_port_id_on_different_steps_is_allowed() -> None:
     model = ProcessModel(
         steps=[
-            ProcessStep(id="A", type="source", ports=[ProcessPort(id="inlet")]),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="inlet")]),
+            ProcessStep(id="A", function="source", ports=[ProcessPort(id="inlet")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="inlet")]),
         ]
     )
 
@@ -143,8 +143,8 @@ def test_stream_source_with_unknown_step_fails() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "t", "ports": [{"id": "out"}]},
-                    {"id": "B", "type": "t", "ports": [{"id": "in"}]},
+                    {"id": "A", "function": "t", "ports": [{"id": "out"}]},
+                    {"id": "B", "function": "t", "ports": [{"id": "in"}]},
                 ],
                 "streams": [
                     {
@@ -162,8 +162,8 @@ def test_stream_target_with_unknown_step_fails() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "t", "ports": [{"id": "out"}]},
-                    {"id": "B", "type": "t", "ports": [{"id": "in"}]},
+                    {"id": "A", "function": "t", "ports": [{"id": "out"}]},
+                    {"id": "B", "function": "t", "ports": [{"id": "in"}]},
                 ],
                 "streams": [
                     {
@@ -183,8 +183,8 @@ def test_stream_source_with_unknown_port_fails() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "t", "ports": [{"id": "out"}]},
-                    {"id": "B", "type": "t", "ports": [{"id": "in"}]},
+                    {"id": "A", "function": "t", "ports": [{"id": "out"}]},
+                    {"id": "B", "function": "t", "ports": [{"id": "in"}]},
                 ],
                 "streams": [
                     {
@@ -204,8 +204,8 @@ def test_stream_target_with_unknown_port_fails() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "t", "ports": [{"id": "out"}]},
-                    {"id": "B", "type": "t", "ports": [{"id": "in"}]},
+                    {"id": "A", "function": "t", "ports": [{"id": "out"}]},
+                    {"id": "B", "function": "t", "ports": [{"id": "in"}]},
                 ],
                 "streams": [
                     {
@@ -223,7 +223,7 @@ def test_stream_with_identical_source_and_target_endpoints_fails() -> None:
         ProcessModel.model_validate(
             {
                 "steps": [
-                    {"id": "A", "type": "t", "ports": [{"id": "in"}, {"id": "out"}]},
+                    {"id": "A", "function": "t", "ports": [{"id": "in"}, {"id": "out"}]},
                 ],
                 "streams": [
                     {
@@ -240,9 +240,9 @@ def test_recycle_cycle_is_allowed() -> None:
     model = ProcessModel.model_validate(
         {
             "steps": [
-                {"id": "A", "type": "t", "ports": [{"id": "in"}, {"id": "out"}]},
-                {"id": "B", "type": "t", "ports": [{"id": "in"}, {"id": "out"}]},
-                {"id": "C", "type": "t", "ports": [{"id": "in"}, {"id": "out"}]},
+                {"id": "A", "function": "t", "ports": [{"id": "in"}, {"id": "out"}]},
+                {"id": "B", "function": "t", "ports": [{"id": "in"}, {"id": "out"}]},
+                {"id": "C", "function": "t", "ports": [{"id": "in"}, {"id": "out"}]},
             ],
             "streams": [
                 {
@@ -272,14 +272,14 @@ def test_mixing_topology_is_structurally_allowed() -> None:
     model = ProcessModel.model_validate(
         {
             "steps": [
-                {"id": "A", "type": "feed", "ports": [{"id": "out"}]},
-                {"id": "B", "type": "recycle", "ports": [{"id": "out"}]},
+                {"id": "A", "function": "feed", "ports": [{"id": "out"}]},
+                {"id": "B", "function": "recycle", "ports": [{"id": "out"}]},
                 {
                     "id": "MIX",
-                    "type": "mix",
+                    "function": "mix",
                     "ports": [{"id": "in_a"}, {"id": "in_b"}, {"id": "out"}],
                 },
-                {"id": "C", "type": "consumer", "ports": [{"id": "in"}]},
+                {"id": "C", "function": "consumer", "ports": [{"id": "in"}]},
             ],
             "streams": [
                 {
@@ -308,14 +308,14 @@ def test_splitting_topology_is_structurally_allowed() -> None:
     model = ProcessModel.model_validate(
         {
             "steps": [
-                {"id": "A", "type": "feed", "ports": [{"id": "out"}]},
+                {"id": "A", "function": "feed", "ports": [{"id": "out"}]},
                 {
                     "id": "SPLIT",
-                    "type": "split",
+                    "function": "split",
                     "ports": [{"id": "in"}, {"id": "out_b"}, {"id": "out_c"}],
                 },
-                {"id": "B", "type": "consumer", "ports": [{"id": "in"}]},
-                {"id": "C", "type": "consumer", "ports": [{"id": "in"}]},
+                {"id": "B", "function": "consumer", "ports": [{"id": "in"}]},
+                {"id": "C", "function": "consumer", "ports": [{"id": "in"}]},
             ],
             "streams": [
                 {
@@ -343,13 +343,13 @@ def test_splitting_topology_is_structurally_allowed() -> None:
 @pytest.mark.parametrize("blank", ["", "   ", "\t"])
 def test_blank_process_step_id_fails(blank: str) -> None:
     with pytest.raises(ValidationError):
-        ProcessStep(id=blank, type="source")
+        ProcessStep(id=blank, function="source")
 
 
 @pytest.mark.parametrize("blank", ["", "   ", "\t"])
-def test_blank_process_step_type_fails(blank: str) -> None:
+def test_blank_process_step_function_fails(blank: str) -> None:
     with pytest.raises(ValidationError):
-        ProcessStep(id="A", type=blank)
+        ProcessStep(id="A", function=blank)
 
 
 @pytest.mark.parametrize("blank", ["", "   ", "\t"])
@@ -387,7 +387,7 @@ def test_unknown_process_port_field_fails() -> None:
 
 def test_unknown_process_step_field_fails() -> None:
     with pytest.raises(ValidationError):
-        ProcessStep.model_validate({"id": "A", "type": "t", "medium": "water"})
+        ProcessStep.model_validate({"id": "A", "function": "t", "medium": "water"})
 
 
 def test_unknown_process_ref_field_fails() -> None:
@@ -410,3 +410,46 @@ def test_unknown_process_stream_field_fails() -> None:
 def test_unknown_process_model_field_fails() -> None:
     with pytest.raises(ValidationError):
         ProcessModel.model_validate({"steps": [], "streams": [], "process": {}})
+
+
+# --- ProcessStep.function semantics (ADR-0009) --------------------------------
+
+
+def test_process_step_engineering_function_is_valid_and_open() -> None:
+    # Canonical engineering functions are simple, DeepPlant-native concepts.
+    for function in ("pumping", "mixing", "heat_exchange", "splitting_material"):
+        step = ProcessStep(id="X", function=function, ports=[ProcessPort(id="p")])
+        assert step.function == function
+    # The vocabulary is deliberately open: arbitrary non-empty strings stay legal.
+    step = ProcessStep(id="X", function="catalytic_upgrading")
+    assert step.function == "catalytic_upgrading"
+    # "unspecified" is a legal semantic value: the step exists, its engineering
+    # function has not yet been specified.
+    step = ProcessStep(id="PS-vessel", function="unspecified")
+    assert step.function == "unspecified"
+
+
+def test_process_step_function_is_required() -> None:
+    with pytest.raises(ValidationError):
+        ProcessStep.model_validate({"id": "A", "ports": []})
+
+
+@pytest.mark.parametrize("blank", ["", "   ", "\t"])
+def test_blank_process_step_function_fails_as_required(blank: str) -> None:
+    with pytest.raises(ValidationError):
+        ProcessStep(id="A", function=blank)
+
+
+def test_process_step_function_is_not_a_presentation_field() -> None:
+    # A ProcessStep carries only id/function/name/ports; symbol-role and
+    # symbol-pack presentation concepts must not enter the canonical model.
+    step = ProcessStep(id="A", function="pumping", ports=[ProcessPort(id="out")])
+    dumped = step.model_dump()
+    assert set(dumped) == {"id", "function", "name", "ports"}
+
+
+def test_stale_process_step_type_field_is_rejected() -> None:
+    # Models use extra="forbid", so legacy `type` YAML/dicts must fail rather
+    # than silently acquiring an ambiguous meaning (intentional pre-1.0 break).
+    with pytest.raises(ValidationError):
+        ProcessStep.model_validate({"id": "A", "type": "pump", "ports": []})

@@ -1,9 +1,10 @@
+import re
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
-from deepplant import PlantSaveError, load_plant, save_plant
+from deepplant import PlantLoadError, PlantSaveError, load_plant, save_plant
 from deepplant.model import (
     Connection,
     Equipment,
@@ -62,15 +63,17 @@ def _process_graph() -> PlantModel:
         plant=Plant(id="demo", name="Process Graph Example"),
         process=ProcessModel(
             steps=[
-                ProcessStep(id="FEED", type="source", name="Feed", ports=[ProcessPort(id="out")]),
+                ProcessStep(
+                    id="FEED", function="source", name="Feed", ports=[ProcessPort(id="out")]
+                ),
                 ProcessStep(
                     id="PUMP",
-                    type="pump",
+                    function="pumping",
                     name="Transfer Pump",
                     ports=[ProcessPort(id="suction"), ProcessPort(id="discharge")],
                 ),
                 ProcessStep(
-                    id="PRODUCT", type="sink", name="Product", ports=[ProcessPort(id="in")]
+                    id="PRODUCT", function="sink", name="Product", ports=[ProcessPort(id="in")]
                 ),
             ],
             streams=[
@@ -109,13 +112,13 @@ def _combined() -> PlantModel:
         ],
         process=ProcessModel(
             steps=[
-                ProcessStep(id="FEED", type="source", ports=[ProcessPort(id="out")]),
+                ProcessStep(id="FEED", function="source", ports=[ProcessPort(id="out")]),
                 ProcessStep(
                     id="P-101",
-                    type="pump",
+                    function="pumping",
                     ports=[ProcessPort(id="suction"), ProcessPort(id="discharge")],
                 ),
-                ProcessStep(id="PRODUCT", type="sink", ports=[ProcessPort(id="in")]),
+                ProcessStep(id="PRODUCT", function="sink", ports=[ProcessPort(id="in")]),
             ],
             streams=[
                 ProcessStream(
@@ -146,10 +149,13 @@ def _optional_names_present() -> PlantModel:
         process=ProcessModel(
             steps=[
                 ProcessStep(
-                    id="FEED", type="source", name="Named Feed", ports=[ProcessPort(id="out")]
+                    id="FEED", function="source", name="Named Feed", ports=[ProcessPort(id="out")]
                 ),
                 ProcessStep(
-                    id="PRODUCT", type="sink", name="Named Product", ports=[ProcessPort(id="in")]
+                    id="PRODUCT",
+                    function="sink",
+                    name="Named Product",
+                    ports=[ProcessPort(id="in")],
                 ),
             ],
             streams=[
@@ -169,7 +175,7 @@ def _optional_names_absent() -> PlantModel:
         plant=Plant(id="demo"),
         equipment=[Equipment(id="T-101", type="tank", ports=[Port(id="outlet")])],
         process=ProcessModel(
-            steps=[ProcessStep(id="FEED", type="source", ports=[ProcessPort(id="out")])],
+            steps=[ProcessStep(id="FEED", function="source", ports=[ProcessPort(id="out")])],
             streams=[],
         ),
     )
@@ -186,10 +192,16 @@ def _unicode_names() -> PlantModel:
         process=ProcessModel(
             steps=[
                 ProcessStep(
-                    id="VAR", type="kettle", name="Výrobní kotel α", ports=[ProcessPort(id="out")]
+                    id="VAR",
+                    function="boiling",
+                    name="Výrobní kotel α",
+                    ports=[ProcessPort(id="out")],
                 ),
                 ProcessStep(
-                    id="CHL", type="cooler", name="Chladič mladiny", ports=[ProcessPort(id="in")]
+                    id="CHL",
+                    function="cooling",
+                    name="Chladič mladiny",
+                    ports=[ProcessPort(id="in")],
                 ),
             ],
             streams=[
@@ -377,3 +389,72 @@ def test_existing_example_yaml_round_trips(tmp_path: Path, example: Path) -> Non
 
     assert load_plant(str(path)) == model
     assert path.read_text(encoding="utf-8").endswith("\n")
+
+
+# --- ProcessStep.function YAML migration (ADR-0009, intentional pre-1.0 break) --
+
+
+def test_yaml_load_uses_function_and_save_emits_function_not_type(tmp_path: Path) -> None:
+    source = tmp_path / "source.yaml"
+    source.write_text(
+        "plant:\n"
+        "  id: demo\n"
+        "process:\n"
+        "  steps:\n"
+        "    - id: FEED\n"
+        "      function: source\n"
+        "      ports:\n"
+        "        - id: out\n"
+        "    - id: PUMP\n"
+        "      function: pumping\n"
+        "      ports:\n"
+        "        - id: suction\n"
+        "        - id: discharge\n"
+        "    - id: SINK\n"
+        "      function: sink\n"
+        "      ports:\n"
+        "        - id: in\n"
+        "  streams:\n"
+        "    - id: S-001\n"
+        "      source: {step: FEED, port: out}\n"
+        "      target: {step: PUMP, port: suction}\n"
+        "    - id: S-002\n"
+        "      source: {step: PUMP, port: discharge}\n"
+        "      target: {step: SINK, port: in}\n",
+        encoding="utf-8",
+    )
+
+    model = load_plant(source)
+    assert model.process is not None
+    assert [step.function for step in model.process.steps] == ["source", "pumping", "sink"]
+
+    path = tmp_path / "plant.yaml"
+    save_plant(model, path)
+    text = path.read_text(encoding="utf-8")
+
+    assert "function: source" in text
+    assert "function: pumping" in text
+    assert re.search(r"(?m)^\s+type:", text) is None
+    loaded = load_plant(path)
+    assert loaded == model
+
+
+def test_stale_process_step_type_yaml_is_rejected(tmp_path: Path) -> None:
+    source = tmp_path / "legacy.yaml"
+    source.write_text(
+        "plant:\n"
+        "  id: demo\n"
+        "process:\n"
+        "  steps:\n"
+        "    - id: P-101\n"
+        "      type: pump\n"
+        "      ports: []\n"
+        "  streams: []\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(source)
+    message = str(exc_info.value)
+    assert "steps.0.type" in message
+    assert "extra" in message.lower() or "type" in message

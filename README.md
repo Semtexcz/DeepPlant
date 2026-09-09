@@ -17,8 +17,11 @@ anchor `basic` symbol-pack contract, a headless read-only process renderer
 (`deepplant.adapters.dexpi`; evidence and limits in
 [docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)). Import preflight
 pins the DEXPI 2.0.0 Core/Process model URIs and global XML `Object@id`
-uniqueness; export covers only the deliberately symmetric canonical subset.
-Full DEXPI, other
+uniqueness; export covers the deliberately symmetric canonical subset
+(including material-port-only `pumping` after ADR-0009). `ProcessStep.function`
+is canonical engineering semantics (ADR-0009); symbol roles are resolved at the
+rendering boundary by a default presentation policy or explicit per-step
+overrides, never stored in the semantic model. Full DEXPI, other
 adapters (COMOS, AVEVA), the interactive editor, and P&ID rendering are planned
 but not implemented.
 
@@ -30,7 +33,8 @@ Workflow mode: `pr`.
 - The semantic engineering model is the product core; CLI, GUI, renderers, and
   adapters depend on it.
 - Presentation data (symbols, coordinates, routing) stays separate from
-  engineering semantics.
+  engineering semantics; a `ProcessStep` states its engineering `function`,
+  never its drawing role (ADR-0009).
 - YAML is a serialization format, not the domain model.
 - Connectivity follows `Component -> Ports -> Connections`.
 

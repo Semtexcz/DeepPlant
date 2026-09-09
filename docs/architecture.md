@@ -76,13 +76,35 @@ The process presentation assets ship inside the Python package as the
 DeepPlant-original `basic` process symbol pack under
 `src/deepplant/assets/symbols/process/basic/` — the canonical packaged asset
 tree (contract: [svg-symbols.md](svg-symbols.md); decision: ADR-0008).
-`ProcessStep.type` identifies a symbol role, not a globally canonical SVG
-geometry; the headless renderer selects an explicitly chosen symbol pack
+`ProcessStep.function` is canonical engineering semantics (ADR-0009); a
+*presentation symbol role* is resolved at the rendering boundary from the
+function by the renderer's default presentation policy or by an explicit
+per-step `symbol_role_overrides` entry, and is never stored in the semantic
+model. The headless renderer selects an explicitly chosen symbol pack
 (currently only `basic`), whose pack-local SVG asset supplies monochrome
 `currentColor` line art on the canonical `viewBox="0 0 100 100"` plus
 machine-readable generic ordered `anchor-in-N` / `anchor-out-N` slots and
 per-asset provenance records. The `basic` pack is non-normative
 fallback/reference geometry.
+
+The presentation chain is therefore four distinct concepts
+([svg-symbols.md](svg-symbols.md), ADR-0009):
+
+```text
+ProcessStep.function
+        ↓  default presentation policy (or explicit per-step override)
+symbol role
+        ↓  selected symbol pack
+pack-local SVG asset
+        ↓
+geometry + ordered anchors
+```
+
+The realistic fragment demonstrates the boundary: `PS-vessel` declares
+`function: unspecified` (semantic honesty) and is still drawn with the
+`vessel` basic symbol through an explicit presentation override supplied only
+to `render_process_svg` (see
+[examples/realistic-process-fragment/README.md](../examples/realistic-process-fragment/README.md)).
 
 The basic headless read-only process renderer (`src/deepplant/render.py`,
 documented in [rendering.md](rendering.md)) renders a standalone SVG
@@ -102,13 +124,15 @@ unique XML `Object@id` values, then maps an explicit material subset of DEXPI
 Process XML (Source/Sink/Mixing/SplittingMaterial/Pumping with `MaterialPort`s
 and material `Stream`s) into the canonical `ProcessModel`; declared
 `ConnectorReference` values are validated when present and unsupported populated
-content fails closed. The exporter serializes only the deliberately symmetric
-canonical subset (`source`/`sink`/`mixing`/`splitting`) back as DEXPI-native
-XML for that supported structural subset. DEXPI is an adapter:
-`deepplant.model` imports nothing adapter-specific, no canonical field was
-added for the adapter, and EnergyFlow/InformationFlow/Plant/P&ID content is
-rejected explicitly rather than silently collapsed. No generic adapter
-framework exists.
+content fails closed. The exporter serializes the deliberately symmetric
+canonical subset back as DEXPI-native XML for that supported structural subset
+(`source`, `sink`, `mixing`, `splitting_material`, and material-port-only
+`pumping` — ADR-0009 made the canonical `function` vocabulary an engineering
+classification, which unblocked the previously rejected reverse `pumping`).
+DEXPI is an adapter: `deepplant.model` imports nothing adapter-specific, no
+canonical field was added for the adapter, and
+EnergyFlow/InformationFlow/Plant/P&ID content is rejected explicitly rather
+than silently collapsed. No generic adapter framework exists.
 
 Current semantic model:
 
@@ -117,10 +141,30 @@ PlantModel
 ├── Plant
 ├── Equipment[]
 │   └── Port[]
-└── Connection[]
-    ├── source: PortRef
-    └── target: PortRef
+├── Connection[]
+│   ├── source: PortRef
+│   └── target: PortRef
+└── ProcessModel (optional; ADR-0005/ADR-0006)
+    ├── ProcessStep[]
+    │   ├── id
+    │   ├── function        engineering process function (open string, ADR-0009)
+    │   ├── name
+    │   └── ProcessPort[]
+    └── ProcessStream[]
+        ├── id
+        ├── name
+        ├── source: ProcessRef(step, port)
+        └── target: ProcessRef(step, port)
 ```
+
+- `ProcessStep.function` is the engineering process function performed by the
+  step (`source`, `sink`, `mixing`, `splitting_material`, `pumping`,
+  `heat_exchange`, `unspecified`, or any other non-empty string — the
+  vocabulary is open). It is not an equipment class, a symbol role, a DEXPI
+  class, or a physical realization (ADR-0009). `unspecified` is legal and
+  means the step exists but its function is not yet specified; rendering such
+  a step needs explicit presentation information and is a presentation error,
+  never a semantic-model error.
 
 - Port identity is local to the owning equipment/component. The same port id may
   exist on different equipment; a globally resolvable port endpoint is the pair

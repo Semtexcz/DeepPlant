@@ -22,7 +22,7 @@ presentation slice:
 YAML
 → PlantModel
 → ProcessModel
-→ symbol roles
+→ ProcessStep.function → presentation policy → symbol roles
 → basic symbol pack
 → layout
 → anchor assignment
@@ -46,17 +46,48 @@ general automatic diagramming tool.
 ```python
 from deepplant import render_process_svg, ProcessRenderError
 
-svg: str = render_process_svg(model.process, symbol_pack="basic")
+svg: str = render_process_svg(
+    model.process,
+    symbol_pack="basic",
+    symbol_role_overrides={"PS-vessel": "vessel"},  # optional, transient
+)
 ```
 
 - Returns a complete standalone SVG document (valid XML/SVG, deterministic
   viewBox, `currentColor` engineering line style, UTF-8-safe text, trailing
   newline, no external resources).
 - Repeated rendering of the same `ProcessModel` is byte-for-byte identical.
-- `ProcessRenderError(ValueError)` is raised for an unknown pack, a role
-  missing from the pack, a broken pack asset/anchor contract, or a step whose
-  stream incidence exceeds the pack variant's anchor capacity.
+- `symbol_role_overrides` is an optional read-only mapping keyed by
+  `ProcessStep.id`; each value is the presentation symbol role to draw for
+  that step in this render call. It is a transient presentation override
+  (ADR-0009): it exists only at the rendering boundary and is never stored on
+  the semantic model, in YAML, or in a view file.
+- `ProcessRenderError(ValueError)` is raised for an unknown pack, a step whose
+  engineering function has no resolvable symbol role (and no override supplies
+  one), an invalid override (unknown step id, blank or non-filename-safe role,
+  role missing from the selected pack), a broken pack asset/anchor contract, or
+  a step whose stream incidence exceeds the pack variant's anchor capacity.
 - No CLI command and no file-saving helper exist yet.
+
+## Symbol-role resolution (presentation policy)
+
+Symbol roles are presentation semantics, not canonical engineering data
+(ADR-0009). For each step the renderer resolves one role with this
+deterministic precedence:
+
+1. an explicit `symbol_role_overrides[step.id]` entry;
+2. the renderer's default `ProcessStep.function` -> symbol-role policy:
+   `source → source`, `sink → sink`, `mixing → mixing`,
+   `splitting_material → splitting`, `pumping → pump`,
+   `heat_exchange → heat_exchanger`;
+3. otherwise a `ProcessRenderError` naming the step id, the engineering
+   function, the selected symbol pack, and the missing presentation policy.
+
+`unspecified` is a legal engineering function (semantic uncertainty) but has
+no default role; without an explicit override its rendering is a presentation
+error, not a semantic-model error. The realistic fragment's `PS-vessel` uses
+exactly this: semantic `function: unspecified` + a per-step override to the
+`vessel` symbol role.
 
 ## ProcessModel-only scope
 
@@ -68,12 +99,13 @@ process diagram, and no process↔physical mappings exist.
 
 ## Pack-aware lookup and runtime packaging
 
-`ProcessStep.type` identifies a **symbol role**, not a globally canonical SVG
-asset. The renderer selects the explicitly requested **symbol pack** and reads
-that pack's `<role>.svg` asset plus its ordered `anchor-in-N` / `anchor-out-N`
-slots. Only the built-in `basic` pack is supported in this first
-implementation; unknown packs fail loudly instead of silently substituting a
-different symbol.
+The renderer resolves each step's **symbol role** from its engineering
+function (see "Symbol-role resolution" above; ADR-0009) — a role is never read
+directly from the semantic model. The renderer then selects the explicitly
+requested **symbol pack** and reads that pack's `<role>.svg` asset plus its
+ordered `anchor-in-N` / `anchor-out-N` slots. Only the built-in `basic` pack is
+supported in this first implementation; unknown packs fail loudly instead of
+silently substituting a different symbol.
 
 The canonical asset copy ships inside the installed package
 (`src/deepplant/assets/symbols/process/basic/`) and is resolved at runtime
@@ -183,7 +215,12 @@ Frontend/interactive viewing, manual positioning, saved diagram coordinates,
 zoom/pan, multiple sheets, title blocks, physical/P&ID rendering, standards
 aligned or company packs, custom pack loading, DEXPI graphics, simulation,
 routing optimisation/crossing minimisation, automatic standards compliance,
-and any persistence of presentation data in the semantic model.
+and any persistence of presentation data in the semantic model. **Persistent
+presentation configuration is deferred**: the renderer's per-call
+`symbol_role_overrides` establishes the presentation boundary as executable
+evidence; a future slice may persist per-step view configuration separately
+from semantic YAML, without reintroducing the conflation this boundary removes
+(ADR-0009).
 
 ## Related
 
@@ -191,5 +228,6 @@ and any persistence of presentation data in the semantic model.
 - [architecture.md](architecture.md) — current architecture.
 - [roadmap.md](roadmap.md) — slice sequence.
 - [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-  [ADR-0008](decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
+  [ADR-0008](decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md),
+  [ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md).
 

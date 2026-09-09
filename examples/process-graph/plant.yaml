@@ -9,20 +9,20 @@ connections: []
 process:
   steps:
     - id: FEED
-      type: source
+      function: source
       name: Feed
       ports:
         - id: out
 
     - id: PUMP
-      type: pump
+      function: pumping
       name: Transfer Pump
       ports:
         - id: suction
         - id: discharge
 
     - id: PRODUCT
-      type: sink
+      function: sink
       name: Product
       ports:
         - id: in

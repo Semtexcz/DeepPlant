@@ -25,10 +25,13 @@ This repository currently ships the project foundation plus semantic vertical
 slices: the minimal domain model (`PlantModel`, `Plant`, `Equipment`), the
 topology slice (`Port`, `Connection`, reference validation), the standalone
 process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]`),
-YAML load/save boundaries into typed Pydantic models, strict structural and
-reference validation, a `deepplant validate` command, the `basic` process
-symbol-pack contract, a headless read-only process renderer, and a narrow DEXPI
-2.x Process adapter spike (`deepplant.adapters.dexpi`; see
+canonical `ProcessStep.function` engineering semantics separated from
+presentation symbol roles (ADR-0009; an explicitly resolved `symbol_role`
+override boundary in the renderer), YAML load/save boundaries into typed
+Pydantic models, strict structural and reference validation, a `deepplant
+validate` command, the `basic` process symbol-pack contract, a headless
+read-only process renderer, and a narrow DEXPI 2.x Process adapter spike
+(`deepplant.adapters.dexpi`; see
 [docs/dexpi-process-spike.md](../docs/dexpi-process-spike.md)). The interactive
 editor, full DEXPI and other vendor adapters, and P&ID rendering do **not**
 exist yet.
