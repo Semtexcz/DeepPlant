@@ -16,8 +16,12 @@ update_when:
 
 The first presentation-asset slice behind
 [ADR-0008](decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md) is the
-DeepPlant `basic` process symbol pack in `assets/symbols/process/basic/`. This
-slice is **not** renderer, frontend, or runtime symbol-selection work.
+DeepPlant `basic` process symbol pack. Its canonical copy is packaged inside
+the Python package at `src/deepplant/assets/symbols/process/basic/` so the
+headless process renderer resolves it at runtime through `importlib.resources`
+(see [rendering.md](rendering.md)). This page defines the asset/anchor
+contract; renderer behaviour beyond consuming it is covered in
+[rendering.md](rendering.md).
 
 ## Role, pack, and asset
 
@@ -39,7 +43,7 @@ Example:
 ```text
 role:  pump
 pack:  basic
-asset: assets/symbols/process/basic/pump.svg
+asset: deepplant/assets/symbols/process/basic/pump.svg
 ```
 
 `ProcessStep.type` identifies a symbol role. It does **not** globally select one
@@ -48,25 +52,29 @@ canonical SVG geometry. Within a pack, the filename-stem convention maps
 useful pack-local convention, but **role identity != graphical asset
 identity**.
 
-A future presentation layer may select a `basic`, standards-aligned,
-company-specific, or custom/user pack. That selection is not implemented and is
-not encoded in the semantic model:
+The headless renderer (`render_process_svg`, [rendering.md](rendering.md))
+explicitly selects a symbol pack — currently only the built-in `basic` — and
+maps each step's role through that pack to geometry plus ordered anchors.
+Standards-aligned, company-specific, or custom/user packs remain possible under
+the same contract. Pack selection is a presentation-layer concern and is never
+encoded in the semantic model:
 
 ```text
 ProcessStep.type
         ↓
 symbol role
         ↓
-symbol pack selected by future presentation policy
+symbol pack selected by the presentation layer (renderer)
         ↓
 SVG geometry + ordered anchors
 ```
 
 ## Purpose and scope
 
-The contract proves a future headless renderer can consume an explicitly chosen
-pack and deterministically use SVG geometry plus ordered input/output anchor
-slots for `ProcessStream` routing. The reference workload is
+The contract lets a headless renderer consume an explicitly chosen pack and
+deterministically use SVG geometry plus ordered input/output anchor slots for
+`ProcessStream` routing — implemented by `render_process_svg`
+([rendering.md](rendering.md)). The reference workload is
 `examples/realistic-process-fragment/plant.yaml`, whose current roles are
 `source`, `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`, and `sink`.
 The `basic` pack must cover those roles; it may contain additional valid SVG
@@ -112,7 +120,7 @@ pack may use materially different geometry.
 All current geometry is DeepPlant-original under `AGPL-3.0-only`. No ISO/ISA/IEC
 figure copying, tracing, screenshot reuse, or AI derivation from restricted
 material occurred; no draw.io, IPD Studio, or ISPF asset was copied. Per-asset
-provenance is recorded in `assets/symbols/process/basic/README.md`.
+provenance is recorded in `src/deepplant/assets/symbols/process/basic/README.md`.
 
 A future standards-aligned pack requires explicit rights, per-asset
 provenance, and human standards verification against an authorized copy, and it
@@ -173,8 +181,9 @@ are current basic-pack variant properties, not domain invariants.
 
 ## Explicitly deferred
 
-- Renderer, layout, node coordinates, stream routing, labels, SVG composition,
-  CLI render command, and semantic-port-to-anchor assignment.
+- Renderer/layout polish beyond the basic headless renderer (label
+  collision handling, row/column balancing, crossing minimisation), a CLI
+  render command, and any runtime presentation/view model.
 - Runtime symbol registry, plugins, providers, pack configuration, CLI pack
   selector, custom-pack loading, and runtime provenance manifests.
 - Standards-aligned, company-specific, and custom/user symbol packs.
@@ -189,6 +198,7 @@ are current basic-pack variant properties, not domain invariants.
   and [ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md).
 - [standards.md](standards.md) — provenance/licensing policy and verification
   vocabulary.
-- [roadmap.md](roadmap.md) — slice sequence; the next task is the basic headless
-  read-only process renderer against the pack-aware contract.
+- [rendering.md](rendering.md) — the headless renderer that consumes this
+  contract.
+- [roadmap.md](roadmap.md) — slice sequence and next tasks.
 

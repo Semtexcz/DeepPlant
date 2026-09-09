@@ -28,10 +28,11 @@ executable tasks.
 
 DeepPlant ships the project foundation plus four semantic vertical slices, a
 realistic process-fragment validation example, the standards/symbol-licensing
-governance slice ([docs/standards.md](standards.md), ADR-0007), and the first
-process presentation-asset slice: the SVG + anchor + initial basic symbol-pack
-contract (`assets/symbols/process/basic/`, [docs/svg-symbols.md](svg-symbols.md),
-ADR-0008):
+governance slice ([docs/standards.md](standards.md), ADR-0007), the SVG +
+anchor + initial basic symbol-pack contract (packaged inside the Python package
+under `deepplant/assets/symbols/process/basic/`,
+[docs/svg-symbols.md](svg-symbols.md), ADR-0008), and the basic headless
+read-only process renderer ([docs/rendering.md](rendering.md)):
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -70,15 +71,30 @@ ADR-0008):
   piping model were introduced
 - first process presentation-asset slice — SVG + anchor + initial basic
   symbol-pack contract: seven DeepPlant-original non-normative fallback SVG
-  assets under `assets/symbols/process/basic/` (`source`, `mixing`, `pump`,
-  `heat_exchanger`, `splitting`, `vessel`, `sink`) with canonical
-  `viewBox="0 0 100 100"`, monochrome `currentColor` line art, and hidden
-  ordered `anchor-in-N` / `anchor-out-N` slots; `ProcessStep.type` identifies a
-  role, and a future presentation layer selects a pack and its pack-local SVG
-  asset; contract in `docs/svg-symbols.md`, decision in ADR-0008, provenance in
-  `assets/symbols/process/basic/README.md`; deterministic stdlib XML contract
-  tests plus realistic-fragment role coverage; no semantic-model fields,
-  renderer, frontend, or runtime pack-selection dependency
+  assets packaged under `deepplant/assets/symbols/process/basic/` (`source`,
+  `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`, `sink`) with
+  canonical `viewBox="0 0 100 100"`, monochrome `currentColor` line art, and
+  hidden ordered `anchor-in-N` / `anchor-out-N` slots; `ProcessStep.type`
+  identifies a role, distinct from any graphical asset identity; contract in
+  `docs/svg-symbols.md`, decision in ADR-0008, provenance in the packaged pack
+  README; deterministic stdlib XML contract tests plus realistic-fragment role
+  coverage; no semantic-model fields, frontend, or runtime pack-selection
+  framework
+- basic headless read-only process renderer:
+  `render_process_svg(process, symbol_pack="basic")` renders a standalone SVG
+  process/PFD diagram from `ProcessModel` only (no physical layer, no `FV-101`,
+  no process↔physical mapping): deterministic layered layout; stable
+  (port order, stream id) assignment of `ProcessStream` incidence onto pack
+  `anchor-in-N`/`anchor-out-N` slots; renderer-owned anchor-capacity errors;
+  DFS back-edge classification with dedicated return lanes for recycle;
+  orthogonal forward routing and self-contained arrowheads; step/stream labels;
+  duplicate-safe symbol composition; pack assets resolved at runtime from the
+  installed package through `importlib.resources` (single canonical copy,
+  wheel-verified); committed golden artifact
+  `examples/realistic-process-fragment/process.svg` with a determinism test;
+  deterministic stdlib XML behaviour tests; no frontend, no interactive UI, no
+  CLI, no new runtime dependency, no semantic-model changes (documented in
+  [docs/rendering.md](rendering.md))
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
@@ -113,24 +129,24 @@ never imply equipment, and no cross-layer rules exist yet.
 | YAML save / semantic round-trip | Canonical `save_plant()` through Pydantic `model_dump(exclude_none=True)` + PyYAML (`sort_keys=False`, `allow_unicode=True`); `load_plant(save_plant(model)) == model`; `None` optionals omitted; `process: None` omitted; explicit empty `ProcessModel` preserved; deterministic field order; UTF-8 with a trailing newline; comments/formatting not preserved; no domain-model changes; no CLI save/format command |
 | Realistic process fragment as a loadable example | Synthetic public YAML (`examples/realistic-process-fragment/plant.yaml`) encodes the documented PFD fragment: seven `ProcessStep`s and seven `ProcessStream`s including recycle, mixing, and splitting; loads through `load_plant()` via `PlantModel.process` and round-trips through `save_plant()`; physical bootstrap layer (`T-101`, `P-101`, `FV-101`, `E-101`, `V-101`) stays independent; `PS-mix`/`PS-split` have no `Equipment` counterpart and `FV-101` has no `ProcessStep`; no new schema, process↔physical mappings, or piping model |
 | Standards and symbol-licensing strategy | Governance/research slice (no implementation code): [docs/standards.md](standards.md) registers the normative restricted references (ISO 10628-1/-2, ISO 14617-1/-2, ANSI/ISA-5.1, IEC 62424) versus the open DEXPI 2.0 specification (CC BY 4.0, confirmed from the official announcement and GitLab repository); restricted-standards handling and AI-agent rules are explicit (AGENTS.md); conservative verification states (`reference` / `candidate-alignment` / `human-verified`) replace unverified “compliant” claims; future symbol provenance requirements and the seven-ProcessStep-type assessment are defined; candidate sources (ISPF `ispf-pid-v1`, draw.io P&ID shapes, DEXPI material, others) are assessed at file/licence level and none is imported; decision recorded in ADR-0007 |
-| SVG + anchor + initial basic symbol-pack contract (process/PFD presentation) | First presentation-asset slice: seven DeepPlant-original non-normative fallback SVG assets under `assets/symbols/process/basic/` covering the realistic fragment's `ProcessStep.type` roles; role identity is distinct from graphical asset identity (future presentation-layer pack selection deferred); canonical `viewBox="0 0 100 100"`, monochrome `currentColor` line art, generic ordered `anchor-in-N` / `anchor-out-N` slots distinct from semantic ports; contract in [docs/svg-symbols.md](svg-symbols.md), decision in ADR-0008, provenance in `assets/symbols/process/basic/README.md`; deterministic stdlib XML tests; no semantic-model fields, no renderer, no runtime dependency |
+| SVG + anchor + initial basic symbol-pack contract (process/PFD presentation) | First presentation-asset slice: seven DeepPlant-original non-normative fallback SVG assets, packaged inside the Python package under `deepplant/assets/symbols/process/basic/`, covering the realistic fragment's `ProcessStep.type` roles; role identity is distinct from graphical asset identity (pack selection is a presentation-layer concern, later consumed by the renderer); canonical `viewBox="0 0 100 100"`, monochrome `currentColor` line art, generic ordered `anchor-in-N` / `anchor-out-N` slots distinct from semantic ports; contract in [docs/svg-symbols.md](svg-symbols.md), decision in ADR-0008, provenance in the packaged pack README; deterministic stdlib XML tests; no semantic-model fields, no runtime pack-selection framework |
+| Basic headless read-only process renderer | `render_process_svg(process, symbol_pack="basic")` in `src/deepplant/render.py` consumes the pack-aware contract and renders a standalone SVG process/PFD diagram from `ProcessModel` only: pack assets resolved at runtime from the installed package through `importlib.resources` (single canonical copy, wheel verified); deterministic layered layout; `ProcessStream`-incidence anchor assignment in stable (port order, stream id) order; anchor-capacity and missing-role errors stay renderer errors; deterministic DFS back-edge classification with dedicated return lanes; orthogonal forward routing; self-contained arrowheads; step/stream labels; duplicate-safe symbol composition; committed golden artifact `examples/realistic-process-fragment/process.svg` with a golden/determinism test; deterministic stdlib XML behaviour tests; documented in [docs/rendering.md](rendering.md); no frontend, no interactive UI, no CLI, no new runtime dependency, and no semantic-model change |
 
 ### Backlog (Suggested Order)
 
-The documented realistic process fragment is now implemented as a loadable
-public example through the production semantic model (see Completed):
-[examples/realistic-process-fragment/plant.yaml](examples/realistic-process-fragment/plant.yaml).
-It exposed no blocking semantic gap for the process graph. The
-standards/symbol-licensing governance slice (ADR-0007,
-[docs/standards.md](standards.md)) fixed the provenance and licensing rules, and
-the SVG + anchor + initial basic symbol-pack contract (ADR-0008,
-[docs/svg-symbols.md](svg-symbols.md)) now provides the `basic` process/PFD pack
-with deterministic ordered anchors. The next task is the first row below.
+The documented realistic process fragment is implemented as a loadable public
+example through the production semantic model (see Completed), and the basic
+headless read-only process renderer now derives a standalone SVG diagram from
+its `ProcessModel` (see Completed; heuristics and limitations in
+[docs/rendering.md](rendering.md)). The renderer's reference output is the
+committed golden artifact
+[examples/realistic-process-fragment/process.svg](examples/realistic-process-fragment/process.svg).
+The next task is the first row below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Basic headless read-only process renderer | Derive a simple standalone SVG process/PFD diagram from `ProcessModel` using the explicitly chosen `basic` pack and the anchor contract (`assets/symbols/process/basic/`, [docs/svg-symbols.md](svg-symbols.md)): simple layout, symbol placement, anchor assignment from `ProcessStream` incidence, stream routing — no frontend, no interactive UI; the renderer must not hardcode `assets/symbols/process/{ProcessStep.type}.svg` as a permanent global identity model |
-| 2 | DEXPI adapter spike | Prove import/export feasibility on a real fragment |
+| 1 | DEXPI adapter spike | Prove import/export feasibility on a real fragment (openly licensed DEXPI 2.0 material only, ADR-0007) |
+| 2 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
 
 ### Milestones
 
@@ -151,43 +167,34 @@ slices.
 Order within this milestone: the realistic process fragment is a loadable
 synthetic example through the production semantic model (see Completed), the
 standards/symbol-licensing governance slice (ADR-0007,
-[docs/standards.md](standards.md)) governs symbol sourcing, and the SVG +
-anchor + initial basic symbol-pack contract (ADR-0008,
-[docs/svg-symbols.md](svg-symbols.md)) now ships the `basic` process/PFD pack.
-The basic headless read-only process renderer (backlog row 1) then derives the
-diagram from that example.
+[docs/standards.md](standards.md)) governs symbol sourcing, the SVG + anchor +
+initial basic symbol-pack contract (ADR-0008, [docs/svg-symbols.md](svg-symbols.md))
+ships the `basic` process/PFD pack, and the basic headless read-only process
+renderer now derives the standalone PFD diagram from the example
+([examples/realistic-process-fragment/process.svg](examples/realistic-process-fragment/process.svg)).
+The milestone's remaining breadth (P&ID-like coverage and an engineering-rule
+validation engine with several consistency-error classes) is still open.
 
 ### Next Task
 
-The next task is the basic headless read-only process renderer: a small
-standalone component (no frontend, no interactive UI, no new dependencies) that
-derives a simple SVG process/PFD diagram from a `ProcessModel` using the
-explicitly chosen `basic` development pack and the anchor contract:
+The next task is the **DEXPI adapter spike** (backlog row 1): prove
+import/export feasibility on a real fragment using openly licensed DEXPI 2.0
+material only (CC BY 4.0, with attribution; ADR-0007), so the semantic model
+and its packaging are tested against an externally authored representation.
 
-```text
-ProcessModel
-→ simple layout
-→ symbol placement
-→ anchor assignment (ProcessStream incidence → anchor-in / anchor-out)
-→ stream routing
-→ standalone SVG
-```
-
-The SVG + anchor + initial basic symbol-pack contract (ADR-0008,
-[docs/svg-symbols.md](svg-symbols.md), `assets/symbols/process/basic/`) now
-provides the `basic` pack-local geometry and ordered anchor slots for every
-`ProcessStep.type` role used by the realistic fragment
-([examples/realistic-process-fragment/plant.yaml](examples/realistic-process-fragment/plant.yaml)),
-which remains the reference workload. The realistic fragment exposed no blocking
-semantic gap for the process graph, so no further process-model decision is
-required before starting renderer work. The open physical-piping /
-process-to-physical-realization question remains a tracked, unresolved semantic
-decision, but it is not a prerequisite for the process/PFD renderer. The
-smallest renderer may simply use `basic` as its explicitly chosen/default
-development pack, but it must not hardcode
-`assets/symbols/process/{ProcessStep.type}.svg` as the permanent global identity
-model; later standards-aligned symbol sourcing and pack selection remain a
-separate task.
+This follows from the current repository state: the semantic `ProcessModel`,
+the pack-aware symbol contract, and the headless renderer now cover the
+process/PFD path end to end on the realistic fragment, and the renderer
+exposed no blocking semantic gap (its remaining weaknesses — label
+collisions, glyph proportions, crossings, lane routing — are tracked
+presentation limitations in [docs/rendering.md](rendering.md), not model
+gaps). The largest remaining evidence gap is interoperability: can the
+canonical model faithfully represent a real externally authored fragment, and
+does the model need any further concept for that? A DEXPI spike answers that
+with executable evidence and stays small. The open physical-piping /
+process-to-physical-realization question remains a tracked, unresolved
+semantic decision, independent of the renderer; it is a likely output of the
+spike rather than a prerequisite for it.
 
 ### Scope Discipline
 

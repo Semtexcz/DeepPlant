@@ -18,4 +18,5 @@ update_when:
 - Quality: [quality.md](quality.md)
 - Standards and symbol assets: [standards.md](standards.md)
 - SVG symbol and anchor contract: [svg-symbols.md](svg-symbols.md)
+- Headless process renderer: [rendering.md](rendering.md)
 - Decisions: [decisions/index.md](decisions/index.md)

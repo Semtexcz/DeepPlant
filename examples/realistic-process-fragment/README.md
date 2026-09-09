@@ -96,3 +96,31 @@ Expected output (the CLI reports the physical/bootstrap layer counts):
 
 See [docs/roadmap.md](../../docs/roadmap.md) and
 [docs/architecture.md](../../docs/architecture.md).
+
+## Generated process diagram
+
+[`process.svg`](process.svg) is a **generated artifact** produced by the basic
+headless read-only process renderer from the process layer of this example. It
+is committed so pull requests can review the visual result of a semantic
+change, and a determinism/golden test
+([`tests/test_render.py`](../../tests/test_render.py)) fails if renderer output
+ever drifts from the committed file.
+
+It was generated with the public renderer API (no CLI command exists yet):
+
+```python
+from deepplant import load_plant, render_process_svg
+
+model = load_plant("examples/realistic-process-fragment/plant.yaml")
+svg = render_process_svg(model.process, symbol_pack="basic")
+with open("examples/realistic-process-fragment/process.svg", "w", encoding="utf-8") as handle:
+    handle.write(svg)
+```
+
+The diagram is derived from the semantic `ProcessModel` only: the physical
+bootstrap layer (`T-101`, `P-101`, `FV-101`, `E-101`, `V-101`) is intentionally
+absent, mixing/splitting stay explicit process functions, and the recycle
+(`S-002`) renders on a dedicated return lane below the process without any
+recycle-specific semantic kind. See [docs/rendering.md](../../docs/rendering.md)
+for the layout/routing heuristics and their limitations.
+

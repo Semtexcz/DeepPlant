@@ -15,7 +15,18 @@ from xml.etree.ElementTree import Element
 
 from deepplant import load_plant
 
-BASIC_PACK_DIR = Path(__file__).resolve().parents[1] / "assets" / "symbols" / "process" / "basic"
+# The canonical asset tree lives inside the installed package so the basic
+# pack can be resolved at runtime through importlib.resources. These contract
+# tests read the same tree from the source checkout.
+BASIC_PACK_DIR = (
+    Path(__file__).resolve().parents[1]
+    / "src"
+    / "deepplant"
+    / "assets"
+    / "symbols"
+    / "process"
+    / "basic"
+)
 REALISTIC_EXAMPLE = (
     Path(__file__).resolve().parents[1] / "examples" / "realistic-process-fragment" / "plant.yaml"
 )
