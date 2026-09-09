@@ -38,8 +38,17 @@ Workflow mode: `pr`.
 - YAML is a serialization format, not the domain model.
 - Connectivity follows `Component -> Ports -> Connections`.
 
-See [docs/product.md](docs/product.md) for the product view and
-[docs/roadmap.md](docs/roadmap.md) for the roadmap.
+DeepPlant is an experimental Git-native semantic engineering platform for
+process plants. Its semantic model is intended to become the source of truth,
+with PFD/P&ID views, engineering checks, simulations, and external exchange
+handled as derived views, computations, or adapters.
+
+See [VISION.md](VISION.md) for where DeepPlant is going,
+[docs/architecture.md](docs/architecture.md) for what exists,
+[docs/roadmap.md](docs/roadmap.md) for sequencing reasoning, and the
+[DeepPlant Roadmap GitHub Project](https://github.com/Semtexcz/DeepPlant/projects)
+for the strategic capability map. Planning governance is defined in
+[docs/planning.md](docs/planning.md).
 
 ## Quick Start
 
@@ -92,6 +101,8 @@ only (`AGPL-3.0-only`). See [LICENSE](LICENSE) for the full license text.
 
 | Need | Open |
 |---|---|
+| Vision | [VISION.md](VISION.md) |
+| Strategic planning | [docs/planning.md](docs/planning.md) |
 | Product brief | [docs/product.md](docs/product.md) |
 | Roadmap | [docs/roadmap.md](docs/roadmap.md) |
 | Current architecture | [docs/architecture.md](docs/architecture.md) |

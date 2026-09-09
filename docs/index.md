@@ -11,6 +11,8 @@ update_when:
 
 # Documentation
 
+- Vision: [VISION.md](../VISION.md)
+- Strategic planning: [planning.md](planning.md)
 - Product: [product.md](product.md)
 - Architecture: [architecture.md](architecture.md)
 - Roadmap: [roadmap.md](roadmap.md)

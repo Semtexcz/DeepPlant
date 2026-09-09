@@ -132,10 +132,13 @@ docs:
 
 validate-docs:
 
+	@test -f VISION.md
 	@test -f README.md
 	@test -f AGENTS.md
 	@test -f docs/architecture.md
 	@test -f docs/product.md
+	@test -f docs/roadmap.md
+	@test -f docs/planning.md
 	@test -f docs/workflow.md
 	@test -f docs/quality.md
 	@test -f project/brief.md

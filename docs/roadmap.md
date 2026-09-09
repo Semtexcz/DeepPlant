@@ -24,6 +24,12 @@ This file contains no dates, estimates, release promises, fixed sequence
 commitments, or completion percentages. GitHub Issues remain the place for
 executable tasks.
 
+The [GitHub Project](../README.md#navigation) visualizes capability state and
+horizons; this document explains why the work is sequenced as it is. Planning
+governance — the Vision → Architecture → Roadmap → Project → Milestones →
+Issues → Pull Requests hierarchy, horizon semantics, and the just-in-time Issue
+rule — is defined in [planning.md](planning.md).
+
 ## Current Implementation Roadmap
 
 DeepPlant ships the project foundation plus four semantic vertical slices, a

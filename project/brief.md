@@ -109,8 +109,10 @@ CLI, and receives a clear validation report for structural and reference errors
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
 - Do not create empty architecture directories before real code exists.
-- Long-term vision lives in `docs/product.md`; the two-level roadmap (current
-  implementation vs directional capability) lives in `docs/roadmap.md`. The
+- Long-term vision lives in `VISION.md` and `docs/product.md`; the two-level
+  roadmap (current implementation vs directional capability) lives in
+  `docs/roadmap.md`; strategic planning governance (vision → roadmap → GitHub
+  Project → milestones → ready issues → PRs) lives in `docs/planning.md`. The
   directional roadmap is product context, not implementation authorization:
   implement only the currently scoped vertical slice.
 

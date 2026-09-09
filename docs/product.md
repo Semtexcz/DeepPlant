@@ -13,6 +13,10 @@ update_when:
 
 # Product
 
+The durable long-term thesis and capability map live in
+[VISION.md](../VISION.md); this page is the product-level view of the same
+direction. Planning governance is in [planning.md](planning.md).
+
 ## Vision — Engineering as Code
 
 DeepPlant is the first product implementing the broader idea of **Engineering as
