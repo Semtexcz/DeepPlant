@@ -17,4 +17,5 @@ update_when:
 - Workflow: [workflow.md](workflow.md)
 - Quality: [quality.md](quality.md)
 - Standards and symbol assets: [standards.md](standards.md)
+- SVG symbol and anchor contract: [svg-symbols.md](svg-symbols.md)
 - Decisions: [decisions/index.md](decisions/index.md)

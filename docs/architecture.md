@@ -69,6 +69,19 @@ DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
   class. This enforces referential integrity only, not process-engineering
   topology rules.
 
+The first presentation-asset slice ships outside the Python package as the
+DeepPlant-original `basic` process symbol pack under
+`assets/symbols/process/basic/` (contract: [svg-symbols.md](svg-symbols.md);
+decision: ADR-0008). `ProcessStep.type` identifies a symbol role, not a
+globally canonical SVG geometry; a future presentation layer selects a symbol
+pack, whose pack-local SVG asset supplies monochrome `currentColor` line art on
+the canonical `viewBox="0 0 100 100"` plus machine-readable generic ordered
+`anchor-in-N` / `anchor-out-N` slots and per-asset provenance records. The
+current `basic` pack is non-normative fallback/reference geometry. No
+semantic-model fields, no runtime pack selection, and no renderer exist yet;
+the renderer is the next roadmap task and must be designed against the
+pack-aware contract.
+
 Current semantic model:
 
 ```text
@@ -195,7 +208,9 @@ justify it:
 
 - semantic model growth: further engineering concepts (starting with the open
   pipes/streams representation question) and the YAML save path
-- rendering and the SVG symbol specification
+- rendering (the SVG + anchor contract and the initial `basic` process pack
+  already ship under `assets/symbols/process/basic/`; the headless renderer does
+  not yet)
 - DEXPI, COMOS, AVEVA, and simulator adapters
 - interactive editor
 - engineering rules / validation engine
@@ -209,6 +224,7 @@ justify it:
 
 - [product.md](product.md)
 - [roadmap.md](roadmap.md)
+- [svg-symbols.md](svg-symbols.md)
 - [standards.md](standards.md)
 - [workflow.md](workflow.md)
 - [quality.md](quality.md)
