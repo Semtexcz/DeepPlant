@@ -18,7 +18,14 @@ from xml.etree.ElementTree import Element
 
 import pytest
 
-from deepplant import ProcessRenderError, load_plant, render_process_svg
+from deepplant import (
+    ProcessRenderError,
+    load_plant,
+    render_process_svg,
+)
+from deepplant import (
+    render as render_module,
+)
 from deepplant.model import (
     Plant,
     PlantModel,
@@ -69,13 +76,28 @@ def _stream(
 
 
 def _groups(root: Element, attribute: str) -> dict[str, Element]:
-    """First element per unique value of a data attribute (document order)."""
+    """Elements indexed by an attribute that is expected to be unique.
+
+    A duplicated value now fails loudly instead of silently keeping the first
+    element, so "exactly once" tests genuinely detect duplicate groups.
+    """
     found: dict[str, Element] = {}
     for element in root.iter():
         value = element.get(attribute)
-        if value is not None and value not in found:
+        if value is not None:
+            assert value not in found, f"duplicate {attribute}={value!r}"
             found[value] = element
     return found
+
+
+def _attribute_values(root: Element, attribute: str) -> list[str]:
+    """All values of an exact data attribute in document order."""
+    values: list[str] = []
+    for element in root.iter():
+        value = element.get(attribute)
+        if value is not None:
+            values.append(value)
+    return values
 
 
 def _translate(group: Element) -> tuple[float, float]:
@@ -206,8 +228,7 @@ def test_every_step_appears_exactly_once_in_steps_layer() -> None:
     model = _realistic_model()
     assert model.process is not None
     root = _svg_root(_render(model.process))
-    step_groups = _groups(root, "data-deepplant-step")
-    assert set(step_groups) == {
+    expected_ids = {
         "PS-feed",
         "PS-mix",
         "PS-pump",
@@ -216,6 +237,10 @@ def test_every_step_appears_exactly_once_in_steps_layer() -> None:
         "PS-vessel",
         "PS-consumer",
     }
+    step_values = _attribute_values(root, "data-deepplant-step")
+    assert set(step_values) == expected_ids
+    assert all(step_values.count(step_id) == 1 for step_id in expected_ids)
+    step_groups = _groups(root, "data-deepplant-step")
     for _step_id, group in step_groups.items():
         assert _local_name(group) == "g"
         assert group.get("transform") is not None
@@ -225,8 +250,10 @@ def test_every_stream_appears_exactly_once_in_streams_layer() -> None:
     model = _realistic_model()
     assert model.process is not None
     root = _svg_root(_render(model.process))
-    stream_groups = _groups(root, "data-deepplant-stream")
-    assert set(stream_groups) == {f"S-00{number}" for number in range(1, 8)}
+    expected_ids = {f"S-00{number}" for number in range(1, 8)}
+    stream_values = _attribute_values(root, "data-deepplant-stream")
+    assert set(stream_values) == expected_ids
+    assert all(stream_values.count(stream_id) == 1 for stream_id in expected_ids)
 
 
 def test_correct_symbol_role_is_selected_from_basic_pack() -> None:
@@ -293,6 +320,11 @@ def test_incoming_and_outgoing_streams_use_the_correct_anchor_direction() -> Non
     assert end_007[0] == consumer_x
     assert end_006[1] == vessel_y + 50
     assert end_007[1] == consumer_y + 50
+    # The first declared split output (out_vessel) targets the upper row, so
+    # PS-vessel renders above PS-consumer even though the consumer id sorts
+    # lexicographically first.
+    assert vessel_y < consumer_y
+    assert end_006[1] < end_007[1]
 
 
 def test_recycle_feedback_is_routed_on_a_lane_below_all_steps() -> None:
@@ -417,13 +449,16 @@ def test_disconnected_components_render_deterministically() -> None:
     assert set(step_groups) == {"FEED", "SINK", "B-FEED", "B-SINK"}
 
 
-def test_cyclic_recycle_graph_renders() -> None:
-    # Feed -> mix -> vessel with vessel -> mix as the feedback (recycle) edge.
+def test_root_first_feedback_detection_handles_awkward_step_declaration_order() -> None:
+    # Graph semantics: FEED -> MIX -> VESSEL stays forward and VESSEL -> MIX is
+    # the recycle (feedback) edge. Declaring the steps inside the cycle first
+    # must not flip that reading: DFS roots come from topology (zero incoming),
+    # never from declaration order or ProcessStep.type.
     model = _model_with_process(
         steps=[
-            _step("FEED", "source", ["out"]),
-            _step("MIX", "mixing", ["in", "out"]),
             _step("VESSEL", "vessel", ["in", "out"]),
+            _step("MIX", "mixing", ["in", "out"]),
+            _step("FEED", "source", ["out"]),
         ],
         streams=[
             _stream("S-001", "FEED", "out", "MIX", "in"),
@@ -436,9 +471,19 @@ def test_cyclic_recycle_graph_renders() -> None:
     stream_groups = _groups(root, "data-deepplant-stream")
     assert set(stream_groups) == {"S-001", "S-002", "S-003"}
     step_groups = _groups(root, "data-deepplant-step")
+    feed_x, _ = _translate(step_groups["FEED"])
+    mix_x, _ = _translate(step_groups["MIX"])
+    vessel_x, _ = _translate(step_groups["VESSEL"])
+    assert feed_x < mix_x < vessel_x
     lowest_symbol_y = max(_translate(group)[1] + 100 for group in step_groups.values())
-    # The vessel -> mix stream is a back edge on a dedicated return lane.
-    assert max(point[1] for point in _stream_points(stream_groups["S-003"])) > lowest_symbol_y
+    # S-003 (vessel -> mix) is the back edge on a dedicated return lane; the
+    # feed/mix/vessel chain stays on ordinary forward routes.
+    forward_001 = _stream_points(stream_groups["S-001"])
+    forward_002 = _stream_points(stream_groups["S-002"])
+    feedback_003 = _stream_points(stream_groups["S-003"])
+    assert max(point[1] for point in forward_001) <= lowest_symbol_y
+    assert max(point[1] for point in forward_002) <= lowest_symbol_y
+    assert max(point[1] for point in feedback_003) > lowest_symbol_y
 
 
 # ---------------------------------------------------------------------------
@@ -520,3 +565,148 @@ def test_multiple_streams_sharing_one_port_use_stable_stream_id_order() -> None:
     # anchor-in-0 slot and S-B the lower anchor-in-1 slot.
     assert end_a[0] == end_b[0]
     assert end_a[1] < end_b[1]
+
+
+# ---------------------------------------------------------------------------
+# Runtime symbol-parser contract validation (through the public render API)
+# ---------------------------------------------------------------------------
+
+
+def _write_pack_asset(tmp_path: Path, role: str, svg_text: str) -> Path:
+    pack = tmp_path / "assets" / "symbols" / "process" / "basic"
+    pack.mkdir(parents=True, exist_ok=True)
+    (pack / f"{role}.svg").write_text(svg_text, encoding="utf-8")
+    return pack
+
+
+def _use_pack(monkeypatch: pytest.MonkeyPatch, pack: Path) -> None:
+    """Point the pack resolver at a temporary pack for one test."""
+
+    def resolve(_pack: str) -> Path:
+        return pack
+
+    monkeypatch.setattr(render_module, "_pack_directory", resolve)
+
+
+def test_runtime_parser_accepts_top_level_non_group_geometry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The documented SVG contract permits top-level path/line/polyline/etc.
+    # geometry; the renderer must not silently demand a wrapping <g>.
+    pack = _write_pack_asset(
+        tmp_path,
+        "source",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        '<path id="flame" d="M 0 50 H 100" stroke="currentColor" fill="none"/>'
+        '<g id="deepplant-anchors">'
+        '<circle id="anchor-out-0" cx="100" cy="50" r="1" fill="none" stroke="none"/>'
+        "</g></svg>",
+    )
+    _use_pack(monkeypatch, pack)
+    model = _model_with_process(steps=[_step("FEED", "source", ["out"])], streams=[])
+    assert model.process is not None
+    document = _render(model.process)
+    assert "<path" in document
+    assert 'id="flame"' not in document
+    assert 'data-deepplant-step="FEED"' in document
+
+
+def test_anchor_xml_child_order_does_not_define_presentation_order(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # anchor-out-1 is serialized before anchor-out-0; numeric anchor id must
+    # still define the ordered slots (0 upper, 1 lower) for stream routing.
+    pack = _write_pack_asset(
+        tmp_path,
+        "source",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        '<g id="deepplant-anchors">'
+        '<circle id="anchor-out-0" cx="100" cy="50" r="1" fill="none" stroke="none"/>'
+        "</g></svg>",
+    )
+    _write_pack_asset(
+        tmp_path,
+        "splitting",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        '<g id="deepplant-anchors">'
+        '<circle id="anchor-in-0" cx="0" cy="50" r="1" fill="none" stroke="none"/>'
+        '<circle id="anchor-out-1" cx="100" cy="70" r="1" fill="none" stroke="none"/>'
+        '<circle id="anchor-out-0" cx="100" cy="30" r="1" fill="none" stroke="none"/>'
+        "</g></svg>",
+    )
+    _write_pack_asset(
+        tmp_path,
+        "sink",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        '<g id="deepplant-anchors">'
+        '<circle id="anchor-in-0" cx="0" cy="50" r="1" fill="none" stroke="none"/>'
+        "</g></svg>",
+    )
+    model = _model_with_process(
+        steps=[
+            _step("FEED", "source", ["out"]),
+            _step("SPLIT", "splitting", ["in", "out_vessel", "out_branch"]),
+            _step("A", "sink", ["in"]),
+            _step("B", "sink", ["in"]),
+        ],
+        streams=[
+            _stream("S-0", "FEED", "out", "SPLIT", "in"),
+            _stream("S-A", "SPLIT", "out_vessel", "A", "in"),
+            _stream("S-B", "SPLIT", "out_branch", "B", "in"),
+        ],
+    )
+    _use_pack(monkeypatch, pack)
+    assert model.process is not None
+    document = _render(model.process)
+    root = _svg_root(document)
+    stream_groups = _groups(root, "data-deepplant-stream")
+    start_a = _stream_points(stream_groups["S-A"])[0]
+    start_b = _stream_points(stream_groups["S-B"])[0]
+    end_a = _stream_points(stream_groups["S-A"])[-1]
+    end_b = _stream_points(stream_groups["S-B"])[-1]
+    # First declared split port (out_vessel) takes the upper numeric slot even
+    # though it was serialized second inside the anchors group.
+    assert start_a[0] == start_b[0]
+    assert start_a[1] < start_b[1]
+    assert end_a[1] < end_b[1]
+
+
+def test_duplicate_anchor_numeric_index_is_rejected(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # anchor-out-0 and anchor-out-00 are distinct ids but share numeric index 0.
+    pack = _write_pack_asset(
+        tmp_path,
+        "splitting",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        '<g id="deepplant-anchors">'
+        '<circle id="anchor-in-0" cx="0" cy="50" r="1" fill="none" stroke="none"/>'
+        '<circle id="anchor-out-0" cx="100" cy="30" r="1" fill="none" stroke="none"/>'
+        '<circle id="anchor-out-00" cx="100" cy="70" r="1" fill="none" stroke="none"/>'
+        "</g></svg>",
+    )
+    _use_pack(monkeypatch, pack)
+    model = _model_with_process(steps=[_step("SPLIT", "splitting", ["in"])], streams=[])
+    assert model.process is not None
+    with pytest.raises(ProcessRenderError, match="duplicate"):
+        _render(model.process)
+
+
+def test_anchor_coordinates_outside_canonical_viewbox_are_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pack = _write_pack_asset(
+        tmp_path,
+        "source",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+        '<g id="deepplant-anchors">'
+        '<circle id="anchor-out-0" cx="100" cy="110" r="1" fill="none" stroke="none"/>'
+        "</g></svg>",
+    )
+    _use_pack(monkeypatch, pack)
+    model = _model_with_process(steps=[_step("FEED", "source", ["out"])], streams=[])
+    assert model.process is not None
+    with pytest.raises(ProcessRenderError, match="outside the canonical"):
+        _render(model.process)

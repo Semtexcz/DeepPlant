@@ -79,7 +79,19 @@ The canonical asset copy ships inside the installed package
 (`src/deepplant/assets/symbols/process/basic/`) and is resolved at runtime
 through `importlib.resources`, so the renderer works from a source checkout
 and from an installed wheel. The built wheel is verified to contain the
-`basic` pack SVGs. There is no plugin/entry-point/pack-registry framework yet.
+`basic` pack SVGs (a CI packaging check after `make check`). There is no
+plugin/entry-point/pack-registry framework yet.
+
+At runtime the renderer validates the contract invariants it relies on before
+composing a diagram: the asset has an SVG root, the canonical
+`viewBox="0 0 100 100"`, no fixed `width`/`height`, exactly one
+`deepplant-anchors` group, and every anchor has a unique `anchor-in-N` /
+`anchor-out-N` id with numeric coordinates inside the local viewBox and
+contiguous indices per direction. Anchor order is defined by the numeric
+anchor id, never by XML child order. Visible geometry may use any top-level
+element the symbol contract permits (`g`, `path`, `line`, `polyline`,
+`polygon`, `rect`, `circle`, `ellipse`); the anchors group is removed and all
+other permitted top-level geometry is treated as visible symbol content.
 
 Pack-local geometry is copied into the composed document with duplicate-prone
 `id` attributes removed (the safe symbol contract forbids functional
@@ -102,14 +114,22 @@ onto `anchor-in-N` / `anchor-out-N`. Multiple streams may legally share one
 A deliberately simple deterministic layered layout runs entirely inside the
 renderer; no coordinates are ever written back into YAML or Pydantic models.
 
-1. A deterministic iterative DFS classifies feedback (back) edges: traversal
-   starts from steps with zero incoming streams (declaration order), visits
-   outgoing streams in the stable (port order, stream id) order, and marks a
-   stream whose target is still on the DFS stack as a back edge.
+1. A deterministic iterative DFS classifies feedback (back) edges. It first
+   starts from every step with zero total incoming `ProcessStream` incidence
+   (in declaration order), then starts any remaining unvisited steps in
+   declaration order. Incoming incidence is semantic and computed before
+   classification, so a back edge never makes a downstream node look like a
+   root. It visits outgoing streams in stable `(port order, stream id)` order
+   and marks a stream whose target is still on the DFS stack as a back edge.
 2. The remaining forward graph is acyclic. A heap-based topological pass
    assigns each step to a **layer (column)** by longest forward path, so
-   normal process progression reads left-to-right. Within one layer, steps are
-   ordered lexicographically by step id into **rows**.
+   normal process progression reads left-to-right. Within one layer, rows are
+   ordered from each step's incoming forward connections where available:
+   upstream row, upstream output-port order, then stream id; target
+   declaration order and step id are deterministic fallbacks. This preserves
+   the branch order implied by upstream output ports/anchors (so the first
+   split output targets the upper row) without claiming optimal crossing
+   minimisation.
 3. Each symbol canvas occupies a deterministic grid cell. Layout constants
    (gaps, margins, lane spacing, label offsets) are renderer-internal
    presentation geometry.

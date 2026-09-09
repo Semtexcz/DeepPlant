@@ -46,6 +46,10 @@ SVG_NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", SVG_NS)
 _ANCHOR_GROUP_ID = "deepplant-anchors"
 _BUILTIN_PACKS = ("basic",)
+_CANONICAL_VIEWBOX = "0 0 100 100"
+_TOP_LEVEL_GEOMETRY_NAMES = frozenset(
+    {"g", "path", "line", "polyline", "polygon", "rect", "circle", "ellipse"}
+)
 
 # --- Renderer-internal presentation geometry ---------------------------------
 # The built-in pack draws every symbol on a canonical 100x100 local viewBox
@@ -230,7 +234,12 @@ def _is_plain_role(role: str) -> bool:
 
 
 def _parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
-    """Parse one ``<role>.svg`` into visible geometry plus ordered anchors."""
+    """Parse one ``<role>.svg`` into visible geometry plus ordered anchors.
+
+    The renderer validates the SVG contract invariants it relies on for
+    placement/routing while accepting every contract-permitted top-level
+    geometry element, not only ``<g>``.
+    """
     if not _is_plain_role(role):
         raise ProcessRenderError(f"cannot select a pack asset for non-filename-safe role {role!r}")
     asset = directory.joinpath(f"{role}.svg")
@@ -252,34 +261,60 @@ def _parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
             f"role {role!r} asset in symbol pack {directory.name!r} is not valid XML: {exc}"
         ) from exc
 
-    anchor_groups: list[Element] = []
-    geometry: list[Element] = []
-    for child in root:
-        if _local_name(child) == "g" and child.get("id") == _ANCHOR_GROUP_ID:
-            anchor_groups.append(child)
-        elif _local_name(child) == "g":
-            geometry.append(child)
-        else:
-            raise ProcessRenderError(
-                f"role {role!r} asset in symbol pack {directory.name!r} has an "
-                f"unexpected top-level <{_local_name(child)}> element"
-            )
+    if root.tag != _tag("svg"):
+        raise ProcessRenderError(
+            f"role {role!r} asset in symbol pack {directory.name!r} must have an SVG root"
+        )
+    if root.get("viewBox") != _CANONICAL_VIEWBOX:
+        raise ProcessRenderError(
+            f"role {role!r} asset in symbol pack {directory.name!r} must use canonical "
+            f"viewBox={_CANONICAL_VIEWBOX!r}"
+        )
+    if "width" in root.attrib or "height" in root.attrib:
+        raise ProcessRenderError(
+            f"role {role!r} asset in symbol pack {directory.name!r} must not set fixed width/height"
+        )
 
+    anchor_groups = [
+        element
+        for element in root.iter()
+        if _local_name(element) == "g" and element.get("id") == _ANCHOR_GROUP_ID
+    ]
     if len(anchor_groups) != 1:
         raise ProcessRenderError(
             f"role {role!r} asset in symbol pack {directory.name!r} must contain exactly "
             f"one <g id={_ANCHOR_GROUP_ID!r}> group"
         )
+    anchor_group = anchor_groups[0]
+
+    geometry: list[Element] = []
+    for child in root:
+        if _local_name(child) not in _TOP_LEVEL_GEOMETRY_NAMES:
+            raise ProcessRenderError(
+                f"role {role!r} asset in symbol pack {directory.name!r} has an "
+                f"unexpected top-level <{_local_name(child)}> element"
+            )
+        if child is not anchor_group:
+            copied = deepcopy(child)
+            _remove_anchor_group(copied)
+            geometry.append(copied)
 
     in_slots: list[tuple[int, Anchor]] = []
     out_slots: list[tuple[int, Anchor]] = []
-    for circle in anchor_groups[0]:
+    anchor_ids: set[str] = set()
+    for circle in anchor_group:
         if _local_name(circle) != "circle":
             raise ProcessRenderError(
                 f"role {role!r} asset in symbol pack {directory.name!r} has a non-circle "
                 "element inside the anchors group"
             )
         anchor_id = circle.get("id") or ""
+        if anchor_id in anchor_ids:
+            raise ProcessRenderError(
+                f"role {role!r} asset in symbol pack {directory.name!r} has duplicate "
+                f"anchor id {anchor_id!r}"
+            )
+        anchor_ids.add(anchor_id)
         cx = circle.get("cx")
         cy = circle.get("cy")
         if cx is None or cy is None:
@@ -300,13 +335,19 @@ def _parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
             out_slots.append((index, anchor))
 
     def _ordered(slots: list[tuple[int, Anchor]]) -> tuple[Anchor, ...]:
-        indices = [index for index, _ in slots]
-        if slots and indices != list(range(len(indices))):
+        ordered = sorted(slots, key=lambda slot: slot[0])
+        indices = [index for index, _ in ordered]
+        if len(indices) != len(set(indices)):
+            raise ProcessRenderError(
+                f"role {role!r} asset in symbol pack {directory.name!r} has duplicate "
+                "anchor indices"
+            )
+        if indices != list(range(len(indices))):
             raise ProcessRenderError(
                 f"role {role!r} asset in symbol pack {directory.name!r} has "
                 "non-contiguous anchor indices"
             )
-        return tuple(anchor for _, anchor in sorted(slots))
+        return tuple(anchor for _, anchor in ordered)
 
     in_anchors = _ordered(in_slots)
     out_anchors = _ordered(out_slots)
@@ -318,6 +359,15 @@ def _parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
         in_anchors=in_anchors,
         out_anchors=out_anchors,
     )
+
+
+def _remove_anchor_group(element: Element) -> None:
+    """Remove the unique anchors group from copied geometry, wherever nested."""
+    for child in list(element):
+        if _local_name(child) == "g" and child.get("id") == _ANCHOR_GROUP_ID:
+            element.remove(child)
+        else:
+            _remove_anchor_group(child)
 
 
 def _parse_anchor_slot(anchor_id: str, cx: str, cy: str) -> tuple[int, str, Anchor] | None:
@@ -341,6 +391,12 @@ def _parse_anchor_slot(anchor_id: str, cx: str, cy: str) -> tuple[int, str, Anch
         raise ProcessRenderError(
             f"anchor id {anchor_id!r} has non-numeric cx/cy coordinates"
         ) from exc
+    if not math.isfinite(x_value) or not math.isfinite(y_value):
+        raise ProcessRenderError(f"anchor id {anchor_id!r} has non-finite cx/cy coordinates")
+    if not 0.0 <= x_value <= SYMBOL_SIZE or not 0.0 <= y_value <= SYMBOL_SIZE:
+        raise ProcessRenderError(
+            f"anchor id {anchor_id!r} has coordinates outside the canonical 100x100 viewBox"
+        )
     return int(suffix), direction, Anchor(x=x_value, y=y_value)
 
 
@@ -377,21 +433,31 @@ def _ordered_incoming(streams: list[ProcessStream], step: ProcessStep) -> list[P
     )
 
 
-def _detect_feedback(step_ids: list[str], outgoing: dict[str, list[ProcessStream]]) -> list[str]:
+def _detect_feedback(
+    steps: list[ProcessStep],
+    outgoing: dict[str, list[ProcessStream]],
+    incoming: dict[str, list[ProcessStream]],
+) -> list[str]:
     """Classify feedback (back) edges with a deterministic iterative DFS.
 
-    Forward process order follows the declared step order, with zero-incoming
-    roots first. Within one step, outgoing streams are visited in the stable
-    (port order, stream id) order. A stream whose target is still on the DFS
-    stack is a feedback edge and is returned in discovery order; the remaining
-    forward graph is acyclic. This is a deliberately simple deterministic
-    heuristic, not a general optimal cycle-cutting algorithm.
+    Traversal starts from all steps with zero total incoming ``ProcessStream``
+    incidence in declaration order, then visits any remaining unvisited steps in
+    declaration order. Incoming incidence is computed before feedback
+    classification, so a back edge never makes a downstream node look like a
+    root. Within one step, outgoing streams are visited in stable (port order,
+    stream id) order. A stream whose target is still on the DFS stack is a
+    feedback edge and is returned in discovery order; the remaining forward
+    graph is acyclic. This is a deliberately simple deterministic heuristic, not
+    a general optimal cycle-cutting algorithm.
     """
+    step_ids = [step.id for step in steps]
+    starts = [step.id for step in steps if not incoming[step.id]]
+    starts.extend(step_id for step_id in step_ids if step_id not in starts)
     white, gray, black = 0, 1, 2
     state = {step_id: white for step_id in step_ids}
     feedback: list[str] = []
 
-    for start in step_ids:
+    for start in starts:
         if state[start] != white:
             continue
         state[start] = gray
@@ -471,22 +537,47 @@ def _place_steps_and_assign(
 ) -> tuple[list[PlacedStep], dict[str, PlacedStep], dict[str, int], dict[str, int]]:
     """Compute deterministic node placement and stream-to-anchor assignment.
 
-    Rows are ordered lexicographically by step id within a layer; columns come
-    from the layered layout. Input/output roles derive purely from
+    Rows derive from each step's incoming forward topology (upstream row,
+    upstream output-port order, then stream id), with target declaration order
+    and step id as deterministic fallbacks; columns come from the layered
+    layout. Input/output roles derive purely from
     ``ProcessStream`` incidence (``target`` -> input, ``source`` -> output).
     Streams map onto ``anchor-in-N`` / ``anchor-out-N`` in stable order
     (semantic port declaration order first, then stream id), matching the
     pack-local anchor contract. Anchor-capacity errors are presentation
     compatibility errors and are raised here as :class:`ProcessRenderError`.
     """
+    step_by_id = {step.id: step for step in process.steps}
+    declaration_index = {step.id: index for index, step in enumerate(process.steps)}
     row_members: dict[int, list[str]] = {}
     for step in process.steps:
         row_members.setdefault(layers[step.id], []).append(step.id)
-    for members in row_members.values():
-        members.sort()
     row_by_id: dict[str, int] = {}
-    for members in row_members.values():
-        for index, step_id in enumerate(members):
+    for layer in sorted(row_members):
+
+        def row_key(step_id: str, current_layer: int = layer) -> tuple[int, int, str, int, str]:
+            forward = [
+                stream for stream in incoming[step_id] if layers[stream.source.step] < current_layer
+            ]
+            if forward:
+                stream = min(
+                    forward,
+                    key=lambda item: (
+                        row_by_id[item.source.step],
+                        _port_index(step_by_id[item.source.step], item.source.port),
+                        item.id,
+                    ),
+                )
+                return (
+                    row_by_id[stream.source.step],
+                    _port_index(step_by_id[stream.source.step], stream.source.port),
+                    stream.id,
+                    declaration_index[step_id],
+                    step_id,
+                )
+            return (len(process.steps), len(process.steps), "", declaration_index[step_id], step_id)
+
+        for index, step_id in enumerate(sorted(row_members[layer], key=row_key)):
             row_by_id[step_id] = index
 
     out_index: dict[str, int] = {stream.id: 0 for stream in process.streams}
@@ -737,8 +828,7 @@ def render_process_svg(
 
     outgoing = {step.id: _ordered_outgoing(process.streams, step) for step in process.steps}
     incoming = {step.id: _ordered_incoming(process.streams, step) for step in process.steps}
-    step_ids = [step.id for step in process.steps]
-    feedback_ids = set(_detect_feedback(step_ids, outgoing))
+    feedback_ids = set(_detect_feedback(process.steps, outgoing, incoming))
     layers = _assign_layers(process.steps, process.streams, outgoing, feedback_ids)
     placed, placed_by_id, out_index, in_index = _place_steps_and_assign(
         process, symbol_pack, variant_by_role, outgoing, incoming, layers
