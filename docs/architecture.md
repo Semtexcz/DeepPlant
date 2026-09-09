@@ -96,15 +96,19 @@ rendered.
 
 The interoperability adapter (`src/deepplant/adapters/dexpi.py`, spike report:
 [dexpi-process-spike.md](dexpi-process-spike.md)) is a narrow DEXPI **2.0
-Process** boundary pinned to the official stable tag `V2.0.0`. It maps an
-explicit material subset of DEXPI Process XML (Source/Sink/Mixing/
-SplittingMaterial/Pumping with `MaterialPort`s and material `Stream`s) into
-the canonical `ProcessModel` and exports that same subset back as
-DEXPI-native XML when no engineering semantics need to be invented. DEXPI is
-an adapter: `deepplant.model` imports nothing adapter-specific, no canonical
-field was added for the adapter, and EnergyFlow/InformationFlow/Plant/P&ID
-content is rejected explicitly rather than silently collapsed. No generic
-adapter framework exists.
+Process** boundary pinned to the official stable tag `V2.0.0`. Its import
+preflight requires the exact pinned 2.0.0 Core/Process model URIs and globally
+unique XML `Object@id` values, then maps an explicit material subset of DEXPI
+Process XML (Source/Sink/Mixing/SplittingMaterial/Pumping with `MaterialPort`s
+and material `Stream`s) into the canonical `ProcessModel`; declared
+`ConnectorReference` values are validated when present and unsupported populated
+content fails closed. The exporter serializes only the deliberately symmetric
+canonical subset (`source`/`sink`/`mixing`/`splitting`) back as DEXPI-native
+XML for that supported structural subset. DEXPI is an adapter:
+`deepplant.model` imports nothing adapter-specific, no canonical field was
+added for the adapter, and EnergyFlow/InformationFlow/Plant/P&ID content is
+rejected explicitly rather than silently collapsed. No generic adapter
+framework exists.
 
 Current semantic model:
 

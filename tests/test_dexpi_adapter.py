@@ -18,8 +18,10 @@ from xml.etree import ElementTree as ET
 import pytest
 
 from deepplant.adapters.dexpi import (
+    DEXPI_CORE_MODEL_URI,
     DEXPI_INSPECTION_DATE,
     DEXPI_LICENCE,
+    DEXPI_PROCESS_MODEL_URI,
     DEXPI_SOURCE_URL,
     DEXPI_TARGET_REVISION,
     DEXPI_TARGET_TAG,
@@ -68,6 +70,98 @@ def semantic_fingerprint(model: ProcessModel) -> dict[str, object]:
             for stream in model.streams
         ],
     }
+
+
+def _conformance_root() -> ET.Element:
+    return ET.fromstring(_read_fixture("conformance_process.xml"))
+
+
+def _local_name(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1]
+
+
+def _set_imports(root: ET.Element, imports: list[tuple[str, str]]) -> None:
+    """Replace all envelope <Import> elements with (prefix, source) pairs."""
+    for child in list(root):
+        if _local_name(child.tag) == "Import":
+            root.remove(child)
+    for prefix, source in imports:
+        ET.SubElement(root, "Import", {"prefix": prefix, "source": source})
+
+
+def _object_by_id(root: ET.Element, object_id: str) -> ET.Element:
+    matches = [element for element in root.iter("Object") if element.get("id") == object_id]
+    assert len(matches) == 1, f"expected exactly one Object id '{object_id}'"
+    return matches[0]
+
+
+def _add_connector_reference(
+    root: ET.Element, port_object_id: str, *referenced_object_ids: str
+) -> None:
+    """Append one ConnectorReference to a MaterialPort for focused probes."""
+    port = _object_by_id(root, port_object_id)
+    ET.SubElement(
+        port,
+        "References",
+        {
+            "property": "ConnectorReference",
+            "objects": " ".join(f"#{object_id}" for object_id in referenced_object_ids),
+        },
+    )
+
+
+def _add_data_string(element: ET.Element, property_name: str, value: str = "x") -> None:
+    """Append one Data/String property to an element for focused probes."""
+    data = ET.SubElement(element, "Data", {"property": property_name})
+    ET.SubElement(data, "String").text = value
+
+
+def _exportable_subset_model() -> ProcessModel:
+    """Canonical model over the deliberately symmetric reverse-export subset.
+
+    ``pump`` is importable normalization only (not reverse exportable) and
+    ``heat_exchanger``/``vessel`` have no unambiguous DEXPI class, so the export
+    evidence uses source/sink/mixing/splitting exclusively.
+    """
+    steps = [
+        ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
+        ProcessStep(
+            id="B",
+            type="mixing",
+            ports=[ProcessPort(id="in"), ProcessPort(id="mixed")],
+        ),
+        ProcessStep(
+            id="C",
+            type="splitting",
+            ports=[ProcessPort(id="in"), ProcessPort(id="out_a"), ProcessPort(id="out_b")],
+        ),
+        ProcessStep(id="D", type="sink", ports=[ProcessPort(id="in")]),
+        ProcessStep(id="E", type="sink", ports=[ProcessPort(id="in")]),
+    ]
+    streams = [
+        ProcessStream(
+            id="S-1",
+            name="Feed",
+            source=ProcessRef(step="A", port="out"),
+            target=ProcessRef(step="B", port="in"),
+        ),
+        ProcessStream(
+            id="S-2",
+            source=ProcessRef(step="B", port="mixed"),
+            target=ProcessRef(step="C", port="in"),
+        ),
+        ProcessStream(
+            id="S-3",
+            source=ProcessRef(step="C", port="out_a"),
+            target=ProcessRef(step="D", port="in"),
+        ),
+        ProcessStream(
+            id="S-4",
+            source=ProcessRef(step="C", port="out_b"),
+            target=ProcessRef(step="E", port="in"),
+        ),
+    ]
+    return ProcessModel(steps=steps, streams=streams)
 
 
 # --- Target pinning and provenance (task tests 1, 2, 30) ----------------------
@@ -211,6 +305,141 @@ def test_repeated_import_produces_equal_models() -> None:
     assert semantic_fingerprint(first) == semantic_fingerprint(second)
 
 
+# --- XML Object@id trust boundary (fix 3/4/21) ---------------------------------
+
+
+def test_duplicate_port_object_id_fails_before_reference_resolution() -> None:
+    # Two different ports share one file-local id and a stream references it.
+    text = (
+        _read_fixture("conformance_process.xml")
+        .replace('id="Port_FEED_out_feed"', 'id="Port_DUP"')
+        .replace('id="Port_MIX_in_fresh"', 'id="Port_DUP"')
+    )
+    with pytest.raises(DexpiImportError) as exc_info:
+        import_dexpi_process_xml(text)
+    message = str(exc_info.value)
+    assert "duplicate DEXPI XML Object id 'Port_DUP'" in message
+    assert "globally unique" in message
+
+
+def test_duplicate_stream_object_id_fails() -> None:
+    text = (
+        _read_fixture("conformance_process.xml")
+        .replace('id="Stream_S001"', 'id="Stream_DUP"')
+        .replace('id="Stream_S002"', 'id="Stream_DUP"')
+    )
+    with pytest.raises(DexpiImportError, match="duplicate DEXPI XML Object id 'Stream_DUP'"):
+        import_dexpi_process_xml(text)
+
+
+def test_duplicate_object_id_across_different_object_kinds_fails() -> None:
+    # A ProcessStep and a MaterialPort share the same file-local id. Object@id
+    # is a single global file-local reference namespace, unlike canonical
+    # engineering Identifiers (step vs stream namespaces in ProcessModel).
+    text = (
+        _read_fixture("conformance_process.xml")
+        .replace('id="Step_FEED"', 'id="Shared_ID"')
+        .replace('id="Port_FEED_out_feed"', 'id="Shared_ID"')
+    )
+    with pytest.raises(DexpiImportError, match="duplicate DEXPI XML Object id 'Shared_ID'"):
+        import_dexpi_process_xml(text)
+
+
+def test_referenced_material_port_without_object_id_fails_clearly() -> None:
+    root = _conformance_root()
+    _object_by_id(root, "Port_FEED_out_feed").attrib.pop("id")
+    with pytest.raises(DexpiImportError, match="Object@id"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
+def test_referenced_material_port_with_blank_object_id_fails_clearly() -> None:
+    root = _conformance_root()
+    _object_by_id(root, "Port_FEED_out_feed").set("id", "   ")
+    with pytest.raises(DexpiImportError, match="Object@id"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
+# --- ConnectorReference validation (fix 8/9/10) --------------------------------
+
+
+def test_connector_reference_absent_remains_tolerated() -> None:
+    # The pinned upstream model leaves Port.ConnectorReference multiplicity
+    # unresolved, so supported fixtures without a ConnectorReference stay valid.
+    model = _import_fixture("conformance_process.xml")
+    assert len(model.steps) == 5
+
+
+def test_valid_connector_reference_to_matching_stream_succeeds() -> None:
+    root = _conformance_root()
+    # FEED.out is S-001's Source (Outlet); MIX-101.in_fresh is S-001's Target.
+    _add_connector_reference(root, "Port_FEED_out_feed", "Stream_S001")
+    _add_connector_reference(root, "Port_MIX_in_fresh", "Stream_S001")
+    model = import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    assert [stream.id for stream in model.streams] == [
+        "S-001",
+        "S-002",
+        "S-003",
+        "S-004",
+        "S-005",
+    ]
+
+
+def test_unresolved_connector_reference_fails() -> None:
+    root = _conformance_root()
+    _add_connector_reference(root, "Port_FEED_out_feed", "Port_MISSING")
+    with pytest.raises(DexpiImportError) as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert "ConnectorReference" in message
+    assert "#Port_MISSING" in message
+    assert "Process/Process.Stream" in message
+
+
+def test_connector_reference_to_process_step_fails() -> None:
+    root = _conformance_root()
+    _add_connector_reference(root, "Port_FEED_out_feed", "Step_MIX101")
+    with pytest.raises(DexpiImportError) as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert "Process/Process.Stream" in message
+    assert "Process/Process.Mixing" in message
+
+
+def test_connector_reference_to_material_port_fails() -> None:
+    root = _conformance_root()
+    _add_connector_reference(root, "Port_FEED_out_feed", "Port_MIX_out_mixed")
+    with pytest.raises(DexpiImportError) as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert "Process/Process.Stream" in message
+    assert "MaterialPort" in message
+
+
+def test_inconsistent_connector_reference_incidence_fails() -> None:
+    # FEED.out is an Outlet Source of S-001; declaring a ConnectorReference to
+    # S-002 (whose Source is a different port) is inconsistent with incidence.
+    root = _conformance_root()
+    _add_connector_reference(root, "Port_FEED_out_feed", "Stream_S002")
+    with pytest.raises(DexpiImportError) as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert "inconsistent with stream incidence" in message
+    assert "S-002" in message
+    assert "Source" in message
+
+
+def test_malformed_connector_reference_syntax_fails() -> None:
+    root = _conformance_root()
+    port = _object_by_id(root, "Port_FEED_out_feed")
+    ET.SubElement(
+        port,
+        "References",
+        {"property": "ConnectorReference", "objects": "Stream_S001"},
+    )
+    with pytest.raises(DexpiImportError, match="must start with '#'"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
 # --- Unsupported concepts must fail visibly (task tests 11-16) -----------------
 
 
@@ -298,18 +527,180 @@ def test_plant_objects_are_not_imported_and_plant_only_files_fail() -> None:
     assert "out of scope" in str(exc_info.value)
 
 
+# --- Pinned DEXPI 2.0.0 model import validation (fix 1/2/20) ------------------
+
+
+def test_pinned_2000_core_and_process_imports_succeed() -> None:
+    root = _conformance_root()
+    model = import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    assert isinstance(model, ProcessModel)
+
+
+def test_missing_process_import_fails_explicitly() -> None:
+    root = _conformance_root()
+    _set_imports(root, [("Core", DEXPI_CORE_MODEL_URI)])
+    with pytest.raises(DexpiImportError, match="unsupported DEXPI model import") as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert DEXPI_PROCESS_MODEL_URI in message
+    assert "prefix='Process'" in message
+    assert "DEXPI 2.0.0" in message
+
+
+def test_wrong_process_prefix_fails_explicitly() -> None:
+    root = _conformance_root()
+    _set_imports(
+        root,
+        [
+            ("Core", DEXPI_CORE_MODEL_URI),
+            ("Proc", DEXPI_PROCESS_MODEL_URI),
+        ],
+    )
+    with pytest.raises(DexpiImportError, match="unsupported DEXPI model import") as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert DEXPI_PROCESS_MODEL_URI in message
+    assert "prefix='Proc'" in message
+
+
+def test_wrong_process_version_uri_fails_explicitly() -> None:
+    root = _conformance_root()
+    _set_imports(
+        root,
+        [
+            ("Core", DEXPI_CORE_MODEL_URI),
+            ("Process", "https://data.dexpi.org/models/2.0.1/Process.xml"),
+        ],
+    )
+    with pytest.raises(DexpiImportError, match="unsupported DEXPI model import") as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert DEXPI_PROCESS_MODEL_URI in message
+    assert "2.0.1" in message
+    assert "supported target version is DEXPI 2.0.0" in message
+
+
+def test_duplicate_conflicting_process_imports_fail_explicitly() -> None:
+    root = _conformance_root()
+    _set_imports(
+        root,
+        [
+            ("Core", DEXPI_CORE_MODEL_URI),
+            ("Process", DEXPI_PROCESS_MODEL_URI),
+            ("Process", "https://data.dexpi.org/models/2.0.1/Process.xml"),
+        ],
+    )
+    with pytest.raises(DexpiImportError, match="unsupported DEXPI model import") as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert DEXPI_PROCESS_MODEL_URI in message
+    assert "prefix='Process', source=" in message
+
+
+def test_missing_core_import_fails_explicitly() -> None:
+    root = _conformance_root()
+    _set_imports(root, [("Process", DEXPI_PROCESS_MODEL_URI)])
+    with pytest.raises(DexpiImportError, match="unsupported DEXPI model import") as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert DEXPI_CORE_MODEL_URI in message
+    assert "prefix='Core'" in message
+
+
+def test_unrelated_plant_import_is_allowed_with_supported_process() -> None:
+    root = _conformance_root()
+    _set_imports(
+        root,
+        [
+            ("Core", DEXPI_CORE_MODEL_URI),
+            ("Plant", "https://data.dexpi.org/models/2.0.0/Plant.xml"),
+            ("Process", DEXPI_PROCESS_MODEL_URI),
+        ],
+    )
+    model = import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    assert [step.id for step in model.steps] == [
+        "FEED",
+        "MIX-101",
+        "P-101",
+        "SPLIT-101",
+        "SINK",
+    ]
+
+
+# --- Fail-closed ProcessModel / property parsing (fix 5/6/7/22) ----------------
+
+
+def test_unknown_process_model_data_property_fails() -> None:
+    root = _conformance_root()
+    _add_data_string(_object_by_id(root, "ProcessModel1"), "Pressure", "10.0")
+    with pytest.raises(DexpiImportError, match="unsupported Data property 'Pressure'"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
+def test_populated_unsupported_process_model_components_fail() -> None:
+    root = _conformance_root()
+    model = _object_by_id(root, "ProcessModel1")
+    compositions = ET.SubElement(model, "Components", {"property": "Compositions"})
+    ET.SubElement(compositions, "Object", {"id": "Comp_1", "type": "Process/Process.Composition"})
+    with pytest.raises(DexpiImportError, match="unsupported Components property 'Compositions'"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
+def test_unexpected_direct_object_child_of_process_model_fails() -> None:
+    root = _conformance_root()
+    model = _object_by_id(root, "ProcessModel1")
+    ET.SubElement(model, "Object", {"type": "Process/Process.SomeStep"})
+    with pytest.raises(DexpiImportError, match="unexpected direct <Object> child"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
+def test_unknown_empty_process_model_wrappers_are_tolerated() -> None:
+    root = _conformance_root()
+    model = _object_by_id(root, "ProcessModel1")
+    ET.SubElement(model, "Components", {"property": "MaterialStates"})
+    ET.SubElement(model, "References", {"property": "SomeRole", "objects": ""})
+    # Empty wrappers carry no semantics and are documented as tolerated; a
+    # populated wrapper of the same name would still be rejected above.
+    model_imported = import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    assert len(model_imported.steps) == 5
+
+
+def test_pumping_with_unsupported_head_property_fails() -> None:
+    root = _conformance_root()
+    _add_data_string(_object_by_id(root, "Step_P101"), "Head", "45.0")
+    with pytest.raises(DexpiImportError) as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    message = str(exc_info.value)
+    assert "unsupported Data property 'Head'" in message
+    assert "P-101" in message
+
+
+def test_stream_with_unsupported_property_fails() -> None:
+    root = _conformance_root()
+    _add_data_string(_object_by_id(root, "Stream_S001"), "Temperature", "80.0")
+    with pytest.raises(DexpiImportError, match="unsupported Data property 'Temperature'"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
+def test_material_port_with_unsupported_property_fails() -> None:
+    root = _conformance_root()
+    _add_data_string(_object_by_id(root, "Port_FEED_out_feed"), "MassFlow", "12.5")
+    with pytest.raises(DexpiImportError, match="unsupported Data property 'MassFlow'"):
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+
+
 # --- Export evidence (task tests 17-21) ----------------------------------------
 
 
 def test_export_is_deterministic() -> None:
-    model = _import_fixture("conformance_process.xml")
+    model = _exportable_subset_model()
     exported_once = export_dexpi_process(model)
     exported_twice = export_dexpi_process(model)
     assert exported_once == exported_twice
 
 
 def test_exported_xml_is_well_formed() -> None:
-    model = _import_fixture("conformance_process.xml")
+    model = _exportable_subset_model()
     exported = export_dexpi_process(model)
     root = ET.fromstring(exported)
     assert root.tag == "Model"
@@ -317,14 +708,14 @@ def test_exported_xml_is_well_formed() -> None:
 
 
 def test_exported_xml_passes_structural_subset_validation() -> None:
-    model = _import_fixture("conformance_process.xml")
+    model = _exportable_subset_model()
     exported = export_dexpi_process(model)
     validate_dexpi_xml_structure(exported)  # must not raise
     assert "Process/ProcessModel" in exported
     assert "Process/Process.MaterialPort" in exported
     assert "Process/Process.Stream" in exported
     assert "Process/Enumerations.PortDirection.Outlet" in exported
-    # S-003 has no name; its ProcessConnection.Label must be an explicit Undefined.
+    # S-2..S-4 have no name; their ProcessConnection.Label must be Undefined.
     root = ET.fromstring(exported)
     labels = [
         leaf
@@ -333,18 +724,30 @@ def test_exported_xml_passes_structural_subset_validation() -> None:
         for leaf in data
         if leaf.tag.rsplit("}", 1)[-1] == "Undefined"
     ]
-    assert len(labels) == 1
+    assert len(labels) == 3
 
 
 def test_semantic_roundtrip_preserves_fingerprint() -> None:
-    model = _import_fixture("conformance_process.xml")
+    model = _exportable_subset_model()
     exported = export_dexpi_process(model)
     reimported = import_dexpi_process_xml(exported)
     assert semantic_fingerprint(model) == semantic_fingerprint(reimported)
 
 
+def test_pump_is_importable_normalization_but_not_reverse_exportable() -> None:
+    # DEXPI Pumping -> type="pump" remains a lossy import normalization; the
+    # reverse classification "pump -> Pumping" is deliberately not asserted while
+    # type="pump" doubles as a presentation role.
+    imported = _import_fixture("conformance_process.xml")
+    pump = next(step for step in imported.steps if step.type == "pump")
+    assert pump.id == "P-101"
+    with pytest.raises(DexpiExportError, match="unsupported canonical ProcessStep type") as exc:
+        export_dexpi_process(imported)
+    assert "'pump'" in str(exc.value)
+
+
 def test_export_of_unsupported_step_types_fails_explicitly() -> None:
-    base = _import_fixture("conformance_process.xml")
+    base = _exportable_subset_model()
     for unsupported_type in ("heat_exchanger", "vessel"):
         model = ProcessModel(
             steps=[

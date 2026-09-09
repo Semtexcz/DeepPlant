@@ -15,7 +15,10 @@ anchor `basic` symbol-pack contract, a headless read-only process renderer
 (`render_process_svg()`) that derives standalone PFD-style SVG from a
 `ProcessModel`, and a narrow DEXPI 2.x Process import/export adapter spike
 (`deepplant.adapters.dexpi`; evidence and limits in
-[docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)). Full DEXPI, other
+[docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)). Import preflight
+pins the DEXPI 2.0.0 Core/Process model URIs and global XML `Object@id`
+uniqueness; export covers only the deliberately symmetric canonical subset.
+Full DEXPI, other
 adapters (COMOS, AVEVA), the interactive editor, and P&ID rendering are planned
 but not implemented.
 

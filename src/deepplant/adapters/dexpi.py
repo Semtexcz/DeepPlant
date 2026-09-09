@@ -30,9 +30,15 @@ never imported as material streams). No Proteus XML, no Plant/P&ID model, no
 graphics, and no presentation data are handled here.
 
 The target DEXPI release is pinned to the latest stable tagged release
-``V2.0.0`` (commit ``260c81c51039789a6148a98af4c6caf23f87a3e2``). See
-``docs/dexpi-process-spike.md`` for the release research, the mapping matrix,
-identity semantics, fixture provenance, and export-feasibility assessment.
+``V2.0.0`` (commit ``260c81c51039789a6148a98af4c6caf23f87a3e2``). At runtime the
+import preflight also requires exactly the pinned Core/Process model URIs
+(``https://data.dexpi.org/models/2.0.0/Core.xml`` and ``.../Process.xml``), so
+an unsupported DEXPI model version fails explicitly until deliberately reviewed.
+Declared ``Port.ConnectorReference`` values are validated when present; the
+exporter covers only the deliberately symmetric canonical subset (no reverse
+``pump -> Pumping`` assertion). See ``docs/dexpi-process-spike.md`` for the
+release research, the mapping matrix, identity semantics, fixture provenance,
+and export-feasibility assessment.
 """
 
 from __future__ import annotations
@@ -46,8 +52,10 @@ from pydantic import ValidationError
 from deepplant.model import ProcessModel, ProcessPort, ProcessRef, ProcessStep, ProcessStream
 
 __all__ = [
+    "DEXPI_CORE_MODEL_URI",
     "DEXPI_INSPECTION_DATE",
     "DEXPI_LICENCE",
+    "DEXPI_PROCESS_MODEL_URI",
     "DEXPI_SOURCE_URL",
     "DEXPI_TARGET_REVISION",
     "DEXPI_TARGET_TAG",
@@ -73,6 +81,12 @@ DEXPI_SOURCE_URL = "https://gitlab.com/dexpi/Specification"
 DEXPI_LICENCE = "CC BY 4.0"
 DEXPI_INSPECTION_DATE = "2026-09-09"
 
+# Pinned exchange envelope model URIs. The adapter intentionally accepts only
+# these exact 2.0.0 model URIs at runtime: unsupported DEXPI model versions
+# fail explicitly until they have been deliberately reviewed.
+DEXPI_CORE_MODEL_URI = "https://data.dexpi.org/models/2.0.0/Core.xml"
+DEXPI_PROCESS_MODEL_URI = "https://data.dexpi.org/models/2.0.0/Process.xml"
+
 # DEXPI XML 'name' pattern (xsd:name / ID): letter or underscore first, then
 # letters/digits/underscores.
 _MODEL_NAME_PATTERN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
@@ -81,8 +95,9 @@ _MODEL_NAME_PATTERN = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
 class DexpiImportError(ValueError):
     """Raised when DEXPI XML cannot be imported into a DeepPlant ProcessModel.
 
-    The message distinguishes invalid XML / broken references from valid DEXPI
-    constructs that this adapter slice does not support yet.
+    The message distinguishes malformed XML / broken references from
+    well-formed DEXPI-native content that this adapter slice does not support
+    yet.
     """
 
 
@@ -111,7 +126,20 @@ _STEP_TYPE_MAP: dict[str, str] = {
     "Process/Process.Pumping": "pump",
 }
 
-_REVERSE_STEP_TYPE_MAP: dict[str, str] = {value: key for key, value in _STEP_TYPE_MAP.items()}
+# Reverse (DeepPlant -> DEXPI) mapping. Deliberately excludes "pump": DEXPI
+# ``Pumping -> type="pump"`` is a lossy import normalization (DEXPI Pumping may
+# carry an energy port / driver semantics, Head, Method, VolumeFlow that
+# DeepPlant does not store), and canonical type="pump" currently doubles as a
+# presentation role. ``pump`` is therefore documented as importable
+# normalization, not yet safely exportable classification, until the next
+# ProcessStep.type semantics slice. ``heat_exchanger``/``vessel`` have no
+# unambiguous DEXPI engineering class at all and stay unexportable.
+_REVERSE_STEP_TYPE_MAP: dict[str, str] = {
+    "source": "Process/Process.Source",
+    "sink": "Process/Process.Sink",
+    "mixing": "Process/Process.Mixing",
+    "splitting": "Process/Process.SplittingMaterial",
+}
 
 _ENUM_PREFIX = "Process/Enumerations.PortDirection."
 
@@ -247,7 +275,12 @@ def _check_unknown_properties(
             objects = (child.get("objects") or "").strip()
             if prop not in allowed_references and objects:
                 raise DexpiImportError(f"{where}: unsupported References property '{prop}'")
-        elif tag not in {"Object"}:
+        elif tag == "Object":
+            raise DexpiImportError(
+                f"{where}: unexpected direct <Object> child; Object children belong "
+                "inside supported Components wrappers in this adapter subset"
+            )
+        else:
             raise DexpiImportError(f"{where}: unexpected element <{tag}>")
 
 
@@ -256,6 +289,80 @@ def _resolve_object_id(token: str, where: str) -> str:
     if not token.startswith("#"):
         raise DexpiImportError(f"{where}: DEXPI reference '{token}' must start with '#'")
     return token[1:]
+
+
+def _collect_object_ids(root: ET.Element, error_type: type[Exception]) -> dict[str, ET.Element]:
+    """Collect every non-empty XML ``id`` attribute, rejecting duplicates.
+
+    XML ids are file-local reference mechanics, never canonical identity. A
+    duplicate id makes file-local reference resolution ambiguous, so both import
+    preflight and exported-structure validation reject duplicates instead of
+    letting a later assignment silently win.
+    """
+    declared: dict[str, ET.Element] = {}
+    for element in root.iter():
+        element_id = (element.get("id") or "").strip()
+        if not element_id:
+            continue
+        if element_id in declared:
+            raise error_type(
+                f"duplicate DEXPI XML Object id '{element_id}': file-local object "
+                "ids must be globally unique for unambiguous reference resolution"
+            )
+        declared[element_id] = element
+    return declared
+
+
+def _require_object_id(object_element: ET.Element, where: str) -> str:
+    """Require a usable non-empty file-local XML identity for a referenceable object."""
+    object_id = (object_element.get("id") or "").strip()
+    if not object_id:
+        raise DexpiImportError(
+            f"{where}: a referenceable DEXPI Object requires a non-empty XML "
+            "Object@id for file-local reference resolution"
+        )
+    return object_id
+
+
+def _validate_required_model_import(
+    imports: list[ET.Element], *, prefix: str, expected_uri: str
+) -> None:
+    """Require exactly one exact pinned model import for ``prefix``.
+
+    Unrelated package imports (for example ``Plant``) are ignored unless they
+    share the pinned prefix/source and therefore create an ambiguity.
+    """
+    relevant = [
+        element
+        for element in imports
+        if element.get("prefix") == prefix or element.get("source") == expected_uri
+    ]
+    exact = [
+        element
+        for element in relevant
+        if element.get("prefix") == prefix and element.get("source") == expected_uri
+    ]
+    if len(exact) == 1 and len(relevant) == 1:
+        return
+    observed = (
+        ", ".join(
+            f"prefix={element.get('prefix')!r}, source={element.get('source')!r}"
+            for element in relevant
+        )
+        or "no matching <Import> element"
+    )
+    raise DexpiImportError(
+        f"unsupported DEXPI model import for prefix {prefix!r}: expected exactly "
+        f"one <Import prefix={prefix!r} source={expected_uri!r}>; observed "
+        f"{observed}; supported target version is DEXPI {DEXPI_TARGET_VERSION}"
+    )
+
+
+def _validate_model_imports(root: ET.Element) -> None:
+    """Validate the pinned Core/Process 2.0.0 imports of a DEXPI XML envelope."""
+    imports = [element for element in root if _local(element.tag) == "Import"]
+    _validate_required_model_import(imports, prefix="Core", expected_uri=DEXPI_CORE_MODEL_URI)
+    _validate_required_model_import(imports, prefix="Process", expected_uri=DEXPI_PROCESS_MODEL_URI)
 
 
 # --- Import --------------------------------------------------------------------
@@ -290,6 +397,38 @@ def import_dexpi_process_xml(xml_text: str) -> ProcessModel:
             f"invalid DEXPI XML: root element must be <Model>, found <{_local(root.tag)}>"
         )
 
+    # Plant-only input gets a scoped diagnostic before the generic import-pin
+    # error: mixed Plant + Process content is allowed (Plant objects are ignored
+    # when an explicit supported ProcessModel is present), Plant-only is not.
+    plant_types = sorted(
+        {
+            element_type
+            for element in root.iter("Object")
+            for element_type in [element.get("type")]
+            if element_type is not None and element_type.startswith("Plant/")
+        }
+    )
+    has_process_model = any(element.get("type") == _MODEL_TYPE for element in root.iter("Object"))
+    if plant_types and not has_process_model:
+        raise DexpiImportError(
+            "only DEXPI Plant model content is present "
+            f"({', '.join(plant_types)}); Plant/P&ID import is out of scope for "
+            "this adapter slice and Plant-only input must not silently become an "
+            "empty ProcessModel; the supported exchange envelope requires an "
+            f"<Import prefix='Process' source='{DEXPI_PROCESS_MODEL_URI}'> for "
+            f"DEXPI {DEXPI_TARGET_VERSION}"
+        )
+
+    _validate_model_imports(root)
+    object_ids = _collect_object_ids(root, DexpiImportError)
+    object_types = {
+        element_id: element_type
+        for element_id, element in object_ids.items()
+        if _local(element.tag) == "Object"
+        for element_type in [element.get("type")]
+        if element_type
+    }
+
     process_model_elements = [
         element for element in root.iter("Object") if element.get("type") == _MODEL_TYPE
     ]
@@ -315,16 +454,29 @@ def import_dexpi_process_xml(xml_text: str) -> ProcessModel:
             "this adapter slice supports exactly one"
         )
 
-    return _import_process_model(process_model_elements[0])
+    return _import_process_model(process_model_elements[0], object_types)
 
 
-def _import_process_model(model_element: ET.Element) -> ProcessModel:
+def _import_process_model(model_element: ET.Element, object_types: dict[str, str]) -> ProcessModel:
+    where = _describe(model_element)
+    # Fail closed on unsupported ProcessModel-level semantic content. Only the
+    # explicitly supported populated collections are ProcessSteps and
+    # ProcessConnections; unknown empty Components/References wrappers carry no
+    # semantics and may be tolerated, anything populated is rejected.
+    _check_unknown_properties(
+        model_element,
+        where,
+        frozenset(),
+        frozenset({"ProcessSteps", "ProcessConnections"}),
+        frozenset(),
+    )
     steps: list[ProcessStep] = []
     streams: list[ProcessStream] = []
     canonical_step_ids: set[str] = set()
     canonical_stream_ids: set[str] = set()
     port_by_object_id: dict[str, tuple[str, str]] = {}
-    stream_id_by_object_id: dict[str, str] = {}
+    port_connector_tokens: dict[str, list[str]] = {}
+    stream_by_object_id: dict[str, tuple[str, str, str]] = {}
     port_direction: dict[tuple[str, str], str] = {}
     pending_streams: list[ET.Element] = []
 
@@ -337,6 +489,7 @@ def _import_process_model(model_element: ET.Element) -> ProcessModel:
                     steps,
                     canonical_step_ids,
                     port_by_object_id,
+                    port_connector_tokens,
                     port_direction,
                 )
         elif prop == "ProcessConnections":
@@ -354,12 +507,18 @@ def _import_process_model(model_element: ET.Element) -> ProcessModel:
             streams,
             canonical_stream_ids,
             port_by_object_id,
-            stream_id_by_object_id,
+            stream_by_object_id,
             port_direction,
         )
 
-    # Cross-checks that need the full graph.
-    _validate_connector_references(port_by_object_id, stream_id_by_object_id)
+    # Cross-checks that need the full material graph.
+    _validate_connector_references(
+        port_by_object_id,
+        port_connector_tokens,
+        stream_by_object_id,
+        port_direction,
+        object_types,
+    )
 
     try:
         return ProcessModel(steps=steps, streams=streams)
@@ -374,6 +533,7 @@ def _collect_step(
     steps: list[ProcessStep],
     canonical_step_ids: set[str],
     port_by_object_id: dict[str, tuple[str, str]],
+    port_connector_tokens: dict[str, list[str]],
     port_direction: dict[tuple[str, str], str],
 ) -> None:
     where = _describe(step_element)
@@ -417,6 +577,7 @@ def _collect_step(
                     ports,
                     port_ids_in_step,
                     port_by_object_id,
+                    port_connector_tokens,
                     port_direction,
                 )
         elif prop == "SubProcessSteps" and list(component):
@@ -435,6 +596,7 @@ def _collect_port(
     ports: list[ProcessPort],
     port_ids_in_step: set[str],
     port_by_object_id: dict[str, tuple[str, str]],
+    port_connector_tokens: dict[str, list[str]],
     port_direction: dict[tuple[str, str], str],
 ) -> None:
     where = f"port of {step_where}: {_describe(port_element)}"
@@ -467,9 +629,18 @@ def _collect_port(
     direction = _read_port_direction(port_element, where)
     port_direction[(step_id, port_id)] = direction
 
-    object_id = port_element.get("id")
-    if object_id is not None:
-        port_by_object_id[object_id] = (step_id, port_id)
+    object_id = _require_object_id(port_element, where)
+    port_by_object_id[object_id] = (step_id, port_id)
+
+    # DEXPI 2.0.0 leaves Port.ConnectorReference multiplicity unresolved
+    # (``TODO check multiplicities``), so absent ConnectorReference is tolerated;
+    # every token actually declared is validated after the material graph exists.
+    connector_tokens: list[str] = []
+    for reference in _children(port_element, "References"):
+        if reference.get("property") == "ConnectorReference":
+            connector_tokens.extend((reference.get("objects") or "").split())
+    if connector_tokens:
+        port_connector_tokens[object_id] = connector_tokens
 
     ports.append(ProcessPort(id=port_id))
 
@@ -498,7 +669,7 @@ def _collect_stream(
     streams: list[ProcessStream],
     canonical_stream_ids: set[str],
     port_by_object_id: dict[str, tuple[str, str]],
-    stream_id_by_object_id: dict[str, str],
+    stream_by_object_id: dict[str, tuple[str, str, str]],
     port_direction: dict[tuple[str, str], str],
 ) -> None:
     where = _describe(stream_element)
@@ -559,9 +730,9 @@ def _collect_stream(
             "purely from stream incidence and cannot represent the contradiction"
         )
 
-    object_id = stream_element.get("id")
-    if object_id is not None:
-        stream_id_by_object_id[object_id] = stream_id
+    object_id = (stream_element.get("id") or "").strip()
+    if object_id:
+        stream_by_object_id[object_id] = (source_object_id, target_object_id, stream_id)
 
     streams.append(
         ProcessStream(
@@ -575,17 +746,53 @@ def _collect_stream(
 
 def _validate_connector_references(
     port_by_object_id: dict[str, tuple[str, str]],
-    stream_id_by_object_id: dict[str, str],
+    port_connector_tokens: dict[str, list[str]],
+    stream_by_object_id: dict[str, tuple[str, str, str]],
+    port_direction: dict[tuple[str, str], str],
+    object_types: dict[str, str],
 ) -> None:
-    """Reserved for the documented ``Port.ConnectorReference`` consistency check.
+    """Validate declared ``Port.ConnectorReference`` values.
 
-    The official DEXPI 2.0.0 model marks ``Port.ConnectorReference`` multiplicity
-    with ``TODO check multiplicities`` and DEXPI 2.0.1 is still being prepared, so
-    this slice does not enforce a cardinality that upstream itself flags as
-    unresolved. Declared connector references are accepted on import without
-    being re-checked; this is documented in ``docs/dexpi-process-spike.md``.
+    DEXPI 2.0.0 marks ``Port.ConnectorReference`` multiplicity with
+    ``TODO check multiplicities``, so this slice does not invent a cardinality:
+    absent ConnectorReference is tolerated, and every token that is present must
+    resolve to a supported material ``Process/Process.Stream`` and agree with the
+    port's nominal direction / stream incidence (an Outlet port must be the
+    referenced stream's Source, an Inlet port its Target).
     """
-    del port_by_object_id, stream_id_by_object_id
+    for port_object_id, tokens in port_connector_tokens.items():
+        step_id, port_id = port_by_object_id[port_object_id]
+        direction = port_direction[(step_id, port_id)]
+        for token in tokens:
+            connector_object_id = _resolve_object_id(
+                token, f"MaterialPort '{step_id}.{port_id}' ConnectorReference"
+            )
+            stream = stream_by_object_id.get(connector_object_id)
+            if stream is None:
+                if connector_object_id in port_by_object_id:
+                    found = "a DEXPI MaterialPort, which is not a ProcessConnection"
+                else:
+                    found_type = object_types.get(connector_object_id)
+                    found = (
+                        f"DEXPI '{found_type}', which is not a supported material Stream"
+                        if found_type
+                        else "no such DEXPI Object"
+                    )
+                raise DexpiImportError(
+                    f"MaterialPort '{step_id}.{port_id}' ConnectorReference "
+                    f"'#{connector_object_id}' must resolve to a supported "
+                    f"Process/Process.Stream; found {found}"
+                )
+            source_id, target_id, stream_id = stream
+            role = "Source" if direction == "Outlet" else "Target"
+            endpoint_id = source_id if role == "Source" else target_id
+            if endpoint_id != port_object_id:
+                raise DexpiImportError(
+                    f"MaterialPort '{step_id}.{port_id}' ConnectorReference "
+                    f"'#{connector_object_id}' is inconsistent with stream "
+                    f"incidence: the port declares NominalDirection {direction} "
+                    f"but is not the referenced Stream '{stream_id}' {role}"
+                )
 
 
 # --- Export --------------------------------------------------------------------
@@ -624,12 +831,12 @@ def export_dexpi_process(
     ET.SubElement(
         root,
         "Import",
-        {"prefix": "Core", "source": "https://data.dexpi.org/models/2.0.0/Core.xml"},
+        {"prefix": "Core", "source": DEXPI_CORE_MODEL_URI},
     )
     ET.SubElement(
         root,
         "Import",
-        {"prefix": "Process", "source": "https://data.dexpi.org/models/2.0.0/Process.xml"},
+        {"prefix": "Process", "source": DEXPI_PROCESS_MODEL_URI},
     )
     engineering_model = ET.SubElement(root, "Object", {"type": "Core/EngineeringModel"})
     conceptual_model = ET.SubElement(
@@ -805,14 +1012,17 @@ def _append_data_string(object_element: ET.Element, property_name: str, value: s
 def validate_dexpi_xml_structure(xml_text: str) -> None:
     """Deterministic structural-subset validation of produced DEXPI XML.
 
-    This is **not** full DEXPI model/schema conformance: it checks the envelope
-    rules this adapter relies on (root ``<Model>``, globally unique XML ``id``
-    attributes, and resolvable ``#``-prefixed object references) plus the
-    supported-subset element vocabulary. The official DEXPI XML schema is a
-    generic envelope schema; model-level class/multiplicity conformance is not
-    enforced by it and remains under upstream clarification for DEXPI 2.0.1, so
-    this is labelled exactly as structural subset validation in
-    ``docs/dexpi-process-spike.md``.
+    Checks: well-formed XML, a ``<Model>`` root, globally unique non-empty XML
+    ``Object@id`` values (file-local reference mechanics), resolvable
+    ``#``-prefixed references, and the supported structural subset vocabulary.
+
+    This is **not** full DEXPI model/schema conformance. It does not check full
+    DEXPI model cardinalities, complete class semantics, RDL constraints, DEXPI
+    profile constraints, or full normative conformance. The official DEXPI XML
+    schema is a generic envelope schema; model-level class/multiplicity
+    conformance is not enforced by it and remains under upstream clarification
+    for DEXPI 2.0.1, so this is labelled exactly as structural subset validation
+    in ``docs/dexpi-process-spike.md``.
     """
     try:
         root = ET.fromstring(xml_text)
@@ -824,17 +1034,7 @@ def validate_dexpi_xml_structure(xml_text: str) -> None:
             f"produced DEXPI XML root must be <Model>, found <{_local(root.tag)}>"
         )
 
-    declared_ids: set[str] = set()
-    for element in root.iter():
-        element_id = element.get("id")
-        if element_id is None:
-            continue
-        if element_id in declared_ids:
-            raise DexpiExportError(
-                f"duplicate DEXPI XML object id '{element_id}'; object ids must be "
-                "unique within one DEXPI XML file"
-            )
-        declared_ids.add(element_id)
+    declared_ids = set(_collect_object_ids(root, DexpiExportError))
 
     for element in root.iter("References"):
         for token in (element.get("objects") or "").split():

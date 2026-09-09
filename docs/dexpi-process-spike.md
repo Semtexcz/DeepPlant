@@ -19,9 +19,10 @@ update_when:
 > spike, not secondary documentation. Its purpose is to answer, with
 > executable evidence, whether an externally defined DEXPI 2.x Process model
 > can be mapped into the DeepPlant canonical `ProcessModel` without hidden
-> semantic invention or architectural coupling, and whether the supported
-> DeepPlant subset can be serialized back to valid DEXPI XML without inventing
-> semantics DeepPlant does not currently store.
+> semantic invention or architectural coupling, and whether a deliberately
+> supported DeepPlant subset can be serialized back to DEXPI-native XML for that
+> supported structural subset without inventing semantics DeepPlant does not
+> currently store. This is not full DEXPI model/schema conformance validation.
 
 ## 1. Targeted DEXPI release (pinned)
 
@@ -63,6 +64,17 @@ Official sources inspected on 2026-09-09:
 
 All implementation evidence in `src/deepplant/adapters/dexpi.py` is pinned to
 this exact version/tag/revision/source/date.
+
+The runtime import preflight enforces this pin: top-level `<Import>` elements
+must contain exactly the supported DEXPI 2.0.0 Core and Process model URIs
+(`https://data.dexpi.org/models/2.0.0/Core.xml` and
+`https://data.dexpi.org/models/2.0.0/Process.xml`). DEXPI 2.0.1 is being
+prepared with Process-model clarifications; until that version is explicitly
+reviewed, the adapter rejects model URIs other than the pinned supported 2.0.0
+URIs (missing/wrong-prefix/other-version/conflicting imports fail with an
+explicit `DexpiImportError` naming the expected and observed values) instead of
+attempting automatic compatibility. Unrelated additional imports (for example
+`Plant`) remain allowed unless they create an ambiguity.
 
 ## 2. Native DEXPI XML, not Proteus
 
@@ -114,6 +126,16 @@ generic class-name conversion (no `dexpi_class_name.lower()`), because such a
 conversion would silently pretend that class name spelling is engineering
 semantics.
 
+The import preflight also enforces the pinned DEXPI 2.0.0 Core/Process model
+URIs and requires non-empty XML `Object@id` values to be globally unique
+(file-local reference mechanics) before any mapping starts. `Pumping → pump` is
+an importable lossy normalization; it is **not** part of the reverse map because
+`type="pump"` still doubles as a presentation role and DEXPI `Pumping` may carry
+energy-port/driver, `Head`, `Method`, and `VolumeFlow` semantics that DeepPlant
+cannot represent. The reverse (DeepPlant → DEXPI) serialization covers only the
+deliberately symmetric canonical subset: `source`, `sink`, `mixing`,
+`splitting`.
+
 ### 3.2 Why these five step classes?
 
 - **Source / Sink** (official descriptions: a flow of material into/out of the
@@ -127,7 +149,10 @@ semantics.
   and generate a flow") is a defensible material-only function mapping. A
   fully realized DEXPI `Pumping` step may additionally own an energy port to a
   driver; such energy ports are rejected by this slice, which means only
-  material-port Pumping instances import today.
+  material-port Pumping instances import today. Because of that loss, the
+  reverse mapping deliberately excludes `pump` (see §3.1): it is an importable
+  normalization, not yet a safely exportable engineering classification, until
+  the next `ProcessStep.type` semantics slice.
 
 ### 3.3 Explicitly out of scope (this slice)
 
@@ -178,7 +203,7 @@ do not maximize green: honest gaps matter more than coverage.
 | `Process/ProcessModel` | `ProcessModel` | `lossless-normalization` | The container is structurally compatible (owning ProcessSteps + ProcessConnections). DeepPlant keeps step and stream ids in separate namespaces; DEXPI does the same implicitly (two composition collections) without requiring cross-collection Identifier uniqueness. Exactly one ProcessModel per file is supported by this slice. |
 | `Process/ProcessStep` (abstract parent) | `ProcessStep` | `exact` (shape) | Composition parent; instantiable only via concrete subclasses (see 5.3). Step hierarchy (`SubProcessSteps`), operating conditions, and details are unsupported. |
 | `Process/Process.Port` (abstract parent) | `ProcessPort` | `lossless-normalization` (flat material ports only) | Ports are owned by one ProcessStep and identified by their engineering `Identifier` (local to the step), matching DeepPlant `ProcessPort.id` locality. Nested ports (`SubReference`/`SuperReference`) unsupported. |
-| `Process/Process.MaterialPort` | `ProcessPort` | `exact` (supported subset) | A material-transfer anchor. Requires a `NominalDirection` (Inlet/Outlet) which DeepPlant derives from stream incidence; consistency is checked on import, not stored. |
+| `Process/Process.MaterialPort` | `ProcessPort` | `exact` (supported subset) | A material-transfer anchor. Requires a `NominalDirection` (Inlet/Outlet) which DeepPlant derives from stream incidence; consistency is checked on import, not stored. A declared `ConnectorReference` is validated when present (it must resolve to the port's material `Stream` and agree with incidence); absence is tolerated because the upstream multiplicity is unresolved. |
 | `Process/Process.EnergyPort` / `ElectricalEnergyPort` / `MechanicalEnergyPort` / `ThermalEnergyPort` | — | `unsupported` | Non-material topology; rejected with the port class name. Never silently imported as a material `ProcessPort`. |
 | `Process/Process.InformationPort` | — | `unsupported` | Control/information topology; rejected. |
 | `Process/Process.ProcessConnection` (abstract parent) | `ProcessStream` | `lossless-normalization` (Stream subtype only) | Directed `Source`/`Target` reference properties to Port objects, each exactly one reference. |
@@ -254,7 +279,7 @@ records only the decisions taken.
 | `Sink` | `sink` | `exact` | Boundary: a flow of material out of the process; one material Inlet port. |
 | `Mixing` | `mixing` | `exact` | Combines material flows; multiple Inlet ports + one Outlet. Children (`Humidifying`, `Kneading`, `MixingSimple`, `RotaryMixing`, `StaticMixing`) are unsupported in this slice. |
 | `SplittingMaterial` | `splitting` | `lossless-normalization` | Material split; one Inlet + several Outlets. Abstract `Splitting` parent and `SplittingEnergy` are not mapped. |
-| `Pumping` | `pump` | `lossy` | Defensible for liquid pumping with material ports only. DEXPI Pumping may own a driver energy port and carries `Head`/`Method`/`VolumeFlow`; the energy port is rejected and those properties are unsupported data. See Q10. |
+| `Pumping` | `pump` | `lossy` | Defensible for liquid pumping with material ports only. DEXPI Pumping may own a driver energy port and carries `Head`/`Method`/`VolumeFlow`; the energy port is rejected and those properties are unsupported data. See Q10. `pump` is **not** reverse-exported: it is importable normalization only until the `ProcessStep.type` semantics decision. |
 
 | `ExchangingThermalEnergy` | (`heat_exchanger`) | `requires-model-change` (not imported) | Realized by a heat exchanger; transfers thermal energy between two or more material streams. DeepPlant's fragment models only one selected side, and canonical `ProcessStep` has no coupling/side/role concept to pair two flows. Energy-utility sides would additionally require EnergyFlow. Not mapped in this slice. |
 | `StoringFluids` / `StoringInTank` / `StoringInPressureVessel` / other `StoringMaterial` children | (`vessel`) | `requires-model-change` (not imported) | DeepPlant `vessel` is a containment *role*; the DEXPI classes also distinguish tank vs pressure-vessel regimes that canonical `type` cannot represent. Not mapped in this slice. |
@@ -348,10 +373,12 @@ are reported here; none required a model change to prove the supported subset:
 3. **Type-vocabulary conflation** — canonical `ProcessStep.type` is currently the
    presentation symbol-role string used by the basic pack (ADR-0008), not a
    process-function engineering classification. DEXPI classes are engineering
-   functions. The mapping table bridges them for five classes; `heat_exchanger`
-   and `vessel` cannot be exported without inventing an exact DEXPI function
-   because one canonical role maps to several DEXPI classes or to classes with
-   semantics canonical cannot express. See Q10.
+   functions. The mapping table bridges them on import for five classes, but the
+   reverse (DeepPlant → DEXPI) classification is asserted only for the four
+   deliberately symmetric types (`source`, `sink`, `mixing`, `splitting`);
+   `heat_exchanger` and `vessel` cannot be exported without inventing an exact
+   DEXPI function because one canonical role maps to several DEXPI classes or to
+   classes with semantics canonical cannot express. See Q10.
 4. **Coupled-flow functions** — `ExchangingThermalEnergy` couples two material
    flows through one step; canonical `ProcessStep` has no side/role/coupling
    concept. Recorded as `requires-model-change` (not imported).
@@ -365,15 +392,18 @@ are reported here; none required a model change to prove the supported subset:
 8. **Identifier uniqueness** — DEXPI does not schema-guarantee engineering
    Identifier uniqueness; DeepPlant S1 does. Duplicates are rejected with a clear
    error rather than disambiguated by an invented suffix.
-9. **Annotation text** — `Description` is dropped on import (documented lossy
-   metadata). The conformance fixture includes one such description and the tests
-   prove it does not leak into the semantic model.
-10. **Upstream ambiguity** — `Port.ConnectorReference` (1..1) carries an upstream
+9. **Annotation text** — `Description` free text is intentionally lossy metadata:
+   it is accepted and dropped on import, never stored in the canonical model.
+   The conformance fixture includes one such description and the tests prove it
+   does not leak into the semantic model.
+10. **Upstream ambiguity** — `Port.ConnectorReference` carries an upstream
     `TODO check multiplicities`; DEXPI 2.0.1 is preparing Process-model
-    clarifications. This slice documents the tolerance rather than enforcing a
-    cardinality upstream flags as unresolved. Full model-level cardinality
-    conformance of exported XML cannot be certified until the upstream
-    clarification lands.
+    clarifications. This slice therefore never invents a cardinality: an absent
+    `ConnectorReference` is tolerated, while every connector reference that is
+    actually declared must be valid and consistent (syntax, resolvable object,
+    supported material `Stream`, and incidence agreement with the port's nominal
+    direction). Full model-level cardinality conformance of exported XML cannot
+    be certified until the upstream clarification lands.
 
 ## 10. Identity decision (summary)
 
@@ -411,6 +441,14 @@ Import result on the supported conformance fixture (see
   (SPLIT-101 → MIX-101) and the mixing/splitting branch;
 - names/identifiers mapped deterministically from DEXPI `Identifier`/`Label`
   (never from XML object ids);
+- globally unique non-empty XML `Object@id` values enforced before mapping
+  (duplicate file-local ids fail explicitly instead of silently overwriting);
+- declared `ConnectorReference` values validated when present (unresolved,
+  wrong-type, and incidence-inconsistent declarations fail explicitly);
+- unsupported populated ProcessModel content (unknown `Data`, populated
+  unknown `Components`, direct `Object` children, engineering properties such
+  as `Head`/`Method`/`Pressure`/`Temperature`/`MassFlow`) fails closed with the
+  property/class named;
 - canonical S1–S4 validation passing through the normal Pydantic constructors;
 - repeated import producing an equal canonical model;
 - no presentation, Plant, or DEXPI-extension data in the canonical model.
@@ -428,7 +466,8 @@ Reverse-direction fields were separated into the task's four categories.
 
 ### 12.1 Available directly from DeepPlant
 
-Step `type` (via the explicit reverse mapping table, five classes), step/port/
+Step `type` (via the explicit reverse mapping table — the symmetric subset
+`source`/`sink`/`mixing`/`splitting` only), step/port/
 stream engineering ids, step/port/stream order, step `name`, stream `name`
 (or explicit `Undefined`), stream `source`/`target` endpoints, and the whole
 stream graph topology.
@@ -458,17 +497,31 @@ never part of semantic comparison); the `<Model>`/`Import`/`EngineeringModel`/
   slice mirrors the official instance and does **not** invent originating-system
   metadata.
 - Exact DEXPI classes for canonical roles without an unambiguous function
-  mapping (`heat_exchanger`, `vessel`, and any other role outside the five
-  supported) → exporter error.
+  mapping (`heat_exchanger`, `vessel`, and any other role outside the four
+  reverse-exported canonical types; `pump` is included on the import side only)
+  → exporter error.
 
 ### 12.5 Conclusion
 
-**Import is feasible for the supported subset; honest export is feasible only
-for the same supported subset.** The exporter (`export_dexpi_process`) is
-therefore implemented but narrow: deterministic DEXPI-native XML, no Proteus,
-no graphics, explicit errors for unsupported/ambiguous canonical step types and
-for ports whose DEXPI direction cannot be derived, and an internal
+**Import is feasible for the supported material subset.** Reverse serialization
+is demonstrated only for a deliberately supported DEXPI-compatible canonical
+subset (`source`, `sink`, `mixing`, `splitting`) and is **not** evidence that
+arbitrary `ProcessModel` instances have sufficient engineering classification
+for DEXPI export. The exporter (`export_dexpi_process`) is therefore implemented
+but narrow: deterministic DEXPI-native XML, no Proteus, no graphics, explicit
+errors for unsupported/ambiguous canonical step types (including `pump`, which
+is importable normalization but not yet a safe reverse classification) and for
+ports whose DEXPI direction cannot be derived, and an internal
 structural-subset validation of its own output.
+
+The two directions must not be conflated:
+
+- **DEXPI → DeepPlant** is a normalization that may legitimately lose
+  unsupported engineering semantics only when they are explicitly rejected
+  (fail-closed), never silently dropped.
+- **DeepPlant → DEXPI** is an engineering-classification assertion; it is
+  deliberately limited to the symmetric subset the current canonical model
+  evidence supports.
 
 **What export cannot honestly do today** (exact blocker summary):
 
@@ -595,9 +648,12 @@ All tests run offline; research happened during development only.
 ## 16. Roadmap check
 
 - **Completed by this PR:** backlog row "DEXPI adapter spike" — executable
-  DEXPI 2.0 Process import for an explicit material subset, a narrow honest
-  exporter for the same subset, fixture provenance, and the mapping/identity/
-  gap analysis above.
+  DEXPI 2.0 Process import for an explicit material subset with a hardened trust
+  boundary (pinned Core/Process 2.0.0 model-URI import preflight, globally
+  unique XML `Object@id` preflight, fail-closed ProcessModel/property parsing,
+  ConnectorReference validation when present), a narrow honest exporter for the
+  deliberately symmetric subset only, fixture provenance, and the
+  mapping/identity/gap analysis above.
 - **Next task (from evidence):** decide the canonical `ProcessStep.type`
   semantics — separate an engineering process-function classification from the
   presentation symbol role — using the realistic fragment as the executable
