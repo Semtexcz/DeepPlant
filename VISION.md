@@ -30,21 +30,52 @@ that stores intent inside a drawing or a PDF.
 
 > DeepPlant is a Git-native semantic engineering platform for process plants.
 
-The **semantic engineering model** is the source of engineering truth. Drawings,
-simulations, calculations, reports, validation results, and external exchange
-formats are derived views, computations, or adapters — never independent sources
-of engineering truth.
+The DeepPlant semantic model is the **authoritative system of record for
+engineering intent and project state managed by DeepPlant**. DeepPlant does not
+claim to be the ultimate source of every engineering fact: external systems and
+evidence remain authoritative for the data they own and are integrated through
+explicit adapters, references, and provenance.
 
 ```text
-semantic engineering model            source of truth
-        ├── PFD views                 derived views
-        ├── P&ID views                derived views
-        ├── calculations              computations
-        ├── simulation inputs/views   computations / adapters
-        ├── validation results        computations
-        ├── reports                   derived views
-        └── DEXPI / vendor formats    adapters
+external authoritative evidence/data
+        ↓
+adapter / reference / provenance
+        ↓
+DeepPlant-managed engineering intent and state
+        ↓
+derived views / checks / calculations / exports
 ```
+
+External authoritative sources may include vendor data, laboratory and plant
+measurements, material databases, standards and legislation, as-built surveys,
+and COMOS / AVEVA or other engineering systems owned by another organization.
+
+Drawings, reports, exchange representations, and other artifacts are derived
+from that semantic state where DeepPlant owns the information:
+
+```text
+DeepPlant-managed semantic model         authoritative for managed intent/state
+        ├── PFD views                    derived views
+        ├── P&ID views                   derived views
+        ├── calculations                 computations
+        ├── simulation inputs/views      computations / adapters
+        ├── validation results           computations
+        ├── reports                      derived views
+        └── DEXPI / vendor formats       adapters
+```
+
+The distinction is deliberate:
+
+```text
+authoritative system of record for DeepPlant-managed design intent
+        !=
+ultimate source of every engineering fact
+```
+
+This preserves the semantic-first thesis: DeepPlant is authoritative for what
+it manages and reaches everything else through explicit adapters — it is not
+merely an integration database that mirrors external state without semantic
+ownership.
 
 ## Engineering as Code
 
@@ -132,7 +163,7 @@ The DeepPlant vision spans the following strategic capability areas:
 
 | Capability | Long-term intent |
 |---|---|
-| Semantic Foundation | A canonical, typed, validated semantic model of a plant; the source of truth |
+| Semantic Foundation | A canonical, typed, validated semantic model of a plant; authoritative system of record for DeepPlant-managed engineering intent and state |
 | Process / PFD | Standalone process graphs (`ProcessStep` / `ProcessStream`) and derived PFD views |
 | P&ID Semantic Model | Physical topology, equipment realization, piping, instrumentation, and derived P&ID views |
 | Interoperability | Exchange with the engineering ecosystem through adapters (DEXPI today; others later) |

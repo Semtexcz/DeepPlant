@@ -39,14 +39,15 @@ Workflow mode: `pr`.
 - Connectivity follows `Component -> Ports -> Connections`.
 
 DeepPlant is an experimental Git-native semantic engineering platform for
-process plants. Its semantic model is intended to become the source of truth,
+process plants. Its semantic model is intended to become the authoritative
+system of record for DeepPlant-managed engineering intent and project state,
 with PFD/P&ID views, engineering checks, simulations, and external exchange
 handled as derived views, computations, or adapters.
 
 See [VISION.md](VISION.md) for where DeepPlant is going,
 [docs/architecture.md](docs/architecture.md) for what exists,
 [docs/roadmap.md](docs/roadmap.md) for sequencing reasoning, and the
-[DeepPlant Roadmap GitHub Project](https://github.com/Semtexcz/DeepPlant/projects)
+[DeepPlant Roadmap GitHub Project](https://github.com/users/Semtexcz/DeepPlant/projects/2)
 for the strategic capability map. Planning governance is defined in
 [docs/planning.md](docs/planning.md).
 

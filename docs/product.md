@@ -76,11 +76,13 @@ high-value engineering views over a deeper semantic model:
 If an interactive editor is ever built, it edits the same semantic model through
 either view. Detailed view-projection rules are deliberately not decided here.
 
-## Semantic Model as Source of Engineering Truth
+## Semantic Model as the Authoritative Record of Managed Intent
 
-The semantic engineering model is the durable core artifact. Conceptually it
-feeds the engineering deliverables instead of each deliverable being authored in
-isolation:
+The semantic engineering model is the durable core artifact and the
+authoritative system of record for engineering intent and project state managed
+by DeepPlant (see [VISION.md](../VISION.md)). Conceptually it feeds the
+engineering deliverables — where DeepPlant owns the information — instead of
+each deliverable being authored in isolation:
 
 ```text
 semantic engineering model
@@ -93,6 +95,13 @@ semantic engineering model
           ├── simulation inputs
           └── exchange formats
 ```
+
+External systems and evidence (vendor data, measurements, material databases,
+standards/legislation, as-built surveys, COMOS / AVEVA data owned by another
+organization) remain authoritative for the data they own and are reached
+through explicit adapters, references, and provenance. DeepPlant is therefore
+not the ultimate source of every engineering fact, but it is authoritative for
+what it manages.
 
 This does **not** claim every document will necessarily be generated
 automatically. The principle is that semantic information should be reusable
