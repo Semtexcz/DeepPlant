@@ -38,6 +38,21 @@ The semantic engineering model is the product core.
 - Do not build abstractions for hypothetical future features unless a current requirement justifies them.
 - The directional roadmap provides product context, not implementation authorization. Implement only the currently scoped vertical slice.
 
+## Strategic Planning
+
+Long-term capability state lives in the GitHub Project and horizons (`Now` /
+`Next` / `Later` / `Exploration`); sequencing reasoning lives in
+`docs/roadmap.md`; planning governance is in `docs/planning.md`.
+
+Before implementing substantial work:
+
+1. read the relevant roadmap/architecture/ADR context;
+2. work from a concrete Ready Issue when one exists;
+3. do not decompose `Later` / `Exploration` Project items into speculative
+   Issues without evidence.
+
+Never merge automatically.
+
 ## Licensed Standards
 
 DeepPlant references engineering standards by identifier and never redistributes
