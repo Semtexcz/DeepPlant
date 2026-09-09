@@ -192,16 +192,23 @@ def _default_process_ports() -> list[ProcessPort]:
 class ProcessStep(BaseModel):
     """A single step inside a process model; owns zero or more process ports.
 
-    ``type`` is deliberately an open, non-empty string: no step-type taxonomy,
-    subclass hierarchy, or type-specific engineering validation exists yet.
-    Input/output roles are not stored per port; they remain derived from
-    :class:`ProcessStream` endpoints where needed later.
+    ``function`` is the engineering process function performed by this step
+    (ADR-0009). It is deliberately an open, non-empty string: no closed
+    process-function taxonomy, subclass hierarchy, or function-specific
+    engineering validation exists yet. ``function`` is **not** an equipment
+    class, a presentation symbol role, an SVG asset name, a DEXPI class
+    identifier, or a physical realization; a pumping function may later be
+    realized by one pump, several pumps, an ejector, gravity, or another
+    physical solution. ``unspecified`` is a legal value meaning the step
+    exists semantically but its engineering function has not yet been
+    specified. Input/output roles are not stored per port; they remain derived
+    from :class:`ProcessStream` endpoints where needed later.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     id: NonEmptyString
-    type: NonEmptyString
+    function: NonEmptyString
     name: str | None = None
     ports: list[ProcessPort] = Field(default_factory=_default_process_ports)
 

@@ -54,7 +54,7 @@ def semantic_fingerprint(model: ProcessModel) -> dict[str, object]:
         "steps": [
             {
                 "id": step.id,
-                "type": step.type,
+                "function": step.function,
                 "name": step.name,
                 "ports": [port.id for port in step.ports],
             }
@@ -119,24 +119,25 @@ def _add_data_string(element: ET.Element, property_name: str, value: str = "x") 
 def _exportable_subset_model() -> ProcessModel:
     """Canonical model over the deliberately symmetric reverse-export subset.
 
-    ``pump`` is importable normalization only (not reverse exportable) and
-    ``heat_exchanger``/``vessel`` have no unambiguous DEXPI class, so the export
-    evidence uses source/sink/mixing/splitting exclusively.
+    Since ADR-0009 the canonical model stores engineering functions, and the
+    reverse map asserts functions ``source``/``sink``/``mixing``/
+    ``splitting_material``/``pumping`` onto their DEXPI classes. Unspecified
+    and other functions without an exact DEXPI class stay unexportable.
     """
     steps = [
-        ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
+        ProcessStep(id="A", function="source", ports=[ProcessPort(id="out")]),
         ProcessStep(
             id="B",
-            type="mixing",
+            function="mixing",
             ports=[ProcessPort(id="in"), ProcessPort(id="mixed")],
         ),
         ProcessStep(
             id="C",
-            type="splitting",
+            function="splitting_material",
             ports=[ProcessPort(id="in"), ProcessPort(id="out_a"), ProcessPort(id="out_b")],
         ),
-        ProcessStep(id="D", type="sink", ports=[ProcessPort(id="in")]),
-        ProcessStep(id="E", type="sink", ports=[ProcessPort(id="in")]),
+        ProcessStep(id="D", function="sink", ports=[ProcessPort(id="in")]),
+        ProcessStep(id="E", function="sink", ports=[ProcessPort(id="in")]),
     ]
     streams = [
         ProcessStream(
@@ -216,11 +217,11 @@ def test_expected_process_steps_import() -> None:
         "SPLIT-101",
         "SINK",
     ]
-    assert [step.type for step in model.steps] == [
+    assert [step.function for step in model.steps] == [
         "source",
         "mixing",
-        "pump",
-        "splitting",
+        "pumping",
+        "splitting_material",
         "sink",
     ]
     assert [step.name for step in model.steps] == [
@@ -503,7 +504,7 @@ def test_no_presentation_data_enters_the_semantic_model() -> None:
     model = _import_fixture("conformance_process.xml")
     dump = model.model_dump()
     for step in dump["steps"]:
-        assert set(step) == {"id", "type", "name", "ports"}
+        assert set(step) == {"id", "function", "name", "ports"}
         for port in step["ports"]:
             assert set(port) == {"id"}
     for stream in dump["streams"]:
@@ -519,7 +520,7 @@ def test_plant_objects_are_not_imported_and_plant_only_files_fail() -> None:
     assert [step.id for step in mixed.steps] == ["FEED", "SINK"]
     assert {stream.id for stream in mixed.streams} == {"S-001"}
     for step in mixed.steps:
-        assert step.type in {"source", "sink"}
+        assert step.function in {"source", "sink"}
 
     # A Plant-only file is rejected, never silently converted to an empty model.
     with pytest.raises(DexpiImportError, match="Plant") as exc_info:
@@ -720,8 +721,8 @@ def _identifier_by_xml_object_id(root: ET.Element, object_id: str) -> str | None
 def test_export_process_model_xml_id_collision_preserves_engineering_identifier() -> None:
     model = ProcessModel(
         steps=[
-            ProcessStep(id="ProcessModel1", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="SINK", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="ProcessModel1", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="SINK", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(
@@ -748,10 +749,10 @@ def test_export_process_model_xml_id_collision_preserves_engineering_identifier(
 def test_export_resolves_sanitized_xml_id_collisions_without_changing_identifiers() -> None:
     model = ProcessModel(
         steps=[
-            ProcessStep(id="A-B", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="A_B", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="SINK-A", type="sink", ports=[ProcessPort(id="in")]),
-            ProcessStep(id="SINK_B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="A-B", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="A_B", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="SINK-A", function="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="SINK_B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(
@@ -811,27 +812,38 @@ def test_semantic_roundtrip_preserves_fingerprint() -> None:
     assert semantic_fingerprint(model) == semantic_fingerprint(reimported)
 
 
-def test_pump_is_importable_normalization_but_not_reverse_exportable() -> None:
-    # DEXPI Pumping -> type="pump" remains a lossy import normalization; the
-    # reverse classification "pump -> Pumping" is deliberately not asserted while
-    # type="pump" doubles as a presentation role.
+def test_material_only_pumping_reverse_exports_and_round_trips() -> None:
+    # ADR-0009: canonical function="pumping" is an engineering classification,
+    # so the reverse map may assert "pumping -> Process/Process.Pumping" for a
+    # material-port-only pumping step (no driver energy port, no Head/Method/
+    # VolumeFlow invented). The conformance fixture's P-101 is exactly such a
+    # step, so a full import -> export -> import semantic round trip is the
+    # executable evidence.
     imported = _import_fixture("conformance_process.xml")
-    pump = next(step for step in imported.steps if step.type == "pump")
+    pump = next(step for step in imported.steps if step.function == "pumping")
     assert pump.id == "P-101"
-    with pytest.raises(DexpiExportError, match="unsupported canonical ProcessStep type") as exc:
-        export_dexpi_process(imported)
-    assert "'pump'" in str(exc.value)
+
+    exported = export_dexpi_process(imported)
+    assert "Process/Process.Pumping" in exported
+
+    reimported = import_dexpi_process_xml(exported)
+    assert semantic_fingerprint(imported) == semantic_fingerprint(reimported)
+    re_pump = next(step for step in reimported.steps if step.id == "P-101")
+    assert re_pump.function == "pumping"
 
 
-def test_export_of_unsupported_step_types_fails_explicitly() -> None:
+def test_export_of_unsupported_functions_fails_explicitly() -> None:
     base = _exportable_subset_model()
-    for unsupported_type in ("heat_exchanger", "vessel"):
+    # heat_exchange has no exact DEXPI class in this slice (DEXPI
+    # ExchangingThermalEnergy couples flows canonical cannot express), and
+    # unspecified is honest semantic uncertainty; neither may be forced.
+    for unsupported_function in ("heat_exchange", "unspecified"):
         model = ProcessModel(
             steps=[
                 *base.steps,
                 ProcessStep(
                     id="EXTRA",
-                    type=unsupported_type,
+                    function=unsupported_function,
                     ports=[ProcessPort(id="in"), ProcessPort(id="out")],
                 ),
             ],
@@ -844,9 +856,11 @@ def test_export_of_unsupported_step_types_fails_explicitly() -> None:
                 ),
             ],
         )
-        with pytest.raises(DexpiExportError, match="unsupported canonical ProcessStep type") as exc:
+        with pytest.raises(
+            DexpiExportError, match="unsupported canonical ProcessStep function"
+        ) as exc:
             export_dexpi_process(model)
-        assert unsupported_type in str(exc.value)
+        assert unsupported_function in str(exc.value)
 
 
 def test_export_rejects_port_without_incident_stream() -> None:
@@ -854,10 +868,10 @@ def test_export_rejects_port_without_incident_stream() -> None:
         steps=[
             ProcessStep(
                 id="A",
-                type="source",
+                function="source",
                 ports=[ProcessPort(id="out"), ProcessPort(id="unused")],
             ),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(
@@ -876,10 +890,10 @@ def test_export_rejects_bidirectional_port() -> None:
         steps=[
             ProcessStep(
                 id="A",
-                type="source",
+                function="source",
                 ports=[ProcessPort(id="loop")],
             ),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(

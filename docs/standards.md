@@ -300,7 +300,15 @@ concrete need.
 
 ## Initial seven process symbols assessment
 
-The seven current `ProcessStep` types in the realistic process fragment
+> Terminology update (ADR-0009): the seven items below are **presentation
+> symbol roles** used by the `basic` pack and the realistic fragment's diagram
+> (`source`, `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`,
+> `sink`). They are distinct from the canonical engineering functions stored on
+> `ProcessStep.function` (`source`, `mixing`, `pumping`, `heat_exchange`,
+> `splitting_material`, `unspecified`, `sink`); the table keeps the role names
+> because the assessment is about drawing assets.
+
+The seven symbol roles used by the realistic process fragment
 (`source`, `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`, `sink`)
 divide into two groups. `pump`, `heat_exchanger`, and `vessel` are candidates for
 standards-aligned *equipment* geometry. `source`, `sink`, `mixing`, and
@@ -308,15 +316,15 @@ standards-aligned *equipment* geometry. `source`, `sink`, `mixing`, and
 that must **not** be forced into an ISO equipment-symbol category. Nothing is
 drawn in this slice.
 
-| DeepPlant type | Engineering meaning (current model) | Likely normative reference | Physical equipment symbol or process-function glyph | Open-source asset candidate | Human verification required? |
+| Presentation symbol role | Engineering function (canonical) / meaning | Likely normative reference | Physical equipment symbol or process-function glyph | Open-source asset candidate | Human verification required? |
 |---|---|---|---|---|---|
-| `source` | Graph boundary that supplies a feed into the process (e.g. `PS-feed`). | None forced. Process-boundary concept, not an equipment item. | Process-function/boundary glyph, not an equipment symbol. | None needed — DeepPlant-original glyph. | Only if an explicit standard correspondence is later asserted. |
-| `mixing` | Process function merging ≥ 2 streams into 1 (e.g. `PS-mix`); explicit step with no required `Equipment`. | DEXPI 2.0 Process mixing concept (open, informational); no restricted ISO equipment symbol forced. | Process-function glyph (converging junction), not an equipment outline. | None needed — DeepPlant-original glyph. | Only if later mapped to a physical mixer and a correspondence is asserted. |
-| `pump` | Pumping function that in a 1:1 realization is the pump equipment (`P-101`). | ISO 10628-2 pump symbols (normative reference; unverified here). | Real equipment symbol candidate (centrifugal-pump circle/arrow convention). | draw.io `pid2`/`pid` pump shapes (candidate, pending per-file licence confirmation); DeepPlant-original preferred. | **Required** before any `human-verified` alignment state. |
-| `heat_exchanger` | Heat-exchange function on a selected process side (`E-101`); process graph currently exposes one side. | ISO 10628-2 heat-exchanger symbols (normative reference; unverified here). | Real equipment symbol candidate. | draw.io `pid` heat-exchanger shapes (candidate, pending confirmation); DeepPlant-original preferred. | **Required** before any `human-verified` alignment state. |
-| `splitting` | Process function splitting 1 stream into ≥ 2 (e.g. `PS-split`); explicit step with no required `Equipment`. | DEXPI 2.0 Process splitting concept (open, informational); no restricted ISO equipment symbol forced. | Process-function glyph (diverging junction), not an equipment outline. | None needed — DeepPlant-original glyph. | Only if later mapped to a physical tee/manifold and a correspondence is asserted. |
-| `vessel` | Containment function that in a 1:1 realization is the vessel equipment (`V-101`). | ISO 10628-2 vessel/tank symbols (normative reference; unverified here). | Real equipment symbol candidate. | draw.io `pid` vessel shapes (candidate, pending confirmation); DeepPlant-original preferred. | **Required** before any `human-verified` alignment state. |
-| `sink` | Graph boundary receiving product for a downstream consumer (e.g. `PS-consumer`). | None forced. Process-boundary concept, not an equipment item. | Process-function/boundary glyph, not an equipment symbol. | None needed — DeepPlant-original glyph. | Only if an explicit standard correspondence is later asserted. |
+| `source` | `source` — graph boundary that supplies a feed into the process (e.g. `PS-feed`). | None forced. Process-boundary concept, not an equipment item. | Process-function/boundary glyph, not an equipment symbol. | None needed — DeepPlant-original glyph. | Only if an explicit standard correspondence is later asserted. |
+| `mixing` | `mixing` — process function merging ≥ 2 streams into 1 (e.g. `PS-mix`); explicit step with no required `Equipment`. | DEXPI 2.0 Process mixing concept (open, informational); no restricted ISO equipment symbol forced. | Process-function glyph (converging junction), not an equipment outline. | None needed — DeepPlant-original glyph. | Only if later mapped to a physical mixer and a correspondence is asserted. |
+| `pump` | `pumping` — function that in a 1:1 realization is the pump equipment (`P-101`). | ISO 10628-2 pump symbols (normative reference; unverified here). | Real equipment symbol candidate (centrifugal-pump circle/arrow convention). | draw.io `pid2`/`pid` pump shapes (candidate, pending per-file licence confirmation); DeepPlant-original preferred. | **Required** before any `human-verified` alignment state. |
+| `heat_exchanger` | `heat_exchange` — function on a selected process side (`E-101`); process graph currently exposes one side. | ISO 10628-2 heat-exchanger symbols (normative reference; unverified here). | Real equipment symbol candidate. | draw.io `pid` heat-exchanger shapes (candidate, pending confirmation); DeepPlant-original preferred. | **Required** before any `human-verified` alignment state. |
+| `splitting` | `splitting_material` — process function splitting 1 stream into ≥ 2 (e.g. `PS-split`); explicit step with no required `Equipment`. | DEXPI 2.0 Process splitting concept (open, informational); no restricted ISO equipment symbol forced. | Process-function glyph (diverging junction), not an equipment outline. | None needed — DeepPlant-original glyph. | Only if later mapped to a physical tee/manifold and a correspondence is asserted. |
+| `vessel` | `unspecified` for `PS-vessel` (a vessel drawing is presentation evidence, not a storage-function claim; ADR-0009). | ISO 10628-2 vessel/tank symbols (normative reference; unverified here). | Real equipment symbol candidate. | draw.io `pid` vessel shapes (candidate, pending confirmation); DeepPlant-original preferred. | **Required** before any `human-verified` alignment state. |
+| `sink` | `sink` — graph boundary receiving product for a downstream consumer (e.g. `PS-consumer`). | None forced. Process-boundary concept, not an equipment item. | Process-function/boundary glyph, not an equipment symbol. | None needed — DeepPlant-original glyph. | Only if an explicit standard correspondence is later asserted. |
 
 The `pump` / `heat_exchanger` / `vessel` rows identify where a future symbol PR
 may choose standards-informed equipment geometry. The process-function and

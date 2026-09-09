@@ -43,6 +43,20 @@ Concretely (process layer):
 - **Not every ProcessStep maps to Equipment.** `PS-mix` and `PS-split` are
   process functions (mixing and splitting) with no required physical equipment
   counterpart at this PFD abstraction.
+- **`ProcessStep.function` is engineering semantics, never a drawing role.**
+  Each step declares the engineering process function it performs (`source`,
+  `mixing`, `pumping`, `heat_exchange`, `splitting_material`, `sink`).
+  `PS-vessel` declares `function: unspecified`: the PFD drawing shows a vessel,
+  but that is a physical/presentation description, and this fragment carries no
+  evidence whether the vessel's engineering function is storage, reaction,
+  separation, holding, buffering, residence, or something else. DeepPlant does
+  not invent a function to make rendering convenient (ADR-0009).
+- **Semantic uncertainty does not force presentation uncertainty.** The
+  committed `process.svg` still draws `PS-vessel` as a vessel through an
+  explicit per-step presentation override passed to `render_process_svg`
+  (`{"PS-vessel": "vessel"}`); the override lives only at the presentation
+  boundary and is never stored in `plant.yaml` or in the semantic model.
+  Drawing a vessel therefore never pretends we know the engineering function.
 - **Not every Equipment appears as a ProcessStep.** `FV-101` is a physical
   flow control valve on the pump discharge, between `P-101` and `E-101`. It is
   transparent at this PFD abstraction and therefore has no process step.
@@ -106,13 +120,22 @@ change, and a determinism/golden test
 ([`tests/test_render.py`](../../tests/test_render.py)) fails if renderer output
 ever drifts from the committed file.
 
-It was generated with the public renderer API (no CLI command exists yet):
+It was generated with the public renderer API (no CLI command exists yet). The
+`PS-vessel` step has engineering `function: unspecified` (see above), so the
+presentation call passes an explicit transient symbol-role override that exists
+only at the rendering boundary:
 
 ```python
 from deepplant import load_plant, render_process_svg
 
 model = load_plant("examples/realistic-process-fragment/plant.yaml")
-svg = render_process_svg(model.process, symbol_pack="basic")
+svg = render_process_svg(
+    model.process,
+    symbol_pack="basic",
+    symbol_role_overrides={
+        "PS-vessel": "vessel",
+    },
+)
 with open("examples/realistic-process-fragment/process.svg", "w", encoding="utf-8") as handle:
     handle.write(svg)
 ```

@@ -65,8 +65,8 @@ def test_plant_model_defaults_process_to_none() -> None:
 def test_process_model_is_independently_constructible() -> None:
     process = ProcessModel(
         steps=[
-            ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
-            ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+            ProcessStep(id="A", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
         ],
         streams=[
             ProcessStream(
@@ -86,8 +86,8 @@ def test_plant_model_can_own_one_process_model() -> None:
         plant=Plant(id="demo"),
         process=ProcessModel(
             steps=[
-                ProcessStep(id="A", type="source", ports=[ProcessPort(id="out")]),
-                ProcessStep(id="B", type="sink", ports=[ProcessPort(id="in")]),
+                ProcessStep(id="A", function="source", ports=[ProcessPort(id="out")]),
+                ProcessStep(id="B", function="sink", ports=[ProcessPort(id="in")]),
             ],
             streams=[
                 ProcessStream(
@@ -111,7 +111,7 @@ def test_process_step_and_equipment_may_share_the_same_id() -> None:
     model = PlantModel(
         plant=Plant(id="demo"),
         equipment=[Equipment(id="P-101", type="pump")],
-        process=ProcessModel(steps=[ProcessStep(id="P-101", type="pump")]),
+        process=ProcessModel(steps=[ProcessStep(id="P-101", function="pumping")]),
     )
 
     assert model.equipment[0].id == "P-101"

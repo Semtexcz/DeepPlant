@@ -72,13 +72,13 @@ connections:
 process:
   steps:
     - id: PS-feed
-      type: source
+      function: source
       name: Fresh Feed Boundary
       ports:
         - id: out_feed
 
     - id: PS-mix
-      type: mixing
+      function: mixing
       name: Mixing of Fresh Feed and Recycle
       ports:
         - id: in_fresh
@@ -86,36 +86,43 @@ process:
         - id: out_mixed
 
     - id: PS-pump
-      type: pump
+      function: pumping
       name: Feed Pumping
       ports:
         - id: suction
         - id: discharge
 
     - id: PS-hx
-      type: heat_exchanger
+      function: heat_exchange
       name: Heat Exchange (One Selected Process Side)
       ports:
         - id: in_side_A
         - id: out_side_A
 
     - id: PS-split
-      type: splitting
+      function: splitting_material
       name: Splitting to Vessel and Downstream Branch
       ports:
         - id: in
         - id: out_vessel
         - id: out_branch
 
+    # PS-vessel is the honest-ambiguity example of ADR-0009: the PFD drawing
+    # shows a vessel, but that is a physical/presentation description. The
+    # engineering process function (storage, reaction, separation, holding,
+    # buffering, residence, ...) is not evidenced by the fragment, so it is
+    # explicitly "unspecified" instead of inventing one. Rendering still draws
+    # a vessel through an explicit per-step presentation override supplied to
+    # render_process_svg; the semantic model itself stays honest.
     - id: PS-vessel
-      type: vessel
+      function: unspecified
       name: Process Vessel Function
       ports:
         - id: in
         - id: out_recycle
 
     - id: PS-consumer
-      type: sink
+      function: sink
       name: Downstream Consumer Boundary
       ports:
         - id: in

@@ -5,8 +5,12 @@ asset tree, installed inside the Python package under
 `src/deepplant/assets/symbols/process/basic/`, so the headless process
 renderer (`deepplant.render.render_process_svg`) can resolve it at runtime
 through `importlib.resources`. It contains DeepPlant-original
-fallback/reference SVG realizations of the `ProcessStep.type` roles used by
-[examples/realistic-process-fragment/plant.yaml](../../../../../../examples/realistic-process-fragment/plant.yaml).
+fallback/reference SVG realizations of the **presentation symbol roles**
+resolved for [examples/realistic-process-fragment/plant.yaml](../../../../../../examples/realistic-process-fragment/plant.yaml):
+`source`, `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`, and
+`sink`. Roles are presentation semantics (ADR-0009), never canonical
+engineering classifications; `ProcessStep.function` values such as `pumping`
+or `heat_exchange` are distinct from these roles.
 
 ```text
 pack: basic
@@ -22,11 +26,13 @@ and decided in [ADR-0008](../../../../../../docs/decisions/ADR-0008-process-svg-
 
 ## Role, pack, and asset
 
-`ProcessStep.type` identifies a **symbol role**, not a globally canonical SVG
-geometry. This `basic` pack realizes each covered role through the filename
-convention `<role>.svg`; for example, role `pump` is realized here by
-`basic/pump.svg`. A future standards-aligned, company, or custom pack may
-realize the same role with materially different geometry and anchors.
+A **symbol role** is a presentation category chosen at the rendering boundary
+by the renderer's default `ProcessStep.function` -> role presentation policy
+or by an explicit per-step `symbol_role_overrides` entry; it is never stored
+on the semantic model. This `basic` pack realizes each covered role through
+the filename convention `<role>.svg`; for example, role `pump` is realized
+here by `basic/pump.svg`. A future standards-aligned, company, or custom pack
+may realize the same role with materially different geometry and anchors.
 
 ## Provenance
 
@@ -48,11 +54,12 @@ copied or adapted. This pack is governed by
 | `sink` | `sink.svg` | DeepPlant-original | AGPL-3.0-only | DeepPlant contributors | Original, unmodified | None (original asset) | `reference` — non-normative fallback process-boundary glyph |
 
 These are non-normative DeepPlant-original fallback/basic glyphs. They express
-each semantic role sufficiently for the basic renderer and the contract tests.
-They are not the definitive PFD/P&ID symbol library and are not intended to
-replace a standards-aligned equipment-symbol pack. A future standards-aligned
-pack may use materially different geometry after explicit rights, per-asset
-provenance, and human verification against an authorized copy.
+each presentation symbol role sufficiently for the basic renderer and the
+contract tests. They are not the definitive PFD/P&ID symbol library and are not
+intended to replace a standards-aligned equipment-symbol pack. A future
+standards-aligned pack may use materially different geometry after explicit
+rights, per-asset provenance, and human verification against an authorized
+copy.
 
 ## Anchor cardinalities (current basic variants)
 

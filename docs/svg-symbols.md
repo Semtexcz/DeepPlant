@@ -23,44 +23,63 @@ headless process renderer resolves it at runtime through `importlib.resources`
 contract; renderer behaviour beyond consuming it is covered in
 [rendering.md](rendering.md).
 
-## Role, pack, and asset
+## Function, role, pack, and asset
 
-Three concepts are deliberately distinct:
+Four concepts are deliberately distinct (ADR-0009; the first three are
+independent questions a step can be asked):
 
 ```text
+engineering function
+    canonical engineering semantics stored on ProcessStep.function,
+    e.g. pumping
+
 symbol role
-    semantic/presentation category corresponding to ProcessStep.type
+    presentation category resolved at the rendering boundary,
+    e.g. pump; NOT stored in the canonical semantic model
 
 symbol pack
-    coherent set of graphical realizations for roles
+    coherent set of graphical realizations for roles, e.g. basic
 
 SVG asset
-    one graphical realization of one role within one pack
+    one graphical realization of one role within one pack,
+    e.g. deepplant/assets/symbols/process/basic/pump.svg
 ```
 
-Example:
+Example chain:
 
 ```text
-role:  pump
-pack:  basic
-asset: deepplant/assets/symbols/process/basic/pump.svg
+pumping
+    ↓ default presentation policy (or explicit per-step override)
+pump
+    ↓ selected pack
+basic/pump.svg
 ```
 
-`ProcessStep.type` identifies a symbol role. It does **not** globally select one
-canonical SVG geometry. Within a pack, the filename-stem convention maps
-`<role>.svg` to that role (`basic/pump.svg`, `basic/vessel.svg`); that is a
-useful pack-local convention, but **role identity != graphical asset
-identity**.
+Therefore:
+
+```text
+engineering function != symbol role != graphical asset
+```
+
+A symbol role does **not** globally select one canonical SVG geometry. Within
+a pack, the filename-stem convention maps `<role>.svg` to that role
+(`basic/pump.svg`, `basic/vessel.svg`); that is a useful pack-local convention,
+but **role identity != graphical asset identity**.
 
 The headless renderer (`render_process_svg`, [rendering.md](rendering.md))
-explicitly selects a symbol pack — currently only the built-in `basic` — and
-maps each step's role through that pack to geometry plus ordered anchors.
-Standards-aligned, company-specific, or custom/user packs remain possible under
-the same contract. Pack selection is a presentation-layer concern and is never
-encoded in the semantic model:
+resolves each step's symbol role from its engineering function through the
+renderer's default presentation policy, or from an explicit per-step
+`symbol_role_overrides` entry supplied for one render call. It then explicitly
+selects a symbol pack — currently only the built-in `basic` — and maps that
+role through the pack to geometry plus ordered anchors. Standards-aligned,
+company-specific, or custom/user packs remain possible under the same contract.
+Pack selection is a presentation-layer concern and is never encoded in the
+semantic model:
 
 ```text
-ProcessStep.type
+ProcessStep.function
+        ↓
+presentation policy (default mapping or explicit per-step override)
         ↓
 symbol role
         ↓
@@ -69,16 +88,23 @@ symbol pack selected by the presentation layer (renderer)
 SVG geometry + ordered anchors
 ```
 
+An engineering function with no resolvable symbol role (for example the legal
+semantic value `unspecified`) is a rendering-time presentation error, not a
+semantic-model error: the model may be perfectly valid yet not renderable
+without additional presentation policy (ADR-0009).
+
 ## Purpose and scope
 
 The contract lets a headless renderer consume an explicitly chosen pack and
 deterministically use SVG geometry plus ordered input/output anchor slots for
 `ProcessStream` routing — implemented by `render_process_svg`
 ([rendering.md](rendering.md)). The reference workload is
-`examples/realistic-process-fragment/plant.yaml`, whose current roles are
-`source`, `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`, and `sink`.
-The `basic` pack must cover those roles; it may contain additional valid SVG
-assets.
+`examples/realistic-process-fragment/plant.yaml`, whose resolved presentation
+roles are `source`, `mixing`, `pump`, `heat_exchanger`, `splitting`, `vessel`,
+and `sink` (resolved from engineering functions `source`, `mixing`, `pumping`,
+`heat_exchange`, `splitting_material`, `unspecified` + vessel override, and
+`sink`). The `basic` pack must cover those roles; it may contain additional
+valid SVG assets.
 
 - Process/PFD presentation only. The first pack represents `ProcessStep`.
 - No symbol contracts for `Equipment`, `Port`, `Connection`, `Nozzle`, `Pipe`,
@@ -88,15 +114,19 @@ assets.
 
 ## Semantic/presentation boundary
 
-Do not add fields such as `x`, `y`, `width`, `height`, `rotation`, `symbol`,
-`symbol_id`, `symbol_pack`, `symbol_profile`, `presentation_profile`, `style`,
-`color`, `layout`, `anchor`, `view`, or `sheet` to any semantic model.
-`src/deepplant/model.py` is unchanged. The architecture remains:
+The only step-level semantic classification field is `ProcessStep.function`
+(ADR-0009). Do not add fields such as `symbol_role`, `x`, `y`, `width`,
+`height`, `rotation`, `symbol`, `symbol_id`, `symbol_pack`,
+`symbol_profile`, `presentation_profile`, `style`, `color`, `layout`,
+`anchor`, `view`, or `sheet` to any semantic model. Symbol roles and pack
+selection stay in the presentation layer:
 
 ```text
-semantic model
+semantic model (ProcessStep.function)
         ↓
-presentation policy
+presentation policy (default mapping or explicit per-step override)
+        ↓
+symbol role
         ↓
 selected symbol pack
         ↓
@@ -187,13 +217,21 @@ are current basic-pack variant properties, not domain invariants.
 - Runtime symbol registry, plugins, providers, pack configuration, CLI pack
   selector, custom-pack loading, and runtime provenance manifests.
 - Standards-aligned, company-specific, and custom/user symbol packs.
+- Persistent per-step presentation configuration (per-step symbol-role
+  overrides, pack selection, saved layout) beyond the renderer-call override
+  (ADR-0009).
 - Physical/P&ID symbol sets, rotation, mirroring, alternative orientations, and
   manual anchor movement.
 
 ## Related
 
 - [ADR-0008](decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md) —
-  durable decision for the pack-aware contract.
+  durable decision for the pack-aware contract (its `ProcessStep.type` →
+  symbol-role coupling is superseded by ADR-0009; the role → pack → SVG +
+  anchor contract remains in force).
+- [ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md) —
+  separates the canonical engineering function from the presentation symbol
+  role.
 - [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md)
   and [ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md).
 - [standards.md](standards.md) — provenance/licensing policy and verification

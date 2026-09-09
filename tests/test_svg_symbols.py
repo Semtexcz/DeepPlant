@@ -3,9 +3,10 @@
 These tests validate the SVG + anchor contract defined in
 ``docs/svg-symbols.md`` and decided in ADR-0008, using only the standard
 library XML parser. They enforce the *current basic-pack variant* anchor
-cardinalities without encoding any semantic-model validation: the domain
-model keeps ``ProcessStep.type`` an open string, and a symbol role is not a
-globally canonical SVG asset.
+cardinalities without encoding any semantic-model validation: the domain model
+keeps ``ProcessStep.function`` an open string (ADR-0009), a symbol role is a
+presentation value resolved at the rendering boundary, and a symbol role is not
+a globally canonical SVG asset.
 """
 
 import re
@@ -248,8 +249,30 @@ def test_only_allowed_svg_elements_and_no_text_or_external_content() -> None:
 
 
 def test_realistic_process_roles_are_covered_by_basic_pack() -> None:
+    # The basic pack covers *symbol roles*, which the renderer resolves from
+    # engineering functions through its default presentation policy (ADR-0009)
+    # plus the explicit PS-vessel override used for the committed diagram.
+    resolved_roles_by_step = {
+        "PS-feed": "source",
+        "PS-mix": "mixing",
+        "PS-pump": "pump",
+        "PS-hx": "heat_exchanger",
+        "PS-split": "splitting",
+        "PS-vessel": "vessel",  # explicit presentation override, not a function
+        "PS-consumer": "sink",
+    }
+    symbol_ids = {path.stem for path in _symbol_paths()}
+    assert set(resolved_roles_by_step.values()) <= symbol_ids
+
+    # The semantic model itself stores engineering functions, never roles.
     model = load_plant(REALISTIC_EXAMPLE)
     assert model.process is not None
-    process_roles = {step.type for step in model.process.steps}
-    symbol_ids = {path.stem for path in _symbol_paths()}
-    assert process_roles <= symbol_ids
+    assert {step.function for step in model.process.steps} == {
+        "source",
+        "mixing",
+        "pumping",
+        "heat_exchange",
+        "splitting_material",
+        "unspecified",
+        "sink",
+    }

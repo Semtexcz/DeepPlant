@@ -118,9 +118,9 @@ plant:
 process:
   steps:
     - id: FEED
-      type: source
+      function: source
     - id: FEED
-      type: source
+      function: source
 """,
     )
 
@@ -140,11 +140,11 @@ plant:
 process:
   steps:
     - id: FEED
-      type: source
+      function: source
       ports:
         - id: out
     - id: PRODUCT
-      type: sink
+      function: sink
       ports:
         - id: in
   streams:
@@ -181,11 +181,11 @@ plant:
 process:
   steps:
     - id: FEED
-      type: source
+      function: source
       ports:
         - id: out
     - id: PRODUCT
-      type: sink
+      function: sink
       ports:
         - id: in
   streams:
@@ -215,11 +215,11 @@ plant:
 process:
   steps:
     - id: FEED
-      type: source
+      function: source
       ports:
         - id: out
     - id: PRODUCT
-      type: sink
+      function: sink
       ports:
         - id: in
   streams:
@@ -249,7 +249,7 @@ plant:
 process:
   steps:
     - id: FEED
-      type: source
+      function: source
       ports:
         - id: out
   streams:
