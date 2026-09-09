@@ -221,8 +221,9 @@ def _point_text(x: float, y: float, text: str, size: float) -> Element:
 # never a symbol role. The renderer owns a small default presentation policy
 # that maps the DeepPlant engineering functions known to have a sensible
 # ``basic``-pack realisation onto their presentation symbol roles. This is
-# presentation-layer policy, not engineering semantics; a different pack or a
-# future view configuration may resolve roles differently. Keep it private
+# presentation-layer policy, not engineering semantics; a future presentation
+# or view policy may resolve functions to roles differently, while a different
+# symbol pack may realise the same resolved role differently. Keep it private
 # unless a concrete public need exists.
 _DEFAULT_SYMBOL_ROLE_BY_FUNCTION: dict[str, str] = {
     "source": "source",

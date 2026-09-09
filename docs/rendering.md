@@ -59,9 +59,9 @@ svg: str = render_process_svg(
 - Repeated rendering of the same `ProcessModel` is byte-for-byte identical.
 - `symbol_role_overrides` is an optional read-only mapping keyed by
   `ProcessStep.id`; each value is the presentation symbol role to draw for
-  that step in this render call. It is a transient presentation override (ADR
-  -0009): it exists only at the rendering boundary and is never stored on the
-  semantic model, in YAML, or in a view file.
+  that step in this render call. It is a transient presentation override
+  (ADR-0009): it exists only at the rendering boundary and is never stored on
+  the semantic model, in YAML, or in a view file.
 - `ProcessRenderError(ValueError)` is raised for an unknown pack, a step whose
   engineering function has no resolvable symbol role (and no override supplies
   one), an invalid override (unknown step id, blank or non-filename-safe role,
