@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantEnergyFlowProbe" uri="https://example.org/deepplant/dexpi-2-energy-flow-probe">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_SINK" type="Process/Process.Sink">
+            <Data property="Identifier"><String>SINK</String></Data>
+          </Object>
+        </Components>
+        <Components property="ProcessConnections">
+          <Object id="EnergyFlow1" type="Process/Process.EnergyFlow">
+            <Data property="Identifier"><String>E-001</String></Data>
+          </Object>
+          <Object id="ThermalFlow1" type="Process/Process.ThermalEnergyFlow">
+            <Data property="Identifier"><String>Q-001</String></Data>
+          </Object>
+          <Object id="ElectricalFlow1" type="Process/Process.ElectricalEnergyFlow">
+            <Data property="Identifier"><String>EL-001</String></Data>
+          </Object>
+          <Object id="MechanicalFlow1" type="Process/Process.MechanicalEnergyFlow">
+            <Data property="Identifier"><String>M-001</String></Data>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

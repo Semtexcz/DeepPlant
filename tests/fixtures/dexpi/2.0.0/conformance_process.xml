@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantProcessConformance" uri="https://example.org/deepplant/dexpi-2-process-conformance">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_FEED" type="Process/Process.Source">
+            <Data property="Identifier"><String>FEED</String></Data>
+            <Data property="Label"><String>Fresh Feed Boundary</String></Data>
+            <Data property="Description"><String>Boundary source of the fresh feed stream.</String></Data>
+            <Components property="Ports">
+              <Object id="Port_FEED_out_feed" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>out_feed</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Step_MIX101" type="Process/Process.Mixing">
+            <Data property="Identifier"><String>MIX-101</String></Data>
+            <Data property="Label"><String>Mixing of Fresh Feed and Recycle</String></Data>
+            <Components property="Ports">
+              <Object id="Port_MIX_in_fresh" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>in_fresh</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_MIX_in_recycle" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>in_recycle</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_MIX_out_mixed" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>out_mixed</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Step_P101" type="Process/Process.Pumping">
+            <Data property="Identifier"><String>P-101</String></Data>
+            <Data property="Label"><String>Feed Pumping</String></Data>
+            <Components property="Ports">
+              <Object id="Port_P101_suction" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>suction</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_P101_discharge" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>discharge</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Step_SPLIT101" type="Process/Process.SplittingMaterial">
+            <Data property="Identifier"><String>SPLIT-101</String></Data>
+            <Data property="Label"><String>Splitting to Recycle and Product</String></Data>
+            <Components property="Ports">
+              <Object id="Port_SPLIT_in" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>in</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_SPLIT_out_recycle" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>out_recycle</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+              <Object id="Port_SPLIT_out_product" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>out_product</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+          <Object id="Step_SINK" type="Process/Process.Sink">
+            <Data property="Identifier"><String>SINK</String></Data>
+            <Data property="Label"><String>Downstream Consumer Boundary</String></Data>
+            <Components property="Ports">
+              <Object id="Port_SINK_in" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>in</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+        </Components>
+        <!--DEXPI_PROCESS_CONNECTIONS-->
+        <Components property="ProcessConnections">
+          <Object id="Stream_S001" type="Process/Process.Stream">
+            <Data property="Identifier"><String>S-001</String></Data>
+            <Data property="Label"><String>Fresh Feed</String></Data>
+            <References objects="#Port_FEED_out_feed" property="Source"/>
+            <References objects="#Port_MIX_in_fresh" property="Target"/>
+          </Object>
+          <Object id="Stream_S002" type="Process/Process.Stream">
+            <Data property="Identifier"><String>S-002</String></Data>
+            <Data property="Label"><String>Mixed Feed</String></Data>
+            <References objects="#Port_MIX_out_mixed" property="Source"/>
+            <References objects="#Port_P101_suction" property="Target"/>
+          </Object>
+          <Object id="Stream_S003" type="Process/Process.Stream">
+            <Data property="Identifier"><String>S-003</String></Data>
+            <Data property="Label"><Undefined/></Data>
+            <References objects="#Port_P101_discharge" property="Source"/>
+            <References objects="#Port_SPLIT_in" property="Target"/>
+          </Object>
+          <Object id="Stream_S004" type="Process/Process.Stream">
+            <Data property="Identifier"><String>S-004</String></Data>
+            <Data property="Label"><String>Recycle</String></Data>
+            <References objects="#Port_SPLIT_out_recycle" property="Source"/>
+            <References objects="#Port_MIX_in_recycle" property="Target"/>
+          </Object>
+          <Object id="Stream_S005" type="Process/Process.Stream">
+            <Data property="Identifier"><String>S-005</String></Data>
+            <Data property="Label"><String>Product</String></Data>
+            <References objects="#Port_SPLIT_out_product" property="Source"/>
+            <References objects="#Port_SINK_in" property="Target"/>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

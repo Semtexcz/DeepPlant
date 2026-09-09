@@ -31,8 +31,9 @@ realistic process-fragment validation example, the standards/symbol-licensing
 governance slice ([docs/standards.md](standards.md), ADR-0007), the SVG +
 anchor + initial basic symbol-pack contract (packaged inside the Python package
 under `deepplant/assets/symbols/process/basic/`,
-[docs/svg-symbols.md](svg-symbols.md), ADR-0008), and the basic headless
-read-only process renderer ([docs/rendering.md](rendering.md)):
+[docs/svg-symbols.md](svg-symbols.md), ADR-0008), the basic headless
+read-only process renderer ([docs/rendering.md](rendering.md)), and the DEXPI
+2.x Process adapter spike ([docs/dexpi-process-spike.md](dexpi-process-spike.md)):
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -95,6 +96,27 @@ read-only process renderer ([docs/rendering.md](rendering.md)):
   deterministic stdlib XML behaviour tests; no frontend, no interactive UI, no
   CLI, no new runtime dependency, no semantic-model changes (documented in
   [docs/rendering.md](rendering.md))
+- DEXPI 2.x Process adapter spike: a narrow native-DEXPI-XML Process adapter
+  (`deepplant.adapters.dexpi`) pinned to the official stable DEXPI `V2.0.0`
+  tag imports an explicit material subset (Source/Sink/Mixing/
+  SplittingMaterial/Pumping with `MaterialPort`s and material `Stream`s) into
+  the canonical `ProcessModel`, enforces the pinned 2.0.0 Core/Process model
+  imports and globally unique XML `Object@id` values before mapping, validates
+  declared `ConnectorReference`s when present, fails closed on unsupported
+  populated content, and exports only the deliberately symmetric subset
+  (`source`/`sink`/`mixing`/`splitting`) back as DEXPI-native XML for that
+  supported structural subset;
+  EnergyFlow/InformationFlow/P&ID content fails explicitly; Plant objects are
+  ignored in mixed files while Plant-only input is rejected, never silently
+  emptied; DEXPI
+  engineering `Identifier` → canonical id, `Label` → name; XML object ids stay
+  file-local resolution mechanics; explicit mapping table (never generic class
+  conversion); deterministic structural envelope/reference-integrity validation; DeepPlant-owned
+  synthetic conformance fixture with full provenance (no official Process
+  instance exists upstream); optional DEXPI → `ProcessModel` → SVG render
+  proof; no canonical-model change, no new dependency, no generic adapter
+  framework (analysis in [docs/dexpi-process-spike.md](dexpi-process-spike.md),
+  fixtures under `tests/fixtures/dexpi/2.0.0/`)
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
@@ -131,22 +153,26 @@ never imply equipment, and no cross-layer rules exist yet.
 | Standards and symbol-licensing strategy | Governance/research slice (no implementation code): [docs/standards.md](standards.md) registers the normative restricted references (ISO 10628-1/-2, ISO 14617-1/-2, ANSI/ISA-5.1, IEC 62424) versus the open DEXPI 2.0 specification (CC BY 4.0, confirmed from the official announcement and GitLab repository); restricted-standards handling and AI-agent rules are explicit (AGENTS.md); conservative verification states (`reference` / `candidate-alignment` / `human-verified`) replace unverified “compliant” claims; future symbol provenance requirements and the seven-ProcessStep-type assessment are defined; candidate sources (ISPF `ispf-pid-v1`, draw.io P&ID shapes, DEXPI material, others) are assessed at file/licence level and none is imported; decision recorded in ADR-0007 |
 | SVG + anchor + initial basic symbol-pack contract (process/PFD presentation) | First presentation-asset slice: seven DeepPlant-original non-normative fallback SVG assets, packaged inside the Python package under `deepplant/assets/symbols/process/basic/`, covering the realistic fragment's `ProcessStep.type` roles; role identity is distinct from graphical asset identity (pack selection is a presentation-layer concern, later consumed by the renderer); canonical `viewBox="0 0 100 100"`, monochrome `currentColor` line art, generic ordered `anchor-in-N` / `anchor-out-N` slots distinct from semantic ports; contract in [docs/svg-symbols.md](svg-symbols.md), decision in ADR-0008, provenance in the packaged pack README; deterministic stdlib XML tests; no semantic-model fields, no runtime pack-selection framework |
 | Basic headless read-only process renderer | `render_process_svg(process, symbol_pack="basic")` in `src/deepplant/render.py` consumes the pack-aware contract and renders a standalone SVG process/PFD diagram from `ProcessModel` only: pack assets resolved at runtime from the installed package through `importlib.resources` (single canonical copy, wheel verified); deterministic layered layout; `ProcessStream`-incidence anchor assignment in stable (port order, stream id) order; anchor-capacity and missing-role errors stay renderer errors; deterministic DFS back-edge classification with dedicated return lanes; orthogonal forward routing; self-contained arrowheads; step/stream labels; duplicate-safe symbol composition; committed golden artifact `examples/realistic-process-fragment/process.svg` with a golden/determinism test; deterministic stdlib XML behaviour tests; documented in [docs/rendering.md](rendering.md); no frontend, no interactive UI, no CLI, no new runtime dependency, and no semantic-model change |
+| DEXPI 2.x Process adapter spike | Narrow native-DEXPI-XML Process adapter (`deepplant.adapters.dexpi`, [docs/dexpi-process-spike.md](dexpi-process-spike.md)) pinned to the official stable DEXPI 2.0.0 tag `V2.0.0` (commit `260c81c5`; inspected 2026-09-09; DEXPI 2.0.1 still being prepared): explicit material subset (Source/Sink/Mixing/SplittingMaterial/Pumping with MaterialPorts + material Streams) imports into the canonical `ProcessModel` through public Pydantic constructors (S1–S4 run); explicit mapping table (never generic class-name conversion); identity decision documented (engineering `Identifier` → canonical ids; XML object ids are file-local resolution mechanics; `Label` → name); EnergyFlow/InformationFlow/non-material ports/unsupported step classes/unresolved references/duplicate identifiers fail explicitly; pinned Core/Process 2.0.0 import preflight, globally unique XML `Object@id` preflight, and fail-closed ProcessModel/property parsing harden the trust boundary; declared ConnectorReference values are validated when present; direction consistency vs incidence validated; honest narrow exporter for the deliberately symmetric subset (source/sink/mixing/splitting) with deterministic output and explicit errors for ports whose DEXPI NominalDirection cannot be derived and for canonical types without an unambiguous DEXPI class (pump is importable normalization only, not reverse-exported); deterministic structural envelope/reference-integrity validation (the official XSD is a generic envelope schema); no official DEXPI Process instance exists upstream, so the DeepPlant-owned synthetic conformance fixture is labelled and provenanced under `tests/fixtures/dexpi/2.0.0/`; no canonical-model change, no new dependency, no generic adapter framework; optional DEXPI → ProcessModel → SVG render proof; roadmap + spike conclusions recorded |
 
 ### Backlog (Suggested Order)
 
 The documented realistic process fragment is implemented as a loadable public
-example through the production semantic model (see Completed), and the basic
-headless read-only process renderer now derives a standalone SVG diagram from
-its `ProcessModel` (see Completed; heuristics and limitations in
-[docs/rendering.md](rendering.md)). The renderer's reference output is the
-committed golden artifact
-[examples/realistic-process-fragment/process.svg](examples/realistic-process-fragment/process.svg).
-The next task is the first row below.
+example through the production semantic model (see Completed), the basic
+headless read-only process renderer derives a standalone SVG diagram from its
+`ProcessModel` (see Completed; heuristics and limitations in
+[docs/rendering.md](rendering.md)), and the DEXPI 2.x Process adapter spike
+(see Completed) answered the interoperability evidence question for an
+explicit material subset: import is feasible and export is honest for the
+deliberately symmetric subset, with the discovered canonical gaps recorded in
+[docs/dexpi-process-spike.md](dexpi-process-spike.md). The next task is the
+first row below.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | DEXPI adapter spike | Prove import/export feasibility on a real fragment (openly licensed DEXPI 2.0 material only, ADR-0007) |
-| 2 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
+| 1 | Decide `ProcessStep.type` semantics (spike-driven) | Separate an engineering process-function classification from the presentation symbol role (ADR-0008) using the realistic fragment as the executable example; the DEXPI spike proved `heat_exchanger`/`vessel` cannot be mapped or exported while canonical `type` is a renderer-role vocabulary, and every further DEXPI Process subset expansion depends on this decision |
+| 2 | Expand the DEXPI Process subset (evidence-driven) | Re-open from fresh evidence after the classification decision, e.g. storage/`Storing*` and `ExchangingThermalEnergy` first, then further classes; alternatively run the DEXPI Plant/P&ID mapping spike if Plant evidence is stronger then |
+| 3 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
 
 ### Milestones
 
@@ -177,24 +203,26 @@ validation engine with several consistency-error classes) is still open.
 
 ### Next Task
 
-The next task is the **DEXPI adapter spike** (backlog row 1): prove
-import/export feasibility on a real fragment using openly licensed DEXPI 2.0
-material only (CC BY 4.0, with attribution; ADR-0007), so the semantic model
-and its packaging are tested against an externally authored representation.
+The next task is **deciding `ProcessStep.type` semantics** (backlog row 1,
+driven by the DEXPI spike evidence): decide whether canonical `ProcessStep.type`
+becomes an engineering process-function classification, separate from the
+presentation symbol role it currently doubles as under ADR-0008, using the
+realistic fragment as the executable example.
 
-This follows from the current repository state: the semantic `ProcessModel`,
-the pack-aware symbol contract, and the headless renderer now cover the
-process/PFD path end to end on the realistic fragment, and the renderer
-exposed no blocking semantic gap (its remaining weaknesses — label
-collisions, glyph proportions, crossings, lane routing — are tracked
-presentation limitations in [docs/rendering.md](rendering.md), not model
-gaps). The largest remaining evidence gap is interoperability: can the
-canonical model faithfully represent a real externally authored fragment, and
-does the model need any further concept for that? A DEXPI spike answers that
-with executable evidence and stays small. The open physical-piping /
-process-to-physical-realization question remains a tracked, unresolved
-semantic decision, independent of the renderer; it is a likely output of the
-spike rather than a prerequisite for it.
+This follows from the current repository state and evidence: the DEXPI 2.x
+Process adapter spike ([docs/dexpi-process-spike.md](dexpi-process-spike.md))
+proved the canonical `ProcessModel` structurally holds an explicit material
+subset of an external DEXPI Process model and can export the deliberately
+symmetric subset as DEXPI-native XML for that supported structural subset,
+but it also proved that (a) `ProcessStep.type` is today a renderer-role
+vocabulary, not a function classification — so `heat_exchanger` and `vessel`
+have no unambiguous DEXPI class and cannot be exported — and (b) step/stream
+engineering quantities and material data libraries have no canonical
+representation. Every further DEXPI Process subset expansion (storage,
+exchange, reaction/separation), and honest export of any larger DeepPlant
+model, depends on the classification decision first. The open
+physical-piping / process-to-physical-realization question remains a tracked,
+unresolved semantic decision, independent of the adapter.
 
 ### Scope Discipline
 

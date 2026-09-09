@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Model name="DeepPlantDuplicateIdentifierProbe" uri="https://example.org/deepplant/dexpi-2-duplicate-identifier-probe">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_FEED_A" type="Process/Process.Source">
+            <Data property="Identifier"><String>FEED</String></Data>
+          </Object>
+          <Object id="Step_FEED_B" type="Process/Process.Source">
+            <Data property="Identifier"><String>FEED</String></Data>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

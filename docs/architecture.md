@@ -28,10 +28,13 @@ This document separates what exists from what is only direction.
 
 ## Current Architecture
 
-The system is a Python CLI package implementing two executable semantic vertical
-slices — the minimal domain model and the topology slice (`Port`, `Connection`,
-reference validation): YAML file -> Pydantic validation -> typed domain model
--> `validate` CLI.
+The system is a Python CLI package implementing the semantic domain model
+(`PlantModel`, `Plant`/`Equipment` with owned `Port`s, `Connection`
+reference topology, and the standalone process-domain model `ProcessModel` with
+`ProcessStep[]`/`ProcessPort[]`/`ProcessStream[]`), a YAML loading/saving
+boundary into typed Pydantic models, a `validate` CLI, the packaged `basic`
+process symbol pack, a headless read-only process renderer, and a narrow DEXPI
+2.x Process adapter:
 
 ```text
 tests -> CLI (src/deepplant/__main__.py) -> io.load_plant -> model
@@ -91,6 +94,22 @@ layout/routing value transient — no presentation data is stored on semantic
 models. The physical layer (`Equipment`, `Port`, `Connection`) is never
 rendered.
 
+The interoperability adapter (`src/deepplant/adapters/dexpi.py`, spike report:
+[dexpi-process-spike.md](dexpi-process-spike.md)) is a narrow DEXPI **2.0
+Process** boundary pinned to the official stable tag `V2.0.0`. Its import
+preflight requires the exact pinned 2.0.0 Core/Process model URIs and globally
+unique XML `Object@id` values, then maps an explicit material subset of DEXPI
+Process XML (Source/Sink/Mixing/SplittingMaterial/Pumping with `MaterialPort`s
+and material `Stream`s) into the canonical `ProcessModel`; declared
+`ConnectorReference` values are validated when present and unsupported populated
+content fails closed. The exporter serializes only the deliberately symmetric
+canonical subset (`source`/`sink`/`mixing`/`splitting`) back as DEXPI-native
+XML for that supported structural subset. DEXPI is an adapter:
+`deepplant.model` imports nothing adapter-specific, no canonical field was
+added for the adapter, and EnergyFlow/InformationFlow/Plant/P&ID content is
+rejected explicitly rather than silently collapsed. No generic adapter
+framework exists.
+
 Current semantic model:
 
 ```text
@@ -112,11 +131,10 @@ PlantModel
 - A `Connection` is not yet a pipe, process stream, signal, cable, or other
   physical engineering object. It is topology only and carries no engineering
   properties.
-- The deliberate distinction is: directional topology != process-stream
-  semantics. What should represent process piping / streams in the canonical
-  model — a component with ports, a connection with engineering properties, or
-  a separate semantic entity — remains an open modeling question that this
-  iteration does not answer.
+- Process-layer directed edges are `ProcessStream`s inside the standalone
+  `ProcessModel` (ADR-0005), deliberately distinct from physical `Connection`s.
+  The still-open modeling question is the physical side: piping representation
+  and process-to-physical realization mapping, not process streams themselves.
 
 - Runnable example: `examples/minimal-process/plant.yaml`.
 - `make run` executes the package module; `make test`, `make lint`,
@@ -221,7 +239,10 @@ justify it:
   sourcing (the SVG + anchor contract and the initial `basic` process pack
   ship under `src/deepplant/assets/symbols/process/basic/`; a basic headless
   renderer already exists in `src/deepplant/render.py`)
-- DEXPI, COMOS, AVEVA, and simulator adapters
+- broader interoperability: only a narrow DEXPI 2.0 Process adapter exists
+  (this spike, `src/deepplant/adapters/dexpi.py`); full DEXPI (energy/
+  information flows, Plant/P&ID, further step classes), COMOS, AVEVA, and
+  simulator adapters remain future work
 - interactive editor
 - engineering rules / validation engine
 - safety (HAZOP / SIS) concepts
