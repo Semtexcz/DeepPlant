@@ -37,6 +37,16 @@ update_when:
 > [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). No generic
 > Plant/P&ID importer is implemented, and this document authorizes no
 > implementation by itself.
+>
+> Follow-up status: the decision slice this document recommended (§14 item 1) has
+> been delivered by Issue #24 —
+> [physical-piping-model.md](physical-piping-model.md) and
+> [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md) decide
+> the canonical physical-piping shape (`PipingLine` / `PipingSegment` /
+> `PipingRealization` over identified `Connection`s) without changing
+> `Connection` semantics. §14 item 2 (the first piping vertical slice) is the
+> next implementation candidate; item 3 remains the independent alternative. The
+> DEXPI evidence recorded in this document is unchanged.
 
 ## 1. Targeted DEXPI release (pinned)
 

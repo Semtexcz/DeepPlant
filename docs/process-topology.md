@@ -257,6 +257,16 @@ Thus Connection is **not universal**. It is useful and should not be deleted:
 it already provides reference validation for today’s equipment-owned ports. Its
 long-term refinement is deliberately open (C2/C3), not decided by its existence.
 
+> Follow-up (2026-09-21): the plant/physical role of `Connection` is now
+> evidenced by the DEXPI Plant/P&ID spike and decided by
+> [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md): it is
+> the single authored physical adjacency fact, and the piping layer references
+> identified `Connection`s (`PipingLine` / `PipingSegment` / `PipingRealization`)
+> instead of restating endpoints. `Connection` therefore gains canonical identity
+> only and stays property-free topology. The process-side conclusions of this
+> research document are unchanged, and Process ↔ physical realization remains
+> unresolved.
+
 ## Mapping example
 
 This conceptual fragment makes the non-duplication boundary visible:
