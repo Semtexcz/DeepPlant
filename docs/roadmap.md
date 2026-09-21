@@ -40,8 +40,9 @@ under `deepplant/assets/symbols/process/basic/`,
 [docs/svg-symbols.md](svg-symbols.md), ADR-0008), the basic headless
 read-only process renderer ([docs/rendering.md](rendering.md)), the DEXPI
 2.x Process adapter spike ([docs/dexpi-process-spike.md](dexpi-process-spike.md)),
-and the canonical `ProcessStep.function` / presentation-symbol-role separation
-slice (ADR-0009):
+the canonical `ProcessStep.function` / presentation-symbol-role separation
+slice (ADR-0009), and the DEXPI 2.x Plant/P&ID semantic-mapping spike
+([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010):
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -187,6 +188,7 @@ never imply equipment, and no cross-layer rules exist yet.
 | Basic headless read-only process renderer | `render_process_svg(process, symbol_pack="basic", symbol_role_overrides=None)` in `src/deepplant/render.py` consumes the pack-aware contract and renders a standalone SVG process/PFD diagram from `ProcessModel` only: it resolves each step's symbol role from engineering `ProcessStep.function` via a default presentation policy or an explicit per-step override (ADR-0009); pack assets resolved at runtime from the installed package through `importlib.resources` (single canonical copy, wheel verified); deterministic layered layout; `ProcessStream`-incidence anchor assignment in stable (port order, stream id) order; anchor-capacity, unresolved-role, and invalid-override errors stay renderer errors; deterministic DFS back-edge classification with dedicated return lanes; orthogonal forward routing; self-contained arrowheads; step/stream labels; duplicate-safe symbol composition; committed golden artifact `examples/realistic-process-fragment/process.svg` with a golden/determinism test; deterministic stdlib XML behaviour tests; documented in [docs/rendering.md](rendering.md); no frontend, no interactive UI, no CLI, no new runtime dependency |
 | DEXPI 2.x Process adapter spike | Narrow native-DEXPI-XML Process adapter (`deepplant.adapters.dexpi`, [docs/dexpi-process-spike.md](dexpi-process-spike.md)) pinned to the official stable DEXPI 2.0.0 tag `V2.0.0` (commit `260c81c5`; inspected 2026-09-09; DEXPI 2.0.1 still being prepared): explicit material subset (Source/Sink/Mixing/SplittingMaterial/Pumping with MaterialPorts + material Streams) imports into the canonical `ProcessModel` as DeepPlant-native `ProcessStep.function` values (`source`, `sink`, `mixing`, `splitting_material`, `pumping`) through public Pydantic constructors (S1–S4 run); explicit mapping table (never generic class-name conversion); identity decision documented (engineering `Identifier` → canonical ids; XML object ids are file-local resolution mechanics; `Label` → name); EnergyFlow/InformationFlow/non-material ports/unsupported step classes/unresolved references/duplicate identifiers fail explicitly; pinned Core/Process 2.0.0 import preflight, globally unique XML `Object@id` preflight, and fail-closed ProcessModel/property parsing harden the trust boundary; declared ConnectorReference values are validated when present; direction consistency vs incidence validated; honest narrow exporter for the deliberately symmetric subset (source/sink/mixing/splitting_material, plus material-port-only `pumping` after ADR-0009) with deterministic output and explicit errors for ports whose DEXPI NominalDirection cannot be derived and for canonical functions without an unambiguous DEXPI class (heat_exchange, unspecified); deterministic structural envelope/reference-integrity validation (the official XSD is a generic envelope schema); no official DEXPI Process instance exists upstream, so the DeepPlant-owned synthetic conformance fixture is labelled and provenanced under `tests/fixtures/dexpi/2.0.0/`; no new dependency, no generic adapter framework; optional DEXPI → ProcessModel → SVG render proof; roadmap + spike conclusions recorded |
 | Separate process function from presentation symbol role | Canonical-model correction driven by executable DEXPI evidence and recorded in ADR-0009: `ProcessStep.type` (which doubled as a presentation symbol role) is replaced by the open engineering-function field `ProcessStep.function`; the function vocabulary stays open and DeepPlant-native (`source`, `sink`, `mixing`, `splitting_material`, `pumping`, `heat_exchange`, `unspecified`, ...) — never DEXPI class identifiers; the renderer owns the default function → symbol-role presentation policy and accepts explicit per-step `symbol_role_overrides` that exist only at the rendering boundary (never stored in the model or YAML); `PS-vessel` is semantically honest as `function: unspecified` and still renders as `vessel` through an explicit override; legacy `type` input is rejected (intentional pre-1.0 breaking model correction); semantic YAML uses `function`; DEXPI import maps onto DeepPlant functions and the reverse exporter gains material-port-only `pumping → Pumping` with a proven semantic round-trip; persistent view/presentation configuration is explicitly deferred |
+| DEXPI 2.x Plant/P&ID semantic-mapping spike (ADR-0010) | Evidence-producing architecture spike, documentation only — no `src/`, test, fixture, or dependency change. Re-verified from official sources that **DEXPI 2.0.0 (`V2.0.0`, commit `260c81c5`, 2025-10-10, CC BY 4.0) is still the latest stable release and 2.0.1 is still unreleased** (official August 2026 update: "being prepared", Process Model corrections), so the existing pin stands. Inspected the official `V2.0.0` model DSL (`src/model/Plant/**`, `src/model/Core/**`) **and the official DEXPI Reference P&ID instance** (`src/documentation/_static/reference_pid.xml`, 32,067 lines) — the only official 2.0 XML instance, giving this spike real instance-level evidence. Confirmed: `PlantModel` has no generic connection collection and does not own nozzles plant-level; physical items are `TaggedPlantItem`/`ProcessEquipment` (`TagName` identity) owning `Nozzles`/`Chambers`; connection points split into `Nozzle` and `PipingNode` (item + node endpoints); piping connectivity is directed (`SourceItem`/`TargetItem` + `SourceNode`/`TargetNode`); `Pipe` is an elementary uninterrupted piece and an inline valve splits a run into two `Pipe`s (instance-proven); line identity is `PipingNetworkSystem.LineNumber` and segment identity `PipingNetworkSegment.SegmentNumber`, both above the edge; inline valves/fittings are `PipingComponent`s (not equipment) that own nodes and terminate connections; instrumentation is a separate function layer whose signal edges are `SignalConveyingFunction.Source`/`Target` and whose sensing/actuating locations are physical-realization objects; DEXPI itself separates `Core.ConceptualModel` from `Core.Diagram` (labels, `ShapeUsage`, `PipingNodePosition`, `PlantMetaData`), corroborating ADR-0003. Outcome: the existing `Port`/`Connection` invariants are **confirmed, not replaced**; `Port` is a documented collapse of `Nozzle` + `PipingNode`; a distinct piping-realization layer and an instrumentation layer are recognized as future work needing their own evidence; Plant/P&ID import stays unimplemented and fail-closed; the next physical-model decision is bounded to a specification/decision slice against the official reference fragment |
 
 ### Backlog (Suggested Order)
 
@@ -196,14 +198,19 @@ headless read-only process renderer derives a standalone SVG diagram from its
 `ProcessModel` (see Completed; heuristics and limitations in
 [docs/rendering.md](rendering.md)), the DEXPI 2.x Process adapter spike
 (see Completed) answered the interoperability evidence question for an
-explicit material subset, and ADR-0009 separated canonical engineering
-functions from presentation symbol roles (see Completed). The backlog rows
-below are the evidence-driven candidates for the next slice.
+explicit material subset, ADR-0009 separated canonical engineering
+functions from presentation symbol roles (see Completed), and the DEXPI
+Plant/P&ID semantic-mapping spike (see Completed;
+[docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010)
+established the Plant/P&ID semantic boundary from official model + instance
+evidence without changing the canonical model. The backlog rows below are the
+evidence-driven candidates for the next slice.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Expand the DEXPI Process subset (evidence-driven) | Re-open from fresh evidence now that ADR-0009 gave canonical engineering functions: evidence candidates include material-port-only `pumping` reverse round-trip (proven), `ExchangingThermalEnergy` / `StoringMaterial` storage classes (each needs its own semantic review against a real instance before any mapping claim); alternatively run the DEXPI Plant/P&ID mapping spike if Plant evidence is stronger then |
-| 2 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, persistent view/presentation configuration, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
+| 1 | Specify the physical-piping realization layer against official DEXPI evidence (decision slice, no code) | The DEXPI Plant/P&ID spike ([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) bounded this question: piping-line identity (`PipingNetworkSystem.LineNumber`), segment identity (`PipingNetworkSegment.SegmentNumber`), elementary `Pipe` pieces, item-vs-node endpoints, and piping-class/fluid-code/nominal-diameter data are real, present in the official DEXPI Reference P&ID instance, and cannot live on `Connection`. Next step is a specification/decision slice against that concrete official fragment — no new class, no model change, no fixture — before any piping-realization vertical slice is implemented |
+| 2 | Expand the DEXPI Process subset (evidence-driven) | Independent alternative needing no physical-model change: re-open from fresh evidence now that ADR-0009 gave canonical engineering functions; candidates include material-port-only `pumping` reverse round-trip (proven) and `ExchangingThermalEnergy` / `StoringMaterial` storage classes, each needing its own semantic review against a real instance before any mapping claim |
+| 3 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, persistent view/presentation configuration, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
 
 ### Milestones
 
@@ -234,24 +241,23 @@ validation engine with several consistency-error classes) is still open.
 
 ### Next Task
 
-The next task is **expanding the DEXPI Process subset from fresh evidence**
-(backlog row 1) now that the canonical `ProcessStep.function` semantics
-decision is complete (ADR-0009, see Completed). This follows from the
-current repository state and evidence: the DEXPI adapter spike
-([docs/dexpi-process-spike.md](dexpi-process-spike.md)) proved the
-canonical `ProcessModel` structurally holds an explicit material subset and
-imports it as DeepPlant-native engineering functions; the ADR-0009 slice then
-removed the renderer-role/engineering-classification conflation, so reverse
-export is now an honest engineering-classification assertion for the
-deliberately symmetric subset (including a proven material-port-only
-`pumping` semantic round-trip). The next evidence-producing slice should
-re-open DEXPI Process subset expansion against real instances — likely
-`ExchangingThermalEnergy` (coupling/sides must be resolved first) or the
-`StoringMaterial` storage classes (tank vs pressure-vessel regime) — or run
-the DEXPI Plant/P&ID mapping spike if Plant evidence is stronger then.
-Step/stream engineering quantities and material data libraries remain the
-open canonical gaps. The open physical-piping /
-process-to-physical-realization question remains a tracked, unresolved
+The next task is **specifying the physical-piping realization layer against
+official DEXPI evidence** (backlog row 1) — a documentation/decision slice with
+no code, no model change, and no fixture. This follows from the current
+repository state and evidence: the DEXPI Plant/P&ID semantic-mapping spike
+([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) proved
+that piping-line identity (`PipingNetworkSystem.LineNumber`), segment identity
+(`PipingNetworkSegment.SegmentNumber`), elementary `Pipe` pieces, item-vs-node
+endpoints, and piping-class/fluid-code/nominal-diameter data are real and present
+in the official DEXPI Reference P&ID instance, that none of them can live on
+`Connection`, and that the current `Port`/`Connection` invariants should be
+**kept** rather than widened. The spike also bounded the work: the next step is a
+decision record against that concrete official fragment, not an implementation.
+The independent alternative remains backlog row 2 (expanding the DEXPI Process
+subset from fresh evidence), which needs no physical-model change; renderer
+polish (row 3) stays evidence-gated. Step/stream engineering quantities and
+material data libraries remain the open canonical gaps, and the
+process-to-physical-realization mapping question remains a tracked, unresolved
 semantic decision, independent of the adapter.
 
 ### Scope Discipline
