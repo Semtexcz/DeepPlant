@@ -57,7 +57,8 @@ piping line.
 **B is accepted**, with the following explicit statements:
 
 1. **`Port` remains the canonical physical connection point and no `Nozzle`
-   concept is introduced.** The evidence shows DEXPI's `Nozzle` and `PipingNode`
+   concept is introduced.** For DeepPlant's currently claimed physical-topology
+   abstraction, the evidence shows DEXPI's `Nozzle` and `PipingNode`
    differ from `Port` only in ways conditional on capabilities DeepPlant does not
    have: nozzle engineering data, purpose classification, item/node refinement,
    and instrumentation-location roles. `Port` is therefore a documented
@@ -65,7 +66,10 @@ piping line.
    no piping components and no node-level connectivity. The identity statement
    `DeepPlant Port != DEXPI Nozzle != DEXPI PipingNode` stays in force. `Nozzle`
    may be revisited only when a real requirement needs nozzle data or a separate
-   attach point.
+   attach point. DEXPI XML `Object@id` for `Nozzle` and `PipingNode` is file-local
+   serialization identity, not demonstrated canonical engineering identity; a future
+   adapter must define an evidence-backed stable owner-local `Port.id` derivation
+   without treating `Object@id` as that identity.
 2. **`Connection` remains directed semantic topology only, and its scope is now
    stated explicitly.** DEXPI never represents physical adjacency as a
    property-free directed edge between two items; it represents piping
@@ -91,12 +95,16 @@ piping line.
    edges**, never mapped onto `Connection`; its attachment points are
    physical-realization objects, so an instrumentation slice depends on the
    piping layer. It is **not** implemented by this ADR.
-5. **Plant/P&ID import remains unimplemented and fail-closed.** No generic
+5. **Process ↔ physical realization is not decided by this ADR.** The inspected
+   DEXPI `V2.0.0` evidence provides no direct relationship that establishes
+   `ProcessStep` ↔ equipment or `ProcessStream` ↔ piping-realization cardinality.
+   That mapping remains a separate future DeepPlant decision.
+6. **Plant/P&ID import remains unimplemented and fail-closed.** No generic
    Plant/P&ID adapter is introduced. The existing DEXPI adapter continues to
    handle only the Process material subset, to reject Plant-only input, and to
    ignore Plant objects in mixed documents; making that ignored content explicit
    is recorded as a prerequisite before any future Plant/P&ID import.
-6. **Presentation remains outside the semantic model.** DEXPI's `Core.Diagram`
+7. **Presentation remains outside the semantic model.** DEXPI's `Core.Diagram`
    and `Plant/Diagram` constructs (`ShapeUsage`, `Point`, `Label` subclasses,
    `PipingNodePosition`, `NozzleStandardLabel`, `PlantMetaData`) are classified
    presentation-only and corroborate ADR-0003.
@@ -108,11 +116,12 @@ piping line.
 - The product core is not shaped by an external exchange model: DEXPI's class
   hierarchy stays an interoperability concern (ADR-0002, ADR-0003).
 - Two invariants that were previously asserted are now **evidence-backed** and
-  cannot be eroded by analogy: `Port`'s sufficiency and `Connection`'s
-  property-free scope.
-- The next physical-model decision is bounded and pre-evidenced: a
+  cannot be eroded by analogy: `Port` is sufficient for DeepPlant's currently
+  claimed physical-topology abstraction, and `Connection` has property-free scope.
+- The physical-piping decision is bounded and pre-evidenced: a
   piping-realization layer specified against a concrete official fragment, rather
-  than guessed from class names.
+  than guessed from class names. It answers the physical piping graph, not
+  process↔physical realization.
 - Instrumentation and asset-hierarchy work now have obvious prerequisites instead
   of tempting shortcuts.
 - No implementation risk: nothing in the model, adapter, fixtures, or tests
@@ -124,14 +133,20 @@ piping line.
   until those layers exist; the realistic fragment remains deliberately partial.
 - Plant/P&ID adapter work is blocked on a layer decision rather than being
   incrementally achievable.
-- `Port` remains an overloaded name for two DEXPI concepts; the collapse must be
-  re-examined whenever the piping layer is designed, so a known redefinition risk
-  stays open.
+- `Port` remains an overloaded name for two DEXPI concepts; the collapse and
+  unresolved DEXPI → `Port.id` identity derivation must be re-examined whenever
+  the piping layer or adapter is designed, so known redefinition and
+  canonical-boundary risks stay open.
 
 ## Deferred
 
 - The design of a piping-realization layer (line/segment/pipe-piece identity and
-  endpoints) and its first canonical field.
+  endpoints) and its first canonical field — the physical-piping question.
+- Process ↔ physical realization: whether and how `ProcessStep` / `ProcessStream`
+  map to equipment or piping realization, including the mapping's shape and
+  cardinality.
+- Stable local `Port.id` derivation for a future DEXPI adapter without treating
+  DEXPI XML `Object@id` as canonical engineering identity.
 - Whether inline components (valves, fittings) become their own component kind or
   remain `Equipment` with a type value.
 - Nozzle-level engineering data and any `Nozzle` concept.

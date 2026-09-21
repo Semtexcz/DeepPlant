@@ -256,9 +256,16 @@ decision record against that concrete official fragment, not an implementation.
 The independent alternative remains backlog row 2 (expanding the DEXPI Process
 subset from fresh evidence), which needs no physical-model change; renderer
 polish (row 3) stays evidence-gated. Step/stream engineering quantities and
-material data libraries remain the open canonical gaps, and the
-process-to-physical-realization mapping question remains a tracked, unresolved
-semantic decision, independent of the adapter.
+material data libraries remain the open canonical gaps.
+
+The remaining physical-model work is split into two independent questions:
+
+1. **Physical-piping realization:** pipe / segment / line / node / component
+   representation. This semantic boundary is now substantially bounded by the
+   DEXPI Plant/P&ID spike.
+2. **Process ↔ physical realization:** mapping between `ProcessStep` /
+   `ProcessStream` and physical realization. Its shape and cardinality remain
+   unresolved and must not be smuggled into a piping layer or `Connection`.
 
 ### Scope Discipline
 

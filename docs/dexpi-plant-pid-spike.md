@@ -208,6 +208,28 @@ stricter than DEXPI's *file format*, which carries both in one document — but
 not stricter than DEXPI's own *model*, which separates `ConceptualModel` from
 `Diagram`.
 
+### Process ↔ physical realization
+
+The DEXPI `V2.0.0` evidence inspected in this spike provides **no direct**
+`ProcessStep` ↔ Plant-equipment realization relationship. It also provides **no
+direct** `ProcessStream` ↔ physical-piping realization relationship.
+
+DEXPI therefore does **not** establish realization cardinality as `1:1`, `1:N`,
+`N:1`, or `N:M`. Class similarity is not evidence for any of those mappings:
+
+```text
+function="pumping" != pump equipment
+mixing ProcessStep != mixer vessel/equipment
+ProcessStream != PipingNetworkSystem
+ProcessStream != PipingNetworkSegment
+```
+
+Virtual process steps such as `mixing` and `splitting` may have no dedicated
+physical-equipment object. Conversely, physical inline items need not have a
+`ProcessStep`. DeepPlant must keep process↔physical realization explicit and
+unresolved until a concrete engineering use case provides evidence for its shape
+and cardinality. This spike does not design that mapping.
+
 ## 4. Equipment and physical-object identity
 
 *(confirmed by model/schema unless stated otherwise)*
@@ -413,6 +435,23 @@ DeepPlant Port != DEXPI Nozzle != DEXPI PipingNode != SVG anchor
 A future Plant/P&ID adapter may map `Nozzle` → `Port` (and must then decide
 explicitly what happens to `PipingNode`) as a documented, lossy adapter rule.
 That is an adapter decision, not a canonical-model requirement.
+
+**Finding N4 (unresolved port identity boundary).** `Port` is structurally
+sufficient for DeepPlant's currently claimed physical-topology abstraction, but
+DEXPI → DeepPlant port identity mapping remains unresolved. The official
+instance demonstrates no canonical engineering tag for a `Nozzle`; its XML
+`Object@id` is file-local serialization identity. `PipingNode` likewise uses
+file-local XML object identity, while DeepPlant `Port` requires a non-empty local
+canonical `id`. A future adapter must not casually map `Nozzle17` to
+`Port.id = "Nozzle17"`, or `PipingNode42` to `Port.id = "PipingNode42"`, and
+then treat that value as engineering identity.
+
+A future adapter must instead define an evidence-backed derivation of a stable
+owner-local `Port.id` — for example, an owner-local derived identifier, an
+explicit adapter-generated stable id, future engineering-identifier data, or
+another justified rule. This spike deliberately chooses none of them. The gap is
+an unresolved adapter/canonical-boundary question, not a reason to introduce
+`Nozzle` or `PipingNode` into DeepPlant now.
 
 ## 6. Physical connectivity
 
@@ -898,17 +937,26 @@ concept in a distinct layer; **no** = not a canonical concern.
 
 | Issue question | Answer | Evidence level |
 |---|---|---|
-| Is today's `Port` sufficient as a canonical physical connection-point concept? | **Yes, for the semantics DeepPlant currently claims.** It is owner-scoped, locally identified, direction-free, and referenced as `(component, port)` — exactly the properties DEXPI's connection points carry that matter today. | confirmed by model/schema + official instance |
-| Does evidence justify distinguishing a `Nozzle`? | **No, not now.** `Nozzle` adds engineering data, purpose classification, an item/node split, and instrumentation roles — each conditional on a capability DeepPlant lacks. `Port` is a *collapse* of `Nozzle` + `PipingNode`, acceptable only while the piping layer is absent. | confirmed by model/schema + official instance |
+| Is today's `Port` sufficient as a canonical physical connection-point concept? | **Yes, for DeepPlant's currently claimed physical-topology abstraction.** It is owner-scoped, locally identified, direction-free, and referenced as `(component, port)` — exactly the properties DEXPI's connection points carry that matter today. This remains true only while DeepPlant has no piping components and no node-level connectivity. | confirmed by model/schema + official instance |
+| Does evidence justify distinguishing a `Nozzle`? | **No, not now.** `Nozzle` adds engineering data, purpose classification, an item/node split, and instrumentation roles — each conditional on a capability DeepPlant lacks. `Port` is a *collapse* of `Nozzle` + `PipingNode`, acceptable only while the piping layer is absent. A future adapter's stable `Port.id` derivation from DEXPI identities remains unresolved. | confirmed by model/schema + official instance |
 | Is DEXPI connectivity explicitly directed? | **Yes** — `SourceItem`/`TargetItem` + `SourceNode`/`TargetNode`, with separate `PipingSourceItem`/`PipingTargetItem` roles. | confirmed by model/schema |
 | What exactly are connection endpoints? | **Item + `PipingNode` pairs** (`Nozzle1` + `PipingNode2`, `GlobeValve2` + node, off-page connector + node). | confirmed by official instance |
 | Can one physical connection span intermediate components? | **No** — a `Pipe` is "not interrupted by any item"; a valve splits a run into two `Pipe` objects. | confirmed by model/schema + official instance |
 | Is topology separate from piping-line identity? | **Yes** — `LineNumber` lives on `PipingNetworkSystem`, `SegmentNumber` on `PipingNetworkSegment`; neither is on the connection. | confirmed by model/schema + official instance |
 | Do inline components own connection points and break connectivity? | **Yes on both counts** (`PipingNodeOwner`, `PipingSourceItem`/`PipingTargetItem`). | confirmed by model/schema + official instance |
 | Does the existing `Connection` invariant remain valid? | **Yes.** Nothing in DEXPI collapses pipe/segment/line/stream/signal into one directed edge; DEXPI keeps them in three packages. The invariant should be kept *and* its scope stated explicitly. | confirmed by model/schema |
-| Does DeepPlant eventually need a canonical piping object distinct from `Connection`? | **Yes as a direction, no as a current slice.** Line/segment/pipe identity and piping engineering data are real, present in the official reference P&ID, and cannot live on `Connection`. | confirmed by model/schema + official instance |
-| Should a generic Plant/P&ID importer be implemented now? | **No.** No evidence-backed, loss-aware minimal Plant/P&ID slice was found that does not require the piping-realization layer first. | engineering conclusion from the above |
+| Does DeepPlant eventually need a canonical piping object distinct from `Connection`? | **Yes as a direction, no as a current slice.** Line/segment/pipe identity and piping engineering data are real, present in the official reference P&ID, and cannot live on `Connection`. This is the physical-piping realization question: what is the physical piping graph? | confirmed by model/schema + official instance |
+| Does DEXPI establish process↔physical realization? | **No.** The inspected evidence establishes neither `ProcessStep` ↔ equipment nor `ProcessStream` ↔ piping realization, and establishes no `1:1`, `1:N`, `N:1`, or `N:M` cardinality. | confirmed by model/schema + official instance |
+| Should a generic Plant/P&ID importer be implemented now? | **No.** No evidence-backed, loss-aware minimal Plant/P&ID slice was found that does not require the piping-realization layer first. That layer does not decide process↔physical realization. | engineering conclusion from the above |
 | Is an ADR justified? | **Yes** — the boundary decision (keep `Port`/`Connection`; keep piping/instrumentation out of them; keep Plant import unimplemented and fail-closed) is recorded in [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). | this document |
+
+The remaining physical-model work is split into two independent questions:
+
+1. **Physical-piping realization:** pipe / segment / line / node / component
+   representation — substantially bounded by this spike's DEXPI evidence.
+2. **Process ↔ physical realization:** mapping between `ProcessStep` /
+   `ProcessStream` and physical realization — still unresolved in shape and
+   cardinality.
 
 ## 13. Evidence gaps and threats to validity
 
@@ -958,7 +1006,9 @@ In smallest order:
    identity, segment, elementary pipe piece, endpoints) **plus** the explicit
    adapter mapping and the explicit loss it would avoid. No code, no model
    change, no fixture. This produces the decision input the next slice needs and
-   leaves the current model untouched.
+   leaves the current model untouched. It answers **what is the physical piping
+   graph?**, not how `ProcessStep` maps to equipment or how `ProcessStream` maps
+   to piping realization.
 2. **Only after 1 is reviewed and accepted:** implement the *first* element of
    that layer as a vertical slice with executable tests — most plausibly piping
    line identity attached to real connected endpoints — with a YAML round-trip

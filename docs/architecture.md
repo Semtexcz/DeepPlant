@@ -288,9 +288,10 @@ justify it:
   information flows, Plant/P&ID, further step classes), COMOS, AVEVA, and
   simulator adapters remain future work. The DEXPI **Plant/P&ID semantic
   boundary** is now established at the evidence level (still not implemented):
-  `Port` remains the canonical connection point, `Connection` remains
-  directed topology only, and piping realization plus instrumentation are
-  recognized as separate future layers — see
+  `Port` remains sufficient for DeepPlant's currently claimed physical-topology
+  abstraction, `Connection` remains directed topology only, and piping
+  realization plus instrumentation are recognized as separate future layers.
+  Process↔physical realization remains a separate unresolved boundary — see
   [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) and ADR-0010
 - interactive editor
 - engineering rules / validation engine
