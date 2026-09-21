@@ -74,13 +74,19 @@ rendering implications are in
 5. **`PipingLine` carries `id` (canonical), `line_number` (optional human
    designation), and `name`; `line_number` is never the canonical identity and
    a DEXPI `PipingNetworkSystem` XML object id never becomes a DeepPlant id.**
-6. **`PipingSegment` is the property boundary** (`nominal_diameter`,
-   `piping_class`, `fluid_code`, all optional open strings) and the unit of
-   engineering-rule checks such as DN and piping-class continuity. DEXPI's
-   `SegmentNumber` is not imported.
-7. **`PipingRealization` states how one adjacency is realized**; `kind`
-   defaults to `pipe`, `direct` is the evidenced exception, and the vocabulary
-   stays open (consistent with `ProcessStep.function`).
+6. **`PipingSegment` is the first-slice property boundary**
+   (`segment_number` as an optional human/external engineering designation,
+   plus `nominal_diameter`, `piping_class`, and `fluid_code` as optional open
+   strings). `PipingSegment.id` remains owner-local canonical identity;
+   `PipingNetworkSegment.SegmentNumber` maps only to `segment_number`, and
+   neither it nor DEXPI XML `Object@id` becomes canonical identity
+   automatically. First-slice segment boundaries must coincide with
+   `Connection` boundaries; DEXPI `PropertyBreak` / mid-connection property
+   changes are a known fidelity limitation, explicitly deferred.
+7. **`PipingRealization` states how one adjacency is realized**; `kind` is the
+   closed first-slice vocabulary `pipe | direct`. It defaults to `pipe`,
+   `direct` is the evidenced exception, and an unknown value is a validation
+   error. No realization is distinct from `kind: pipe`.
 8. **No canonical `Pipe` class and no `DirectPipingConnection` class.** An
    elementary pipe piece already has the extent of a `Connection` because
    inline items terminate adjacencies; the realization *kind* is recorded
@@ -97,10 +103,14 @@ rendering implications are in
 11. **A branch is ordinary topology plus ordinary grouping:** a tee is an item
     with three ports and three `Connection`s, and the run's segment is not
     split by the tee — only a property change splits a segment.
-12. **Structural rules P1–P5 belong to this layer** (unique line ids, unique
-    segment ids per line, resolvable connection references, at most one
-    realization per connection, non-empty segments). All other checks listed
-    in the specification are engineering rules for a future rule engine.
+12. **C1 and structural rules P1–P5 belong to this layer.** C1 requires a
+    non-empty, plant-unique `Connection.id`; P1–P5 cover unique line ids,
+    unique segment ids per line, resolvable connection references, at most one
+    realization per connection, and non-empty segments. P4 is intentionally a
+    conservative first-slice 1:1 invariant, not a universal law of physical
+    engineering; it may be relaxed only through a later evidence-backed ADR
+    change. All other checks listed in the specification are engineering rules
+    for a future rule engine.
 13. **No presentation, process, or instrumentation concern enters the layer:**
     no coordinates, routing, symbol ids, sheet metadata, no `process_ref` /
     `stream_ref` / `realized_by` field, no signal semantics.
@@ -147,8 +157,9 @@ rendering implications are in
 - `PipingModel` is the first semantic submodel that cannot validate on its own,
   so cross-layer validation ownership must be designed deliberately.
 - Known fidelity gaps stay explicit rather than closed: item/node endpoint
-  refinement, insulation/tracing/slope/test-circuit data, system-level template
-  inheritance, off-page connectors, and pipe-piece identity.
+  refinement, mid-connection property breaks, insulation/tracing/slope/test-
+  circuit data, system-level template inheritance, off-page connectors, and
+  pipe-piece identity.
 - Inline components are still `Equipment`, so a valve and a pressure vessel
   share one kind until a distinguished requirement appears.
 
@@ -164,8 +175,10 @@ rendering implications are in
 - Quantity/unit typing for DN, pressure, temperature, and thickness.
 - Insulation, heat tracing, slope, pressure-test circuit, flow direction,
   jacketing, and system grouping.
-- Multiple/as-built realizations per adjacency (`1:N` cardinality) and revision
-  status.
+- Mid-connection property breaks (`PropertyBreak` semantics), until a concrete
+  requirement justifies a canonical topology/break representation.
+- Multiple/as-built/alternative realizations per adjacency (`1:N` cardinality)
+  and revision status.
 - Off-page/continuation connectors and cross-sheet semantics.
 - Instrumentation and signal layers (separate layer per ADR-0010).
 - Rule-engine implementation, P&ID rendering, and any presentation data.
@@ -187,8 +200,11 @@ neither depends on the other, and no cross-layer cardinality is claimed.
 
 ## Revisit When
 
-- A concrete requirement needs parallel or as-built realizations for one
-  adjacency (then resolve `1:N` cardinality deliberately).
+- A concrete requirement needs a DN, piping-class, insulation, or similar
+  property change that does not coincide with an existing topology item or
+  `Connection` boundary (then design the break semantics deliberately).
+- A concrete requirement needs parallel, as-built, or alternative realizations
+  for one adjacency (then resolve `1:N` cardinality deliberately).
 - A concrete requirement needs two connections on one physical connection point
   (then `Nozzle`/`PipingNode` refinement must be reconsidered).
 - A concrete requirement shows `Equipment` is insufficient for inline
@@ -198,8 +214,8 @@ neither depends on the other, and no cross-layer cardinality is claimed.
 - DEXPI 2.0.1 or a later stable release changes the piping semantics this
   decision relies on, or a Plant/P&ID adapter shows the collapsed mapping loses
   something DeepPlant must own.
-- Experience shows the `kind: pipe` default or the open `kind` vocabulary
-  producing silently wrong piping data.
+- Evidence requires widening the closed `kind: pipe | direct` vocabulary with
+  a new realization meaning.
 
 ## Related
 

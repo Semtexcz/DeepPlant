@@ -81,7 +81,7 @@ shape exists; they are not a wish list.
 | # | Requirement | Why it is required |
 |---|---|---|
 | R1 | **Line identity:** state which piping line a physical connection belongs to | "What piping line is this connection part of?" has no home today; DEXPI puts it on `PipingNetworkSystem.LineNumber`, above the edge |
-| R2 | **Property boundary:** state where nominal diameter, piping class, and fluid/service code change along a line | A DN or piping-class change is a real engineering boundary (reducer, class break) and cannot be expressed by one property set per line |
+| R2 | **Property boundary:** represent nominal-diameter, piping-class, and fluid/service-code changes that coincide with canonical physical-topology boundaries | The first piping slice can state a DN or piping-class change where topology already provides separate `Connection`s; a mid-connection property break needs additional semantics and is explicitly deferred |
 | R3 | **Elementary realization kind:** distinguish pipe-realized adjacency from direct (not pipe-realized) adjacency | DEXPI's `Pipe` vs `DirectPipingConnection` distinction is real (2 of 31 elementary connections in the official instance are direct); "not yet modelled" and "direct by design" must not collapse into one state |
 | R4 | **One authored topology fact:** the piping layer must not restate endpoints or create a second connectivity representation | Engineering-as-Code invariant: two independently authored connectivity facts are a synchronization liability ([process-topology.md](process-topology.md)) |
 | R5 | **Inline items as endpoints:** an inline valve/fitting terminates one adjacency and starts the next; it is an ordinary physical item owning its connection points | Instance-proven in DEXPI; already true in DeepPlant's `Connection` pair for `FV-101` (spike Finding I1) |
@@ -121,7 +121,7 @@ official Reference P&ID instance.
 
 | DEXPI fact (evidence level) | Engineering meaning | Consequence for DeepPlant |
 |---|---|---|
-| `PipingNetworkSystem.LineNumber` identifies a piping line; `SegmentNumber` identifies a segment; neither is on the connection (model + instance) | Line identity and property grouping live *above* the elementary edge | Line and segment are separate levels from adjacency (R1, R2) |
+| `PipingNetworkSystem.LineNumber` identifies a piping line; `PipingNetworkSegment.SegmentNumber` identifies a segment; neither is on the connection (model + instance) | Line and segment designations, and property grouping, live *above* the elementary edge | Preserve optional external/human designations separately from canonical line and segment identities (R1, R2) |
 | `PipingNetworkSegment` owns `Connections` and `Items` and carries `FluidCode`, `PipingClassCode`, `NominalDiameter*`, insulation, tracing, slope, test circuit (model) | A segment is the engineering property boundary of a line | Properties belong on a property boundary, not on equipment or on `Connection` (R2) |
 | `Pipe` is "an elementary piece of piping, i.e. not interrupted by any item"; an inline valve splits a run into two `Pipe`s (instance) | Ends of elementary pieces are items, so an inline item terminates one piece and starts the next | Elementary realization is a per-adjacency fact; DeepPlant's existing `Connection` already has exactly that granularity (R5) |
 | `Pipe` vs `DirectPipingConnection` (model + instance: 29 vs 2) | Realization is either pipe-realized or direct | The *distinction* matters; DEXPI's two classes do not (R3) |
@@ -201,6 +201,7 @@ piping:
       line_number: 3"-P-101-A1A
       segments:
         - id: SEG-1
+          segment_number: 1
           nominal_diameter: DN80
           piping_class: A1A
           fluid_code: P
@@ -278,7 +279,7 @@ identity, so it is not even smaller.
 | Validation complexity | Low | Low: resolution, uniqueness, membership, non-empty segment | High: two graphs must stay mutually consistent |
 | Future engineering rules | Cannot check DN/class continuity across property changes | DN/class continuity, reducer requirement at boundaries, missing/direct realization, line-number consistency all checkable | Possible, but rules operate on a duplicated graph |
 | DEXPI import/export | Line only; segments and pieces have nowhere to map | Line, segment, and elementary piece map without inventing structure | Requires deriving a graph from DEXPI items and nodes |
-| P&ID rendering | Cannot place property-change annotations | Segment boundaries and realization kind are renderable inputs | Renderer would need to reconcile two graphs |
+| P&ID rendering | Cannot place property-change annotations | Segment boundaries aligned with `Connection` boundaries and realization kind are renderable inputs; a renderer must not invent mid-connection breaks | Renderer would need to reconcile two graphs |
 | Migration path | Requires a later reshape to B → churn | Additive to current model; `Connection` only gains identity | Separate layer to keep in sync forever |
 | Premature-abstraction risk | Low but functionally insufficient | Low: each level answers a named requirement | High: designs for N1/N7 that are not justified |
 
@@ -303,7 +304,8 @@ PlantModel
 │       ├── line_number      optional human line designation
 │       ├── name             optional
 │       └── PipingSegment[]
-│           ├── id           identity local to the owning line
+│           ├── id           canonical identity local to the owning line
+│           ├── segment_number     optional human/external engineering designation
 │           ├── nominal_diameter   optional open string (DN80, 3", NPS3)
 │           ├── piping_class       optional open string (A1A)
 │           ├── fluid_code         optional open string (P)
@@ -328,23 +330,32 @@ Recorded semantics:
    an open, optional string: designations follow company/line-numbering
    practice, may be revised, and are not guaranteed unique across a project.
    A DEXPI `PipingNetworkSystem` XML object id never becomes `PipingLine.id`.
-4. **`PipingSegment.id` is local to the owning line** and is not a
-   `SegmentNumber` import: DEXPI's segment numbering is an exchange artifact.
+4. **`PipingSegment.id` is canonical identity local to the owning line.**
+   `segment_number: str | None` is an optional human/external engineering
+   designation, including DEXPI `PipingNetworkSegment.SegmentNumber` when an
+   adapter can preserve it. Neither a DEXPI XML `Object@id` nor `SegmentNumber`
+   becomes canonical identity automatically.
 5. **Segment properties are segment-local and optional.** No inheritance from
    the line is defined (F1 deferred). An absent property means *not specified
-   yet*, which is honest engineering state rather than a default value.
-6. **`PipingRealization.kind` defaults to `pipe`.** A realization entry states
-   that one adjacency is realized as pipe unless `kind: direct` is authored.
-   The `kind` vocabulary stays open (consistent with `ProcessStep.function`);
-   the two evidenced values are `pipe` and `direct`. Serialization should omit
-   the default so common authored YAML stays one line per realization.
+   yet*, which is honest engineering state rather than a default value. In this
+   first slice, a segment boundary must coincide with a `Connection` boundary;
+   a property change inside one `Connection` is not representable yet.
+6. **`PipingRealization.kind` is a closed first-slice vocabulary:** `"pipe"` or
+   `"direct"`; any other value is a validation error. It defaults to `"pipe"`
+   because authoring a realization explicitly states that the adjacency has a
+   physical realization. No `PipingRealization` means the realization is not
+   modelled; `kind: pipe` means it is explicitly/semantically pipe-realized;
+   `kind: direct` means it is explicitly direct. Serialization may omit the
+   default so common authored YAML stays one line per realization.
 7. **`PipingRealization` is not `PipingConnection`.** It is not an edge with
    its own endpoints; it is a statement *about* an existing adjacency. It is
    deliberately named after the engineering act (realization), not after
    DEXPI's class.
-8. **A `Connection` is referenced at most once** across all segments of all
-   lines. `ConnectionRef` is not introduced: connection ids are plant-unique,
-   so a plain id string is a sufficient reference.
+8. **A `Connection` is referenced at most once in the first slice** across all
+   segments of all lines. This conservative 1:1 invariant is not a universal law
+   of physical engineering; parallel, as-built, or alternative realizations are
+   a deferred 1:N question. `ConnectionRef` is not introduced: connection ids
+   are plant-unique, so a plain id string is a sufficient reference.
 9. **Segment order is authoring order**, not flow direction. No flow semantics
    exist in this layer (N5).
 
@@ -352,16 +363,33 @@ Recorded semantics:
 
 | # | Rule |
 |---|---|
+| C1 | `Connection.id` is required, non-empty, and unique within `PlantModel` |
 | P1 | `PipingLine.id` is unique within `PipingModel.lines` |
 | P2 | `PipingSegment.id` is unique within the owning `PipingLine` |
 | P3 | every `PipingRealization.connection` resolves to a `Connection` in the same `PlantModel` |
-| P4 | a `Connection` is referenced by at most one realization across the whole `PipingModel` |
+| P4 | **First-slice invariant:** a `Connection` is referenced by at most one realization across the whole `PipingModel` |
 | P5 | a segment has at least one realization (an empty property boundary is meaningless) |
 
 These are structural and referential rules, comparable in kind to the physical
-layer's existing endpoint resolution and to S1–S4 in `ProcessModel`. They are
-**not** engineering rules: DN continuity, reducer requirements, and line-number
+layer's existing endpoint resolution and to S1–S4 in `ProcessModel`. C1 is a
+pre-1.0 breaking change to authored YAML. P4 is intentionally conservative and
+may be relaxed only through a later evidence-backed ADR change. These are **not**
+engineering rules: DN continuity, reducer requirements, and line-number
 consistency are rule-engine concerns described below.
+
+### First-slice property-boundary limitation
+
+A first-slice segment boundary must coincide with an existing canonical
+physical-topology boundary between `Connection`s. For example, a reducer item
+between `C-001` and `C-002` supports `SEG-1 → C-001` and `SEG-2 → C-002`.
+
+By contrast, one `Connection` with DN80 over its first part and DN50 over its
+second part, without an explicit topology item or boundary, is not representable
+canonically yet. DEXPI has explicit `PropertyBreak` and related break semantics;
+DeepPlant does not introduce `PropertyBreak` now. This is a known fidelity
+limitation, explicitly deferred. Revisit when DeepPlant needs to represent a DN,
+piping-class, insulation, or similar property change that does not coincide with
+an existing topology item or `Connection` boundary.
 
 ### Why `Connection` gains identity
 
@@ -759,7 +787,7 @@ No rule is implemented. The test is whether the model makes honest checks
 
 | Future check | Supported by | Type |
 |---|---|---|
-| DN continuity: adjacent segments of one line differ in DN | `PipingSegment.nominal_diameter` + topology | engineering rule (requires an item at the boundary; a reducer specifically requires item classification) |
+| DN continuity: adjacent segments of one line differ in DN | `PipingSegment.nominal_diameter` + aligned topology boundary | engineering rule (first slice requires a `Connection` boundary; a reducer specifically requires item classification) |
 | Piping-class continuity along a line | `PipingSegment.piping_class` + topology | engineering rule |
 | Required reducer at a DN transition | topology at the boundary + `Equipment.type` (open string) | engineering rule; needs no taxonomy to be reported |
 | Line-number consistency (one line, one designation) | `PipingLine.line_number` | engineering rule (warning-level: variants and revisions are legitimate) |
@@ -780,9 +808,9 @@ Conclusions:
   endpoints, and inline-component connectivity are derivable from `Equipment` /
   `Port` / `Connection` alone. That is a strong signal that no node/junction
   concept belongs in this layer.
-- **`kind` must not be silently wrong.** Because an open vocabulary can carry
-  typos, rules should treat unknown `kind` values as "not pipe-realized" rather
-  than as the default (recorded in [Unresolved questions](#unresolved-questions)).
+- **`kind` must fail fast.** The closed first-slice vocabulary accepts only
+  `pipe` and `direct`; for example, `kind: ppie` is a validation error rather
+  than an unmodelled or silently reinterpreted realization.
 
 ## DEXPI adapter implications
 
@@ -793,8 +821,10 @@ and Plant import remains unimplemented and fail-closed (ADR-0010).
 |---|---|---|
 | `PipingNetworkSystem` (`LineNumber`, system grouping) | `PipingLine` (`line_number`); system grouping itself is dropped | **collapsed** |
 | `PipingNetworkSystem` templates (fluid code, piping class, DN, insulation) | `PipingSegment` fields when not overridden; inheritance is not reproduced | **lossy** (documented drop of system-level defaults) |
-| `PipingNetworkSegment` (`SegmentNumber`, properties) | `PipingSegment`; `SegmentNumber` is not canonical | **collapsed** |
+| `PipingNetworkSegment.SegmentNumber` | `PipingSegment.segment_number` | **direct as optional engineering designation**; neither it nor XML `Object@id` is canonical identity |
+| `PipingNetworkSegment` properties | `PipingSegment` properties | **collapsed**, subject to the first-slice property-boundary limitation |
 | `PipingNetworkSegment.Connections` | `PipingSegment.realizations` | **direct** (per elementary connection) |
+| `PropertyBreak` / property change not aligned to a `Connection` boundary | no first-slice canonical representation | **unsupported / deferred**; a future importer must report this fidelity loss rather than invent a boundary |
 | `Pipe` (elementary piece, no own data) | `PipingRealization(kind: pipe)` | **collapsed** — piece identity is not preserved |
 | `DirectPipingConnection` | `PipingRealization(kind: direct)` | **direct as a kind**, no class |
 | `PipingConnection.SourceItem`/`TargetItem` + `SourceNode`/`TargetNode` | `Connection.source`/`target` (`PortRef`) | **collapsed** (item + node collapses into `Port`) |
@@ -811,8 +841,10 @@ Import direction is therefore viable for a defined subset (system → line,
 segment → segment, connection → realization, item+node → `Port`), with the
 losses above stated explicitly. Export direction is *asymmetric and partial*:
 DeepPlant can emit a `Pipe` per `kind: pipe` realization, but it cannot emit
-system-level templates it does not store, and it must not invent
-`SegmentNumber`s or node identities. Both directions belong to a later Issue.
+system-level templates it does not store, property breaks it cannot represent,
+or node identities. `segment_number` can be emitted only when authored or
+preserved; neither it nor an XML `Object@id` may be invented as canonical
+identity. Both directions belong to a later Issue.
 
 ## P&ID rendering implications
 
@@ -829,7 +861,7 @@ P&ID view
 | Semantic input a future P&ID view may consume | Use |
 |---|---|
 | `PipingLine.line_number` | line designation label |
-| `PipingSegment` boundaries | where a property-change annotation belongs (DN/class change, reducer symbol) |
+| `PipingSegment` boundaries aligned with `Connection` boundaries | where a first-slice property-change annotation belongs (DN/class change, reducer symbol) |
 | `PipingRealization.kind` | how the run is drawn between two items (`direct` = abutting items, no pipe body) |
 | `Equipment` + inline items | item symbols (valve, tee, equipment outline) |
 | `Port` | attach points for routes — never drawn as symbols themselves |
@@ -842,6 +874,9 @@ label placement, and insulation/tracing annotation. Also:
 - A pipeless `Connection` (no realization) must not make P&ID rendering
   impossible: the presentation policy decides whether to draw it as a plain
   connection. Semantic completeness is not presentation completeness.
+- A segment boundary aligned with a `Connection` boundary is representable.
+  A mid-`Connection` property break is not yet representable canonically; a
+  future renderer must not invent such a boundary.
 - Segment order is not a route: renderers may not assume `realizations` are in
   geometric order, only that they are grouped. A future *routing* need is a
   presentation/view concern, not a piping-model field.
@@ -864,6 +899,7 @@ insulation, heat tracing, slope, pressure-test circuit
 flow direction, thermodynamic state, simulation topology
 off-page / continuation connectors and cross-sheet semantics
 multiple or as-built realizations per adjacency; revision status
+DEXPI `PropertyBreak` / mid-`Connection` property-break semantics
 piping-related drawing data (coordinates, routing, symbols, sheets)
 instrumentation and signal layers (separate future layer, ADR-0010)
 process <-> physical realization (see below)
