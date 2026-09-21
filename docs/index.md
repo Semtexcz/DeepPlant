@@ -22,4 +22,5 @@ update_when:
 - SVG symbol and anchor contract: [svg-symbols.md](svg-symbols.md)
 - Headless process renderer: [rendering.md](rendering.md)
 - DEXPI 2.x Process adapter spike: [dexpi-process-spike.md](dexpi-process-spike.md)
+- DEXPI 2.x Plant/P&ID semantic-mapping spike: [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md)
 - Decisions: [decisions/index.md](decisions/index.md)
