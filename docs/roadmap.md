@@ -253,6 +253,9 @@ in the official DEXPI Reference P&ID instance, that none of them can live on
 `Connection`, and that the current `Port`/`Connection` invariants should be
 **kept** rather than widened. The spike also bounded the work: the next step is a
 decision record against that concrete official fragment, not an implementation.
+That slice answers *what is the physical piping graph?*; it does not decide how
+`ProcessStep` maps to equipment or how `ProcessStream` maps to piping
+realization.
 The independent alternative remains backlog row 2 (expanding the DEXPI Process
 subset from fresh evidence), which needs no physical-model change; renderer
 polish (row 3) stays evidence-gated. Step/stream engineering quantities and
@@ -328,10 +331,12 @@ save/round-trip. Implemented primitives are not the same as a completed
 capability stage: the Stage 1 exit signal below has now been exercised on the
 documented realistic fragment encoded as a loadable synthetic example
 ([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
-through the production models. The open physical-piping /
-process-to-physical-realization question remains an unresolved semantic
-decision; the fragment exposed it but did not require it — no new schema was
-needed to represent the fragment.
+through the production models. Two independent physical-model questions remain
+open: the **physical-piping realization** question, now substantially bounded by
+the DEXPI Plant/P&ID spike; and the **process ↔ physical realization** mapping
+(`ProcessStep` ↔ equipment, `ProcessStream` ↔ piping realization), whose shape
+and cardinality are still unresolved. The fragment exposed both but required
+neither — no new schema was needed to represent the fragment.
 
 Exit signal:
 
@@ -347,8 +352,10 @@ Open questions (deliberately unresolved here) — all on the physical-realizatio
 side; `ProcessStream` itself is decided as the process-layer directed edge,
 distinct from `Connection`:
 
-- physical piping representation
-- `ProcessStream` ↔ physical realization mapping
+- physical piping representation — structure substantially bounded by the DEXPI
+  Plant/P&ID spike (ADR-0010); no canonical layer exists yet
+- process ↔ physical realization: `ProcessStep` ↔ equipment and `ProcessStream`
+  ↔ piping realization, including the mapping's shape and cardinality
 - equipment nozzles
 - instrumentation connectivity
 - utilities
@@ -449,7 +456,8 @@ Concrete examples:
 - the editor stage does not justify web architecture now
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
-- the open physical-piping / process-to-physical-realization question does not
-  justify attaching pipe or process-stream semantics to `Connection` now
+- the physical-piping realization question and the separate process ↔ physical
+  realization question do not justify attaching pipe or process-stream semantics
+  to `Connection` now
 
 Think broadly about the destination. Build narrowly in the current iteration.

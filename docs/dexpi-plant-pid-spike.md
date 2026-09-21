@@ -1070,18 +1070,26 @@ fixture, no dependency, and no network access at test time.
   `Port`/`Connection` invariants are confirmed rather than replaced; and the next
   physical-model decision is identified with an explicit evidence base.
 - **What became clear:** the current `Connection` invariant survives real P&ID
-  semantics; `Port` remains the canonical connection point; piping
-  line/segment/pipe identity and instrumentation are **separate layers** that
-  must not be folded into `Port`, `Connection`, or `Equipment.type`.
+  semantics; `Port` remains sufficient for DeepPlant's currently claimed
+  physical-topology abstraction (with its DEXPI → `Port.id` adapter identity
+  derivation still unresolved); piping line/segment/pipe identity and
+  instrumentation are **separate layers** that must not be folded into `Port`,
+  `Connection`, or `Equipment.type`.
 - **Next task:** the specification/decision slice of §14 step 1 — specify the
   candidate piping-realization layer against a concrete official fragment
   (`reference_pid.xml`) before any class is implemented. §14 step 3 (further
   DEXPI Process subset expansion) remains the independent alternative.
-- **Why that next task follows:** the spike's only unresolved *physical-model*
-  question is now precisely bounded (pipe/piece/segment/line identity and where
-  it attaches), and the anti-roadmap forbids implementing it without an accepted
-  layer decision. The Process-side gap (step/stream engineering quantities and
-  material data) is unchanged and independent.
+- **Why that next task follows:** the remaining physical-model work is split into
+  two independent questions, and only the first is bounded here. (1) The
+  **physical-piping realization** question is now precisely bounded
+  (pipe/piece/segment/line identity and where it attaches), and the anti-roadmap
+  forbids implementing it without an accepted layer decision — that is the
+  recommended next task, and it answers *what is the physical piping graph?*.
+  (2) The **process ↔ physical realization** question (`ProcessStep` ↔
+  equipment, `ProcessStream` ↔ piping realization, including shape and
+  cardinality) is not answered or bounded by this spike and remains a separate
+  unresolved decision. The Process-side gap (step/stream engineering quantities
+  and material data) is unchanged and independent.
 - **Milestone consistency:** Milestone 1 (validated YAML load) stays complete.
   Milestone 2 (prototype fragment and renderer) keeps its open P&ID-like
   coverage; this spike advances that at the *evidence* level only and does not
