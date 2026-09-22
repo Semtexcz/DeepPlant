@@ -150,11 +150,13 @@ Three facts follow directly, and they are decisive for the mapping question:
 2. **It is defined over "two or more streams of material".** Participation of
    multiple material flows is explicit in the definition, and their thermal
    coupling is the point of the class.
-3. **"Realized by a heat exchanger" is realization language, not identity.** The
-   class is not the physical exchanger. One `ExchangingThermalEnergy` may be
-   realized by one or several exchangers, and the class remains a valid process
-   statement whether or not that physical realization is known. This again
-   matches DeepPlant's function ≠ physical-realization invariant.
+3. **"Realized by a heat exchanger" is realization language, not identity.**
+   "Realized by a heat exchanger" establishes that the process statement and its
+   physical realization are distinct concepts. The inspected DEXPI Process-model
+   evidence does not establish physical-realization identity or cardinality here;
+   DeepPlant therefore must not infer 1:1, 1:N, N:1, or N:M from this class
+   definition. This again matches DeepPlant's function ≠ physical-realization
+   invariant.
 
 ### 2.2 Properties owned by `ExchangingThermalEnergy`
 
@@ -184,10 +186,11 @@ Two findings in this table drive the decision:
   HeatExchangeMethod = Generic | Plate | Spiral | Tubular
   ```
 
-- **Every quantitative property is a qualified physical quantity**, and the
-  class additionally distinguishes hot- and cold-side mass flow (`HotFlow`,
-  `ColdFlow`). Nothing in this set has a canonical DeepPlant representation
-  today.
+- **Every quantitative property is a qualified physical quantity.** `HotFlow`
+  and `ColdFlow` are step-level qualified mass-flow quantities representing hot-
+  and cold-side engineering values. They do not reference `ProcessPort`s and
+  therefore do not identify which ports belong to the respective thermal sides.
+  Nothing in this set has a canonical DeepPlant representation today.
 
 
 ### 2.3 Properties inherited from `ProcessStep`
@@ -219,10 +222,10 @@ engineering *role* to a step or to a port.
 **Decision-relevant observation.** The thermal coupling between the
 participating flows is **not** expressed by any property. It is expressed by the
 existence of one step owning several material ports. There is no
-`HotSide`/`ColdSide` port class and no reference property that pairs one inlet
-with one outlet. Specifying *which* ports belong to the hot side and which to the
-cold side is optional and indirect (`HotFlow`/`ColdFlow`, or optional
-`Core.Role` names).
+`HotSide`/`ColdSide` port class and no structural reference that groups material
+ports into thermal sides. `HotFlow` and `ColdFlow` are step-level quantities, not
+port references. Optional `Core.Role` metadata may provide additional role
+information, but it is not a structural side-grouping model.
 
 ## 3. Surrounding model context the mapping depends on
 
@@ -321,16 +324,16 @@ model) or is explicitly labelled as DeepPlant engineering inference.
 | What superclass / semantic category does it belong to? | Concrete subclass of the abstract `Process.Process.ProcessStep` in the DEXPI **Process** model. A process function, not equipment, not piping, not presentation. | §2.1 |
 | What does the class mean in engineering terms? | A step that transfers thermal energy between two or more material streams, physically realized by a heat exchanger. | §2.1 |
 | What ports or connection concepts does it own? | No port property of its own; it owns `Ports[0..*]` through `ProcessStep`. Ports are `MaterialPort` / `EnergyPort` (`ThermalEnergyPort`, …) / `InformationPort`. Ports are connected by `ProcessConnection` subclasses via `Source`/`Target`. | §2.3, §3.1, §3.2 |
-| How are thermal sides represented? | Only indirectly. The hot and cold material sides are the step's own material ports; there is no hot/cold port class and no inlet/outlet pairing property. Optional `HotFlow`/`ColdFlow` and optional `Core.Role` names are the only explicit side markers. | §2.2, §2.3 |
+| How are thermal sides represented? | There is no structural `HotSide`/`ColdSide` port class or inlet/outlet pairing relation. `HotFlow` and `ColdFlow` are step-level qualified mass-flow quantities, not port references. Optional `Core.Role` metadata may add role information, but the inspected model does not structurally group ports into thermal sides. | §2.2, §2.3 |
 | Is material flow represented through the object itself? | No. Material flow is represented by `MaterialPort` children joined by `Stream` connections. The step owns ports and properties, not flow objects. | §2.3, §3.2 |
 | Is energy transfer represented explicitly? | Yes, and separately from material flow: `ThermalEnergyFlow` between `ThermalEnergyPort` objects carries `Duty` and `Temperature`. The step itself can additionally carry `Duty`. | §2.2, §3.2 |
-| Is one object necessarily one physical heat exchanger? | No. The upstream sentence is realization language ("realized by a heat exchanger"). The class is a process function and may be realized by one or several exchangers, or by a solution that is not a discrete exchanger item. | §2.1 |
+| Is one object necessarily one physical heat exchanger? | The Process-model evidence establishes that `ExchangingThermalEnergy` is a `ProcessStep` and refers separately to physical realization by a heat exchanger. It does not establish realization identity or cardinality, so DeepPlant must not infer 1:1, 1:N, N:1, or N:M. | §2.1 |
 | Can one object represent a process function independent of equipment? | Yes. It lives in the Process model, which is independent of the Plant/P&ID model. | §2.1 |
-| Are hot/cold sides distinguished? | Not structurally. Distinguishing them is optional and indirect (`HotFlow` / `ColdFlow`, or `Core.Role` names on the ports). | §2.2, §2.3 |
+| Are hot/cold sides distinguished? | Hot/cold engineering quantities exist through `HotFlow` / `ColdFlow`, but the material ports themselves are not structurally grouped into hot and cold sides. Optional `Core.Role` metadata may add role information. | §2.2, §2.3 |
 | Are inlet/outlet roles explicit or derived? | **Explicit and mandatory.** `Port.NominalDirection: PortDirection` with literals `Inlet` / `Outlet` is `1..1` on every port. | §3.1 |
 | Is thermal coupling represented? | Yes, but only implicitly, by the *existence* of one step owning several material ports. No property or reference states that port A couples to port B. | §2.3 |
 | Can multiple material streams participate? | Yes, explicitly: "two or more streams of material". `ProcessStep.Ports` is `0..*`. | §2.1, §2.3 |
-| Can a utility participate? | Yes, as a distinctly modelled thermal side: `ThermalEnergyPort` + `ThermalEnergyFlow` with `Duty`/`Temperature`. Modelled or not is a modelling choice. | §3.1, §3.2, §3.3 |
+| Can a utility participate? | Yes. If an explicit thermal-energy connection is modelled, DEXPI has distinct `ThermalEnergyPort` / `ThermalEnergyFlow` semantics for it. Such an energy flow is not a material `Stream`. The inspected evidence does not make an explicit utility connection mandatory for every `ExchangingThermalEnergy`. | §3.1, §3.2, §3.3 |
 | Is the class equipment-neutral? | Yes. Nothing about the class identifies physical equipment; the physics of the exchange is carried by qualified engineering quantities (area, duty, coefficients, ΔT, side mass flows). | §2.2 |
 | Is a mandatory engineering value required? | Yes — `Method: HeatExchangeMethod` is `1..1`. Literals: `Generic`, `Plate`, `Spiral`, `Tubular`. | §2.2 |
 
@@ -395,21 +398,29 @@ G1  Mandatory classification with no canonical home.
     have to invent a value. Neither is acceptable under the adapter's
     fail-closed invariant.
 
-G2  Coupled multi-stream semantics with no canonical statement.
-    The class exists to couple "two or more streams of material" through one
-    step. DeepPlant can hold N ports and N streams, but no canonical statement
-    says which streams are thermally coupled, and no canonical statement says
-    which ports form the hot side and which form the cold side.
+G2  Coupled multi-stream semantics have no canonical grouping statement.
+    DEXPI defines ExchangingThermalEnergy as transferring thermal energy between
+    two or more material streams.
+
+    DeepPlant can represent one ProcessStep with several ProcessPorts and
+    ProcessStreams, but it has no canonical statement grouping those ports into
+    the participating thermal sides.
+
+    DEXPI HotFlow and ColdFlow are step-level qualified mass-flow quantities,
+    not port references, so they do not resolve this structural grouping gap.
+
+    Optional Core.Role metadata may carry role information, but the inspected
+    model does not define a structural hot-side / cold-side grouping relation.
 
 G3  No port kind.
     Ports are typed in DEXPI (MaterialPort vs ThermalEnergyPort vs ...).
     ProcessPort is a single material-flow-semantics type with no kind field.
 
 G4  No energy-flow connection kind.
-    DEXPI represents the utility/thermal side as ThermalEnergyFlow between
-    ThermalEnergyPort objects with Duty and Temperature. DeepPlant's
-    ProcessStream is material semantics only, and the adapter explicitly
-    forbids collapsing energy flows into it.
+    If an explicit thermal-energy / utility connection is modelled, DEXPI
+    represents it using ThermalEnergyPort and ThermalEnergyFlow rather than a
+    material Stream. DeepPlant's ProcessStream has material semantics, so
+    ThermalEnergyFlow must not be collapsed into ProcessStream.
 
 G5  No engineering-quantity representation.
     Duty, Area, HotFlow, ColdFlow, HeatTransferCoefficient,

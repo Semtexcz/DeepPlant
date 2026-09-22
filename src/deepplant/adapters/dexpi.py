@@ -140,9 +140,10 @@ _STEP_TYPE_MAP: dict[str, str] = {
 # by DeepPlant and would be rejected explicitly if present). ``heat_exchange``
 # stays canonical-only (see docs/dexpi-exchanging-thermal-energy-evidence.md,
 # Issue #22): DEXPI ``ExchangingThermalEnergy`` couples two or more material
-# flows through one step, requires a mandatory ``Method: HeatExchangeMethod``,
-# and its utility side is a separate ``ThermalEnergyPort``/``ThermalEnergyFlow``
-# object, none of which canonical ``ProcessStep`` can express yet, so no
+# flows through one step and requires a mandatory ``Method: HeatExchangeMethod``.
+# If an explicit thermal-energy / utility connection is modelled, DEXPI represents
+# it with ``ThermalEnergyPort``/``ThermalEnergyFlow`` rather than a material
+# ``Stream``. Canonical ``ProcessStep`` cannot express those semantics yet, so no
 # automatic mapping is claimed in either direction. ``unspecified`` and other
 # non-mapped functions stay unexportable.
 _REVERSE_STEP_TYPE_MAP: dict[str, str] = {
