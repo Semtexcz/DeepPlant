@@ -26,22 +26,23 @@ on the pinned official DEXPI Specification 2.0.0 (`V2.0.0`, release commit
 2026-09-22). It found that:
 
 - `Method` exists only in the DEXPI Process model, as **nine** property
-  declarations across **six** different enumerations, with multiplicities of
-  both `1..1` and `0..1`;
-- the enumerations are not one semantic dimension — inside single enums,
-  mechanism (`CentrifugalMotion`, `PositiveDisplacement`), equipment-class names
-  (`Fan`, `Blower`, `Ejector`, `Eductor`) and non-answers (`Unspecified`,
-  `CustomMethod`, `Generic`) are mixed;
-- the literal names largely coincide with `Plant.ProcessEquipment` classes in
-  the same release (`PlateHeatExchanger`, `SpiralHeatExchanger`,
+  declarations across **seven** different enumeration types, with multiplicities
+  of both `1..1` and `0..1`;
+- the enumeration domains are not one semantic dimension — inside single enums,
+  mechanism/principle labels (`CentrifugalMotion`, `PositiveDisplacement`),
+  equipment-class names (`Fan`, `Blower`, `Ejector`, `Eductor`) and non-answers
+  (`Unspecified`, `CustomMethod`, `Generic`) are mixed;
+- many literal names have direct or close counterparts in `Plant.ProcessEquipment`
+  classes in the same release (`PlateHeatExchanger`, `SpiralHeatExchanger`,
   `TubularHeatExchanger`, `CentrifugalPump`, `AxialCompressor`, `GasTurbine`,
-  `AlternatingCurrentMotor`, `Tank`, …), so the same distinction is already
-  modelled there as physical realization;
-- DEXPI reaches the same "how" distinction by subclassing for mixing
-  (`RotaryMixing`, `StaticMixing`, with no `Mixing.Method` at all) and by a
-  `Method` property for compression, and expresses the packed-bed distinction
-  both as `ReactingChemicals.Method = PackedBed` and as the `ProcessStepDetail`
-  subclass `ContactingInPacking`.
+  `AlternatingCurrentMotor`, `Tank`, …), demonstrating semantic overlap with
+  physical realization rather than exact semantic identity for every literal;
+- DEXPI expresses mixing distinctions by subclassing (`RotaryMixing`,
+  `StaticMixing`, with no `Mixing.Method` at all) and compression distinctions by
+  a `Method` property; `ReactingChemicals.Method = PackedBed` and the
+  `ProcessStepDetail` subclass `ContactingInPacking` carry related packed-bed
+  semantics through different constructs, without inspected evidence of
+  equivalence.
 
 The question this ADR answers is therefore narrow and canonical:
 
@@ -70,26 +71,26 @@ rejected shortcuts are in
 
 **A is accepted**, on the following explicit terms:
 
-1. **`ProcessStep` has exactly one classification axis: `function`.** No second
-   canonical classification field is added, and no name for one is reserved.
+1. **Canonical `ProcessStep` currently has exactly one classification axis:
+   `function`.** No second canonical classification field is added, and no name
+   for one is reserved.
 2. **`ProcessStep.function` is unchanged.** It stays an open, non-empty string
    (ADR-0009). ADR-0009 is preserved here, not weakened.
-3. **No generic second classification exists.** The DEXPI `Method` values are
-   not one reusable engineering concept: they are six enumerations across nine
-   properties whose value domains are mutually incompatible, so no single value
-   namespace could be semantically coherent (candidate B is rejected).
+3. **No generic second classification is justified.** The DEXPI `Method` values
+   are not one reusable engineering concept: they span seven enumeration domains
+   across nine properties whose value domains are heterogeneous, so no single
+   value namespace could be semantically coherent (candidate B is rejected).
 4. **No function-specific detail structure is introduced now.** The values are
-   inherently function-specific, which argues for function scoping rather than a
-   global union, but it does not make them *process* concepts: for
-   `heat_exchange`, `pumping`, `compressing`, and `reacting_chemicals` the
-   function-specific values are exactly the physical realizations, so a
-   function-scoped container would reproduce the same leak in a more elaborate
-   shape (candidate C is rejected; only the direction is recorded).
-5. **The dominant semantic of these values is physical realization /
-   equipment technology**, i.e. they belong outside canonical `ProcessStep`.
-   This is why Outcome A is a positive finding rather than a conservative
-   default, and it is the reason to refuse the field rather than merely a reason
-   to be cautious.
+   function-specific, which argues against a global union, but that alone does
+   not make them DeepPlant process concepts. No DeepPlant-native consumer or
+   authoring workflow currently justifies a function-scoped structure (candidate
+   C is rejected now; only the direction is recorded).
+5. **A large part of the `Method` vocabulary overlaps physical-realization /
+   equipment-technology semantics, while the remainder contains function-specific
+   mechanism/principle labels and non-answer values.** Taken together, the seven
+   enumeration domains do not form one coherent process-level classification
+   axis. Some values may later find an honest home in a physical-realization or
+   function-specific model, but this ADR does not decide that ownership.
 6. **No `realized_by` field, no `ProcessStep` → `Equipment` reference, and no
    Process ↔ physical realization mapping is introduced.** That layer keeps its
    own deferred status under ADR-0009 and ADR-0011.
@@ -114,9 +115,9 @@ rejected shortcuts are in
 
 | Alternative | Why rejected |
 |---|---|
-| **B — generic second classification** | The six DEXPI enumerations cannot be unioned into one coherent value domain; the per-enum escape hatches (`Unspecified`, `CustomMethod`, `Generic`) would collide with each other and with the empty default; and no DeepPlant consumer or authoring workflow needs it. |
-| **C — function-specific details now** | The values are function-specific, but for the examined functions they are realization semantics, so the structure would require a polymorphic per-function framework that no current requirement justifies. |
-| **D as an implementation** | Correct as an *explanation* of A, but implementing Process ↔ physical realization here would exceed this decision's evidence and duplicate work ADR-0009/ADR-0011 already defer. |
+| **B — generic second classification** | The seven DEXPI enumeration domains cannot be unioned into one coherent value domain; the per-enum escape hatches (`Unspecified`, `CustomMethod`, `Generic`) would collide with each other and with the empty default; and no DeepPlant consumer or authoring workflow needs it. |
+| **C — function-specific details now** | The values are function-specific, but no DeepPlant-native process concept or consumer justifies a polymorphic per-function framework now. |
+| **D as an implementation** | Candidate D is a plausible future home for part of the vocabulary because many values overlap realization semantics, but it is not proven to own every literal. Implementing Process ↔ physical realization here would exceed this decision's evidence and duplicate work ADR-0009/ADR-0011 already defer. |
 | `method: str \| None` because DEXPI has a property named `Method` | Copies a DEXPI property name into the canonical model on the strength of the name; no coherent value domain and no consumer. |
 | Any `dict[str, Any]` semantic bag | Destroys the fail-fast semantic contract that keeps unsupported engineering data visible instead of silently meaningless. |
 | Unioning the DEXPI `*Method` enums into one canonical enum | Makes DEXPI the owner of DeepPlant's canonical vocabulary and freezes an incoherent union into the model. |
@@ -130,9 +131,9 @@ rejected shortcuts are in
   to decide whether a field states a process fact or an equipment choice.
 - No speculative schema is added: no field without a consumer, without a
   DeepPlant-native value domain, and without an authoring workflow.
-- Physical realization stays in the layer that owns it (ADR-0009's deferred
-  realization concept; ADR-0011's physical layer) instead of being duplicated
-  into the process model as DEXPI duplicates it.
+- The process model does not absorb a heterogeneous DEXPI vocabulary merely
+  because its values overlap physical realization; any future ownership remains
+  evidence-backed and separate from this decision.
 - The recurring blocker from Issue #22 is answered durably, so the next DEXPI
   slice does not re-investigate `Method`.
 - Unrepresentable DEXPI content keeps failing explicitly and by name, which
@@ -141,11 +142,10 @@ rejected shortcuts are in
 ### Negative
 
 - DEXPI classes whose `Method` is mandatory remain unimportable and unexportable,
-  and no round-trip is claimed for them. That information loss is accepted
-  because the lost data is physical-realization data DeepPlant does not yet
-  represent at all.
-- A future physical-realization layer will have to carry these values, so the
-  coverage gap is deferred rather than closed.
+  and no round-trip is claimed for them. That information loss is accepted because
+  DeepPlant has no honest canonical home for the heterogeneous values today.
+- A future physical-realization or function-specific model may carry relevant
+  values, but their ownership is deferred rather than assumed.
 - Any later reversal must be evidence-backed through this ADR's Revisit-When
   list rather than by adding a field opportunistically.
 
@@ -165,13 +165,14 @@ rejected shortcuts are in
 
 - A DeepPlant-native (non-DEXPI) authoring need requires a *process-level*
   distinction `ProcessStep.function` cannot express.
-- The physical-realization layer is designed and a `Plate`/`Tubular`/`Fan`/
-  `Diesel`-style value cannot be placed honestly there.
-- A concrete consumer (calculation, engineering rule, simulation adapter, or
-  design decision) must branch on such a distinction.
-- New DEXPI evidence contradicts the analysis — for example a later release
-  replaces the per-class `*Method` enumerations with one coherent,
-  equipment-independent process-principle axis.
+- Simulation, calculation, engineering rules, or design workflows need a
+  function-specific process principle independent of equipment realization.
+- The physical-realization layer is designed and new evidence establishes an
+  honest home there for relevant values, or demonstrates that one cannot be
+  placed there.
+- Future DEXPI evidence exposes a coherent cross-cutting semantic axis — for
+  example, a later release replaces the per-class `*Method` enumerations with
+  one coherent, equipment-independent process-principle axis.
 - `ProcessStepDetail` mapping reveals a genuine process-level refinement concept.
 
 ## Related

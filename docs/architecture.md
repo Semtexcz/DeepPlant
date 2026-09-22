@@ -199,15 +199,16 @@ PlantModel
   means the step exists but its function is not yet specified; rendering such
   a step needs explicit presentation information and is a presentation error,
   never a semantic-model error.
-- `ProcessStep.function` is the **only** classification axis on `ProcessStep`.
-  No second canonical step classification exists and no name for one is
-  reserved, because the recurring DEXPI `Method` properties are heterogeneous
-  and their dominant semantic is physical realization / equipment technology,
-  which belongs to the physical layer rather than to `ProcessStep`
+- Canonical `ProcessStep` currently has **one** classification axis:
+  `function`. No generic second canonical step classification is justified and
+  no name for one is reserved. The recurring DEXPI `Method` properties span
+  seven heterogeneous enumeration domains: many values overlap physical
+  realization / equipment technology, while others are function-specific
+  mechanism/principle labels or non-answers. They do not expose one reusable
+  cross-cutting `ProcessStep` concept
   ([ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md);
-  evidence in
-  [process-step-classification.md](process-step-classification.md)). Those
-  values stay adapter-unsupported where DEXPI requires them.
+  evidence in [process-step-classification.md](process-step-classification.md)).
+  Those values stay adapter-unsupported where DEXPI requires them.
 
 - Port identity is local to the owning equipment/component. The same port id may
   exist on different equipment; a globally resolvable port endpoint is the pair
