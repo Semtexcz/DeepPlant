@@ -41,8 +41,10 @@ under `deepplant/assets/symbols/process/basic/`,
 read-only process renderer ([docs/rendering.md](rendering.md)), the DEXPI
 2.x Process adapter spike ([docs/dexpi-process-spike.md](dexpi-process-spike.md)),
 the canonical `ProcessStep.function` / presentation-symbol-role separation
-slice (ADR-0009), and the DEXPI 2.x Plant/P&ID semantic-mapping spike
-([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010):
+slice (ADR-0009), the DEXPI 2.x Plant/P&ID semantic-mapping spike
+([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010), and the
+physical-piping specification/decision slice
+([docs/physical-piping-model.md](physical-piping-model.md), ADR-0011):
 
 - minimal domain model: `PlantModel` -> `Plant` + `list[Equipment]`
 - equipment-owned `Port` objects; port identity is local to the owning equipment
@@ -150,13 +152,39 @@ slice (ADR-0009), and the DEXPI 2.x Plant/P&ID semantic-mapping spike
   gains material-port-only `pumping → Pumping` with a proven minimal semantic
   round-trip; persistent view/presentation configuration stays deferred
   ([ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md))
+- physical-piping specification/decision slice (ADR-0011): documentation only —
+  no `src/`, test, fixture, adapter, or dependency change. The canonical
+  physical-piping shape is decided as an optional `PipingModel`
+  (`PlantModel.piping`) owning `PipingLine` -> `PipingSegment` ->
+  `PipingRealization`, referencing identified `Connection`s; `Connection` keeps
+  its topology-only meaning and gains canonical identity only (a documented
+  pre-1.0 breaking change to authored YAML); `PipingLine` carries canonical `id`
+  plus optional human `line_number`/`name`; `PipingSegment` has owner-local
+  canonical `id`, optional human/external `segment_number` (including DEXPI
+  `SegmentNumber`), and DN/piping-class/fluid-code properties; first-slice
+  segment boundaries align with `Connection` boundaries, while mid-connection
+  property breaks are deferred; `PipingRealization.kind` is closed to `pipe |
+  direct` (`pipe` default; invalid values fail validation) and records the
+  elementary realization without a canonical `Pipe` class; C1 requires a
+  non-empty plant-unique `Connection.id` and P4 is a conservative first-slice
+  1:1 invariant; inline components stay `Equipment`; `Port` stays the endpoint
+  with no `Nozzle`/`PipingNode`; a branch is an item with several named ports
+  plus ordinary `Connection`s. Nothing is implemented: C1 plus structural
+  rules P1–P5 and the layer itself are the next slice, and Process ↔ physical
+  realization stays undecided
+  ([docs/physical-piping-model.md](physical-piping-model.md),
+  [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md))
 
 `Connection` is currently a directed semantic topological relationship from
 `source` to `target`; it remains topology only and is not yet a pipe, process
-stream, signal, cable, or physical line. Work proceeds as small vertical
-changes with executable tests. `PlantModel` owns zero or one `ProcessModel`
-under `process`; the loader populates it from YAML and `save_plant()` writes
-canonical YAML that `load_plant()` reads back into a semantically equal model.
+stream, signal, cable, or physical line. ADR-0011 preserves exactly that
+meaning: the decided but unimplemented piping layer lives in its own submodel
+and references identified connections, so no pipe, segment, line, realization,
+piping-class, or fluid data is attached to the topology primitive. Work
+proceeds as small vertical changes with executable tests. `PlantModel` owns
+zero or one `ProcessModel` under `process`; the loader populates it from YAML
+and `save_plant()` writes canonical YAML that `load_plant()` reads back into a
+semantically equal model.
 Round-trip is semantic (`load(save(model)) == model`), not byte-preserving.
 Process and physical graphs stay independently valid: process step/port ids
 never imply equipment, and no cross-layer rules exist yet.
@@ -189,6 +217,7 @@ never imply equipment, and no cross-layer rules exist yet.
 | DEXPI 2.x Process adapter spike | Narrow native-DEXPI-XML Process adapter (`deepplant.adapters.dexpi`, [docs/dexpi-process-spike.md](dexpi-process-spike.md)) pinned to the official stable DEXPI 2.0.0 tag `V2.0.0` (commit `260c81c5`; inspected 2026-09-09; DEXPI 2.0.1 still being prepared): explicit material subset (Source/Sink/Mixing/SplittingMaterial/Pumping with MaterialPorts + material Streams) imports into the canonical `ProcessModel` as DeepPlant-native `ProcessStep.function` values (`source`, `sink`, `mixing`, `splitting_material`, `pumping`) through public Pydantic constructors (S1–S4 run); explicit mapping table (never generic class-name conversion); identity decision documented (engineering `Identifier` → canonical ids; XML object ids are file-local resolution mechanics; `Label` → name); EnergyFlow/InformationFlow/non-material ports/unsupported step classes/unresolved references/duplicate identifiers fail explicitly; pinned Core/Process 2.0.0 import preflight, globally unique XML `Object@id` preflight, and fail-closed ProcessModel/property parsing harden the trust boundary; declared ConnectorReference values are validated when present; direction consistency vs incidence validated; honest narrow exporter for the deliberately symmetric subset (source/sink/mixing/splitting_material, plus material-port-only `pumping` after ADR-0009) with deterministic output and explicit errors for ports whose DEXPI NominalDirection cannot be derived and for canonical functions without an unambiguous DEXPI class (heat_exchange, unspecified); deterministic structural envelope/reference-integrity validation (the official XSD is a generic envelope schema); no official DEXPI Process instance exists upstream, so the DeepPlant-owned synthetic conformance fixture is labelled and provenanced under `tests/fixtures/dexpi/2.0.0/`; no new dependency, no generic adapter framework; optional DEXPI → ProcessModel → SVG render proof; roadmap + spike conclusions recorded |
 | Separate process function from presentation symbol role | Canonical-model correction driven by executable DEXPI evidence and recorded in ADR-0009: `ProcessStep.type` (which doubled as a presentation symbol role) is replaced by the open engineering-function field `ProcessStep.function`; the function vocabulary stays open and DeepPlant-native (`source`, `sink`, `mixing`, `splitting_material`, `pumping`, `heat_exchange`, `unspecified`, ...) — never DEXPI class identifiers; the renderer owns the default function → symbol-role presentation policy and accepts explicit per-step `symbol_role_overrides` that exist only at the rendering boundary (never stored in the model or YAML); `PS-vessel` is semantically honest as `function: unspecified` and still renders as `vessel` through an explicit override; legacy `type` input is rejected (intentional pre-1.0 breaking model correction); semantic YAML uses `function`; DEXPI import maps onto DeepPlant functions and the reverse exporter gains material-port-only `pumping → Pumping` with a proven semantic round-trip; persistent view/presentation configuration is explicitly deferred |
 | DEXPI 2.x Plant/P&ID semantic-mapping spike (ADR-0010) | Evidence-producing architecture spike, documentation only — no `src/`, test, fixture, or dependency change. Re-verified from official sources that **DEXPI 2.0.0 (`V2.0.0`, commit `260c81c5`, 2025-10-10, CC BY 4.0) is still the latest stable release and 2.0.1 is still unreleased** (official August 2026 update: "being prepared", Process Model corrections), so the existing pin stands. Inspected the official `V2.0.0` model DSL (`src/model/Plant/**`, `src/model/Core/**`) **and the official DEXPI Reference P&ID instance** (`src/documentation/_static/reference_pid.xml`, 32,067 lines) — the only official 2.0 XML instance, giving this spike real instance-level evidence. Confirmed: `PlantModel` has no generic connection collection and does not own nozzles plant-level; physical items are `TaggedPlantItem`/`ProcessEquipment` (`TagName` identity) owning `Nozzles`/`Chambers`; connection points split into `Nozzle` and `PipingNode` (item + node endpoints); piping connectivity is directed (`SourceItem`/`TargetItem` + `SourceNode`/`TargetNode`); `Pipe` is an elementary uninterrupted piece and an inline valve splits a run into two `Pipe`s (instance-proven); line identity is `PipingNetworkSystem.LineNumber` and segment identity `PipingNetworkSegment.SegmentNumber`, both above the edge; inline valves/fittings are `PipingComponent`s (not equipment) that own nodes and terminate connections; instrumentation is a separate function layer whose signal edges are `SignalConveyingFunction.Source`/`Target` and whose sensing/actuating locations are physical-realization objects; DEXPI itself separates `Core.ConceptualModel` from `Core.Diagram` (labels, `ShapeUsage`, `PipingNodePosition`, `PlantMetaData`), corroborating ADR-0003. Outcome: the existing `Port`/`Connection` invariants are **confirmed, not replaced**; `Port` is a documented collapse of `Nozzle` + `PipingNode`; a distinct piping-realization layer and an instrumentation layer are recognized as future work needing their own evidence; Plant/P&ID import stays unimplemented and fail-closed; the next physical-model decision is bounded to a specification/decision slice against the official reference fragment |
+| Specify the physical-piping realization layer | Documentation-only decision slice ([docs/physical-piping-model.md](physical-piping-model.md), [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md)): engineering requirements grouped as first-slice / likely-future / not-justified; three candidate models compared (line-over-topology, line + segment + realization, independent piping graph) plus the rejected `Connection`-widening variant; selected shape is `PipingModel` (`PlantModel.piping`) owning `PipingLine` -> `PipingSegment` -> `PipingRealization` referencing identified `Connection`s; `PipingLine` (`id`, optional `line_number`/`name`), `PipingSegment` (owner-local canonical `id`, optional human/external `segment_number` mapped from DEXPI `SegmentNumber`, DN/piping-class/fluid-code property boundary), and `PipingRealization.kind` (closed `pipe | direct`, default `pipe`, invalid values fail validation; no canonical `Pipe`/`DirectPipingConnection` class); DEXPI XML `Object@id` and `SegmentNumber` never become canonical identity automatically; first-slice segment boundaries align with `Connection` boundaries and mid-connection `PropertyBreak` semantics are explicitly deferred; `Connection` stays topology only and gains canonical identity (`Connection.id` required, non-empty, plant-unique, documented pre-1.0 breaking change); C1 plus P1–P5 are defined, with P4 a deliberately conservative first-slice 1:1 invariant; inline components stay `Equipment`; `Port` stays the endpoint (no `Nozzle`/`PipingNode`); branches are items with named ports plus ordinary `Connection`s; Git-diff behaviour, engineering-rule, DEXPI adapter, and P&ID rendering implications documented. No model, fixture, adapter, test, or dependency change — the layer itself is not implemented and Process ↔ physical realization stays undecided |
 
 ### Backlog (Suggested Order)
 
@@ -203,12 +232,15 @@ functions from presentation symbol roles (see Completed), and the DEXPI
 Plant/P&ID semantic-mapping spike (see Completed;
 [docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010)
 established the Plant/P&ID semantic boundary from official model + instance
-evidence without changing the canonical model. The backlog rows below are the
+evidence without changing the canonical model, and the physical-piping
+specification/decision slice (see Completed;
+[docs/physical-piping-model.md](physical-piping-model.md), ADR-0011) decided the
+canonical piping shape without implementing it. The backlog rows below are the
 evidence-driven candidates for the next slice.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Specify the physical-piping realization layer against official DEXPI evidence (decision slice, no code) | The DEXPI Plant/P&ID spike ([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) bounded this question: piping-line identity (`PipingNetworkSystem.LineNumber`), segment identity (`PipingNetworkSegment.SegmentNumber`), elementary `Pipe` pieces, item-vs-node endpoints, and piping-class/fluid-code/nominal-diameter data are real, present in the official DEXPI Reference P&ID instance, and cannot live on `Connection`. Next step is a specification/decision slice against that concrete official fragment — no new class, no model change, no fixture — before any piping-realization vertical slice is implemented |
+| 1 | Implement the piping container + elementary realization layer (vertical slice) | ADR-0011 / [docs/physical-piping-model.md](physical-piping-model.md) name this as the smallest executable slice of the decided shape: `PipingModel` (`PlantModel.piping`) with `PipingLine` -> `PipingSegment` -> `PipingRealization`, optional `segment_number` handling consistent with ADR-0011, a required non-empty plant-unique `Connection.id` (documented pre-1.0 breaking change to authored YAML, examples, and tests), YAML load/save round-trip, C1 plus P1–P5 with negative tests (including missing/blank/duplicate connection ids), closed-kind validation (`pipe | direct` only), the documented property-break limitation, and the realistic fragment realizing `P-101 → FV-101 → E-101` as a pipe-realized line plus one `kind: direct` realization. Excludes the rule engine, DEXPI Plant import/export, P&ID rendering, Process ↔ physical mapping, `Nozzle`, a canonical `Pipe`, `PipingComponent`, insulation/tracing attributes, and `PropertyBreak` semantics |
 | 2 | Expand the DEXPI Process subset (evidence-driven) | Independent alternative needing no physical-model change: re-open from fresh evidence now that ADR-0009 gave canonical engineering functions; candidates include material-port-only `pumping` reverse round-trip (proven) and `ExchangingThermalEnergy` / `StoringMaterial` storage classes, each needing its own semantic review against a real instance before any mapping claim |
 | 3 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, persistent view/presentation configuration, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
 
@@ -237,24 +269,35 @@ ships the `basic` process/PFD pack, and the basic headless read-only process
 renderer now derives the standalone PFD diagram from the example
 ([examples/realistic-process-fragment/process.svg](../examples/realistic-process-fragment/process.svg)).
 The milestone's remaining breadth (P&ID-like coverage and an engineering-rule
-validation engine with several consistency-error classes) is still open.
+validation engine with several consistency-error classes) is still open. The
+physical-piping specification slice
+([docs/physical-piping-model.md](physical-piping-model.md), ADR-0011) is a
+decision record: it completes no milestone item, because the piping layer it
+decides is still unimplemented.
 
 ### Next Task
 
-The next task is **specifying the physical-piping realization layer against
-official DEXPI evidence** (backlog row 1) — a documentation/decision slice with
-no code, no model change, and no fixture. This follows from the current
-repository state and evidence: the DEXPI Plant/P&ID semantic-mapping spike
-([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) proved
-that piping-line identity (`PipingNetworkSystem.LineNumber`), segment identity
-(`PipingNetworkSegment.SegmentNumber`), elementary `Pipe` pieces, item-vs-node
-endpoints, and piping-class/fluid-code/nominal-diameter data are real and present
-in the official DEXPI Reference P&ID instance, that none of them can live on
-`Connection`, and that the current `Port`/`Connection` invariants should be
-**kept** rather than widened. The spike also bounded the work: the next step is a
-decision record against that concrete official fragment, not an implementation.
-That slice answers *what is the physical piping graph?*; it does not decide how
-`ProcessStep` maps to equipment or how `ProcessStream` maps to piping
+The next task is **implementing the piping container and the elementary
+realization layer** (backlog row 1) as the smallest executable vertical slice of
+the shape decided by ADR-0011: `PipingModel` (`PlantModel.piping`) owning
+`PipingLine` -> `PipingSegment` -> `PipingRealization`, optional
+`segment_number`, a required non-empty plant-unique `Connection.id`, YAML
+load/save round-trip, C1 plus structural rules P1–P5 with negative tests
+(including missing/blank/duplicate connection ids), closed `kind: pipe | direct`
+validation, the documented property-break limitation, and the realistic fragment
+realizing `P-101 → FV-101 → E-101` as a pipe-realized line plus one `kind: direct`
+realization.
+
+This follows from the current repository state and evidence: the DEXPI
+Plant/P&ID spike ([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md),
+ADR-0010) bounded the question and kept the `Port`/`Connection` invariants, and
+the physical-piping specification/decision slice
+([docs/physical-piping-model.md](physical-piping-model.md), ADR-0011) answered
+*what is the physical piping graph?* by comparing three candidate shapes. The
+question is decided, so the next evidence-producing step is executable: the
+semantic model must meet the realistic fragment before any rule engine, adapter,
+or rendering work is added. The slice answers the physical side only; it does not
+decide how `ProcessStep` maps to equipment or how `ProcessStream` maps to piping
 realization.
 The independent alternative remains backlog row 2 (expanding the DEXPI Process
 subset from fresh evidence), which needs no physical-model change; renderer
@@ -264,8 +307,10 @@ material data libraries remain the open canonical gaps.
 The remaining physical-model work is split into two independent questions:
 
 1. **Physical-piping realization:** pipe / segment / line / node / component
-   representation. This semantic boundary is now substantially bounded by the
-   DEXPI Plant/P&ID spike.
+   representation. This is now decided at the canonical-model level
+   (`PipingLine` / `PipingSegment` / `PipingRealization` over `Port` and
+   `Connection`); what remains is the implementation slice named above, not
+   another decision.
 2. **Process ↔ physical realization:** mapping between `ProcessStep` /
    `ProcessStream` and physical realization. Its shape and cardinality remain
    unresolved and must not be smuggled into a piping layer or `Connection`.
@@ -332,8 +377,9 @@ capability stage: the Stage 1 exit signal below has now been exercised on the
 documented realistic fragment encoded as a loadable synthetic example
 ([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
 through the production models. Two independent physical-model questions remain
-open: the **physical-piping realization** question, now substantially bounded by
-the DEXPI Plant/P&ID spike; and the **process ↔ physical realization** mapping
+open: the **physical-piping realization** question, now decided at the
+canonical-model level by ADR-0011 but not implemented; and the
+**process ↔ physical realization** mapping
 (`ProcessStep` ↔ equipment, `ProcessStream` ↔ piping realization), whose shape
 and cardinality are still unresolved. The fragment exposed both but required
 neither — no new schema was needed to represent the fragment.
@@ -352,8 +398,8 @@ Open questions (deliberately unresolved here) — all on the physical-realizatio
 side; `ProcessStream` itself is decided as the process-layer directed edge,
 distinct from `Connection`:
 
-- physical piping representation — structure substantially bounded by the DEXPI
-  Plant/P&ID spike (ADR-0010); no canonical layer exists yet
+- physical piping representation — decided by ADR-0011 (line / segment /
+  realization over `Port` + `Connection`); no canonical layer is implemented yet
 - process ↔ physical realization: `ProcessStep` ↔ equipment and `ProcessStream`
   ↔ piping realization, including the mapping's shape and cardinality
 - equipment nozzles
@@ -458,6 +504,7 @@ Concrete examples:
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
 - the physical-piping realization question and the separate process ↔ physical
   realization question do not justify attaching pipe or process-stream semantics
-  to `Connection` now
+  to `Connection` now — and the decided piping layer (ADR-0011) honours that by
+  referencing identified connections instead of widening `Connection`
 
 Think broadly about the destination. Build narrowly in the current iteration.

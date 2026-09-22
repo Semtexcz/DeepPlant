@@ -292,7 +292,12 @@ justify it:
   abstraction, `Connection` remains directed topology only, and piping
   realization plus instrumentation are recognized as separate future layers.
   Process↔physical realization remains a separate unresolved boundary — see
-  [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) and ADR-0010
+  [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) and ADR-0010. The piping
+  side of that boundary is now specified by
+  [physical-piping-model.md](physical-piping-model.md) and ADR-0011 (still
+  unimplemented): `PipingLine` / `PipingSegment` / `PipingRealization` reference
+  identified `Connection`s, so `Connection` keeps its property-free topology
+  meaning and gains only canonical identity
 - interactive editor
 - engineering rules / validation engine
 - safety (HAZOP / SIS) concepts
@@ -310,6 +315,7 @@ justify it:
 - [standards.md](standards.md)
 - [dexpi-process-spike.md](dexpi-process-spike.md)
 - [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md)
+- [physical-piping-model.md](physical-piping-model.md)
 - [workflow.md](workflow.md)
 - [quality.md](quality.md)
 - [decisions/index.md](decisions/index.md)
