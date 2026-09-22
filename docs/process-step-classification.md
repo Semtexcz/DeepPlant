@@ -240,7 +240,7 @@ Source: `src/model/Process/Process/Process.py`, `V2.0.0`, release commit
 | 9 | `DrivingByTurbine` | `TurbineDriveMethod` | **1..1** (mandatory) | `Unspecified`, `WindTurbine`, `WaterTurbine`, `Expander` |
 
 Distinct `Method` property declarations: **9**. Distinct enumeration types:
-**6**. The three thermal classes share one enumeration; every other class has
+**7**. The three thermal classes share one enumeration; every other class has
 its own.
 
 Only two of the nine property declarations carry an authoritative DEXPI
@@ -601,15 +601,16 @@ function is:
 | `source` | No — `Source` declares no `Method` | No second classification exists to consider |
 | `sink` | No — `Sink` declares no `Method` | same |
 | `splitting_material` | No — `SplittingMaterial` declares no `Method` | same |
-| `mixing` | No `Mixing.Method`; DEXPI expresses the variant by **subclass** (`RotaryMixing`, `StaticMixing`) | Only via DEXPI class identity, which is realization, not a DeepPlant classification |
-| `pumping` | Yes — `Pumping.Method`, `0..1`, `PumpingMethod` | The values are machine kinds/mechanisms (realization); no process-function value |
-| `heat_exchange` | Yes — `ExchangingThermalEnergy.Method` `1..1`, `RemovingThermalEnergy.Method` `1..1`, `SupplyingThermalEnergy.Method` `0..1`, all `HeatExchangeMethod` | The values are exchanger construction geometry (realization); no process-function value |
+| `mixing` | No `Mixing.Method`; DEXPI expresses the variant by **subclass** (`RotaryMixing`, `StaticMixing`) | Only via DEXPI class identity, which overlaps realization rather than naming a DeepPlant classification |
+| `pumping` | Yes — `Pumping.Method`, `0..1`, `PumpingMethod` | The values are machine kinds/mechanisms that substantially overlap realization; no process-function value |
+| `heat_exchange` | Yes — `ExchangingThermalEnergy.Method` `1..1`, `RemovingThermalEnergy.Method` `1..1`, `SupplyingThermalEnergy.Method` `0..1`, all `HeatExchangeMethod` | The values are exchanger construction geometry that substantially overlaps realization; no process-function value |
 | `unspecified` | No DEXPI counterpart | out of scope |
 
 This confirms the "a generic canonical field is probably not justified" test: a
 second classification is meaningful for only **two** of the seven documented
-functions, and in both cases what it would carry is physical realization rather
-than engineering function.
+functions, and in both cases the candidate values substantially overlap
+physical realization rather than expressing an equipment-independent process
+principle.
 
 ## 8. Candidate designs compared
 
@@ -631,9 +632,10 @@ DEXPI `Method` remains adapter-unsupported where it is required.
   (ADR-0009 unchanged and not weakened).
 - No field is added without a consumer, a DeepPlant-native value domain, or an
   authoring workflow (§7.2, §7.3).
-- Physical realization stays where DeepPlant already decided it belongs
-  (ADR-0009 deferred realization; ADR-0011 owns the physical layer), instead of
-  being duplicated into the process model as DEXPI duplicates it.
+- The process model does not absorb a heterogeneous DEXPI vocabulary merely
+  because part of it overlaps physical realization; realization stays with the
+  layer ADR-0009 deferred and ADR-0011 owns, and any future ownership there
+  remains evidence-backed.
 - Failure remains explicit and honest: a required-but-unrepresentable DEXPI
   value still raises a named error rather than being silently dropped or
   invented, which is the behaviour the existing adapter already implements and
@@ -647,9 +649,12 @@ DEXPI `Method` remains adapter-unsupported where it is required.
   represented.
 - No DEXPI round-trip is claimed for those classes.
 - Information loss is real for pure DEXPI interchange. This is accepted because
-  the lost information is physical-realization data that DeepPlant does not own
-  yet at all — recording it in the process model would put it in the wrong
-  layer, not merely in a lower-fidelity place.
+  the `Method` vocabulary is heterogeneous: many values substantially overlap
+  physical-realization / equipment-technology semantics, while others are
+  function-specific mechanism/principle labels. DeepPlant has no honest generic
+  canonical home for the whole set today, so recording it in `ProcessStep`
+  would misstate the process statement rather than merely store it at lower
+  fidelity.
 
 ### 8.2 Candidate B — generic second classification
 
@@ -663,7 +668,7 @@ ProcessStep
 across different functions here, and the failure is demonstrated, not
 theoretical:
 
-- The DEXPI evidence provides **six** enumerations with overlapping but
+- The DEXPI evidence provides **seven** enumeration types with overlapping but
   non-identical literal sets (§4.2). A single canonical namespace would have to
   union `Plate`/`Spiral`/`Tubular` with `Fan`/`Blower`/`Ejector` with
   `PositiveDisplacement` with `OttoCycle` with `AlternatingCurrent` with
@@ -841,8 +846,10 @@ than re-reading the same enumerations:
 1. **A DeepPlant-native authoring need appears.** A real, realistic DeepPlant
    example fragment — authored as YAML, with no DEXPI file in the loop — needs
    to state a *process-level* distinction that `ProcessStep.function` genuinely
-   cannot express. Test applied: the value must not be an equipment technology,
-   a mechanism, a parameter, or a presentation role.
+   cannot express. Test applied: the distinction must not merely restate an
+   equipment mechanism or physical-realization choice; a genuine
+   equipment-independent process principle with a DeepPlant-native consumer
+   remains valid revisit evidence.
 2. **Simulation, calculation, engineering rules, or design workflows require a
    function-specific process principle independent of equipment realization.**
    This must demonstrate a DeepPlant-native consumer, not merely DEXPI naming.
@@ -912,8 +919,9 @@ sources listed in §3.1, under CC BY 4.0 attribution.
 - **Why this follows from the current repository state:** three earlier DEXPI
   slices and Issue #22 converged on the same two model-level blockers from
   different directions. This slice demonstrates that the classification half is
-  not a real canonical concept — the values are heterogeneous and dominantly
-  physical-realization semantics — so no model growth is warranted there and no
+  not a real canonical concept — the `Method` vocabulary is heterogeneous and
+  only partially overlaps physical-realization semantics — so no model growth is
+  warranted there and no
   further per-class adapter probing on `Method` can produce progress. The only
   remaining model-level blocker of that pair is the quantity representation.
   Do not mechanically promote a backlog row.

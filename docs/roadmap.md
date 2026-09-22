@@ -275,7 +275,7 @@ the next slice.
 
 | # | Item | Note |
 |---|---|---|
-| 1 | Expand the DEXPI Process subset (evidence-driven) | Independent alternative needing no physical-model change: re-open from fresh evidence now that ADR-0009 gave canonical engineering functions; candidates include material-port-only `pumping` reverse round-trip (proven) and `StoringMaterial` storage classes, each needing its own semantic review against a real instance before any mapping claim. **Partially advanced by Issue #22:** the `ExchangingThermalEnergy` candidate was investigated in full and resolved as an explicit documented + test-pinned unsupported status — canonical `heat_exchange` corresponds to the DEXPI class only as a process-function *kind*, and import/export/round-trip are not claimed because the blockers (`Method: HeatExchangeMethod` mandatory, coupled multi-stream semantics, no port kind, no energy-flow connection kind, no qualified-quantity model) are **model-level and shared with the rest of the DEXPI ProcessStep family** rather than specific to thermal steps; see [docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md). **Partially advanced again by Issue #31:** the `Method` blocker was decided and is now closed as a canonical-model question — the nine DEXPI `Method` properties are heterogeneous and dominantly physical-realization semantics, `ProcessStep` keeps exactly one classification axis, and the properties stay adapter-unsupported where DEXPI requires them (see Completed; [ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md)). Of the remaining blockers, `StoringMaterial` (Issue #21) is its own separate evidence slice and qualified engineering quantities are the outstanding model-level decision; neither is authorized here |
+| 1 | Expand the DEXPI Process subset (evidence-driven) | Independent alternative needing no physical-model change: re-open from fresh evidence now that ADR-0009 gave canonical engineering functions; candidates include material-port-only `pumping` reverse round-trip (proven) and `StoringMaterial` storage classes, each needing its own semantic review against a real instance before any mapping claim. **Partially advanced by Issue #22:** the `ExchangingThermalEnergy` candidate was investigated in full and resolved as an explicit documented + test-pinned unsupported status — canonical `heat_exchange` corresponds to the DEXPI class only as a process-function *kind*, and import/export/round-trip are not claimed because the blockers (`Method: HeatExchangeMethod` mandatory, coupled multi-stream semantics, no port kind, no energy-flow connection kind, no qualified-quantity model) are **model-level and shared with the rest of the DEXPI ProcessStep family** rather than specific to thermal steps; see [docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md). **Partially advanced again by Issue #31:** the `Method` blocker was decided and is now closed as a canonical-model question — the nine DEXPI `Method` properties are heterogeneous and only partially overlap physical-realization semantics, canonical `ProcessStep` currently keeps exactly one classification axis, and the properties stay adapter-unsupported where DEXPI requires them (see Completed; [ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md)). Of the remaining blockers, `StoringMaterial` (Issue #21) is its own separate evidence slice and qualified engineering quantities are the outstanding model-level decision; neither is authorized here |
 | 2 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, persistent view/presentation configuration, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
 
 ### Milestones
@@ -327,12 +327,16 @@ engineering data.
 The process-step classification decision slice is **complete** (Issue #31, see
 Completed; [docs/process-step-classification.md](process-step-classification.md),
 [ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md)): the
-official DEXPI 2.0.0 Process model's nine `Method` properties across six
-enumerations were inventoried in full, the same-name-versus-same-semantics
+official DEXPI 2.0.0 Process model's nine `Method` properties across seven
+enumeration types were inventoried in full, the same-name-versus-same-semantics
 question was answered against the evidence, and the result is **Outcome A** —
-their dominant semantic is physical realization / equipment technology, so no
-second canonical classification exists and `ProcessStep` keeps exactly one
-classification axis. No model, adapter, example, or test changed.
+the vocabulary is heterogeneous, with many values substantially overlapping
+physical-realization / equipment-technology semantics and others expressing
+function-specific mechanism/principle labels, so no generic second canonical
+classification is justified and canonical `ProcessStep` currently keeps exactly
+one classification axis. Candidate D is a plausible future home for the
+overlapping subset only, and is not implemented. No model, adapter, example, or
+test changed.
 
 No single next task is promoted here. The next choice is deliberately left to
 the later review this document's planning governance requires, because this

@@ -61,8 +61,9 @@ It does **not** answer how a `ProcessStep` maps to a physical realization.
   `principle`/`variant`/`method` string with a shared value namespace.
 - **C — function-specific semantic details:** a function-scoped `details`
   structure.
-- **D — realization-layer concept:** the values belong outside `ProcessStep`
-  entirely, at the physical-realization layer.
+- **D — realization-layer concept:** the subset of values that overlaps
+  physical realization belongs outside `ProcessStep`, at the physical-realization
+  layer; candidate D does not claim ownership of every `Method` literal.
 
 Candidate analysis, the layer separation, the DeepPlant-authoring test, and the
 rejected shortcuts are in
@@ -164,7 +165,10 @@ rejected shortcuts are in
 ## Revisit When
 
 - A DeepPlant-native (non-DEXPI) authoring need requires a *process-level*
-  distinction `ProcessStep.function` cannot express.
+  distinction `ProcessStep.function` cannot express, and the distinction does not
+  merely restate an equipment mechanism or physical-realization choice; a
+  genuine equipment-independent process principle with a DeepPlant-native
+  consumer remains valid revisit evidence.
 - Simulation, calculation, engineering rules, or design workflows need a
   function-specific process principle independent of equipment realization.
 - The physical-realization layer is designed and new evidence establishes an
