@@ -1026,9 +1026,14 @@ In smallest order:
    and a loadable example extending `examples/realistic-process-fragment/`
    **without** changing `Connection` semantics.
 3. **Independent, lower-risk alternative if piping is not prioritized:** expand
-   the existing DEXPI **Process** subset from fresh evidence (for example
-   `ExchangingThermalEnergy` or the `StoringMaterial` storage classes), which
-   needs no physical-model change and reuses the existing adapter boundary.
+   the existing DEXPI **Process** subset from fresh evidence (for example the
+   `StoringMaterial` storage classes), which needs no physical-model change and
+   reuses the existing adapter boundary. The `ExchangingThermalEnergy` example
+   this spike listed has since been investigated by Issue #22 and resolved as an
+   explicit unsupported status
+   ([docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)):
+   its blockers are model-level and shared with the rest of the DEXPI ProcessStep
+   family, so it is no longer a candidate for a narrow per-class slice.
 
 Explicitly **not** recommended by this spike: adding `Nozzle`, `PipingNode`,
 `Pipeline`, `Instrument`, or signal classes to the canonical model; widening
