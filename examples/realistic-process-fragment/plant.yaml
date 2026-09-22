@@ -5,13 +5,13 @@ plant:
 # Physical / bootstrap layer.
 #
 # Equipment inventory with a few Connections that represent only directly
-# known physical adjacency. This is NOT a physical piping model and the graph
-# is intentionally incomplete, not approximately continuous: the mixing tee
-# (fresh feed + recycle into P-101.suction), the splitting tee after E-101,
-# and the recycle piping are not modeled, so physical continuity is broken at
-# those points. DeepPlant does not invent direct Connections across omitted
-# physical realization. Physical edges imply no mapping to the process layer
-# below.
+# known physical adjacency: each Connection carries a stable canonical id
+# (C1 / ADR-0011). The physical graph is still intentionally incomplete, not
+# approximately continuous: the mixing tee (fresh feed + recycle into
+# P-101.suction), the splitting tee after E-101, and the recycle piping are
+# not modeled, so physical continuity is broken at those points. DeepPlant
+# does not invent direct Connections across omitted physical realization.
+# Physical edges imply no mapping to the process layer below.
 
 equipment:
   - id: T-101
@@ -49,19 +49,43 @@ equipment:
       - id: recycle_outlet
 
 connections:
-  - source:
+  - id: C-001
+    source:
       component: P-101
       port: discharge
     target:
       component: FV-101
       port: inlet
 
-  - source:
+  - id: C-002
+    source:
       component: FV-101
       port: outlet
     target:
       component: E-101
       port: process_inlet
+
+# Piping layer (ADR-0011): the elementary realization of physical adjacency.
+#
+# Only the one physical run the fragment actually evidences is realized: the
+# pump discharge run through FV-101 to the exchanger process inlet. Both
+# Connections of that run are grouped into one piping line with one property
+# boundary, and both are pipe-realized (the default kind). The fragment
+# provides no evidence for a direct, pipe-less adjacency, so no realization is
+# marked `kind: direct` here; that kind is exercised by focused tests with an
+# explicitly synthetic direct adjacency.
+#
+# Deliberately absent: line_number, segment_number, nominal_diameter,
+# piping_class, and fluid_code. The fragment carries no engineering evidence
+# for them, so DeepPlant does not invent values.
+piping:
+  lines:
+    - id: PL-P101-DISCHARGE
+      segments:
+        - id: SEG-1
+          realizations:
+            - connection: C-001
+            - connection: C-002
 
 # Process layer: the documented PFD fragment.
 #

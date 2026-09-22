@@ -19,9 +19,15 @@ update_when:
 > [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md).**
 > This document is the specification/decision deliverable of Issue #24.
 >
-> Implementation status: **nothing is implemented by this document.** No
-> `src/`, `tests/`, or `examples/` change, no new fixture, no adapter, no
-> dependency. The current semantic model still has no piping layer.
+> Implementation status: **the first vertical slice of this shape is
+> implemented** (Issue #26): `Connection.id` (C1), `PlantModel.piping`,
+> `PipingModel`, `PipingLine`, `PipingSegment`, `PipingRealization`, the closed
+> `kind: pipe | direct` vocabulary with `pipe` as the default, structural rules
+> P1–P5 with C1, YAML load/save semantic round-trip, the realistic fragment's
+> `P-101 → FV-101 → E-101` run realized as a pipe-realized line, and focused
+> executable tests (including a synthetic `kind: direct` case). Everything
+> marked *deferred* below is still unimplemented, and no DEXPI Plant adapter,
+> P&ID rendering, rule engine, or process ↔ physical mapping was added.
 
 > Scope: this document answers **what is the physical piping graph?** It does
 > **not** answer how `ProcessStep` maps to `Equipment` or how `ProcessStream`
@@ -377,6 +383,13 @@ may be relaxed only through a later evidence-backed ADR change. These are **not*
 engineering rules: DN continuity, reducer requirements, and line-number
 consistency are rule-engine concerns described below.
 
+Implemented placement (Issue #26), narrowest-first: C1 required/non-empty is a
+field type on `Connection`, C1 uniqueness lives on `PlantModel`, P5 lives on
+`PipingSegment`, P2 on `PipingLine`, P1 and P4 on `PipingModel` (P4 needs only
+piping context and spans lines and segments), and P3 on `PlantModel` because
+resolution needs the physical connections. Error messages name the offending
+segment, line, or realization deterministically.
+
 ### First-slice property-boundary limitation
 
 A first-slice segment boundary must coincide with an existing canonical
@@ -406,8 +419,13 @@ A required, plant-unique `Connection.id` is a **pre-1.0 breaking change** to
 authored YAML (existing examples and fixtures must add ids). It is still the
 smallest change that satisfies R4 and R7: it adds identity only, no engineering
 property and no piping semantics, and it lets validation messages and code
-review name a specific connection instead of `connections[0]`. The exact field
-rules belong to the implementation slice named below.
+review name a specific connection instead of `connections[0]`.
+
+Implemented field rules (Issue #26): `id` is required and uses the canonical
+non-empty semantic-string contract (`strip_whitespace`, `min_length=1`), so a
+missing, empty, or whitespace-only value fails validation, and duplicate ids
+within one `PlantModel` are rejected by an explicit `PlantModel` validator whose
+error lists the duplicated ids in sorted order. No other field was added.
 
 `Connection` remains:
 
@@ -488,9 +506,12 @@ is a reportable spare).
 
 The committed fixture
 ([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
-already contains the required physical chain. The YAML below is **illustrative
-of the decided canonical shape** (it is not yet loadable: `Connection.id` and
-the `piping` section do not exist on `main`).
+now contains the required physical chain **and** its pipe realization, so
+`Connection.id` and the `piping` section are loadable (Issue #26). The YAML
+below illustrates the decided shape with *example* engineering values
+(`line_number`, DN80, A1A, fluid P); the committed fixture deliberately authors
+no `line_number`, `segment_number`, `nominal_diameter`, `piping_class`, or
+`fluid_code`, because the fragment carries no evidence for them.
 
 ### Linear case: `P-101 → FV-101 → E-101`
 
@@ -907,28 +928,35 @@ process <-> physical realization (see below)
 
 ## Unresolved questions
 
-1. **`Connection.id` field rules.** Required vs optional, uniqueness scope, and
-   guidance for authoring ids. Decided as *required and plant-unique* in
-   principle; the exact Pydantic rules belong to the implementation slice.
-2. **Default `kind: pipe`.** A default keeps YAML short but could silently
-   claim pipe realization. The current choice is a documented default; if
-   evidence shows rules need certainty, `kind` becomes explicit.
-3. **Open `kind` vocabulary.** Consistent with `ProcessStep.function`, but it
-   permits typos. Revisit if only the two evidenced values ever matter.
+1. **`Connection.id` field rules.** *Resolved and implemented (Issue #26):*
+   required, non-empty (canonical semantic-string contract), plant-unique, and
+   authored — never generated from list position. Missing, blank,
+   whitespace-only, and duplicate ids all fail validation.
+2. **Default `kind: pipe`.** Implemented as documented: authoring a realization
+   states that the adjacency has a physical realization, and the default records
+   the overwhelmingly common pipe case. If rules later need certainty, `kind`
+   becomes explicit — an ADR-level change, not a silent one.
+3. **`kind` vocabulary.** *Resolved by ADR-0011 and implemented as a closed
+   vocabulary:* `pipe | direct` only. It is deliberately **not** open like
+   `ProcessStep.function`, because a typo in a realization kind would silently
+   misstate physical reality. Widening it requires evidence and an ADR change.
 4. **Segment maximality.** Adjacent segments with identical properties are
    allowed and not flagged; whether they should be merged is an engineering
    rule question, not a structural one.
 5. **Realization cardinality.** `1:1` (one realization per connection) is the
-   first-slice assumption. `1:N` (parallel/as-built realizations) is unresolved
-   and deliberately deferred (F5).
+   implemented first-slice invariant (P4). `1:N` (parallel/as-built
+   realizations) is unresolved and deliberately deferred (F5).
 6. **Line-level property defaults.** DEXPI carries templates at both system and
    segment level; DeepPlant keeps properties segment-local until evidence
    requires inheritance (F1).
 7. **Branch-item identity.** Whether a tee/junction deserves a canonical kind
    distinct from `Equipment` is deferred (F6) with the stated trigger.
-8. **`PipingModel` validation ownership.** Cross-layer validation (P3/P4) needs
-   an explicit owner; today the closest precedent is `PlantModel`'s existing
-   reference validation over `Equipment`/`Port`.
+8. **`PipingModel` validation ownership.** *Resolved and implemented (Issue
+   #26):* the rules that need only piping context (P1, P4) live on
+   `PipingModel`, the owner-local and self-contained rules (P2, P5) live on
+   `PipingLine`/`PipingSegment`, and the cross-layer rules (C1 uniqueness, P3
+   resolution) live on `PlantModel`, following its existing reference-validation
+   precedent.
 9. **DEXPI `Port.id` derivation** from `Nozzle` + `PipingNode` identity —
    carried forward unresolved from ADR-0010, now also relevant to realization
    endpoints.
@@ -953,35 +981,40 @@ physical reality, not about which process function motivated it. DEXPI `V2.0.0`
 establishes no such mapping and no cardinality (spike §10/§12), so inventing one
 here would be unbacked design.
 
-## Recommended first implementation slice
+## First implementation slice (implemented)
 
-Exactly one next slice is recommended, and it is **not** implemented here:
+That slice is now **implemented** (Issue #26), with one honest deviation from the
+original wording: the realistic fragment realizes `P-101 → FV-101 → E-101` as a
+pipe-realized line, while `kind: direct` is proven by a **focused synthetic
+executable test** instead of being asserted in the fragment, because the
+fragment provides no evidence that either adjacency is pipe-less.
 
-> **Add the piping container and the elementary realization layer as a small
-> vertical slice with executable tests:** `PipingModel` with
-> `PipingLine` → `PipingSegment` → `PipingRealization`, a required plant-unique
-> `Connection.id`, `PlantModel.piping`, YAML load/save round-trip, structural
-> rules P1–P5, and an extension of the realistic fragment example that realizes
-> `P-101 → FV-101 → E-101` as a pipe-realized line plus at least one
-> `kind: direct` realization.
+> **Implemented:** `PipingModel` with `PipingLine` → `PipingSegment` →
+> `PipingRealization`, a required plant-unique `Connection.id`, YAML load/save
+> round-trip, and structural rules C1 and P1–P5, all with executable success and
+> failure coverage.
 
-Scope notes for that slice:
+Scope notes, as delivered:
 
-- It changes `Connection` by **identity only**; `Connection` stays property-free
-  topology. It must not widen `Connection` with piping properties.
-- It is a documented pre-1.0 breaking change: existing YAML (`examples/`),
-  fixtures, and tests that author connections gain ids.
-- It includes explicit C1 negative tests for a missing `Connection.id`, a blank
-  or whitespace-only `Connection.id`, and duplicate `Connection.id` values
-  within `PlantModel`; it also includes tests for P1–P5 (including the negative
-  cases: duplicate realization, dangling connection reference, empty segment)
-  and for the round-trip.
-- It excludes: DEXPI Plant import/export, any rule engine, P&ID rendering,
-  process↔physical mapping, `Nozzle`, `Pipe`, `PipingComponent`, a tee class,
-  and insulation/tracing attributes.
-- If the slice finds that P4 (one realization per connection) or the `kind`
-  default is wrong in practice, that is evidence for revisiting ADR-0011 rather
-  than silently widening the layer.
+- `Connection` changed by **identity only**; it stayed property-free topology
+  and was not widened with piping properties (a test asserts its field set).
+- The documented pre-1.0 breaking change was applied: every authored
+  `Connection` in `examples/`, tests, and fixtures carries a stable id.
+- C1 negative tests cover a missing, blank, and whitespace-only
+  `Connection.id`, plus duplicate ids within `PlantModel`; P1–P5 cover duplicate
+  line ids, duplicate segment ids per line, dangling connection references,
+  duplicated realization references, and empty segments; the round-trip covers
+  present and absent optionals, `kind` default and `direct`.
+- Excluded as planned: DEXPI Plant import/export, any rule engine, P&ID
+  rendering, process↔physical mapping, `Nozzle`, `Pipe`, `PipingComponent`, a
+  tee class, and insulation/tracing attributes.
+- P4 and the default `kind: pipe` proved usable against the realistic fragment
+  and the focused tests, so no ADR-0011 change was needed.
+
+What this leaves as the next factual gaps — recorded, not authorized: a
+concrete requirement for a property break that does not coincide with a
+`Connection` boundary (then `PropertyBreak` semantics), `1:N` realization
+cardinality, pipe-piece identity, and process ↔ physical realization.
 
 ## Related
 

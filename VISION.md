@@ -187,6 +187,10 @@ Only a subset exists today, in executable, evidence-producing vertical slices:
 - canonical `ProcessStep.function` semantics separated from presentation symbol
   roles (ADR-0009);
 - YAML semantic round-trip (`load_plant` / `save_plant`);
+- the physical piping-realization layer (`Connection.id`, `PipingModel` with
+  `PipingLine` → `PipingSegment` → `PipingRealization`, closed
+  `kind: pipe | direct`, structural rules C1 and P1–P5; ADR-0011) validated
+  against the realistic fragment;
 - a packaged `basic` process symbol pack and a headless read-only process SVG
   renderer;
 - a narrow DEXPI 2.0 Process import/export adapter spike

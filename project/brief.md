@@ -23,7 +23,10 @@ model that can be validated, versioned, diffed, reviewed, and rendered.
 
 This repository currently ships the project foundation plus semantic vertical
 slices: the minimal domain model (`PlantModel`, `Plant`, `Equipment`), the
-topology slice (`Port`, `Connection`, reference validation), the standalone
+topology slice (`Port`, identified `Connection`, reference validation), the
+physical piping-realization slice (`PipingModel` with `PipingLine` →
+`PipingSegment` → `PipingRealization` referencing identified `Connection`s;
+ADR-0011), the standalone
 process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]`),
 canonical `ProcessStep.function` engineering semantics separated from
 presentation symbol roles (ADR-0009; an explicitly resolved `symbol_role`
@@ -84,10 +87,21 @@ CLI, and receives a clear validation report for structural and reference errors
   strict unknown-field rejection extended to the new models; CLI reports
   equipment, port, and connection counts; runnable
   `examples/minimal-process/plant.yaml`.
-- Out of scope (so far): pipes/pipelines/streams/signal semantics and their
-  canonical representation, `Pipeline`, `Instrument`, full tag naming standards,
-  fixed equipment taxonomy, YAML save, rendering, DEXPI, interactive editor,
-  simulators, databases, ORMs, network services, and container runtimes.
+- In scope (physical piping-realization slice, ADR-0011): required non-empty
+  plant-unique `Connection.id`; optional `PlantModel.piping` owning
+  `PipingLine` → `PipingSegment` → `PipingRealization`; closed
+  `kind: pipe | direct` vocabulary defaulting to `pipe`; structural rules C1 and
+  P1–P5; YAML load/save semantic round-trip; the realistic fragment's evidenced
+  `P-101 → FV-101 → E-101` run realized as a pipe-realized line; focused
+  synthetic coverage for `kind: direct`.
+- Out of scope (so far): mid-connection property breaks (`PropertyBreak`),
+  a canonical `Pipe`/pipe-piece identity, `PipingComponent`, `Nozzle`/
+  `PipingNode`, line/segment numbering standards, typed engineering quantities
+  for DN/pressure/temperature, insulation/tracing/slope/test-circuit data,
+  process ↔ physical realization, instrumentation and signal semantics, and
+  `Pipeline`/`Instrument` as further concepts; rendering, DEXPI Plant
+  import/export, interactive editor, simulators, databases, ORMs, network
+  services, and container runtimes.
 
 ## Success Criteria
 
@@ -119,7 +133,11 @@ CLI, and receives a clear validation report for structural and reference errors
 ## Risks
 
 - Designing taxonomy, tag standards, or schema fields from habit instead of from
-  needed semantics. The next model growth (starting with the open
-  pipes/streams representation question) must be driven by real example
-  fragments.
+  needed semantics. Model growth (the next open questions are process ↔ physical
+  realization and the piping concepts ADR-0011 explicitly deferred) must be
+  driven by real example fragments.
+- Writing engineering values into examples to make a feature look complete. The
+  realistic fragment deliberately carries no DN, piping class, fluid code, line
+  number, or segment number, and it does not claim a `kind: direct` adjacency
+  merely to exercise the field.
 

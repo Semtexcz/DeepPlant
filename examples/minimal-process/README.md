@@ -25,7 +25,8 @@ equipment:
       - id: discharge
 
 connections:
-  - source:
+  - id: C-001
+    source:
       component: T-101
       port: outlet
     target:
