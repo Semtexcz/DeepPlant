@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--DeepPlant synthetic negative probe (Issue #22).
+
+    A conforming DEXPI 2.0.0 Process instance of Process/Process.ExchangingThermalEnergy.
+    It carries the class's mandatory Method (HeatExchangeMethod) plus the material
+    ports of both heat-transfer sides and a ThermalEnergyPort for the utility side.
+
+    The probe exists to prove that this class is explicitly unsupported:
+    DeepPlant has no canonical representation for the mandatory Method, for the
+    coupling of two or more material streams through one step, or for the
+    thermal-energy side. See docs/dexpi-exchanging-thermal-energy-evidence.md.
+
+    Like the other negative probes in this directory it deliberately declares no
+    ProcessConnections: the class-level rejection happens before reference
+    resolution.-->
+<Model name="DeepPlantExchangingThermalEnergyProbe" uri="https://example.org/deepplant/dexpi-2-exchanging-thermal-energy-probe">
+  <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
+  <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
+  <Object type="Core/EngineeringModel">
+    <Components property="ConceptualModel">
+      <Object id="ProcessModel1" type="Process/ProcessModel">
+        <Components property="ProcessSteps">
+          <Object id="Step_HX101" type="Process/Process.ExchangingThermalEnergy">
+            <Data property="Identifier"><String>HX-101</String></Data>
+            <Data property="Label"><String>Feed / Effluent Heat Exchange</String></Data>
+            <Data property="Method"><DataReference data="Process/Enumerations.HeatExchangeMethod.Generic"/></Data>
+            <Components property="Ports">
+              <Object id="Port_HX101_hot_in" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>hot_in</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_HX101_hot_out" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>hot_out</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+              <Object id="Port_HX101_cold_in" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>cold_in</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+              <Object id="Port_HX101_cold_out" type="Process/Process.MaterialPort">
+                <Data property="Identifier"><String>cold_out</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Outlet"/></Data>
+              </Object>
+              <Object id="Port_HX101_utility" type="Process/Process.ThermalEnergyPort">
+                <Data property="Identifier"><String>utility</String></Data>
+                <Data property="NominalDirection"><DataReference data="Process/Enumerations.PortDirection.Inlet"/></Data>
+              </Object>
+            </Components>
+          </Object>
+        </Components>
+      </Object>
+    </Components>
+  </Object>
+</Model>

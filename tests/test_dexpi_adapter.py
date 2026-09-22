@@ -480,6 +480,47 @@ def test_unsupported_process_step_class_fails_clearly() -> None:
     assert "R-101" in message
 
 
+def test_exchanging_thermal_energy_step_class_is_explicitly_unsupported() -> None:
+    """Issue #22: ExchangingThermalEnergy is explicitly unsupported, not mapped.
+
+    The probe is a conforming instance of the class (mandatory ``Method``,
+    material ports of both heat-transfer sides, and a ``ThermalEnergyPort``), so
+    this proves the adapter refuses the class itself and returns no partial
+    canonical model. See ``docs/dexpi-exchanging-thermal-energy-evidence.md``.
+    """
+    with pytest.raises(DexpiImportError) as exc_info:
+        _import_fixture("exchanging_thermal_energy.xml")
+    message = str(exc_info.value)
+    assert "unsupported DEXPI ProcessStep class" in message
+    assert "Process/Process.ExchangingThermalEnergy" in message
+    assert "HX-101" in message
+    # No function string is synthesised from the DEXPI class name: canonical
+    # `heat_exchange` stays DeepPlant-native and is not claimed to equal the
+    # DEXPI class.
+    assert "no generic class-name conversion is performed" in message
+    assert "heat_exchange" not in message
+
+
+def test_exchanging_thermal_energy_is_unsupported_without_its_properties() -> None:
+    """The class is unsupported structurally, not merely by a property allow-list.
+
+    Stripping every Data and Components child from the conforming instance must
+    still fail at the class level. A property-level rejection would be a much
+    weaker finding: it would mean the class could be mapped as soon as its
+    properties were dropped, which would silently discard the mandatory
+    ``Method`` DEXPI requires.
+    """
+    root = ET.fromstring(_read_fixture("exchanging_thermal_energy.xml"))
+    hx = _object_by_id(root, "Step_HX101")
+    assert hx.get("type") == "Process/Process.ExchangingThermalEnergy"
+    for child in list(hx):
+        hx.remove(child)
+
+    with pytest.raises(DexpiImportError, match="unsupported DEXPI ProcessStep class") as exc_info:
+        import_dexpi_process_xml(ET.tostring(root, encoding="unicode"))
+    assert "ExchangingThermalEnergy" in str(exc_info.value)
+
+
 def test_duplicate_imported_canonical_id_fails_clearly() -> None:
     with pytest.raises(DexpiImportError, match="duplicate imported canonical ProcessStep id"):
         _import_fixture("duplicate_identifier.xml")

@@ -138,10 +138,13 @@ _STEP_TYPE_MAP: dict[str, str] = {
 # material-port-only pumping steps (the energy-port / driver, ``Head``,
 # ``Method``, and ``VolumeFlow`` semantics DEXPI Pumping may carry are not owned
 # by DeepPlant and would be rejected explicitly if present). ``heat_exchange``
-# stays canonical-only (see docs/dexpi-process-spike.md): DEXPI
-# ``ExchangingThermalEnergy`` couples material flows through one step, which
-# canonical ``ProcessStep`` cannot express yet, so no automatic mapping is
-# claimed. ``unspecified`` and other non-mapped functions stay unexportable.
+# stays canonical-only (see docs/dexpi-exchanging-thermal-energy-evidence.md,
+# Issue #22): DEXPI ``ExchangingThermalEnergy`` couples two or more material
+# flows through one step, requires a mandatory ``Method: HeatExchangeMethod``,
+# and its utility side is a separate ``ThermalEnergyPort``/``ThermalEnergyFlow``
+# object, none of which canonical ``ProcessStep`` can express yet, so no
+# automatic mapping is claimed in either direction. ``unspecified`` and other
+# non-mapped functions stay unexportable.
 _REVERSE_STEP_TYPE_MAP: dict[str, str] = {
     "source": "Process/Process.Source",
     "sink": "Process/Process.Sink",

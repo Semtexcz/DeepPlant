@@ -15,6 +15,7 @@ Targeted DEXPI release: **V2.0.0** (DEXPI Specification 2.0.0, released
 | `information_flow.xml` | DeepPlant synthetic negative probe | `Process/Process.InformationFlow` class identifier from the official model | same | original; intentionally not a complete/valid process instance (diagnostic probe) | proves InformationFlow raises, never becomes `ProcessStream` |
 | `non_material_ports.xml` | DeepPlant synthetic negative probe | `Process/Process.ThermalEnergyPort`, `Process/Process.InformationPort` class identifiers from the official model | same | original; intentionally minimal (diagnostic probe) | proves non-material ports raise instead of mapping to `ProcessPort` |
 | `unsupported_process_step.xml` | DeepPlant synthetic negative probe | `Process/Process.ReactingChemicals` class identifier from the official model | same | original; intentionally minimal (diagnostic probe) | proves an out-of-subset ProcessStep class raises |
+| `exchanging_thermal_energy.xml` | DeepPlant synthetic negative probe | `Process/Process.ExchangingThermalEnergy`, `Process/Process.ThermalEnergyPort` class identifiers and the `HeatExchangeMethod` enumeration literals from the official model | same | original; intentionally minimal (diagnostic probe) | proves `ExchangingThermalEnergy` raises at the class level even though the probe carries that class's mandatory `Method` and its material/thermal ports (Issue #22, [docs/dexpi-exchanging-thermal-energy-evidence.md](../../../../docs/dexpi-exchanging-thermal-energy-evidence.md)) |
 | `unresolved_reference.xml` | DeepPlant synthetic negative probe | official DEXPI XML `References`/`#`-IDREF envelope | same | original; intentionally broken reference (diagnostic probe) | proves unresolved port references raise clearly |
 | `duplicate_identifier.xml` | DeepPlant synthetic negative probe | official `Identifier` data-property semantics | same | original; intentionally duplicated Identifier (diagnostic probe) | proves duplicate imported canonical ids raise |
 
@@ -36,7 +37,8 @@ Targeted DEXPI release: **V2.0.0** (DEXPI Specification 2.0.0, released
   - `src/model/Process/Process/Process.py` (Process classes used in the
     supported subset and the probe class identifiers)
   - `src/model/Process/Enumerations/process_enumerations.ods`
-    (`PortDirection` = `Inlet` / `Outlet`)
+    (`PortDirection` = `Inlet` / `Outlet`; `HeatExchangeMethod` = `Generic` /
+    `Plate` / `Spiral` / `Tubular`)
   - `src/documentation/basics/metamodel_and_exchange_format.rst` (DEXPI XML
     envelope: `Model`/`Import`/`Object`/`Components`/`Data`/`References`,
     `ID`/`IDREF` rules)
@@ -69,6 +71,17 @@ Targeted DEXPI release: **V2.0.0** (DEXPI Specification 2.0.0, released
    complete process instances.
 4. Retrieval date: 2026-09-09. DEXPI is evolving; DEXPI 2.0.1 was reported as
    "being prepared" (dexpi.org, 2026-08-25) and may change these identifiers.
-5. These fixtures reference DEXPI identifiers and model facts only; no
+5. `exchanging_thermal_energy.xml` was added by the Issue #22 evidence slice and
+   its DEXPI facts were re-verified on **2026-09-22** against the *same* pinned
+   release (`V2.0.0`, release commit
+   `260c81c51039789a6148a98af4c6caf23f87a3e2`; the annotated tag's target object
+   is `dc74c370645651b4a4f691c79723710657472c6d`). That slice additionally
+   inspected `src/model/Process/Process/Process.py` for
+   `Process/Process.ExchangingThermalEnergy`,
+   `Process/Process.ThermalEnergyPort`, `Process/Process.MaterialPort`, and the
+   `HeatExchangeMethod` literal set, and `src/model/Core/Core.py` for
+   `Core.ConceptualObject` / `Core.Role`. No DEXPI version mixing occurred: only
+   `V2.0.0` was used.
+6. These fixtures reference DEXPI identifiers and model facts only; no
    restricted ISO/ISA/IEC content is present, and no DEXPI normative text or
    graphics are reproduced.

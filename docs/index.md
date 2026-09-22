@@ -22,6 +22,7 @@ update_when:
 - SVG symbol and anchor contract: [svg-symbols.md](svg-symbols.md)
 - Headless process renderer: [rendering.md](rendering.md)
 - DEXPI 2.x Process adapter spike: [dexpi-process-spike.md](dexpi-process-spike.md)
+- DEXPI 2.x `ExchangingThermalEnergy` mapping evidence: [dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)
 - DEXPI 2.x Plant/P&ID semantic-mapping spike: [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md)
 - Physical piping model (specification): [physical-piping-model.md](physical-piping-model.md)
 - Decisions: [decisions/index.md](decisions/index.md)
