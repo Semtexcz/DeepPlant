@@ -483,10 +483,12 @@ def test_unsupported_process_step_class_fails_clearly() -> None:
 def test_exchanging_thermal_energy_step_class_is_explicitly_unsupported() -> None:
     """Issue #22: ExchangingThermalEnergy is explicitly unsupported, not mapped.
 
-    The probe is a conforming instance of the class (mandatory ``Method``,
-    material ports of both heat-transfer sides, and a ``ThermalEnergyPort``), so
-    this proves the adapter refuses the class itself and returns no partial
-    canonical model. See ``docs/dexpi-exchanging-thermal-energy-evidence.md``.
+    The DeepPlant-authored structural negative probe is shaped from the pinned
+    DEXPI 2.0.0 model definition (mandatory ``Method``, representative material
+    ports, and a ``ThermalEnergyPort``). It is intentionally incomplete as a full
+    DEXPI Process instance and exercises rejection before connection/reference
+    resolution, proving the adapter refuses the class itself and returns no
+    partial canonical model. See ``docs/dexpi-exchanging-thermal-energy-evidence.md``.
     """
     with pytest.raises(DexpiImportError) as exc_info:
         _import_fixture("exchanging_thermal_energy.xml")
@@ -504,7 +506,7 @@ def test_exchanging_thermal_energy_step_class_is_explicitly_unsupported() -> Non
 def test_exchanging_thermal_energy_is_unsupported_without_its_properties() -> None:
     """The class is unsupported structurally, not merely by a property allow-list.
 
-    Stripping every Data and Components child from the conforming instance must
+    Stripping every Data and Components child from the structural probe must
     still fail at the class level. A property-level rejection would be a much
     weaker finding: it would mean the class could be mapped as soon as its
     properties were dropped, which would silently discard the mandatory

@@ -34,6 +34,13 @@ update_when:
 > DEXPI class.
 >
 > The exact gap is recorded in §6, the smallest justified model change is
+> proposed — and deliberately **not authorized** — in §7, and the executable
+> guardrails that ship with this slice are in §8.
+>
+> This document deliberately does not force the "existing model is sufficient"
+> outcome. A DEXPI class name, a heat-exchanger symbol, and the existing
+> DeepPlant `function="heat_exchange"` value are three different things, and
+> none of them proves semantic equivalence.
 
 ## 1. Targeted DEXPI release (pinned)
 
@@ -112,15 +119,6 @@ substantial normative prose is copied, and no DEXPI content is vendored.
 pinned `V2.0.0` release. No DEXPI 1.x, Proteus-era, pyDEXPI, or 2.0.1-preview
 semantics is mixed in. Where a statement is DeepPlant's own engineering
 inference rather than an upstream fact, it is labelled as such.
-
-> proposed — and deliberately **not** authorized — in §7, and the executable
-> guardrails that ship with this slice are in §8.
->
-> This document deliberately does not force the "existing model is sufficient"
-> outcome. A DEXPI class name, a heat-exchanger symbol, and the existing
-> DeepPlant `function="heat_exchange"` value are three different things, and
-> none of them proves semantic equivalence.
-
 
 ## 2. Authoritative definition of `ExchangingThermalEnergy`
 
@@ -501,10 +499,11 @@ Per [workflow.md](workflow.md), an executable guardrail outranks a textual rule,
 this decision is pinned by tests rather than by prose alone:
 
 - `tests/fixtures/dexpi/2.0.0/exchanging_thermal_energy.xml` — a DeepPlant-authored
-  synthetic conformance probe containing a conforming `ExchangingThermalEnergy`
-  step (mandatory `Method`, two hot-side and two cold-side `MaterialPort`s, and a
-  `ThermalEnergyPort` for the utility side). It is a **negative** probe: it exists
-  to prove the class is rejected, not to be imported.
+  synthetic structural negative probe shaped from the pinned DEXPI 2.0.0 model
+  definition. It carries the class identifiers, mandatory `Method`, representative
+  material ports, and a `ThermalEnergyPort`. It is intentionally incomplete as a
+  full DEXPI Process instance: it exists only to exercise class-level fail-closed
+  behavior before connection/reference resolution, not to be imported.
 - `test_exchanging_thermal_energy_step_class_is_explicitly_unsupported` — proves
   import fails closed with the DEXPI class named and with no partial model
   returned, using a fixture that carries the class's real required semantics.

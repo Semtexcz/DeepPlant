@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--DeepPlant synthetic negative probe (Issue #22).
+<!--DeepPlant synthetic structural negative probe (Issue #22).
 
-    A conforming DEXPI 2.0.0 Process instance of Process/Process.ExchangingThermalEnergy.
-    It carries the class's mandatory Method (HeatExchangeMethod) plus the material
-    ports of both heat-transfer sides and a ThermalEnergyPort for the utility side.
+    The object uses the pinned DEXPI 2.0.0 class identifiers, mandatory
+    ExchangingThermalEnergy.Method, representative material ports, and a
+    ThermalEnergyPort.
 
-    The probe exists to prove that this class is explicitly unsupported:
+    It is intentionally incomplete as a full DEXPI Process instance: the probe
+    does not author the complete ProcessConnections / connector-reference graph.
+    It exists only to exercise class-level fail-closed behavior before
+    connection/reference resolution.
+
     DeepPlant has no canonical representation for the mandatory Method, for the
     coupling of two or more material streams through one step, or for the
-    thermal-energy side. See docs/dexpi-exchanging-thermal-energy-evidence.md.
-
-    Like the other negative probes in this directory it deliberately declares no
-    ProcessConnections: the class-level rejection happens before reference
-    resolution.-->
+    thermal-energy side. See docs/dexpi-exchanging-thermal-energy-evidence.md.-->
 <Model name="DeepPlantExchangingThermalEnergyProbe" uri="https://example.org/deepplant/dexpi-2-exchanging-thermal-energy-probe">
   <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
   <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>
