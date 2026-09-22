@@ -125,6 +125,19 @@ def test_duplicate_connection_id_error_is_deterministic() -> None:
         PlantModel.model_validate({**fields, "connections": connections})
 
 
+def test_repeated_duplicate_connection_id_is_reported_once_and_sorted() -> None:
+    """One id repeated more than twice is reported once, in sorted order."""
+    fields, _, _ = _physical()
+    endpoint = [("P-101", "discharge"), ("FV-101", "inlet")]
+    connections = [
+        _connection(id_, endpoint[0], endpoint[1])
+        for id_ in ("C-002", "C-001", "C-002", "C-001", "C-001")
+    ]
+
+    with pytest.raises(ValidationError, match="duplicate connection id\\(s\\): C-001, C-002"):
+        PlantModel.model_validate({**fields, "connections": connections})
+
+
 def test_realization_kind_defaults_to_pipe() -> None:
     realization = PipingRealization(connection="C-001")
 

@@ -10,6 +10,7 @@ Semantic input is fail-fast: models forbid unknown fields, and semantic strings
 such as ids and equipment types must be non-empty, non-whitespace values.
 """
 
+from collections.abc import Iterable
 from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
@@ -33,6 +34,24 @@ __all__ = [
 ]
 
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+
+
+def _find_duplicate_ids(ids: Iterable[str]) -> list[str]:
+    """Return every id that occurs more than once, once each and sorted.
+
+    Private helper only: each model keeps its own uniqueness rule, message, and
+    namespace, so duplicate-id validation stays a local domain statement.
+    """
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+
+    for id_ in ids:
+        if id_ in seen:
+            duplicates.add(id_)
+        else:
+            seen.add(id_)
+
+    return sorted(duplicates)
 
 
 class Plant(BaseModel):
@@ -73,15 +92,10 @@ class Equipment(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_port_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for port in self.ports:
-            if port.id in seen and port.id not in duplicates:
-                duplicates.append(port.id)
-            seen.add(port.id)
+        duplicates = _find_duplicate_ids(port.id for port in self.ports)
         if duplicates:
             raise ValueError(
-                f"equipment '{self.id}' has duplicate port id(s): {', '.join(sorted(duplicates))}"
+                f"equipment '{self.id}' has duplicate port id(s): {', '.join(duplicates)}"
             )
         return self
 
@@ -220,16 +234,10 @@ class PipingLine(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_segment_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for segment in self.segments:
-            if segment.id in seen and segment.id not in duplicates:
-                duplicates.append(segment.id)
-            seen.add(segment.id)
+        duplicates = _find_duplicate_ids(segment.id for segment in self.segments)
         if duplicates:
             raise ValueError(
-                f"piping line '{self.id}' has duplicate segment id(s): "
-                f"{', '.join(sorted(duplicates))}"
+                f"piping line '{self.id}' has duplicate segment id(s): {', '.join(duplicates)}"
             )
         return self
 
@@ -258,14 +266,9 @@ class PipingModel(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_line_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for line in self.lines:
-            if line.id in seen and line.id not in duplicates:
-                duplicates.append(line.id)
-            seen.add(line.id)
+        duplicates = _find_duplicate_ids(line.id for line in self.lines)
         if duplicates:
-            raise ValueError(f"duplicate PipingLine id(s): {', '.join(sorted(duplicates))}")
+            raise ValueError(f"duplicate PipingLine id(s): {', '.join(duplicates)}")
         return self
 
     @model_validator(mode="after")
@@ -316,14 +319,9 @@ class PlantModel(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_equipment_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for item in self.equipment:
-            if item.id in seen and item.id not in duplicates:
-                duplicates.append(item.id)
-            seen.add(item.id)
+        duplicates = _find_duplicate_ids(item.id for item in self.equipment)
         if duplicates:
-            raise ValueError(f"duplicate equipment id(s): {', '.join(sorted(duplicates))}")
+            raise ValueError(f"duplicate equipment id(s): {', '.join(duplicates)}")
         return self
 
     @model_validator(mode="after")
@@ -347,14 +345,9 @@ class PlantModel(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_connection_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for connection in self.connections:
-            if connection.id in seen and connection.id not in duplicates:
-                duplicates.append(connection.id)
-            seen.add(connection.id)
+        duplicates = _find_duplicate_ids(connection.id for connection in self.connections)
         if duplicates:
-            raise ValueError(f"duplicate connection id(s): {', '.join(sorted(duplicates))}")
+            raise ValueError(f"duplicate connection id(s): {', '.join(duplicates)}")
         return self
 
     @model_validator(mode="after")
@@ -420,16 +413,9 @@ class ProcessStep(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_process_port_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for port in self.ports:
-            if port.id in seen and port.id not in duplicates:
-                duplicates.append(port.id)
-            seen.add(port.id)
+        duplicates = _find_duplicate_ids(port.id for port in self.ports)
         if duplicates:
-            raise ValueError(
-                f"step '{self.id}' has duplicate port id(s): {', '.join(sorted(duplicates))}"
-            )
+            raise ValueError(f"step '{self.id}' has duplicate port id(s): {', '.join(duplicates)}")
         return self
 
 
@@ -491,26 +477,16 @@ class ProcessModel(BaseModel):
 
     @model_validator(mode="after")
     def _validate_unique_process_step_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for step in self.steps:
-            if step.id in seen and step.id not in duplicates:
-                duplicates.append(step.id)
-            seen.add(step.id)
+        duplicates = _find_duplicate_ids(step.id for step in self.steps)
         if duplicates:
-            raise ValueError(f"duplicate ProcessStep id(s): {', '.join(sorted(duplicates))}")
+            raise ValueError(f"duplicate ProcessStep id(s): {', '.join(duplicates)}")
         return self
 
     @model_validator(mode="after")
     def _validate_unique_process_stream_ids(self) -> Self:
-        seen: set[str] = set()
-        duplicates: list[str] = []
-        for stream in self.streams:
-            if stream.id in seen and stream.id not in duplicates:
-                duplicates.append(stream.id)
-            seen.add(stream.id)
+        duplicates = _find_duplicate_ids(stream.id for stream in self.streams)
         if duplicates:
-            raise ValueError(f"duplicate ProcessStream id(s): {', '.join(sorted(duplicates))}")
+            raise ValueError(f"duplicate ProcessStream id(s): {', '.join(duplicates)}")
         return self
 
     @model_validator(mode="after")
