@@ -201,7 +201,7 @@ piping:
       line_number: 3"-P-101-A1A
       segments:
         - id: SEG-1
-          segment_number: 1
+          segment_number: "1"
           nominal_diameter: DN80
           piping_class: A1A
           fluid_code: P
@@ -971,9 +971,11 @@ Scope notes for that slice:
   topology. It must not widen `Connection` with piping properties.
 - It is a documented pre-1.0 breaking change: existing YAML (`examples/`),
   fixtures, and tests that author connections gain ids.
-- It includes tests for P1–P5 (including the negative cases: duplicate
-  realization, dangling connection reference, empty segment) and for the
-  round-trip.
+- It includes explicit C1 negative tests for a missing `Connection.id`, a blank
+  or whitespace-only `Connection.id`, and duplicate `Connection.id` values
+  within `PlantModel`; it also includes tests for P1–P5 (including the negative
+  cases: duplicate realization, dangling connection reference, empty segment)
+  and for the round-trip.
 - It excludes: DEXPI Plant import/export, any rule engine, P&ID rendering,
   process↔physical mapping, `Nozzle`, `Pipe`, `PipingComponent`, a tee class,
   and insulation/tracing attributes.
