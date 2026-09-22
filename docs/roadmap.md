@@ -184,9 +184,9 @@ first physical piping-realization implementation slice (Issue #26):
   non-empty plant-unique `Connection.id` and P4 is a conservative first-slice
   1:1 invariant; inline components stay `Equipment`; `Port` stays the endpoint
   with no `Nozzle`/`PipingNode`; a branch is an item with several named ports
-  plus ordinary `Connection`s. Nothing is implemented: C1 plus structural
-  rules P1–P5 and the layer itself are the next slice, and Process ↔ physical
-  realization stays undecided
+  plus ordinary `Connection`s. That decision slice added no code; the layer it
+  specified was implemented afterwards by Issue #26 (see the completed row
+  above), and Process ↔ physical realization stays undecided
   ([docs/physical-piping-model.md](physical-piping-model.md),
   [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md))
 
@@ -407,13 +407,19 @@ save/round-trip. Implemented primitives are not the same as a completed
 capability stage: the Stage 1 exit signal below has now been exercised on the
 documented realistic fragment encoded as a loadable synthetic example
 ([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
-through the production models. Two independent physical-model questions remain
-open: the **physical-piping realization** question, now decided at the
-canonical-model level by ADR-0011 but not implemented; and the
-**process ↔ physical realization** mapping
-(`ProcessStep` ↔ equipment, `ProcessStream` ↔ piping realization), whose shape
-and cardinality are still unresolved. The fragment exposed both but required
-neither — no new schema was needed to represent the fragment.
+through the production models. Two physical-model questions were open at that
+stage: the **physical-piping realization** question — decided at the
+canonical-model level by ADR-0011 and now implemented by Issue #26 / PR #27 as
+`Connection.id` plus `PipingModel` → `PipingLine` → `PipingSegment` →
+`PipingRealization` with C1 and P1–P5 — and the **process ↔ physical
+realization** mapping (`ProcessStep` ↔ equipment, `ProcessStream` ↔ piping
+realization), whose shape and cardinality are still unresolved. The fragment
+exposed both but required neither — no new schema was needed to represent it,
+and the piping layer had not yet been implemented. Still unimplemented in that
+layer: mid-`Connection` property breaks, `1:N` realizations, canonical
+pipe/piece identity, `PipingComponent`, `Nozzle`/`PipingNode` refinement,
+instrumentation, DEXPI Plant/P&ID import/export, engineering rules, and P&ID
+rendering.
 
 Exit signal:
 
@@ -430,7 +436,11 @@ side; `ProcessStream` itself is decided as the process-layer directed edge,
 distinct from `Connection`:
 
 - physical piping representation — decided by ADR-0011 (line / segment /
-  realization over `Port` + `Connection`); no canonical layer is implemented yet
+  realization over `Port` + `Connection`) and implemented as its first vertical
+  slice by Issue #26 / PR #27; mid-`Connection` property breaks, `1:N`
+  realizations, canonical pipe/piece identity, `PipingComponent`,
+  `Nozzle`/`PipingNode` refinement, instrumentation, and DEXPI Plant/P&ID
+  import/export remain unimplemented
 - process ↔ physical realization: `ProcessStep` ↔ equipment and `ProcessStream`
   ↔ piping realization, including the mapping's shape and cardinality
 - equipment nozzles

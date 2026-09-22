@@ -36,18 +36,38 @@ update_when:
 
 ## Purpose
 
-DeepPlant can today represent *physical inventory plus directly known directed
-adjacency* (`Equipment` with owned `Port`s, property-free `Connection`s) but it
-cannot represent the piping between those items: no line identity, no property
-boundary, no elementary realization. The DEXPI Plant/P&ID spike
-([dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) showed that gap
-is real engineering semantics present in the official DEXPI Reference P&ID and
-that **none of it can be closed by changing `Port` or `Connection`**.
+Before Issue #26, DeepPlant could represent *physical inventory plus directly
+known directed adjacency* (`Equipment` with owned `Port`s, property-free
+`Connection`s) but it had no canonical piping-line identity, no property
+boundary, and no elementary piping realization. ADR-0011 specified the missing
+layer, and Issue #26 implements its first executable slice. The DEXPI Plant/P&ID
+spike ([dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) showed
+that gap is real engineering semantics present in the official DEXPI Reference
+P&ID and that **none of it can be closed by changing `Port` or `Connection`**.
 
-This document specifies the smallest canonical DeepPlant layer that closes it
-faithfully enough for future P&ID work, using DEXPI `V2.0.0` as *evidence*, not
-as a schema. It deliberately does not reproduce DEXPI's class hierarchy, and it
-selects one minimal design rather than a family of options.
+This document specifies the smallest canonical DeepPlant layer that closes that
+gap faithfully enough for future P&ID work, using DEXPI `V2.0.0` as *evidence*,
+not as a schema. It deliberately does not reproduce DEXPI's class hierarchy, and
+it selects one minimal design rather than a family of options.
+
+DeepPlant now represents:
+
+- piping-line identity (`PipingLine.id`)
+- segment/property boundaries aligned with `Connection` boundaries
+  (`PipingSegment` over identified `Connection`s)
+- elementary pipe / direct realization over identified `Connection`s
+  (`PipingRealization.kind: pipe | direct`)
+
+Still deferred after that slice, and recorded in
+[Explicitly deferred concepts](#explicitly-deferred-concepts):
+
+- mid-`Connection` `PropertyBreak`
+- canonical `Pipe` identity
+- `PipingComponent` taxonomy
+- `Nozzle` / `PipingNode` refinement
+- DEXPI Plant/P&ID adapter
+- instrumentation
+- Process ↔ physical realization
 
 ## Existing invariants
 
