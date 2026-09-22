@@ -7,6 +7,9 @@ from deepplant.io import PlantLoadError
 from deepplant.model import (
     Connection,
     Equipment,
+    PipingModel,
+    PipingRealization,
+    PipingSegment,
     Plant,
     PlantModel,
     Port,
@@ -301,7 +304,8 @@ equipment:
     ports:
       - id: outlet
 connections:
-  - source:
+  - id: C-001
+    source:
       component: T-101
       port: outlet
     target:
@@ -315,6 +319,7 @@ connections:
     assert isinstance(model.equipment[0].ports[0], Port)
     connection = model.connections[0]
     assert isinstance(connection, Connection)
+    assert connection.id == "C-001"
     assert isinstance(connection.source, PortRef)
     assert isinstance(connection.target, PortRef)
 
@@ -331,7 +336,8 @@ equipment:
     ports:
       - id: outlet
 connections:
-  - source:
+  - id: C-001
+    source:
       component: X-999
       port: outlet
     target:
@@ -359,7 +365,8 @@ equipment:
     ports:
       - id: outlet
 connections:
-  - source:
+  - id: C-001
+    source:
       component: T-101
       port: missing
     target:
@@ -596,3 +603,309 @@ equipment:
         load_plant(path)
 
     assert "at least 1 character" in str(exc_info.value)
+
+
+# --- Piping realization layer (ADR-0011) -------------------------------------
+
+PIPING_SOURCE = """
+plant:
+  id: demo
+equipment:
+  - id: P-101
+    type: pump
+    ports:
+      - id: discharge
+      - id: suction
+  - id: FV-101
+    type: control-valve
+    ports:
+      - id: inlet
+      - id: outlet
+connections:
+  - id: C-001
+    source:
+      component: P-101
+      port: discharge
+    target:
+      component: FV-101
+      port: inlet
+  - id: C-002
+    source:
+      component: FV-101
+      port: outlet
+    target:
+      component: P-101
+      port: suction
+piping:
+  lines:
+    - id: PL-P101-DISCHARGE
+      line_number: 3"-P-101-A1A
+      segments:
+        - id: SEG-1
+          segment_number: S-1
+          nominal_diameter: DN80
+          piping_class: A1A
+          fluid_code: P
+          realizations:
+            - connection: C-001
+            - connection: C-002
+              kind: direct
+"""
+
+
+def test_piping_section_loads_through_the_loader(tmp_path: Path) -> None:
+    model = load_plant(write(tmp_path, PIPING_SOURCE))
+
+    assert isinstance(model.piping, PipingModel)
+    piping = model.piping
+    assert piping is not None
+    assert [line.id for line in piping.lines] == ["PL-P101-DISCHARGE"]
+    line = piping.lines[0]
+    assert line.line_number == '3"-P-101-A1A'
+    assert line.name is None
+    segment = line.segments[0]
+    assert isinstance(segment, PipingSegment)
+    assert (segment.id, segment.segment_number) == ("SEG-1", "S-1")
+    assert (segment.nominal_diameter, segment.piping_class) == ("DN80", "A1A")
+    assert segment.fluid_code == "P"
+    assert isinstance(segment.realizations[0], PipingRealization)
+    assert [(item.connection, item.kind) for item in segment.realizations] == [
+        ("C-001", "pipe"),
+        ("C-002", "direct"),
+    ]
+    assert model.process is None
+
+
+def test_connection_ids_load_from_yaml(tmp_path: Path) -> None:
+    model = load_plant(write(tmp_path, PIPING_SOURCE))
+
+    assert [
+        (connection.id, connection.source.component, connection.target.component)
+        for connection in model.connections
+    ] == [("C-001", "P-101", "FV-101"), ("C-002", "FV-101", "P-101")]
+
+
+def test_piping_yaml_without_kind_loads_as_pipe(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - id: C-001
+    source:
+      component: T-101
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+piping:
+  lines:
+    - id: PL-1
+      segments:
+        - id: SEG-1
+          realizations:
+            - connection: C-001
+""",
+    )
+
+    model = load_plant(path)
+
+    assert model.piping is not None
+    realization = model.piping.lines[0].segments[0].realizations[0]
+    assert realization.kind == "pipe"
+    assert model.piping.lines[0].line_number is None
+    assert model.piping.lines[0].segments[0].segment_number is None
+
+
+def test_yaml_without_piping_loads_with_none_piping(tmp_path: Path) -> None:
+    path = write(tmp_path, "plant:\n  id: demo\nequipment: []\nconnections: []\n")
+
+    assert load_plant(path).piping is None
+
+
+def test_yaml_with_null_piping_loads_with_none_piping(tmp_path: Path) -> None:
+    assert load_plant(write(tmp_path, "plant:\n  id: demo\npiping: null\n")).piping is None
+
+
+def test_yaml_with_empty_piping_loads_empty_piping_model(tmp_path: Path) -> None:
+    model = load_plant(write(tmp_path, "plant:\n  id: demo\npiping: {}\n"))
+
+    assert isinstance(model.piping, PipingModel)
+    piping = model.piping
+    assert piping is not None
+    assert piping.lines == []
+
+
+def test_missing_connection_id_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - source:
+      component: T-101
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "connections.0.id" in str(exc_info.value)
+
+
+def test_duplicate_connection_ids_in_yaml_fail_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - id: C-001
+    source:
+      component: T-101
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+  - id: C-001
+    source:
+      component: T-101
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "duplicate connection id(s): C-001" in str(exc_info.value)
+
+
+def test_dangling_realization_reference_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+connections:
+  - id: C-001
+    source:
+      component: T-101
+      port: outlet
+    target:
+      component: T-101
+      port: outlet
+piping:
+  lines:
+    - id: PL-1
+      segments:
+        - id: SEG-1
+          realizations:
+            - connection: C-999
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "unknown connection 'C-999'" in str(exc_info.value)
+
+
+def test_empty_segment_realizations_in_yaml_fail_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+piping:
+  lines:
+    - id: PL-1
+      segments:
+        - id: SEG-1
+          realizations: []
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "must contain at least one realization" in str(exc_info.value)
+
+
+def test_unsupported_realization_kind_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+piping:
+  lines:
+    - id: PL-1
+      segments:
+        - id: SEG-1
+          realizations:
+            - connection: C-001
+              kind: ppie
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "kind" in str(exc_info.value)
+
+
+def test_unknown_piping_field_in_yaml_fails_cleanly(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        """
+plant:
+  id: demo
+piping:
+  lines:
+    - id: PL-1
+      segments:
+        - id: SEG-1
+          realizations:
+            - connection: C-001
+              kind: pipe
+              insulation: hot
+""",
+    )
+
+    with pytest.raises(PlantLoadError) as exc_info:
+        load_plant(path)
+
+    assert "invalid DeepPlant model" in str(exc_info.value)
+    assert "not permitted" in str(exc_info.value)

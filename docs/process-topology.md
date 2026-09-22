@@ -33,8 +33,11 @@ ProcessStream != PipingLine
 Connection != ProcessStream != PipingLine
 ```
 
-There is no physical-piping implementation, stream thermodynamic-property model,
-`Component` hierarchy, Pydantic change, or DEXPI implementation in scope.
+There is no stream thermodynamic-property model, `Component` hierarchy, or DEXPI
+extension in scope here. The physical-piping layer this document originally left
+open is now decided by
+[ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md) and
+implemented (Issue #26); it does not change any process-side conclusion below.
 
 ## Current DeepPlant model and design problem
 
@@ -45,16 +48,20 @@ PlantModel
 ├── Plant
 ├── Equipment[]
 │   └── Port[]
-└── Connection[]
-    ├── source: PortRef(component, port)
-    └── target: PortRef(component, port)
+├── Connection[]              (directed, property-free, identified)
+│   ├── id
+│   ├── source: PortRef(component, port)
+│   └── target: PortRef(component, port)
+└── PipingModel (optional)    (ADR-0011: line → segment → realization)
 ```
 
 `Equipment` is a physical/equipment inventory object. `Port` is only a named
 connection point owned by one `Equipment`; it declares neither process purpose
-nor nozzle identity. `Connection` has no id or properties and validates only
-that its equipment-owned endpoint ports exist. It records directed adjacency,
-not flow, a stream, a pipe, a line, or a simulation object.
+nor nozzle identity. `Connection` has identity and no properties: it validates
+that its equipment-owned endpoint ports exist and only that. It records directed
+adjacency, not flow, a stream, a pipe, a line, or a simulation object. The piping
+layer sits beside it and references identified `Connection`s instead of
+restating endpoints, so adjacency is still authored exactly once.
 
 The earlier illustrative proposal authored this same endpoint relationship twice:
 
@@ -178,7 +185,7 @@ class in this PR.
 | Alternative | Evaluation | Result |
 |---|---|---|
 | T1 — independent duplicated endpoints | Two endpoint facts must be edited together. The earlier proposal did not define an invariant or derivation to keep them synchronized. | Rejected. |
-| T2 — ProcessStream references one Connection | Current Connection has no id. Adding identity solely to support this creates coupling too early; moreover one process stream can cross several low-level adjacencies/inline items. | Rejected for MVP. |
+| T2 — ProcessStream references one Connection | `Connection` now has canonical identity (C1, ADR-0011), so the identity obstacle is gone; the semantic objection stands: adding a process→connection reference is a process ↔ physical mapping, and one process stream can cross several low-level adjacencies/inline items. | Still rejected for the process layer; the physical side prefers `PipingModel` grouping. |
 | T3 — ProcessStream owns/references an ordered Connection path | Requires connection IDs, ordering, branch rules, route maintenance and path edits. It leaks physical/low-level routing into the process abstraction and creates noisy Git diffs. | Deferred; only a future physical-realization use case can justify it. |
 | T4 — derive process adjacency from ProcessStream | Appropriate *within a process graph*: a ProcessStream is the one authored process relation and adjacency is derived. It cannot derive physical plant topology. | Correct process-graph principle. |
 | T5 — separate process graph and plant graph with explicit mapping | Preserves differing abstraction and identity rules. It is the correct target, but the mapping vocabulary must be proven on a real fragment before schema work. | Target architecture; no implementation yet. |

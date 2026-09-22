@@ -29,8 +29,10 @@ This document separates what exists from what is only direction.
 ## Current Architecture
 
 The system is a Python CLI package implementing the semantic domain model
-(`PlantModel`, `Plant`/`Equipment` with owned `Port`s, `Connection`
-reference topology, and the standalone process-domain model `ProcessModel` with
+(`PlantModel`, `Plant`/`Equipment` with owned `Port`s, identified `Connection`
+reference topology, the optional physical piping-realization submodel
+`PipingModel` with `PipingLine` → `PipingSegment` → `PipingRealization`, and
+the standalone process-domain model `ProcessModel` with
 `ProcessStep[]`/`ProcessPort[]`/`ProcessStream[]`), a YAML loading/saving
 boundary into typed Pydantic models, a `validate` CLI, the packaged `basic`
 process symbol pack, a headless read-only process renderer, and a narrow DEXPI
@@ -45,7 +47,7 @@ YAML file
    ↓  PyYAML
 Python data structure (dict)
    ↓  Pydantic validation
-DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
+DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[] + PipingModel?)
 ```
 
 - Python >= 3.12, managed with `uv`.
@@ -53,7 +55,8 @@ DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict).
 - The CLI exposes `--help`, `version`, and `validate <path>`.
 - Domain model (`src/deepplant/model.py`): `PlantModel`, `Plant`, `Equipment`,
-  `Port`, `PortRef`, `Connection` as Pydantic v2 models that import nothing
+  `Port`, `PortRef`, `Connection`, `PipingModel`, `PipingLine`,
+  `PipingSegment`, `PipingRealization` as Pydantic v2 models that import nothing
   consumer-specific.
 - Loading boundary (`src/deepplant/io.py`): `load_plant(path) -> PlantModel`;
   every expected failure (missing file, invalid YAML, invalid model) raises
@@ -71,6 +74,22 @@ DeepPlant domain model (PlantModel -> Plant + Equipment[] + Connection[])
   resolves only to `Equipment` today; there is no generic `Component` base
   class. This enforces referential integrity only, not process-engineering
   topology rules.
+- Physical piping realization (ADR-0011): `Connection` carries a required,
+  non-empty, plant-unique `id` and nothing else — identity only, documented as
+  a pre-1.0 breaking change to authored YAML (C1). `PlantModel.piping` is an
+  optional `PipingModel` owning `PipingLine` → `PipingSegment` →
+  `PipingRealization`; a realization references one `Connection` by id and
+  states the closed first-slice `kind` vocabulary `pipe | direct` (default
+  `pipe`, unknown values are validation errors). Structural rules P1–P5 ship:
+  unique line ids, segment ids unique within the owning line, resolvable
+  connection references, at most one realization per connection across the whole
+  piping model, and non-empty segments. Segment/line numbers stay optional human
+  designations and are never canonical identity, and no DN/piping-class/
+  fluid-code values are required or typed. This first slice supports segment
+  boundaries only where they coincide with existing `Connection` boundaries;
+  mid-connection property breaks (DEXPI `PropertyBreak`), a canonical `Pipe`
+  class, `PipingComponent`, `Nozzle`/`PipingNode`, instrumentation, and
+  process ↔ physical realization remain unimplemented.
 
 The process presentation assets ship inside the Python package as the
 DeepPlant-original `basic` process symbol pack under
@@ -142,8 +161,23 @@ PlantModel
 ├── Equipment[]
 │   └── Port[]
 ├── Connection[]
+│   ├── id                canonical, plant-unique identity (C1, ADR-0011)
 │   ├── source: PortRef
 │   └── target: PortRef
+├── PipingModel (optional; ADR-0011)
+│   └── PipingLine[]
+│       ├── id            canonical line identity
+│       ├── line_number   optional human designation
+│       ├── name
+│       └── PipingSegment[]
+│           ├── id                canonical identity, local to the owning line
+│           ├── segment_number    optional human/external designation
+│           ├── nominal_diameter  optional open string
+│           ├── piping_class      optional open string
+│           ├── fluid_code        optional open string
+│           └── PipingRealization[]
+│               ├── connection    id of one Connection in this PlantModel
+│               └── kind          closed: "pipe" (default) | "direct"
 └── ProcessModel (optional; ADR-0005/ADR-0006)
     ├── ProcessStep[]
     │   ├── id
@@ -169,16 +203,25 @@ PlantModel
 - Port identity is local to the owning equipment/component. The same port id may
   exist on different equipment; a globally resolvable port endpoint is the pair
   `(component id, port id)`.
-- `Connection` is currently a directed semantic topological relationship from
-  `source` to `target`. Direction records which endpoint is the source and
-  which is the target; it does not add flow or process-stream semantics.
-- A `Connection` is not yet a pipe, process stream, signal, cable, or other
-  physical engineering object. It is topology only and carries no engineering
-  properties.
+- `Connection` is a directed semantic topological relationship from `source` to
+  `target` with a required canonical `id`. Direction records which endpoint is
+  the source and which is the target; it does not add flow or process-stream
+  semantics, and the id is identity only, not an engineering property.
+- A `Connection` is not a pipe, process stream, signal, cable, or other physical
+  engineering object. It is topology only and carries no engineering properties.
+- The physical piping graph is expressed beside that topology, not inside it
+  (ADR-0011): `PipingModel` groups realizations into `PipingLine`s and
+  `PipingSegment`s and references identified `Connection`s instead of restating
+  endpoints, so adjacency is authored exactly once. An unreferenced
+  `Connection`, a pipe-realized realization, and a direct realization are three
+  distinguishable states, and `Connection` never absorbs pipe, segment, line,
+  class, fluid, or DN data.
 - Process-layer directed edges are `ProcessStream`s inside the standalone
-  `ProcessModel` (ADR-0005), deliberately distinct from physical `Connection`s.
-  The still-open modeling question is the physical side: piping representation
-  and process-to-physical realization mapping, not process streams themselves.
+  `ProcessModel` (ADR-0005), deliberately distinct from physical `Connection`s
+  and from piping realization. Piping is valid with no `ProcessModel`, and no
+  process object is required to resolve into the physical layer: process ↔
+  physical realization (including its cardinality) remains an unresolved
+  boundary.
 
 - Runnable example: `examples/minimal-process/plant.yaml`.
 - `make run` executes the package module; `make test`, `make lint`,
@@ -277,8 +320,10 @@ make check
 Not implemented. Add any item only when a concrete requirement and an ADR
 justify it:
 
-- semantic model growth: further engineering concepts (starting with the open
-  pipes/streams representation question) and the YAML save path
+- semantic model growth: further engineering concepts (the physical piping
+  realization layer now ships; the next open representation questions are
+  process ↔ physical realization and the piping concepts explicitly deferred by
+  ADR-0011) and the YAML save path
 - rendering polish: layout/label refinement and higher-fidelity symbol
   sourcing (the SVG + anchor contract and the initial `basic` process pack
   ship under `src/deepplant/assets/symbols/process/basic/`; a basic headless
@@ -287,17 +332,17 @@ justify it:
   (this spike, `src/deepplant/adapters/dexpi.py`); full DEXPI (energy/
   information flows, Plant/P&ID, further step classes), COMOS, AVEVA, and
   simulator adapters remain future work. The DEXPI **Plant/P&ID semantic
-  boundary** is now established at the evidence level (still not implemented):
-  `Port` remains sufficient for DeepPlant's currently claimed physical-topology
-  abstraction, `Connection` remains directed topology only, and piping
-  realization plus instrumentation are recognized as separate future layers.
-  Process↔physical realization remains a separate unresolved boundary — see
-  [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) and ADR-0010. The piping
-  side of that boundary is now specified by
-  [physical-piping-model.md](physical-piping-model.md) and ADR-0011 (still
-  unimplemented): `PipingLine` / `PipingSegment` / `PipingRealization` reference
-  identified `Connection`s, so `Connection` keeps its property-free topology
-  meaning and gains only canonical identity
+  boundary** is now established at the evidence level, and its physical-piping
+  side is implemented: `Port` remains sufficient for DeepPlant's currently
+  claimed physical-topology abstraction, `Connection` remains directed topology
+  only, and instrumentation plus Plant/P&ID import stay unimplemented. The
+  piping realization layer ships per
+  [physical-piping-model.md](physical-piping-model.md) and ADR-0011:
+  `PipingLine` / `PipingSegment` / `PipingRealization` reference identified
+  `Connection`s, so `Connection` keeps its property-free topology meaning and
+  gained canonical identity only. Process↔physical realization remains a
+  separate unresolved boundary — see
+  [dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) and ADR-0010.
 - interactive editor
 - engineering rules / validation engine
 - safety (HAZOP / SIS) concepts

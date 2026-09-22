@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from deepplant import load_plant
-from deepplant.model import Equipment, PlantModel, ProcessModel
+from deepplant.model import Connection, Equipment, PipingModel, PlantModel, ProcessModel
 
 EXAMPLE = Path(__file__).parents[1] / "examples" / "realistic-process-fragment" / "plant.yaml"
 
@@ -30,12 +30,12 @@ EXPECTED_STREAMS: dict[str, tuple[str, str, str, str]] = {
     "S-007": ("PS-split", "out_branch", "PS-consumer", "in"),
 }
 
-# Truthful physical/bootstrap subset: only directly known adjacency. The
-# mixing tee, splitting tee, and recycle piping are intentionally not jumped
-# over by Connections.
+# Truthful physical/bootstrap subset: only directly known adjacency, each with
+# its authored canonical id (C1). The mixing tee, splitting tee, and recycle
+# piping are intentionally not jumped over by Connections.
 EXPECTED_PHYSICAL_CONNECTIONS = {
-    ("P-101", "discharge", "FV-101", "inlet"),
-    ("FV-101", "outlet", "E-101", "process_inlet"),
+    "C-001": ("P-101", "discharge", "FV-101", "inlet"),
+    "C-002": ("FV-101", "outlet", "E-101", "process_inlet"),
 }
 
 
@@ -216,7 +216,7 @@ def test_physical_bootstrap_layer_has_equipment_ports_and_connections() -> None:
 
     assert sum(len(item.ports) for item in model.equipment) == 9
     actual = {
-        (
+        connection.id: (
             connection.source.component,
             connection.source.port,
             connection.target.component,
@@ -225,6 +225,13 @@ def test_physical_bootstrap_layer_has_equipment_ports_and_connections() -> None:
         for connection in model.connections
     }
     assert actual == EXPECTED_PHYSICAL_CONNECTIONS
+
+
+def test_physical_layer_connections_carry_authored_ids() -> None:
+    model = _model()
+
+    assert [connection.id for connection in model.connections] == ["C-001", "C-002"]
+    assert all(isinstance(connection, Connection) for connection in model.connections)
 
 
 def test_process_and_equipment_id_namespaces_stay_independent(tmp_path: Path) -> None:
@@ -287,3 +294,76 @@ def test_all_process_steps_declare_canonical_engineering_functions() -> None:
         "PS-vessel": "unspecified",
         "PS-consumer": "sink",
     }
+
+
+# --- Piping realization of the evidenced physical run (ADR-0011) --------------
+
+
+def test_fragment_realizes_the_pump_discharge_run_as_one_piping_line() -> None:
+    model = _model()
+
+    assert isinstance(model.piping, PipingModel)
+    piping = model.piping
+    assert piping is not None
+    assert [line.id for line in piping.lines] == ["PL-P101-DISCHARGE"]
+    line = piping.lines[0]
+    assert [segment.id for segment in line.segments] == ["SEG-1"]
+    assert [item.connection for item in line.segments[0].realizations] == ["C-001", "C-002"]
+
+
+def test_fragment_realizations_are_pipe_by_default() -> None:
+    """The evidenced run is pipe-realized; no ``direct`` claim is authored."""
+    model = _model()
+    assert model.piping is not None
+    realizations = model.piping.lines[0].segments[0].realizations
+
+    assert [realization.kind for realization in realizations] == ["pipe", "pipe"]
+    assert all(realization.kind != "direct" for realization in realizations)
+
+
+def test_fragment_invents_no_piping_engineering_properties() -> None:
+    """No DN, piping class, fluid code, line number, or segment number is authored."""
+    model = _model()
+    assert model.piping is not None
+    line = model.piping.lines[0]
+    segment = line.segments[0]
+
+    assert line.line_number is None
+    assert line.name is None
+    assert segment.segment_number is None
+    assert segment.nominal_diameter is None
+    assert segment.piping_class is None
+    assert segment.fluid_code is None
+
+
+def test_fragment_realizations_reference_only_its_own_connections() -> None:
+    model = _model()
+    assert model.piping is not None
+    connection_ids = {connection.id for connection in model.connections}
+    referenced = {
+        realization.connection
+        for line in model.piping.lines
+        for segment in line.segments
+        for realization in segment.realizations
+    }
+
+    assert referenced == connection_ids == {"C-001", "C-002"}
+
+
+def test_fragment_piping_validates_without_the_process_layer() -> None:
+    """Piping is a physical-layer submodel: it never depends on ``process``."""
+    model = _model()
+    assert model.process is not None
+    assert model.piping is not None
+
+    physical_only = PlantModel(
+        plant=model.plant,
+        equipment=model.equipment,
+        connections=model.connections,
+        piping=model.piping,
+    )
+
+    assert physical_only.process is None
+    piping = physical_only.piping
+    assert piping is not None
+    assert [line.id for line in piping.lines] == ["PL-P101-DISCHARGE"]

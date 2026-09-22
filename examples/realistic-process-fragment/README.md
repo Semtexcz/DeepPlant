@@ -35,8 +35,11 @@ Concretely (process layer):
   `YAML → load_plant() → PlantModel → ProcessModel` and back through the
   canonical serializer (`save_plant()`).
 - **Process and physical layers are intentionally distinct.** The process graph
-  (`ProcessStep` / `ProcessPort` / `ProcessStream`) and the physical bootstrap
-  layer (`Equipment` / `Port` / `Connection`) are each independently valid.
+  (`ProcessStep` / `ProcessPort` / `ProcessStream`), the physical bootstrap
+  layer (`Equipment` / `Port` / `Connection`), and the physical
+  piping-realization layer (`PipingLine` / `PipingSegment` /
+  `PipingRealization`) are each independently valid: the piping layer resolves
+  only against physical `Connection`s and never against the process graph.
   No `ProcessStep ↔ Equipment` mapping, no `ProcessPort ↔ Port` mapping, and no
   `ProcessStream ↔ Connection` mapping exists; ids in the two namespaces imply
   nothing about each other.
@@ -67,12 +70,46 @@ Concretely (process layer):
 
 The physical/bootstrap layer contains `T-101`, `P-101`, `FV-101`, `E-101`, and
 `V-101`. Its `Connection`s represent only physical relationships that are
-genuinely direct and known. The only represented physical chain is:
+genuinely direct and known, and each carries a stable canonical id (C1,
+ADR-0011). The only represented physical chain is:
 
 ```text
-P-101.discharge → FV-101.inlet
-FV-101.outlet   → E-101.process_inlet
+P-101.discharge ── C-001 ──→ FV-101.inlet
+FV-101.outlet   ── C-002 ──→ E-101.process_inlet
 ```
+
+### Physical piping realization
+
+Those two connections are realized as one piping line (ADR-0011):
+
+```yaml
+piping:
+  lines:
+    - id: PL-P101-DISCHARGE
+      segments:
+        - id: SEG-1
+          realizations:
+            - connection: C-001
+            - connection: C-002
+```
+
+What this states honestly:
+
+- The pump discharge run **is** represented as pipe-realized: `SEG-1` owns both
+  adjacencies and no `kind` is authored, so both mean the default `pipe`.
+- The pump discharge run is one line with one property boundary in this
+  fragment. That is the extent of what the example claims; a second segment
+  would require a property change, and the fragment evidences none.
+- No `line_number`, `segment_number`, `nominal_diameter`, `piping_class`, or
+  `fluid_code` is authored. Line numbering, DN, piping class, and fluid codes
+  follow project practice and are not evidenced by this synthetic fragment, so
+  DeepPlant does not invent them.
+- No realization is marked `kind: direct`. The fragment provides no evidence
+  that any of its adjacencies is pipe-less, so claiming one would be a false
+  engineering assertion. `kind: direct` is exercised by a focused synthetic test
+  instead (`tests/test_piping_model.py::test_direct_realization_is_proven_with_a_synthetic_adjacency`).
+- `T-101`, `V-101`, and the mixing/splitting/recycle paths remain **not
+  represented** physically.
 
 These real physical paths are intentionally **not** represented as direct
 `Connection`s, because the physical tees / piping realization does not yet
@@ -85,12 +122,15 @@ V-101 → recycle piping → mixing point
 ```
 
 For this fixture, **absence of `Connection` ≠ absence of real physical
-connectivity**. The physical graph is deliberately incomplete, not
+connectivity**, and **absence of a realization ≠ absence of piping**. The
+physical graph is deliberately incomplete, not
 approximately continuous. `V-101.recycle_outlet` is therefore unconnected in
 the bootstrap graph (the mixing tee / recycle-piping realization is not
 modeled), while the recycle itself is fully represented in the process layer as
 `S-002`. This fixture exists to validate the semantic model, not to hide the
-open physical-piping questions.
+open physical-piping questions. Mid-connection property breaks
+(DEXPI `PropertyBreak`) are a documented first-slice limitation: a segment
+boundary must coincide with a `Connection` boundary.
 
 Validate it from the repository root:
 

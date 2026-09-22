@@ -238,6 +238,7 @@ def test_valid_ports_load_and_connection_resolves() -> None:
         ],
         connections=[
             Connection(
+                id="C-001",
                 source=PortRef(component="T-101", port="outlet"),
                 target=PortRef(component="P-101", port="suction"),
             )
@@ -318,6 +319,7 @@ def test_connection_source_with_unknown_component_fails() -> None:
                 "equipment": [{"id": "T-101", "type": "tank", "ports": [{"id": "outlet"}]}],
                 "connections": [
                     {
+                        "id": "C-001",
                         "source": {"component": "X-999", "port": "outlet"},
                         "target": {"component": "T-101", "port": "outlet"},
                     }
@@ -336,6 +338,7 @@ def test_connection_target_with_unknown_component_fails() -> None:
                 "equipment": [{"id": "T-101", "type": "tank", "ports": [{"id": "outlet"}]}],
                 "connections": [
                     {
+                        "id": "C-001",
                         "source": {"component": "T-101", "port": "outlet"},
                         "target": {"component": "X-999", "port": "outlet"},
                     }
@@ -352,6 +355,7 @@ def test_connection_source_with_unknown_port_fails() -> None:
                 "equipment": [{"id": "T-101", "type": "tank", "ports": [{"id": "outlet"}]}],
                 "connections": [
                     {
+                        "id": "C-001",
                         "source": {"component": "T-101", "port": "missing"},
                         "target": {"component": "T-101", "port": "outlet"},
                     }
@@ -368,6 +372,7 @@ def test_connection_target_with_unknown_port_fails() -> None:
                 "equipment": [{"id": "T-101", "type": "tank", "ports": [{"id": "outlet"}]}],
                 "connections": [
                     {
+                        "id": "C-001",
                         "source": {"component": "T-101", "port": "outlet"},
                         "target": {"component": "T-101", "port": "missing"},
                     }

@@ -8,6 +8,10 @@ from deepplant import PlantLoadError, PlantSaveError, load_plant, save_plant
 from deepplant.model import (
     Connection,
     Equipment,
+    PipingLine,
+    PipingModel,
+    PipingRealization,
+    PipingSegment,
     Plant,
     PlantModel,
     Port,
@@ -51,6 +55,7 @@ def _physical_topology() -> PlantModel:
         ],
         connections=[
             Connection(
+                id="C-001",
                 source=PortRef(component="T-101", port="outlet"),
                 target=PortRef(component="P-101", port="suction"),
             )
@@ -106,6 +111,7 @@ def _combined() -> PlantModel:
         ],
         connections=[
             Connection(
+                id="C-001",
                 source=PortRef(component="T-101", port="outlet"),
                 target=PortRef(component="P-101", port="suction"),
             )
@@ -132,6 +138,64 @@ def _combined() -> PlantModel:
                     target=ProcessRef(step="PRODUCT", port="in"),
                 ),
             ],
+        ),
+    )
+
+
+def _piping_realization() -> PlantModel:
+    """Physical topology plus the piping layer, including a direct realization.
+
+    Two lines deliberately share the segment id ``SEG-1`` (segment identity is
+    owner-local) and one of them deliberately omits every optional property, so
+    the round-trip covers present and absent optionals.
+    """
+    return PlantModel(
+        plant=Plant(id="demo", name="Piping Realization"),
+        equipment=[
+            Equipment(id="P-101", type="pump", ports=[Port(id="discharge"), Port(id="suction")]),
+            Equipment(
+                id="FV-101", type="control-valve", ports=[Port(id="inlet"), Port(id="outlet")]
+            ),
+        ],
+        connections=[
+            Connection(
+                id="C-001",
+                source=PortRef(component="P-101", port="discharge"),
+                target=PortRef(component="FV-101", port="inlet"),
+            ),
+            Connection(
+                id="C-002",
+                source=PortRef(component="FV-101", port="outlet"),
+                target=PortRef(component="P-101", port="suction"),
+            ),
+        ],
+        piping=PipingModel(
+            lines=[
+                PipingLine(
+                    id="LINE-A",
+                    line_number='3"-P-101-A1A',
+                    segments=[
+                        PipingSegment(
+                            id="SEG-1",
+                            segment_number="S-1",
+                            nominal_diameter="DN80",
+                            piping_class="A1A",
+                            fluid_code="P",
+                            realizations=[PipingRealization(connection="C-001")],
+                        )
+                    ],
+                ),
+                PipingLine(
+                    id="LINE-B",
+                    name="Line Without Optional Properties",
+                    segments=[
+                        PipingSegment(
+                            id="SEG-1",
+                            realizations=[PipingRealization(connection="C-002", kind="direct")],
+                        )
+                    ],
+                ),
+            ]
         ),
     )
 
@@ -222,6 +286,7 @@ ROUND_TRIP_MODELS: list[tuple[str, Callable[[], PlantModel]]] = [
     ("process-graph", _process_graph),
     ("combined-physical-and-process", _combined),
     ("empty-process-model", _empty_process),
+    ("piping-realization", _piping_realization),
     ("optional-names-present", _optional_names_present),
     ("optional-names-absent", _optional_names_absent),
     ("unicode-names", _unicode_names),
@@ -458,3 +523,129 @@ def test_stale_process_step_type_yaml_is_rejected(tmp_path: Path) -> None:
     message = str(exc_info.value)
     assert "steps.0.type" in message
     assert "extra" in message.lower() or "type" in message
+
+
+# --- Piping realization round-trip (ADR-0011) --------------------------------
+
+
+def test_none_piping_is_omitted_from_yaml(tmp_path: Path) -> None:
+    path = tmp_path / "plant.yaml"
+
+    save_plant(_minimal(), path)
+
+    assert "piping" not in path.read_text(encoding="utf-8")
+
+
+def test_piping_layer_round_trips_semantically(tmp_path: Path) -> None:
+    model = _piping_realization()
+    path = tmp_path / "plant.yaml"
+
+    save_plant(model, path)
+    loaded = load_plant(path)
+
+    assert loaded == model
+    assert loaded.piping is not None
+    lines = loaded.piping.lines
+    assert [line.id for line in lines] == ["LINE-A", "LINE-B"]
+    assert (lines[0].line_number, lines[1].line_number) == ('3"-P-101-A1A', None)
+    assert (lines[0].name, lines[1].name) == (None, "Line Without Optional Properties")
+    # Same segment id in both lines: identity is owner-local, not global.
+    assert [line.segments[0].id for line in lines] == ["SEG-1", "SEG-1"]
+    assert lines[0].segments[0].segment_number == "S-1"
+    assert lines[0].segments[0].nominal_diameter == "DN80"
+    assert lines[0].segments[0].piping_class == "A1A"
+    assert lines[0].segments[0].fluid_code == "P"
+    assert lines[1].segments[0].segment_number is None
+    assert [
+        (line.segments[0].realizations[0].connection, line.segments[0].realizations[0].kind)
+        for line in lines
+    ] == [
+        ("C-001", "pipe"),
+        ("C-002", "direct"),
+    ]
+
+
+def test_saved_piping_emits_the_default_kind_explicitly(tmp_path: Path) -> None:
+    """The canonical serializer keeps the default; only semantics must round-trip."""
+    path = tmp_path / "plant.yaml"
+
+    save_plant(_piping_realization(), path)
+    text = path.read_text(encoding="utf-8")
+
+    assert "kind: pipe" in text
+    assert "kind: direct" in text
+
+
+def test_yaml_with_omitted_kind_round_trips_as_pipe(tmp_path: Path) -> None:
+    source = tmp_path / "source.yaml"
+    source.write_text(
+        "plant:\n"
+        "  id: demo\n"
+        "equipment:\n"
+        "  - id: T-101\n"
+        "    type: tank\n"
+        "    ports:\n"
+        "      - id: outlet\n"
+        "connections:\n"
+        "  - id: C-001\n"
+        "    source: {component: T-101, port: outlet}\n"
+        "    target: {component: T-101, port: outlet}\n"
+        "piping:\n"
+        "  lines:\n"
+        "    - id: PL-1\n"
+        "      segments:\n"
+        "        - id: SEG-1\n"
+        "          realizations:\n"
+        "            - connection: C-001\n",
+        encoding="utf-8",
+    )
+
+    model = load_plant(source)
+    assert model.piping is not None
+    assert model.piping.lines[0].segments[0].realizations[0].kind == "pipe"
+
+    path = tmp_path / "plant.yaml"
+    save_plant(model, path)
+
+    assert load_plant(path) == model
+
+
+def test_absent_piping_optionals_are_omitted_from_yaml(tmp_path: Path) -> None:
+    path = tmp_path / "plant.yaml"
+
+    save_plant(_piping_realization(), path)
+    text = path.read_text(encoding="utf-8")
+
+    # LINE-B authors no line_number and its segment authors no properties.
+    assert text.count("line_number") == 1
+    assert text.count("segment_number") == 1
+    assert text.count("nominal_diameter") == 1
+    assert text.count("piping_class") == 1
+    assert text.count("fluid_code") == 1
+    assert "null" not in text
+
+
+def test_piping_precedes_process_in_saved_field_order(tmp_path: Path) -> None:
+    model = _piping_realization()
+    model.process = ProcessModel(
+        steps=[
+            ProcessStep(id="FEED", function="source", ports=[ProcessPort(id="out")]),
+            ProcessStep(id="SINK", function="sink", ports=[ProcessPort(id="in")]),
+        ],
+        streams=[
+            ProcessStream(
+                id="S-001",
+                source=ProcessRef(step="FEED", port="out"),
+                target=ProcessRef(step="SINK", port="in"),
+            )
+        ],
+    )
+    path = tmp_path / "plant.yaml"
+
+    save_plant(model, path)
+    text = path.read_text(encoding="utf-8")
+
+    root_keys = ["plant:", "equipment:", "connections:", "piping:", "process:"]
+    positions = [text.index(key) for key in root_keys]
+    assert positions == sorted(positions)
+    assert load_plant(path) == model

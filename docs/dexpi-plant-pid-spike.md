@@ -38,15 +38,16 @@ update_when:
 > Plant/P&ID importer is implemented, and this document authorizes no
 > implementation by itself.
 >
-> Follow-up status: the decision slice this document recommended (§14 item 1) has
-> been delivered by Issue #24 —
-> [physical-piping-model.md](physical-piping-model.md) and
+> Follow-up status: §14 item 1 (the specification/decision slice) was completed
+> by Issue #24 — [physical-piping-model.md](physical-piping-model.md) and
 > [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md) decide
 > the canonical physical-piping shape (`PipingLine` / `PipingSegment` /
 > `PipingRealization` over identified `Connection`s) without changing
-> `Connection` semantics. §14 item 2 (the first piping vertical slice) is the
-> next implementation candidate; item 3 remains the independent alternative. The
-> DEXPI evidence recorded in this document is unchanged.
+> `Connection` semantics. §14 item 2 (the first piping vertical slice) was
+> implemented by Issue #26 / PR #27. §14 item 3 (further DEXPI Process subset
+> expansion) remains an independent possible next direction. The §14
+> recommendation and the DEXPI evidence recorded in this document are unchanged
+> and describe the state at the time of the spike.
 
 ## 1. Targeted DEXPI release (pinned)
 
@@ -1085,10 +1086,13 @@ fixture, no dependency, and no network access at test time.
   derivation still unresolved); piping line/segment/pipe identity and
   instrumentation are **separate layers** that must not be folded into `Port`,
   `Connection`, or `Equipment.type`.
-- **Next task:** the specification/decision slice of §14 step 1 — specify the
-  candidate piping-realization layer against a concrete official fragment
-  (`reference_pid.xml`) before any class is implemented. §14 step 3 (further
-  DEXPI Process subset expansion) remains the independent alternative.
+- **Next task (as recorded by this slice):** the specification/decision slice of
+  §14 step 1 — specify the candidate piping-realization layer against a concrete
+  official fragment (`reference_pid.xml`) before any class is implemented. §14
+  step 3 (further DEXPI Process subset expansion) remains the independent
+  alternative. Later status: that slice was completed by Issue #24 and §14 step 2
+  was implemented by Issue #26 / PR #27 — see the follow-up status at the top of
+  this document.
 - **Why that next task follows:** the remaining physical-model work is split into
   two independent questions, and only the first is bounded here. (1) The
   **physical-piping realization** question is now precisely bounded

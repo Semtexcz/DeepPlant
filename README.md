@@ -7,7 +7,10 @@ diffed, and rendered.
 
 This repository currently ships the project foundation plus executable semantic
 vertical slices: a minimal `PlantModel`/`Plant`/`Equipment` domain model, the
-topology slice (`Port`, `Connection`, reference validation), the standalone
+topology slice (`Port`, identified `Connection`, reference validation), the
+physical piping-realization layer (`PipingModel` with `PipingLine` →
+`PipingSegment` → `PipingRealization` referencing identified `Connection`s;
+ADR-0011), the standalone
 process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]` —
 mixing, splitting, and recycle are legal), YAML load/save into typed Pydantic
 models, strict structural validation, a `deepplant validate` command, the SVG +
@@ -36,7 +39,8 @@ Workflow mode: `pr`.
   engineering semantics; a `ProcessStep` states its engineering `function`,
   never its drawing role (ADR-0009).
 - YAML is a serialization format, not the domain model.
-- Connectivity follows `Component -> Ports -> Connections`.
+- Connectivity follows `Component -> Ports -> Connections`; piping realization
+  references identified connections instead of restating endpoints (ADR-0011).
 
 DeepPlant is an experimental Git-native semantic engineering platform for
 process plants. Its semantic model is intended to become the authoritative
