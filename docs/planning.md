@@ -68,6 +68,12 @@ The GitHub Project uses four strategic horizons:
 Horizons change when evidence changes — after a spike, an ADR, a completed
 slice, or a discovered dependency — never on a schedule.
 
+The operational horizon is intentionally sparse. At the current planning
+point, `Now` contains exactly one executable Issue and `Next` exactly one
+evidence-backed follow-up. All other capabilities remain `Later` or
+`Exploration` without an implied order. The current sequence is `#20 → #32 →
+re-evaluate the next direction from new evidence`.
+
 ## Issue Creation Rule
 
 A GitHub Issue should normally be created **only when the work is bounded enough
