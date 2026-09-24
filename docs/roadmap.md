@@ -241,79 +241,38 @@ never imply equipment, and no cross-layer rules exist yet.
 | Implement the physical piping-realization layer (vertical slice) | First executable slice of the ADR-0011 shape (Issue #26), `src/deepplant/model.py` plus tests, YAML examples, and docs: `Connection.id` (required, non-empty via the canonical semantic-string contract, plant-unique; missing/blank/whitespace/duplicate ids rejected deterministically) — a documented pre-1.0 breaking change, with every authored `Connection` in examples and tests migrated to a stable id; `PlantModel.piping: PipingModel \| None`; `PipingModel` (`lines`), `PipingLine` (`id`, optional `line_number`/`name`, `segments`), `PipingSegment` (owner-local `id`, optional `segment_number`/`nominal_diameter`/`piping_class`/`fluid_code`, `realizations`), and `PipingRealization` (`connection`, closed `kind: pipe \| direct` defaulting to `pipe`); structural rules C1 and P1–P5 with focused success and failure tests (C1 missing/blank/whitespace/duplicate, P1 duplicate line ids, P2 duplicate segment ids per line while the same segment id stays legal in another line, P3 dangling/foreign connection references, P4 one realization per connection across all lines, P5 empty segment); unknown fields rejected on every new model and list fields use safe default factories; P3/C1 live on `PlantModel`, P1/P4 on `PipingModel`, P2 on `PipingLine`, P5 on `PipingSegment`; YAML `piping` section loads through the existing loader (missing/`null`/`{}` behave like `process`), canonical save omits `None` optionals and emits `kind: pipe` explicitly, and `load(save(model)) == model` holds; the realistic fragment keeps its honest physical chain with ids `C-001`/`C-002` and realizes it as one pipe-realized line `PL-P101-DISCHARGE`/`SEG-1` **without authoring any DN, piping-class, fluid-code, line-number, or segment-number value it has no evidence for**; `kind: direct` is proven by a focused synthetic executable test rather than by a false fragment assertion; `PipingLine`/`PipingSegment`/`PipingRealization`/`PipingModel` are exported from the public API; a test asserts `Connection`'s field set stayed `id`/`source`/`target` (no pipe/line/segment/kind/fluid/DN field) and that no piping model carries process, presentation, or geometry fields. Excludes DEXPI Plant import/export, P&ID rendering, rule engine, process ↔ physical mapping, `Nozzle`, `PipingNode`, `Pipe`, `PipingComponent`, `PropertyBreak`, instrumentation, and any new runtime dependency |
 | DEXPI `ExchangingThermalEnergy` mapping evidence (Issue #22) | Evidence-first interoperability slice ([docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)): the official DEXPI `V2.0.0` Process model definition (`src/model/Process/Process/Process.py`, tag object `dc74c370…`, release commit `260c81c51039789a6148a98af4c6caf23f87a3e2`, CC BY 4.0, inspected 2026-09-22) was inspected for `ExchangingThermalEnergy`; the class is a `ProcessStep` subclass (a *process function*, not equipment and not presentation) whose definition is thermal transfer "between two or more streams of material … realized by a heat exchanger", so the realization sentence is not identity; it owns `Area`/`ColdFlow`/`Duty`/`HeatTransferCoefficient`/`HeatTransferResistance`/`HotFlow`/`SkinTemperature`/`TemperatureDifference` as qualified physical quantities plus a **mandatory** (`1..1`) `Method: HeatExchangeMethod` (`Generic`/`Plate`/`Spiral`/`Tubular`), and, if an explicit thermal-energy / utility connection is modelled, DEXPI represents it with `ThermalEnergyPort` + `ThermalEnergyFlow` rather than a material `Stream`; documented outcomes: canonical `ProcessStep(function="heat_exchange")` corresponds to the class **only as a process-function kind**, the class-level statement is honest, but import, export, and semantic round-trip are **not claimed** because of the exact gap G1–G6 recorded in the document (`Method` classification, coupled multi-stream semantics, no port kind, no energy-flow connection kind, no qualified-quantity model, non-stored mandatory `NominalDirection`); canonical `heat_exchange` keeps its DeepPlant-native meaning and is not reinterpreted; the smallest justified model change is *proposed and deliberately not authorized* (a model-level decision shared with the rest of the DEXPI ProcessStep family rather than a heat-exchanger-specific field); `ExchangingThermalEnergy` stays explicitly unsupported and is now pinned by a provenance-recorded negative fixture `tests/fixtures/dexpi/2.0.0/exchanging_thermal_energy.xml` and two focused tests proving the rejection is structural (stripping every property and port still fails at the class level) and that no canonical function string is synthesised from the DEXPI class name; no semantic-model, adapter-mapping, example, or dependency change |
 | Specify the physical-piping realization layer | Documentation-only decision slice ([docs/physical-piping-model.md](physical-piping-model.md), [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md)): engineering requirements grouped as first-slice / likely-future / not-justified; three candidate models compared (line-over-topology, line + segment + realization, independent piping graph) plus the rejected `Connection`-widening variant; selected shape is `PipingModel` (`PlantModel.piping`) owning `PipingLine` -> `PipingSegment` -> `PipingRealization` referencing identified `Connection`s; `PipingLine` (`id`, optional `line_number`/`name`), `PipingSegment` (owner-local canonical `id`, optional human/external `segment_number` mapped from DEXPI `SegmentNumber`, DN/piping-class/fluid-code property boundary), and `PipingRealization.kind` (closed `pipe | direct`, default `pipe`, invalid values fail validation; no canonical `Pipe`/`DirectPipingConnection` class); DEXPI XML `Object@id` and `SegmentNumber` never become canonical identity automatically; first-slice segment boundaries align with `Connection` boundaries and mid-connection `PropertyBreak` semantics are explicitly deferred; `Connection` stays topology only and gains canonical identity (`Connection.id` required, non-empty, plant-unique, documented pre-1.0 breaking change); C1 plus P1–P5 are defined, with P4 a deliberately conservative first-slice 1:1 invariant; inline components stay `Equipment`; `Port` stays the endpoint (no `Nozzle`/`PipingNode`); branches are items with named ports plus ordinary `Connection`s; Git-diff behaviour, engineering-rule, DEXPI adapter, and P&ID rendering implications documented. No model, fixture, adapter, test, or dependency change in that slice; its implementation is the completed row above, while Process ↔ physical realization stays undecided |
-| Decide non-derivable step classification semantics | Documentation-only evidence/decision slice (Issue #31, [docs/process-step-classification.md](process-step-classification.md), [ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md)): the full official DEXPI 2.0.0 (`V2.0.0`, release commit `260c81c…`, inspected 2026-09-22) Process model was searched, not only the known examples, and `Method` was found **only** in the Process model as **nine** property declarations across **seven** enumeration types (`HeatExchangeMethod` ×3, `CompressionMethod`, `PumpingMethod`, `ReactionProcessType`, `EngineDriveMethod`, `MotorDriveMethod`, `TurbineDriveMethod`) on `ExchangingThermalEnergy`/`RemovingThermalEnergy`/`SupplyingThermalEnergy`/`Compressing`/`Pumping`/`ReactingChemicals`/`DrivingByEngine`/`DrivingByMotor`/`DrivingByTurbine`, with mixed multiplicities (`1..1` and `0..1`); the enumeration domains are heterogeneous, mixing mechanism/principle labels (`CentrifugalMotion`, `PositiveDisplacement`), equipment technology or construction (`Plate`, `Tubular`, `Fan`, `Blower`, `GasTurbine`) and non-answers (`Unspecified`, `CustomMethod`, `Generic`) inside single enums. Many literals have direct or close counterparts in `Plant.ProcessEquipment`, demonstrating semantic overlap with physical realization rather than exact identity for every row; `ReactingChemicals.Method = PackedBed` and `ProcessStepDetail.ContactingInPacking` carry related packed-bed semantics through different constructs without proven equivalence. `ProcessStepDetail` remains a `0..*` composed sub-process refinement (not a classification axis and not `ProcessStep`), while `ProcessStep.HierarchyLevel` is supporting evidence that DEXPI can introduce explicitly named cross-cutting properties. Outcome A accepted — `ProcessStep.function` remains the only canonical step-classification axis, no generic second field or extension bag is added, and all `Method` values remain adapter-unsupported where required. Candidate B (generic union) and Candidate C (function-specific schema) are rejected; Candidate D is a plausible future home for part of the vocabulary, not implemented. Qualified engineering quantities remain separate as Issue #32, Issue #21 remains unchanged; no production code, adapters, tests, fixtures, examples, dependency, or runtime change; quality gates pass (352 tests, pyright 0 errors/warnings, docs/agent skills, build) |
+| Decide non-derivable step classification semantics | Documentation-only evidence/decision slice (Issue #31, [docs/process-step-classification.md](process-step-classification.md), [ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md)): the full official DEXPI 2.0.0 (`V2.0.0`, release commit `260c81c…`, inspected 2026-09-22) Process model was searched, not only the known examples, and `Method` was found **only** in the Process model as **nine** property declarations across **seven** enumeration types (`HeatExchangeMethod` ×3, `CompressionMethod`, `PumpingMethod`, `ReactionProcessType`, `EngineDriveMethod`, `MotorDriveMethod`, `TurbineDriveMethod`) on `ExchangingThermalEnergy`/`RemovingThermalEnergy`/`SupplyingThermalEnergy`/`Compressing`/`Pumping`/`ReactingChemicals`/`DrivingByEngine`/`DrivingByMotor`/`DrivingByTurbine`, with mixed multiplicities (`1..1` and `0..1`); the enumeration domains are heterogeneous, mixing mechanism/principle labels (`CentrifugalMotion`, `PositiveDisplacement`), equipment technology or construction (`Plate`, `Tubular`, `Fan`, `Blower`, `GasTurbine`) and non-answers (`Unspecified`, `CustomMethod`, `Generic`) inside single enums. Many literals have direct or close counterparts in `Plant.ProcessEquipment`, demonstrating semantic overlap with physical realization rather than exact identity for every row; `ReactingChemicals.Method = PackedBed` and `ProcessStepDetail.ContactingInPacking` carry related packed-bed semantics through different constructs without proven equivalence. `ProcessStepDetail` remains a `0..*` composed sub-process refinement (not a classification axis and not `ProcessStep`), while `ProcessStep.HierarchyLevel` is supporting evidence that DEXPI can introduce explicitly named cross-cutting properties. Outcome A accepted — `ProcessStep.function` remains the only canonical step-classification axis, no generic second field or extension bag is added, and all `Method` values remain adapter-unsupported where required. Candidate B (generic union) and Candidate C (function-specific schema) are rejected; Candidate D is a plausible future home for part of the vocabulary, not implemented. Qualified engineering quantities remain separate as Issue #32, Issue #21 is closed; its topic is preserved as the Project draft `DEXPI storage semantics` in `Later`; no production code, adapters, tests, fixtures, examples, dependency, or runtime change; quality gates pass (352 tests, pyright 0 errors/warnings, docs/agent skills, build) |
 
-### Backlog (Suggested Order)
+### Deferred candidates
 
-The documented realistic process fragment is implemented as a loadable public
-example through the production semantic model (see Completed), the basic
-headless read-only process renderer derives a standalone SVG diagram from its
-`ProcessModel` (see Completed; heuristics and limitations in
-[docs/rendering.md](rendering.md)), the DEXPI 2.x Process adapter spike
-(see Completed) answered the interoperability evidence question for an
-explicit material subset, ADR-0009 separated canonical engineering
-functions from presentation symbol roles (see Completed), and the DEXPI
-Plant/P&ID semantic-mapping spike (see Completed;
-[docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010)
-established the Plant/P&ID semantic boundary from official model + instance
-evidence without changing the canonical model, the physical-piping
-specification/decision slice (see Completed;
-[docs/physical-piping-model.md](physical-piping-model.md), ADR-0011) decided the
-canonical piping shape, and its first implementation slice now ships (see
-Completed; Issue #26). The DEXPI `ExchangingThermalEnergy` mapping-evidence slice
-(see Completed; Issue #22,
-[docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md))
-has since closed that one interoperability sub-question as an explicit
-unsupported status. The process-step classification decision slice (see
-Completed; Issue #31,
-[docs/process-step-classification.md](process-step-classification.md),
-ADR-0012) has closed the model-level *classification* half of the same Issue #22
-finding — `ProcessStep` keeps exactly one classification axis, so no canonical
-step-classification field is owed and no further per-class `Method` probing can
-produce progress. The backlog rows below are the evidence-driven candidates for
-the next slice.
+All items below are deliberately unordered and outside the operational horizon:
 
-| # | Item | Note |
-|---|---|---|
-| 1 | Expand the DEXPI Process subset (evidence-driven) | Independent alternative needing no physical-model change: re-open from fresh evidence now that ADR-0009 gave canonical engineering functions; candidates include material-port-only `pumping` reverse round-trip (proven) and `StoringMaterial` storage classes, each needing its own semantic review against a real instance before any mapping claim. **Partially advanced by Issue #22:** the `ExchangingThermalEnergy` candidate was investigated in full and resolved as an explicit documented + test-pinned unsupported status — canonical `heat_exchange` corresponds to the DEXPI class only as a process-function *kind*, and import/export/round-trip are not claimed because the blockers (`Method: HeatExchangeMethod` mandatory, coupled multi-stream semantics, no port kind, no energy-flow connection kind, no qualified-quantity model) are **model-level and shared with the rest of the DEXPI ProcessStep family** rather than specific to thermal steps; see [docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md). **Partially advanced again by Issue #31:** the `Method` blocker was decided and is now closed as a canonical-model question — the nine DEXPI `Method` properties are heterogeneous and only partially overlap physical-realization semantics, canonical `ProcessStep` currently keeps exactly one classification axis, and the properties stay adapter-unsupported where DEXPI requires them (see Completed; [ADR-0012](decisions/ADR-0012-process-step-single-classification-axis.md)). Of the remaining blockers, `StoringMaterial` (Issue #21) is its own separate evidence slice and qualified engineering quantities are the outstanding model-level decision; neither is authorized here |
-| 2 | Renderer/layout refinement (evidence-driven) | Only when a concrete diagram problem needs it: label-collision handling, row/column balancing, crossing reduction, persistent view/presentation configuration, or higher-fidelity symbol sourcing with explicit provenance; do not polish ahead of an evidence gap |
+- DEXPI Process subset expansion. Issue #21 is closed; its `StoringMaterial`
+  topic is preserved as the Project draft `DEXPI storage semantics` in `Later`.
+- P&ID semantic realization and process ↔ physical mapping.
+- Renderer/layout refinement and higher-fidelity symbol sourcing.
+- Engineering rules/checks and other future capability directions.
 
-### Milestones
+### Milestone status
 
-### Milestone 1 — validated YAML load
-
-> DeepPlant can load a small process model from YAML, validate its semantic
-> structure and report invalid references through the CLI.
-
-Complete: structural validation and reference validation ship in the first two
-slices.
-
-### Milestone 2 — prototype fragment and renderer
-
-> DeepPlant can represent a real process fragment of roughly 20–50 engineering
-> objects, render it as a basic PFD/P&ID-like diagram and validate at least 10
-> classes of engineering/model consistency errors.
-
-Order within this milestone: the realistic process fragment is a loadable
-synthetic example through the production semantic model (see Completed), the
-standards/symbol-licensing governance slice (ADR-0007,
-[docs/standards.md](standards.md)) governs symbol sourcing, the SVG + anchor +
-initial basic symbol-pack contract (ADR-0008, [docs/svg-symbols.md](svg-symbols.md))
-ships the `basic` process/PFD pack, and the basic headless read-only process
-renderer now derives the standalone PFD diagram from the example
-([examples/realistic-process-fragment/process.svg](../examples/realistic-process-fragment/process.svg)).
-The milestone's remaining breadth (P&ID-like coverage and an engineering-rule
-validation engine with several consistency-error classes) is still open. The
-physical-piping specification slice
-([docs/physical-piping-model.md](physical-piping-model.md), ADR-0011) is a
-decision record, and its first implementation slice (Issue #26) now ships the
-physical piping-realization layer: it adds representable P&ID-like structure
-(lines, property-bounded segments, elementary realizations) and does **not**
-claim the milestone's remaining breadth — no P&ID rendering exists, no
-engineering-rule engine exists, and the piping layer's own rule set (C1, P1–P5)
-is structural, not engineering.
+The original YAML, process-fragment, renderer, and piping milestones are
+completed history recorded in `Completed`. The only active GitHub Milestone is
+`DEXPI Interoperability v0.1`, and it contains only Issue #20. It remains open
+until that contract is published; no successor Milestone is created in advance.
 
 ### Next Task
+
+The operational sequence is deliberately explicit and short:
+
+```text
+#20  →  #32  →  re-evaluate the next direction from new evidence
+```
+
+Issue #20 is the sole `Now` item: publish the auditable DEXPI 2.0.0
+supported-subset and semantic round-trip contract from the completed evidence
+in Issues #19 and #22. Issue #32 is the sole `Next` item: decide the semantic
+boundary for qualified engineering quantities. No third task is promoted
+before #32 produces new evidence.
 
 The piping container and elementary realization layer from ADR-0011 is
 **implemented** (Issue #26, see Completed): `PipingModel` (`PlantModel.piping`)
@@ -338,13 +297,14 @@ one classification axis. Candidate D is a plausible future home for the
 overlapping subset only, and is not implemented. No model, adapter, example, or
 test changed.
 
-No single next task is promoted here. The next choice is deliberately left to
-the later review this document's planning governance requires, because this
-decision closed one model-level question without creating an implementation
-obligation, and each remaining candidate is a different kind of work:
+The following notes are deferred context only; they do not expand the
+operational sequence above:
 
-- **The remaining model-level question — qualified engineering quantities
-  (C-3).** Issue #22 isolated exactly two model-level blockers: a
+- **Issue #32 — qualified engineering quantities** is the sole `Next` Issue and
+  follows #20. It remains an evidence-first decision slice, not an
+  implementation or units-library commitment.
+
+  The evidence boundary is **C-3**. Issue #22 isolated exactly two model-level blockers: a
   required/non-derivable step classification and the absence of any canonical
   qualified-quantity representation. Issue #31 closed the first (no canonical
   field is owed). The second is untouched by that decision: DEXPI still requires
@@ -352,17 +312,16 @@ obligation, and each remaining candidate is a different kind of work:
   flows, and more as *qualified* values on the very classes examined here, and
   the canonical model still has nowhere to put value-plus-unit. This is the
   smallest remaining evidence-producing step of that pair, and it is recorded
-  here as an **evidence-backed candidate**, not as an authorized task; it
-  deserves its own decision Issue and must not be folded into a classification
-  slice or grown into a units-library design.
-- **Backlog row 1** — expand the DEXPI Process subset from fresh evidence (needs
+  here as an evidence-first decision and must not be folded into a
+  classification slice or grown into a units-library design.
+- **Deferred DEXPI Process subset expansion** — fresh evidence (needs
   no physical-model change). Its `ExchangingThermalEnergy` sub-question is closed
   by Issue #22
   ([docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)):
   the class stays explicitly unsupported. Its `Method` blocker is closed by
   Issue #31. The remaining per-class candidate is `StoringMaterial` storage
-  classes, which is its own separate slice (Issue #21) and is **not** closed by
-  this decision. Neither candidate is authorized here.
+  classes. Issue #21 is closed; the topic is preserved as the Project draft
+  `DEXPI storage semantics` in `Later`. Neither candidate is authorized here.
 - **Recorded physical-model gaps, not authorized work:** a concrete requirement
   for a property change that does not coincide with a `Connection` boundary
   (then `PropertyBreak` semantics), `1:N` parallel/as-built realization
@@ -371,7 +330,7 @@ obligation, and each remaining candidate is a different kind of work:
   to under ADR-0012. Each needs its own evidence and its own Issue per
   ADR-0011's and ADR-0012's Revisit-When lists; none is a mechanical continuation
   of this slice.
-- **Backlog row 2** — renderer/layout refinement stays evidence-gated.
+- **Deferred renderer/layout refinement** stays evidence-gated.
 
 This follows from the current repository state: the DEXPI Plant/P&ID spike
 ([docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) bounded
