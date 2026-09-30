@@ -52,6 +52,10 @@ equipment:
     type: tank
     ports:
       - id: outlet
+  - id: P-101
+    type: pump
+    ports:
+      - id: suction
 
 connections:
   - id: C-001

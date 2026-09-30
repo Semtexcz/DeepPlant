@@ -865,7 +865,7 @@ and its own Issue.
 | **Physical realization / equipment technology** — a plausible future home for `Plate`/`Tubular`/`Fan`/`Diesel`/`AlternatingCurrent`-style values, and the Process ↔ physical realization mapping | Requires its own evidence and its own Issue; ADR-0009 and ADR-0011 explicitly leave Process ↔ physical realization undecided. No `realized_by` field, no `ProcessStep` → `Equipment` reference, and no realization-layer change is made here. | ADR-0009 / ADR-0011 Revisit-When lists |
 | **`ProcessStepDetail` mapping** — `Agitating`, `ContactingInPacking`, `ContactingOnTray`, `SupplyingThermalEnergyWithBurner`, `MeasuringProcessVariable.ProcessStepDetailReference` | Investigated here as neighbouring evidence only (§6). DeepPlant has no step hierarchy or sub-process concept, and the adapter already rejects nested `ProcessStep` for that reason. Not mapped. | a separate Issue if evidence appears |
 | **Function-specific semantic details (candidate C)** | Rejected now because no DeepPlant-native process classification or consumer justifies it (§8.3). Only the *direction* is recorded: if evidence changes, the shape must be function-scoped, never a global union. | a separate decision Issue with new evidence |
-| **`StoringMaterial` storage classes (Issue #21)** | Remains a separate slice. Not implemented here, not closed here, and not turned into another per-class DEXPI mapping spike. Storage semantics were not needed as evidence for the classification boundary. | Issue #21 |
+| **`StoringMaterial` storage classes (Issue #21, closed)** | Remains deferred strategic/evidence context. It was not implemented or decided by this historical classification slice, and it is not an open or Ready executable Issue. | revisit only from new evidence |
 | **DEXPI Process subset expansion** | Not claimed. No additional DEXPI class became supported, and no round-trip is newly claimed. | roadmap backlog, evidence-driven |
 
 ## 13. Revisit-when conditions
@@ -934,8 +934,9 @@ sources listed in §3.1, under CC BY 4.0 attribution.
 - **Not completed:** the "expand the DEXPI Process subset" backlog row. No
   additional DEXPI class became supported, no round-trip is newly claimed, and
   no runtime capability changed. The row's `ExchangingThermalEnergy` status is
-  unchanged and the remaining candidates (`StoringMaterial`, quantity
-  representation) stay open.
+  unchanged. Qualified engineering quantities remained the current model-level
+  candidate at the time; `StoringMaterial` (Issue #21) is now closed and remains
+  deferred evidence context.
 - **No canonical-model, adapter-mapping, example, or dependency change was
   made**, so no milestone state changed and no other roadmap row became
   complete.
@@ -946,7 +947,8 @@ sources listed in §3.1, under CC BY 4.0 attribution.
   leaves the second untouched (§12). The classification half closing is what
   makes the quantity half the concrete next evidence-producing step rather than
   a speculative one. It is recorded as an evidence-backed candidate, not
-  authorized here, and `StoringMaterial` (Issue #21) remains a separate slice.
+  authorized here. `StoringMaterial` (Issue #21) is now closed and remains
+  deferred evidence context rather than an executable slice.
 - **Why this follows from the current repository state:** three earlier DEXPI
   slices and Issue #22 converged on the same two model-level blockers from
   different directions. This slice demonstrates that the classification half is

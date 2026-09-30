@@ -37,11 +37,14 @@ its own document. Length alone is never a reason to split.
 
 ## Front matter
 
-Every document except ADRs carries YAML front matter:
+Every documentation file under `docs/` and `project/`, except ADRs, carries
+standard YAML front matter. Repository entrypoint files `README.md`, `VISION.md`,
+and `AGENTS.md` are explicit exceptions because GitHub, users, and tooling consume
+them directly.
 
 ```yaml
 ---
-type: architecture | governance | contract | roadmap | direction
+type: architecture | governance | contract | roadmap | direction | project-brief
       | navigation | product | history | evidence | prototype | design-evidence
 status: active | historical | superseded | proposed
 canonical_for:   # the stable question or contract key this document owns
@@ -69,6 +72,9 @@ Rules:
    a replacement exists; use `null` only when no replacement is appropriate.
 5. ADRs keep their in-body header (`> Status: …`, `> Date: …`), which is the
    ADR metadata form; supersession is stated in that status line.
+6. Future tooling should validate front matter, allowed types, required fields,
+   relative links, heading anchors, and hard-limit violations. This convention
+   does not require a documentation-linter framework today.
 
 ## Length policy
 

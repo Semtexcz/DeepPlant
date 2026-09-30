@@ -84,7 +84,11 @@ be relaxed only through later evidence and an ADR change.
 **Validation ownership** (narrowest first): C1 required/non-empty is a field rule
 on `Connection`; C1 uniqueness and P3 live on `PlantModel` (they need physical
 context); P1 and P4 live on `PipingModel`; P2 on `PipingLine`; P5 on
-`PipingSegment`. Error messages name the offending line, segment, or realization.
+`PipingSegment`. `PipingModel` is independently structurally valid for its local
+rules (P1, P2, P4, P5), but it is not fully referentially validated in isolation:
+P3 requires `PlantModel` context because realization `connection` references must
+resolve against `PlantModel.connections`. `ProcessModel`, by contrast, owns and
+resolves its independent semantic graph (S1–S4).
 
 These are **structural and referential** rules only. DN continuity, reducer
 requirements, piping-class continuity, line-number consistency, and
@@ -96,9 +100,10 @@ engine and are deliberately not implemented.
 1. **`PipingModel` mirrors `PlantModel.process`.** It is optional: a plant with no
    authored piping stays valid.
 2. **Piping is a dependent layer, not an independent graph.** Unlike
-   `ProcessModel`, a `PipingModel` is not structurally valid on its own: its
-   references resolve against the physical layer, so its validation boundary is
-   cross-layer (`plant + its connections`). This asymmetry is intentional.
+   `ProcessModel`, `PipingModel` is independently structurally valid for local
+   rules (P1, P2, P4, P5), but P3 needs `PlantModel` context to resolve
+   realization references against `PlantModel.connections`. This asymmetry is
+   intentional.
 3. **`PipingLine.id` is canonical identity.** `line_number` is the human
    designation (for example `3"-P-101-A1A`), follows company practice, may be
    revised, and is not guaranteed unique across a project. A DEXPI
@@ -115,11 +120,13 @@ engine and are deliberately not implemented.
    exists yet.
 6. **`kind` is a closed two-value vocabulary:** `"pipe"` or `"direct"`; any other
    value is a validation error rather than a silently reinterpreted
-   realization. It defaults to `"pipe"`, because authoring a realization states
-   that the adjacency has a physical realization. No realization means the
-   realization is not modelled; `kind: pipe` means it is explicitly
-   pipe-realized; `kind: direct` means it is explicitly direct. Serialization may
-   omit the default.
+   realization. It defaults to `"pipe"` when omitted on input, because authoring a
+   realization states that the adjacency has a physical realization. No
+   realization means the realization is not modelled; `kind: pipe` means it is
+   explicitly pipe-realized; `kind: direct` means it is explicitly direct.
+   Canonical save currently serializes the resulting value explicitly as
+   `kind: pipe`, because `save_plant()` excludes `None` values but does not
+   exclude defaults.
 7. **`PipingRealization` is not a `PipingConnection`.** It has no endpoints of its
    own. `Connection` ids are plant-unique, so a plain id string is a sufficient
    reference and no `ConnectionRef` wrapper exists.
@@ -137,6 +144,24 @@ not flagged.
 ## Authored shape
 
 ```yaml
+plant:
+  id: demo
+
+equipment:
+  - id: P-101
+    type: pump
+    ports:
+      - id: discharge
+  - id: FV-101
+    type: valve
+    ports:
+      - id: inlet
+      - id: outlet
+  - id: E-101
+    type: heat_exchanger
+    ports:
+      - id: inlet
+
 connections:
   - id: C-001
     source:
@@ -144,6 +169,13 @@ connections:
       port: discharge
     target:
       component: FV-101
+      port: inlet
+  - id: C-002
+    source:
+      component: FV-101
+      port: outlet
+    target:
+      component: E-101
       port: inlet
 
 piping:
@@ -157,7 +189,9 @@ piping:
           fluid_code: P
           realizations:
             - connection: C-001
+              kind: pipe
             - connection: C-002
+              kind: pipe
 ```
 
 Existing example: `examples/realistic-process-fragment/plant.yaml` realizes its
