@@ -503,14 +503,20 @@ distinct from `Connection`:
 Goal: derive human-readable engineering diagrams from the semantic model.
 Likely capabilities: PFD rendering, P&ID rendering, symbol library,
 presentation/layout model, manual layout override. Semantic and presentation
-models stay separate.
+models stay separate. Any future generic rendering, layout, or routing choice
+starts from the evidence-first
+[reference-product landscape](reference-products.md), which authorizes no
+implementation.
 
 ### Stage 4 — Interactive Editing
 
 Goal: let engineers modify the semantic model graphically without making the
 drawing the source of truth. Potential surfaces: PFD/P&ID editor, property
 editor, symbol placement, connection editing. Directional only; it does not
-justify web architecture now.
+justify web architecture now. Generic editor, workspace, and interaction
+technology must be compared against the
+[reference-product landscape](reference-products.md) rather than assumed, and no
+GUI framework may dictate the domain model.
 
 ### Stage 5 — Git-native Engineering Workflow
 
