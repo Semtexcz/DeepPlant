@@ -19,6 +19,7 @@ update_when:
 - Workflow: [workflow.md](workflow.md)
 - Quality: [quality.md](quality.md)
 - Standards and symbol assets: [standards.md](standards.md)
+- Reference products and future reuse landscape: [reference-products.md](reference-products.md)
 - SVG symbol and anchor contract: [svg-symbols.md](svg-symbols.md)
 - Headless process renderer: [rendering.md](rendering.md)
 - DEXPI 2.x Process adapter spike: [dexpi-process-spike.md](dexpi-process-spike.md)
