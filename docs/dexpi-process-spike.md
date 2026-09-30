@@ -1,7 +1,7 @@
 ---
-type: spike-report
-status: active
-source_of_truth_for:
+type: evidence
+status: historical
+canonical_for:
   - dexpi-2-process-interoperability-evidence
 read_when:
   - interoperability-work
@@ -11,9 +11,40 @@ update_when:
   - dexpi-model-change
   - adapter-change
   - canonical-model-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # DEXPI 2.x Process Adapter Spike
+
+## Outcome card
+
+- **Question investigated:** can a DEXPI 2.x Process subset be mapped into the
+  canonical `ProcessModel` without hidden semantic invention, and can the
+  supported subset be serialized back to DEXPI-native XML?
+- **Status:** historical evidence (investigation complete; outcomes owned by the
+  adapter contract and ADR-0009).
+- **Inspection scope and date:** DEXPI `V2.0.0` (tag `V2.0.0`, commit
+  `260c81c…`), model definitions and a DeepPlant-owned synthetic conformance
+  fixture, inspected 2026-09-09.
+- **Conclusions:**
+  1. A narrow material subset (`Source`, `Sink`, `Mixing`, `SplittingMaterial`,
+     `Pumping` with material ports and `Stream` connections) maps honestly.
+  2. `ProcessStep.type` conflated engineering function and presentation symbol
+     role; canonical `function` replaced it.
+  3. Identity is engineering `Identifier`-driven; XML `Object@id` is file-local
+     resolution mechanics and never canonical identity.
+  4. Unsupported content (energy/information flows, non-material ports, further
+     step classes, unresolved or duplicate references) fails by name.
+  5. Full schema conformance and byte-identical round-trip are not claimed.
+- **Resulting ADRs:** ADR-0009.
+- **Current contracts operationalizing the result:**
+  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md),
+  [contracts/process-model.md](contracts/process-model.md).
+- **Conditions for revisiting:** a DEXPI 2.0.1+ stable release, a canonical home
+  for qualified quantities, or a deliberate subset expansion Issue.
 
 > This document is a primary analysis deliverable of the DEXPI Process adapter
 > spike, not secondary documentation. Its purpose is to answer, with

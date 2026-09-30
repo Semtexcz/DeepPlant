@@ -1,7 +1,7 @@
 ---
-type: rendering
+type: contract
 status: active
-source_of_truth_for:
+canonical_for:
   - headless-process-renderer
 read_when:
   - renderer-implementation
@@ -10,6 +10,10 @@ update_when:
   - renderer-behavior-change
   - renderer-api-change
   - layout-heuristic-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Basic Headless Process Renderer

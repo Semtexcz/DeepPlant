@@ -1,7 +1,7 @@
 ---
-type: standards-and-provenance
+type: governance
 status: active
-source_of_truth_for:
+canonical_for:
   - standards-registry
   - symbol-asset-provenance-policy
 read_when:
@@ -12,9 +12,21 @@ update_when:
   - standards-edition-change
   - new-symbol-source-decision
   - provenance-policy-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Standards and Symbol Provenance
+
+> **Authority note:** this document combines an **active policy**
+> (restricted-standards rules, symbol provenance policy, verification
+> vocabulary) with **evidence** (source and licence assessments, candidate asset
+> inventories). The policy sections govern current work; the assessments are
+> research findings with their own inspection dates. Splitting this file into
+> policy, registry, and evidence documents is tracked in
+> [conventions.md](conventions.md) as outstanding migration work.
 
 Governance/research slice behind
 [ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md). Recorded

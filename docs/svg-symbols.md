@@ -1,7 +1,7 @@
 ---
-type: svg-symbol-contract
+type: contract
 status: active
-source_of_truth_for:
+canonical_for:
   - svg-symbol-and-anchor-contract
 read_when:
   - symbol-asset-work
@@ -10,6 +10,10 @@ read_when:
 update_when:
   - symbol-contract-change
   - new-symbol-variant
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # DeepPlant SVG Symbol and Anchor Contract

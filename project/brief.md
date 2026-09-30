@@ -1,7 +1,7 @@
 ---
 type: project-brief
-status: draft
-source_of_truth_for:
+status: active
+canonical_for:
   - current-initiative
 read_when:
   - discovery
@@ -10,6 +10,10 @@ read_when:
 update_when:
   - scope-change
   - durable-project-learning
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Project Brief
@@ -22,22 +26,25 @@ platform in which a process plant is represented by a machine-readable semantic
 model that can be validated, versioned, diffed, reviewed, and rendered.
 
 This repository currently ships the project foundation plus semantic vertical
-slices: the minimal domain model (`PlantModel`, `Plant`, `Equipment`), the
-topology slice (`Port`, identified `Connection`, reference validation), the
-physical piping-realization slice (`PipingModel` with `PipingLine` →
-`PipingSegment` → `PipingRealization` referencing identified `Connection`s;
-ADR-0011), the standalone
-process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]`),
-canonical `ProcessStep.function` engineering semantics separated from
-presentation symbol roles (ADR-0009; an explicitly resolved `symbol_role`
-override boundary in the renderer), YAML load/save boundaries into typed
-Pydantic models, strict structural and reference validation, a `deepplant
-validate` command, the `basic` process symbol-pack contract, a headless
-read-only process renderer, and a narrow DEXPI 2.x Process adapter spike
-(`deepplant.adapters.dexpi`; see
-[docs/dexpi-process-spike.md](../docs/dexpi-process-spike.md)). The interactive
-editor, full DEXPI and other vendor adapters, and P&ID rendering do **not**
-exist yet.
+slices: the physical/plant model (equipment-owned ports, identified directed
+connections, reference validation), the physical piping-realization layer
+(ADR-0011), the standalone process-domain model with canonical
+`ProcessStep.function` semantics (ADR-0009), YAML load/save into typed Pydantic
+models, the `deepplant validate` command, the `basic` process symbol-pack
+contract, a headless read-only process renderer, and a narrow DEXPI 2.x Process
+adapter. The interactive editor, full DEXPI and other vendor adapters,
+instrumentation semantics, engineering rules, and P&ID rendering do **not** exist
+yet.
+
+Current implementation facts are owned by the contracts and the architecture
+boundary map, not by this brief:
+
+- [docs/architecture.md](../docs/architecture.md) — what exists and its module
+  boundaries;
+- [docs/contracts/index.md](../docs/contracts/index.md) — current model, format,
+  CLI, renderer, and adapter obligations;
+- [docs/roadmap.md](../docs/roadmap.md) — current state, next direction, and
+  unresolved evidence gaps.
 
 ## Problem
 
@@ -123,12 +130,14 @@ CLI, and receives a clear validation report for structural and reference errors
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
 - Do not create empty architecture directories before real code exists.
-- Long-term vision lives in `VISION.md` and `docs/product.md`; the two-level
-  roadmap (current implementation vs directional capability) lives in
-  `docs/roadmap.md`; strategic planning governance (vision → roadmap → GitHub
-  Project → milestones → ready issues → PRs) lives in `docs/planning.md`. The
-  directional roadmap is product context, not implementation authorization:
-  implement only the currently scoped vertical slice.
+- Long-term vision lives in `VISION.md` and `docs/product.md`; capability
+  progression lives in `docs/direction.md`; the actionable current/next state
+  lives in `docs/roadmap.md`; strategic planning governance (vision → roadmap →
+  GitHub Project → milestones → ready issues → PRs) lives in `docs/planning.md`;
+  documentation authority, metadata, and length conventions live in
+  `docs/conventions.md`. Directional material is product context, not
+  implementation authorization: implement only the currently scoped vertical
+  slice.
 
 ## Risks
 

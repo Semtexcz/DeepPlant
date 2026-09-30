@@ -28,7 +28,7 @@ DeepPlant-original geometry should be the first `basic`/fallback pack rather
 than the globally canonical engineering representation.
 
 The realistic process fragment
-([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
+([examples/realistic-process-fragment/plant.yaml](../../examples/realistic-process-fragment/plant.yaml))
 is the reference workload; its `ProcessStep.type` values are `source`, `mixing`,
 `pump`, `heat_exchanger`, `splitting`, `vessel`, and `sink`. ADR-0007 requires
 explicit provenance for distributed assets and restricts normative artwork, so

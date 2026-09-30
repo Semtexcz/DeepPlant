@@ -1,7 +1,7 @@
 ---
-type: research
-status: proposed
-source_of_truth_for:
+type: prototype
+status: historical
+canonical_for:
   - proposed-process-topology-model
 read_when:
   - process-topology-decisions
@@ -9,9 +9,37 @@ read_when:
   - pfd-pid-modeling
 update_when:
   - decision-changes
+depends_on: []
+decision: []
+evidence: []
+superseded_by: docs/contracts/process-model.md
 ---
 
 # Process Topology Model
+
+## Outcome card
+
+- **Question investigated:** how should process topology relate to physical
+  topology without duplicating connectivity or coupling identities?
+- **Status:** historical prototype research; its operational proposal is
+  superseded by the process contract, while its duplication analysis remains
+  referenced.
+- **Conclusions:**
+  1. `Connection` stays a directed, property-free topology primitive.
+  2. Process semantics are not physical piping semantics:
+     `ProcessStream != PipingLine`, and `Connection != ProcessStream`.
+  3. A `ProcessStream(source: PortRef, target: PortRef)` beside `Connection`
+     would duplicate one authored fact and is rejected.
+  4. The evidence available at the time was insufficient to implement the
+     process layer without first modelling one real fragment.
+  5. Process branches and merges require explicit junction steps, not shared
+     equipment ports.
+- **Resulting ADRs:** ADR-0003, ADR-0005, ADR-0011.
+- **Current contracts operationalizing the result:**
+  [contracts/process-model.md](contracts/process-model.md),
+  [contracts/physical-piping.md](contracts/physical-piping.md).
+- **Conditions for revisiting:** a proposal that reintroduces duplicate
+  connectivity, or evidence for a process-layer concept with no canonical home.
 
 > Decision status: **proposed — requires human architectural review before implementation.**
 

@@ -1,7 +1,7 @@
 ---
-type: specification
-status: active
-source_of_truth_for:
+type: design-evidence
+status: historical
+canonical_for:
   - physical-piping-canonical-model
 read_when:
   - physical-model-growth
@@ -11,9 +11,37 @@ read_when:
 update_when:
   - canonical-model-change
   - piping-model-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: docs/contracts/physical-piping.md
 ---
 
 # Physical Piping Model
+
+## Outcome card
+
+- **Question investigated:** what is the physical piping graph, and which minimal
+  canonical shape represents it faithfully enough for future P&ID work?
+- **Status:** historical design evidence; the canonical rules it defined are now
+  owned by the piping contract, and this document remains the design record.
+- **Inspection scope and date:** official DEXPI `V2.0.0` model + Reference P&ID
+  instance (inspected 2026-09-21) and the DeepPlant realistic fragment.
+- **Conclusions:**
+  1. Candidate B was selected: `PipingLine` → `PipingSegment` →
+     `PipingRealization` referencing identified `Connection`s.
+  2. `Connection` gained canonical identity only; it stayed property-free.
+  3. Piping must not restate topology, so it is a dependent cross-layer validated
+     submodel rather than an independent graph.
+  4. Segment boundaries must coincide with `Connection` boundaries in the first
+     slice; mid-connection property breaks are deferred.
+  5. Worked diffs show small, reviewable engineering changes with no renumbering.
+- **Resulting ADRs:** ADR-0011.
+- **Current contracts operationalizing the result:**
+  [contracts/physical-piping.md](contracts/physical-piping.md).
+- **Conditions for revisiting:** ADR-0011's *Revisit When* list (property breaks
+  off a connection boundary, `1:N` realizations, pipe-piece identity, node-level
+  connectivity, or a DEXPI semantics change).
 
 > Decision status: **the canonical boundary is decided and recorded in
 > [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md).**

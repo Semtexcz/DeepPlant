@@ -1,7 +1,7 @@
 ---
-type: adr-index
+type: navigation
 status: active
-source_of_truth_for:
+canonical_for:
   - architectural-decisions-index
 read_when:
   - architecture-change
@@ -9,9 +9,19 @@ read_when:
 update_when:
   - adr-added
   - adr-status-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Architectural Decisions
+
+> **Authority:** this index lists **decisions** — why a boundary exists. Current
+> obligations live in [contracts/](../contracts/index.md); evidence in
+> [research/](../research/index.md). A decision never replaces the contract that
+> operationalizes it, and long summaries below are historical records of the
+> decision text, not restatements of the current rules.
 
 | ADR | Status | Decision |
 |---|---|---|

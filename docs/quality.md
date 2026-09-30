@@ -1,7 +1,7 @@
 ---
-type: quality
+type: governance
 status: active
-source_of_truth_for:
+canonical_for:
   - quality-gates
 read_when:
   - prepare-task
@@ -10,6 +10,10 @@ read_when:
 update_when:
   - test-strategy-change
   - runtime-level-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Quality
@@ -25,12 +29,16 @@ update_when:
 
 ## Test Expectations
 
-- Domain rules have unit tests.
-- Database adapters have integration tests once a database exists.
-- Main workflows have E2E tests for frontend or full-stack projects.
-- Authorization has negative tests once authorization exists.
-- External calls have timeouts and test doubles.
-- Migrations are tested once migrations exist.
+- Domain rules are unit-tested independently of the CLI and any transport.
+- Every fail-closed rule has negative coverage: unknown fields, blank semantic
+  strings, duplicate ids, unresolvable references, unsupported external content.
+- Deterministic outputs (canonical YAML, rendered SVG, exported DEXPI XML) are
+  pinned by determinism or golden tests.
+- External systems appear only as repository fixtures; the suite runs offline
+  with no network access at test time.
+- Infrastructure that does not exist yet (databases, migrations, authorization
+  boundaries, front-end runtimes, external services) gains test expectations
+  only when it exists.
 
 ## DeepPlant Expectations
 
@@ -52,21 +60,9 @@ Critical operations should be diagnosable. Production projects require logs, rea
 
 ## Production Runtime Checks
 
-Production full-stack projects verify the runtime artifact path with:
-
-```bash
-make image-build
-make image-inspect
-make prod-up
-make prod-status
-make prod-smoke
-make e2e-production
-make prod-down
-```
-
-These checks prove local OCI image buildability, production process startup,
-image metadata, non-root runtime users, absence of development runtime
-commands, health/readiness, API contract availability, browser behavior,
-frontend security headers, and graceful Compose shutdown. They do not replace
-environment-specific deployment, capacity, backup, compliance validation, or
-the external TLS/HSTS ingress contract.
+DeepPlant is a `script` project at runtime level `shared`: there is no container
+image, no production service, and no deployment surface. The template's
+full-stack production gates (image build/inspect, compose up/status/smoke,
+production E2E) therefore do not apply and are intentionally absent from the
+Makefile. If DeepPlant ever gains a deployment surface, this section must be
+replaced with the applicable gates before that work merges.

@@ -1,7 +1,7 @@
 ---
-type: research
-status: active
-source_of_truth_for:
+type: evidence
+status: historical
+canonical_for:
   - process-step-classification-boundary
 read_when:
   - process-function-vocabulary-work
@@ -10,9 +10,40 @@ read_when:
 update_when:
   - canonical-model-change
   - dexpi-model-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Process-Step Classification Boundary (Issue #31)
+
+## Outcome card
+
+- **Question investigated:** does canonical `ProcessStep` need a second
+  classification concept beside `function`?
+- **Status:** historical evidence (Outcome A accepted; recorded by ADR-0012).
+- **Inspection scope and date:** the complete official DEXPI `V2.0.0` Process
+  model definition, inspected 2026-09-22.
+- **Conclusions:**
+  1. DEXPI `Method` appears only in the Process model, as nine property
+     declarations across seven heterogeneous enumeration types.
+  2. The value domains mix mechanism/principle labels, equipment technology or
+     construction, and intentional non-answers within single enums.
+  3. Many literals have direct counterparts in `Plant.ProcessEquipment`,
+     demonstrating overlap with physical realization rather than process
+     semantics.
+  4. No single reusable cross-cutting `ProcessStep` concept is exposed, so no
+     canonical field is added.
+  5. `ProcessStepDetail` is a composed sub-process refinement, not a
+     classification axis.
+- **Resulting ADRs:** ADR-0012.
+- **Current contracts operationalizing the result:**
+  [contracts/process-model.md](contracts/process-model.md),
+  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md).
+- **Conditions for revisiting:** ADR-0012's *Revisit When* list (a native
+  equipment-independent process principle, a coherent later DEXPI axis, or
+  `ProcessStepDetail` mapping evidence).
 
 > This document is the primary deliverable of Issue #31, an **evidence-first
 > canonical-model decision slice**. It is not documentation of a delivered
