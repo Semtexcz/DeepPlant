@@ -36,7 +36,7 @@ of restating the facts.
 | Physical piping | [physical-piping.md](physical-piping.md) | How is physical piping realized over identified connections, and which rules (C1, P1–P5) apply? |
 | YAML format | [yaml-format.md](yaml-format.md) | What is the authored YAML document shape, and what does load/save guarantee? |
 | CLI surface | [cli.md](cli.md) | Which commands exist, what do they print, and what exit codes do they use? |
-| DEXPI Process adapter | [dexpi-process-adapter.md](dexpi-process-adapter.md) | Which DEXPI 2.x Process subset is supported, and where does the adapter fail closed? |
+| DEXPI Process adapter | [dexpi-process-adapter.md](dexpi-process-adapter.md) | Which DEXPI 2.0.0 Process concepts are supported, in which direction and under which constraints, and where does the adapter fail closed? |
 | Headless process renderer | [../rendering.md](../rendering.md) | What is the public renderer API and its deterministic behaviour? |
 | SVG symbol pack | [../svg-symbols.md](../svg-symbols.md) | What is the SVG asset and anchor contract a symbol pack must satisfy? |
 

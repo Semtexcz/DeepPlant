@@ -31,7 +31,7 @@ connections, reference validation), the physical piping-realization layer
 (ADR-0011), the standalone process-domain model with canonical
 `ProcessStep.function` semantics (ADR-0009), YAML load/save into typed Pydantic
 models, the `deepplant validate` command, the `basic` process symbol-pack
-contract, a headless read-only process renderer, and a narrow DEXPI 2.x Process
+contract, a headless read-only process renderer, and a narrow DEXPI 2.0.0 Process
 adapter. The interactive editor, full DEXPI and other vendor adapters,
 instrumentation semantics, engineering rules, and P&ID rendering do **not** exist
 yet.

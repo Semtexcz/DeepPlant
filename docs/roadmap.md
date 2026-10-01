@@ -49,7 +49,7 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   `validate` CLI ([contracts/cli.md](contracts/cli.md));
 - the basic headless read-only process renderer ([rendering.md](rendering.md))
   and the `basic` SVG symbol-pack contract ([svg-symbols.md](svg-symbols.md));
-- the narrow DEXPI 2.x Process adapter
+- the narrow DEXPI 2.0.0 Process adapter
   ([contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md)).
 
 Not implemented: full DEXPI and Plant/P&ID import/export, other vendor adapters
@@ -68,13 +68,16 @@ evidence-heavy slices, in the linked spike/decision documents.
 ### Operational sequence
 
 ```text
-#20 → #32 → re-evaluate the next direction from new evidence
+#32 → re-evaluate the next direction from new evidence
 ```
 
-- **Issue #20 is the sole Now item:** publish the auditable DEXPI 2.0.0
-  supported-subset and semantic round-trip contract.
-- **Issue #32 is the sole Next item:** decide the semantic boundary for qualified
-  engineering quantities.
+- **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
+  semantic round-trip contract is published in
+  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md)
+  (compatibility matrix, closed support-state vocabulary, per-direction claims,
+  and an explicit loss model).
+- **Issue #32 is now the sole Now item:** decide the semantic boundary for
+  qualified engineering quantities.
 - **No third executable task is promoted yet.** Re-evaluate after Issue #32 from
   the new evidence it produces.
 
@@ -87,9 +90,11 @@ proposals do not define a competing sequence.
 
 ### Planning context
 
-Issue #20 addresses the DEXPI Process subset and its semantic round-trip
-contract. Issue #32 follows because qualified engineering quantities remain the
-separate unresolved model boundary identified by the DEXPI evidence. The current
+Issue #20 delivered the DEXPI Process subset and its semantic round-trip
+contract, which names the remaining unsupported concepts without widening the
+subset. Issue #32 is next because qualified engineering quantities remain the
+separate unresolved model boundary identified by the DEXPI evidence; the
+contract's `investigated / unsupported` rows keep that gap explicit. The current
 contracts and ADR-0012 do not authorize a third slice: DEXPI `Method` vocabulary
 is heterogeneous. The future process ↔ physical-realization layer may become the
 home for the subset of `Method` semantics that overlap
@@ -98,12 +103,12 @@ whole vocabulary there.
 
 ### Active milestone
 
-**DEXPI Interoperability v0.1** is the only active milestone. Issue #20 is its
-concrete open work. Historical milestone framing and completed-slice detail live
-in [history/implementation-slices.md](history/implementation-slices.md).
-
-P&ID-like coverage and engineering-rule validation breadth remain deferred
-context, not active milestone obligations.
+**DEXPI Interoperability v0.1** is the current milestone; Issue #20 completes its
+scope. After #20 merges, Issue #32 becomes the sole Now item (`#32 → re-evaluate
+the next direction from new evidence`); it is **not** automatically part of this
+milestone, and no successor milestone is created or assigned. See
+[history/implementation-slices.md](history/implementation-slices.md); P&ID-like
+coverage and engineering-rule breadth stay deferred context.
 
 ### Scope Discipline
 

@@ -54,7 +54,7 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | CLI (`--help`, `version`, `validate`) | `src/deepplant/__main__.py` | [contracts/cli.md](contracts/cli.md) |
 | Headless process renderer | `src/deepplant/render.py` | [rendering.md](rendering.md) |
 | `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [svg-symbols.md](svg-symbols.md) |
-| DEXPI 2.x Process adapter | `src/deepplant/adapters/dexpi.py` | [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md) |
+| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 
 Runtime and toolchain:
