@@ -6,43 +6,29 @@
 ## Context
 
 Issue #22 recorded one unresolved model-level gap: DEXPI process steps and streams
-carry numerical engineering values with units (`Duty`, `Area`, `HotFlow`/`ColdFlow`,
-`HeatTransferCoefficient`, `HeatTransferResistance`, `SkinTemperature`,
-`TemperatureDifference`, `Pressure`, `Temperature`, `Head`, `VolumeFlow`,
-`MassFlow`), and DeepPlant has no canonical place for any of them (gap **G5**).
-ADR-0012 deferred "qualified engineering quantities" as a separate decision, and
-the DEXPI adapter keeps rejecting quantity-bearing content fail-closed.
+carry numerical engineering values with units (`Duty`, `Temperature`, `Pressure`,
+`Head`, `VolumeFlow`, `MassFlow`, …, full inventory in the research document),
+with no canonical place in DeepPlant (gap **G5**). ADR-0012 deferred "qualified
+engineering quantities" as a separate decision; the DEXPI adapter keeps rejecting
+quantity-bearing content fail-closed.
 
-Issue #32 asked, before any field or class existed:
-
-```text
-What semantic boundary should DeepPlant use for numerical engineering values
-with units?
-```
+Issue #32 asked, before any field or class existed, what semantic boundary
+DeepPlant should use for numerical engineering values with units.
 
 The investigation is in
 [docs/research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md),
 based on the pinned official DEXPI `V2.0.0` model (release commit
-`260c81c51039789a6148a98af4c6caf23f87a3e2`, inspected 2026-10-01). It found that:
-
-- DEXPI `QualifiedValue` is **not** `{value, unit}`: its single required `Value`
-  is a `PhysicalQuantity` (one `Double` magnitude + a mandatory typed unit) or a
-  bare `Double`, plus optional case/scope/provenance/range/URI qualifiers and a
-  required presentation `DisplayText`;
-- DEXPI reuses one `PhysicalQuantity` aggregate for every quantity kind and pins
-  the unit family on the *owning property* through a type parameter
-  (`QualifiedValue[PhysicalQuantity[PowerUnit]]`, `…[TemperatureUnit]`, …), with
-  unit values as controlled enumeration literals;
-- DEXPI represents a physical quantity with an explicit numeric magnitude and an
-  explicit typed unit. Thus physically equivalent values can be represented as
-  structurally different `PhysicalQuantity` states, such as `10 bar` and `1 MPa`;
-- DEXPI carries no uncertainty/tolerance property and no numeric interval object;
-  its `Range` is a categorical qualifier enum;
-- in DeepPlant no canonical object carries a quantity, and quantities appear as a
-  genuine gap across process, interoperability, future calculations/rules, and
-  review. ADR-0011's current `PipingSegment.nominal_diameter` remains a nominal
-  designation/string-like property; this ADR does not decide that it becomes a
-  qualified physical quantity.
+`260c81c51039789a6148a98af4c6caf23f87a3e2`, inspected 2026-10-01); that document
+holds the full inventory, type analysis, and candidate comparison. It found that
+DEXPI `QualifiedValue` is **not** `{value, unit}` — it wraps a `PhysicalQuantity`
+(one `Double` magnitude + a mandatory typed unit) or a bare `Double`, plus optional
+qualifiers and a presentational `DisplayText`; that DEXPI reuses one reusable
+`PhysicalQuantity` aggregate with the unit family pinned on the *owning property*
+(not on the value); and that DEXPI carries no uncertainty/tolerance value (`Range`
+is a categorical qualifier). In DeepPlant no canonical object carries a quantity.
+ADR-0011's current `PipingSegment.nominal_diameter` remains a nominal
+designation/string-like property; this ADR does not decide that it becomes a
+qualified physical quantity.
 
 ## Options
 
@@ -57,8 +43,7 @@ based on the pinned official DEXPI `V2.0.0` model (release commit
   `TemperatureQuantity`, …).
 
 Candidate analysis and trade-offs are in
-[docs/research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md)
-§7–§9.
+[the research document](../research/qualified-engineering-quantities.md) §7–§9.
 
 ## Decision
 
@@ -78,12 +63,11 @@ Candidate analysis and trade-offs are in
    (ADR-0003). Formatting, display text, precision, and labels stay out.
 6. **Units are semantic state, not presentation-only.**
 7. DeepPlant preserves the **stored magnitude and represented unit** in canonical
-   state. In DeepPlant-native authoring these may be called the authored magnitude
-   and authored unit. Therefore `10 bar` and `1 MPa` are distinct canonical
-   representations: canonical-state equality compares both stored fields.
-   Physical/engineering equivalence instead asks whether quantity states represent
-   the same physical value through unit-aware comparison or conversion. That
-   derived operation is explicitly deferred.
+   state (the authored magnitude and unit in DeepPlant-native authoring). Therefore
+   `10 bar` and `1 MPa` are distinct canonical representations: canonical-state
+   equality compares both stored fields. Physical/engineering equivalence instead
+   asks whether states represent the same physical value through unit-aware
+   comparison or conversion — explicitly deferred.
 8. The **adapter translates** external representations (for example DEXPI
    `QualifiedValue`/`PhysicalQuantity`) into the canonical value and back; it does
    not own the semantics. Concrete mappings are not implemented by this decision.
@@ -103,9 +87,8 @@ Candidate analysis and trade-offs are in
   diffs, review, and future round-trips transparent. It does not assert import
   provenance or normalization behavior for DEXPI producers.
 - The boundary matches DEXPI's design (one reusable quantity aggregate plus a
-  per-property type parameter) instead of being invented against it.
-- Presentation concerns (including DEXPI `DisplayText`) stay out of the semantic
-  model (ADR-0003).
+  per-property type parameter) instead of being invented against it, and
+  presentation concerns (including DEXPI `DisplayText`) stay out (ADR-0003).
 
 ### Negative
 

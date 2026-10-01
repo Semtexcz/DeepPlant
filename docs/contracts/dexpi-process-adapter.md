@@ -24,6 +24,7 @@ decision:
 evidence:
   - docs/dexpi-process-spike.md
   - docs/dexpi-exchanging-thermal-energy-evidence.md
+  - docs/research/qualified-engineering-quantities.md
 superseded_by: null
 ---
 
