@@ -18,12 +18,15 @@ superseded_by: null
 
 # Roadmap
 
-This document answers three questions and nothing else:
+> **Primary question:** What is DeepPlant's current execution-planning state?
 
-1. **What is current?** — a short summary; canonical facts live in
+It answers that question through three aspects:
+
+1. **Current state** — a short summary; canonical facts live in
    [contracts/](contracts/index.md) and [architecture.md](architecture.md).
-2. **What is next?** — the immediate direction and the candidates behind it.
-3. **What is still unresolved?** — open evidence gaps with their triggers.
+2. **Immediate operational sequence** — the authorized next work and its order.
+3. **Unresolved evidence gaps** — questions whose evidence must precede another
+   executable task.
 
 It contains no dates, estimates, release promises, fixed sequence commitments, or
 completion percentages; GitHub Issues remain the place for executable tasks.
@@ -79,8 +82,8 @@ Issue #21 is closed. Its `StoringMaterial` topic remains deferred
 strategic/evidence context in the historical and decision records, not an open or
 Ready executable Issue.
 
-PR #36 is the authoritative restructured form of the planning conclusions from
-PR #34, so this roadmap contains no competing canonical sequence.
+The canonical operational sequence is maintained here; superseded planning
+proposals do not define a competing sequence.
 
 ### Planning context
 
@@ -93,25 +96,14 @@ home for the subset of `Method` semantics that overlap
 physical-realization/equipment-technology semantics; ADR-0012 does not assign the
 whole vocabulary there.
 
-### Milestones
+### Active milestone
 
-### Milestone 1 — validated YAML load
+**DEXPI Interoperability v0.1** is the only active milestone. Issue #20 is its
+concrete open work. Historical milestone framing and completed-slice detail live
+in [history/implementation-slices.md](history/implementation-slices.md).
 
-> DeepPlant can load a small process model from YAML, validate its semantic
-> structure and report invalid references through the CLI.
-
-Complete: structural validation and reference validation ship in the first two
-slices.
-
-### Milestone 2 — prototype fragment and renderer
-
-> DeepPlant can represent a real process fragment of roughly 20–50 engineering
-> objects, render it as a basic PFD/P&ID-like diagram and validate at least 10
-> classes of engineering/model consistency errors.
-
-The realistic process fragment, symbol-pack contract, and basic headless renderer
-ship. The physical piping-realization layer is structural rather than an
-engineering-rule engine; no P&ID rendering or engineering-rule engine exists.
+P&ID-like coverage and engineering-rule validation breadth remain deferred
+context, not active milestone obligations.
 
 ### Scope Discipline
 

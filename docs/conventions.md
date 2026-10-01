@@ -27,7 +27,7 @@ one authoritative purpose. Four authority types are never mixed in one file:
 
 | Type | Answers | Lives in |
 |---|---|---|
-| contract / policy | what must hold now? | `docs/contracts/`, `docs/governance/`, `project/brief.md` |
+| contract / policy | what must hold now? | `docs/contracts/`, root-level governance documents under `docs/`, `project/brief.md` |
 | decision | why does this boundary exist? | `docs/decisions/` |
 | evidence | what was investigated, and what came out of it? | `docs/research/`, slice documents |
 | history | what shipped, in what order? | `docs/history/` |
@@ -100,8 +100,9 @@ Exception process:
 
 ## Outcome card for evidence, research, and history
 
-Every `docs/research/` document and every historical slice document begins, after
-its title, with a card of at most 40 lines:
+Evidence/research documents require an Outcome card. Navigation/index documents
+under `docs/research/` do not. Every historical slice document begins, after its
+title, with a card of at most 40 lines:
 
 ```markdown
 ## Outcome card
@@ -123,8 +124,11 @@ its title, with a card of at most 40 lines:
    comprehension, it states it in one sentence and links to the canonical home.
 3. **Contracts link backward** to the ADRs and evidence that justify them; they do
    not reproduce long investigation tables.
-4. **ADRs link forward** to the contract that now operationalizes the decision. An
-   ADR is never the only location of a current contract.
+4. **ADRs link forward.** New ADRs, and existing ADRs when materially updated, link
+   forward to the current contract that operationalizes the decision where such a
+   contract exists. Older ADRs may be migrated incrementally; the contract index
+   remains the authoritative current-state navigation during that migration. An ADR
+   is never the only location of a current contract.
 5. **Evidence never owns current rules.** A research report may contain proposed
    or superseded shapes, clearly labelled, with the current contract linked.
 6. **History is never the current state.** Completion records state what shipped;

@@ -15,6 +15,20 @@ superseded_by: null
 
 # Implementation Slice History
 
+## Outcome card
+
+- **Question investigated:** what shipped in DeepPlant's completed slices, and
+  which earlier milestone framing describes that history?
+- **Status:** historical record.
+- **Inspection scope and date:** completed-slice record, reviewed 2026-10-01.
+- **Conclusions:** validated YAML loading and reference validation shipped; the
+  realistic fragment and basic headless renderer shipped; P&ID-like coverage and
+  engineering-rule validation breadth did not ship and remain deferred context.
+- **Resulting ADRs:** see the linked ADRs and evidence in the slice record.
+- **Current contracts operationalizing the result:**
+  [contracts/index.md](../contracts/index.md).
+- **Conditions for revisiting:** when a future slice produces new evidence.
+
 > **Status:** historical record, moved verbatim out of
 > [roadmap.md](../roadmap.md) when the roadmap was reduced to current state,
 > immediate direction, and unresolved evidence gaps.
@@ -24,8 +38,28 @@ superseded_by: null
 > [decisions/](../decisions/index.md), and the evidence behind each slice in the
 > spike/decision documents the rows link to.
 
-## Roadmap state narrative (historical snapshot)
+## Historical milestone framing
 
+### Milestone 1 — validated YAML load
+
+> DeepPlant can load a small process model from YAML, validate its semantic
+> structure, and report invalid references through the CLI.
+
+This capability shipped through the early structural and reference-validation
+slices.
+
+### Milestone 2 — prototype fragment and renderer
+
+> DeepPlant can represent a real process fragment of roughly 20–50 engineering
+> objects, render it as a basic PFD/P&ID-like diagram, and validate at least 10
+> classes of engineering/model consistency errors.
+
+The realistic fragment, symbol-pack contract, and basic headless renderer shipped.
+This was not a fully completed milestone: P&ID-like coverage and engineering-rule
+validation breadth did not ship and remain deferred context rather than active
+milestone obligations.
+
+## Roadmap state narrative (historical snapshot)
 
 DeepPlant ships the project foundation plus four semantic vertical slices, a
 realistic process-fragment validation example, the standards/symbol-licensing
