@@ -720,8 +720,9 @@ Revisit this boundary (through ADR-0013) when any of these occurs:
 - Issue #32 delivered its decision/evidence. A canonical reusable qualified
   engineering quantity is justified, owned by explicit domain properties, with
   units as stored canonical state.
-- **No next executable task has yet been promoted.** The next direction must be
-  selected from the new evidence this document and ADR-0013 produce.
+- The next executable task was subsequently selected from this evidence: Issue
+  #39 decides the process ↔ physical realization boundary
+  ([next-slice-re-evaluation.md](next-slice-re-evaluation.md)).
 - This slice does **not** promote `ExchangingThermalEnergy`, reopen
   `StoringMaterial`, start quantity implementation, create a units-framework
   Issue, or promote GUI/P&ID work.

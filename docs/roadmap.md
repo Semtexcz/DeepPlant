@@ -68,7 +68,7 @@ evidence-heavy slices, in the linked spike/decision documents.
 ### Operational sequence
 
 ```text
-#32 → delivered its decision/evidence → re-evaluate the next direction
+#39 → decide the process ↔ physical realization boundary → re-evaluate from its evidence
 ```
 
 - **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
@@ -81,8 +81,14 @@ evidence-heavy slices, in the linked spike/decision documents.
   and [ADR-0013](decisions/ADR-0013-qualified-engineering-quantity-boundary.md):
   a reusable canonical quantity value owned by explicit domain properties, units
   as semantic state, no implementation.
-- **No next executable task has yet been promoted.** The next direction must be
-  selected from the new evidence this decision produced.
+- **Issue #39 is the sole executable `Now` item:** an evidence-first decision
+  slice for the process ↔ physical realization boundary
+  ([issue](https://github.com/Semtexcz/DeepPlant/issues/39),
+  [selection evidence](research/next-slice-re-evaluation.md)). It adds no
+  mapping, field, YAML, or validation, and ends with evidence plus an ADR only if
+  a durable canonical boundary is established.
+- **No successor task is preselected.** The next direction is chosen from the
+  evidence Issue #39 produces.
 
 Issue #21 is closed. Its `StoringMaterial` topic remains deferred
 strategic/evidence context in the historical and decision records, not an open or
@@ -100,13 +106,16 @@ decision only, no implementation; the contract's `investigated / unsupported`
 rows keep the remaining gap explicit. ADR-0012 does not authorize a second
 step-classification axis: DEXPI `Method` vocabulary is heterogeneous, and the
 future process ↔ physical-realization layer may own only the subset overlapping
-equipment-technology semantics.
+equipment-technology semantics. Issue #39 now investigates that boundary
+directly, as evidence and decision only.
 
 ### Active milestone
 
-**DEXPI Interoperability v0.1** is the current milestone; Issue #20 completed its
-scope. Issue #32 was **not** part of it and delivered a decision only; no
-successor milestone is created and no next executable task is promoted. See
+**DEXPI Interoperability v0.1** was completed by Issue #20. Issue #32 delivered a
+decision only and was not part of it, and the process ↔ physical realization
+slice (Issue #39) belongs to the semantic core rather than that completed
+interoperability scope, so it carries **no milestone** and no new milestone is
+created for a single research Issue. See
 [history/implementation-slices.md](history/implementation-slices.md); P&ID-like
 coverage and engineering-rule breadth stay deferred context.
 
