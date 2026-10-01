@@ -17,7 +17,9 @@ models, strict structural validation, a `deepplant validate` command, the SVG +
 anchor `basic` symbol-pack contract, a headless read-only process renderer
 (`render_process_svg()`) that derives standalone PFD-style SVG from a
 `ProcessModel`, and a narrow DEXPI 2.x Process import/export adapter spike
-(`deepplant.adapters.dexpi`; evidence and limits in
+(`deepplant.adapters.dexpi`; supported subset, directions, and limits in
+[docs/contracts/dexpi-process-adapter.md](docs/contracts/dexpi-process-adapter.md),
+evidence in
 [docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)). Import preflight
 pins the DEXPI 2.0.0 Core/Process model URIs and global XML `Object@id`
 uniqueness; export covers the deliberately symmetric canonical subset
