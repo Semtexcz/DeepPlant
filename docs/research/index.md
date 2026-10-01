@@ -52,6 +52,12 @@ investigated, with dates, sources, and outcomes. Current obligations live in
 |---|---|---|---|
 | [process-fragment-prototype.md](../process-fragment-prototype.md) | Can one realistic PFD fragment be modelled with explicit steps, ports, streams, junctions, and a recycle? | Concepts validated; 1:1 equipment-as-step assumption disproved; container ownership decided | [contracts/process-model.md](../contracts/process-model.md), ADR-0005/ADR-0006, `examples/realistic-process-fragment/` |
 
+## Planning selection evidence
+
+| Document | Question investigated | Outcome | Operationalized by |
+|---|---|---|---|
+| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39); quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../roadmap.md) (sole `Now` item) |
+
 ## Reuse, standards, and asset evidence
 
 | Document | Question investigated | Outcome | Operationalized by |

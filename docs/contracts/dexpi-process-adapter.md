@@ -40,8 +40,7 @@ superseded_by: null
 > mapping rationale: [../dexpi-process-spike.md](../dexpi-process-spike.md).
 >
 > Support is **not** a single yes/no feature: every DEXPI concept has a per-row
-> state and per-direction claim in the
-> [compatibility matrix](#compatibility-matrix).
+> state and per-direction claim in the [compatibility matrix](#compatibility-matrix).
 
 ## Pinned target
 
@@ -58,10 +57,9 @@ differently prefixed, from another version, or conflicting fails with
 `DexpiImportError` naming the expected and observed values instead of attempting
 automatic compatibility.
 
-DEXPI 2.0.1 was released on 2026-09-30. DeepPlant remains deliberately pinned to
-DEXPI 2.0.0; DEXPI 2.0.1 has not yet been reviewed for compatibility and is
-therefore outside the supported adapter contract. The pin may move only after a
-separate compatibility review.
+DEXPI 2.0.1 was released on 2026-09-30 but has not been reviewed for
+compatibility, so DeepPlant remains deliberately pinned to DEXPI 2.0.0; the pin
+may move only after a separate compatibility review.
 
 ## Public API
 
@@ -101,9 +99,8 @@ deliberately not used.
 | `not investigated` | No inspection evidence; not attempted in this adapter. |
 | `not applicable` | No canonical home and no adapter role by design. |
 
-Currently no row is `export-only` or `experimental`; `import-only` applies only
-to concepts the adapter consumes but never re-emits (`Description`,
-`Port.ConnectorReference`).
+Currently no row is `export-only` or `experimental`; `import-only` applies to
+concepts the adapter consumes but never re-emits (`Description`, `Port.ConnectorReference`).
 
 ## Semantic round-trip (definition)
 
@@ -140,9 +137,6 @@ one another.
 | DeepPlant → DEXPI (export) | `supported` for the subset | `::test_export_is_deterministic`, `::test_exported_xml_passes_structural_subset_validation` |
 | DEXPI → DeepPlant → DEXPI (semantic round-trip) | `supported` for the subset | `::test_material_only_pumping_reverse_exports_and_round_trips` |
 | DeepPlant → DEXPI → DeepPlant (semantic round-trip) | `supported` for the subset | `::test_semantic_roundtrip_preserves_fingerprint` |
-
-Both round-trip directions have executable evidence; both are semantic, not
-serialization, equality.
 
 ## Compatibility matrix
 
@@ -295,8 +289,7 @@ xml_text: str = export_dexpi_process(
 ## Lossy mappings (intentional)
 
 Every mapping that is intentionally lossy is listed here with its consequence, so
-no loss stays implicit. "Defined round-trip" is the semantic round-trip of this
-document.
+no loss stays implicit. "Defined round-trip" means the semantic round-trip above.
 
 | DEXPI source | Canonical treatment | Loss | Semantic round-trip | Export | Stronger fidelity claim |
 |---|---|---|---|---|---|
