@@ -9,7 +9,7 @@ consumer-specific boundaries (ADR-0002/ADR-0003): external schema shapes never
 dictate canonical model fields, and adapter concerns never leak into
 ``deepplant.model``.
 
-Currently only the narrow DEXPI 2.x Process adapter exists:
+Currently only the narrow DEXPI 2.0.0 Process adapter exists:
 ``deepplant.adapters.dexpi`` (see ``docs/dexpi-process-spike.md``). No generic
 adapter framework is introduced yet.
 """

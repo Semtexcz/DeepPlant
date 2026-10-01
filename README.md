@@ -16,7 +16,7 @@ mixing, splitting, and recycle are legal), YAML load/save into typed Pydantic
 models, strict structural validation, a `deepplant validate` command, the SVG +
 anchor `basic` symbol-pack contract, a headless read-only process renderer
 (`render_process_svg()`) that derives standalone PFD-style SVG from a
-`ProcessModel`, and a narrow DEXPI 2.x Process import/export adapter spike
+`ProcessModel`, and a narrow DEXPI 2.0.0 Process import/export adapter
 (`deepplant.adapters.dexpi`; supported subset, directions, and limits in
 [docs/contracts/dexpi-process-adapter.md](docs/contracts/dexpi-process-adapter.md),
 evidence in

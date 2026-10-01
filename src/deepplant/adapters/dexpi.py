@@ -1,7 +1,7 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Narrow DEXPI 2.x Process interoperability adapter (evidence spike).
+"""Narrow DEXPI 2.0.0 Process interoperability adapter (evidence spike).
 
 This module is an adapter boundary, not canonical domain logic (ADR-0002,
 ADR-0003). DEXPI is an external representation::
@@ -72,7 +72,7 @@ __all__ = [
     "validate_dexpi_xml_structure",
 ]
 
-# --- Pinned official DEXPI 2.x target -----------------------------------------
+# --- Pinned DEXPI target ------------------------------------------------------
 # Inspected 2026-09-09 from https://dexpi.org/ and
 # https://gitlab.com/dexpi/Specification (releases/tags APIs and the shallow
 # V2.0.0 clone). The implementation target stays deliberately pinned to V2.0.0.
@@ -114,7 +114,7 @@ class DexpiExportError(ValueError):
 _ObjectIdKey = tuple[str, str] | tuple[str, str, str]
 
 
-# --- Supported DEXPI 2.x Process subset (explicit, never generic) -------------
+# --- Supported DEXPI 2.0.0 Process subset (explicit, never generic) -----------
 # Keys are the full DEXPI XML ``type`` values. Values are the canonical
 # DeepPlant ``ProcessStep.function`` engineering functions produced by the
 # mapping (ADR-0009). The mapping table is the spike contract; it is never

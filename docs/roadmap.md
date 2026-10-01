@@ -49,7 +49,7 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   `validate` CLI ([contracts/cli.md](contracts/cli.md));
 - the basic headless read-only process renderer ([rendering.md](rendering.md))
   and the `basic` SVG symbol-pack contract ([svg-symbols.md](svg-symbols.md));
-- the narrow DEXPI 2.x Process adapter
+- the narrow DEXPI 2.0.0 Process adapter
   ([contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md)).
 
 Not implemented: full DEXPI and Plant/P&ID import/export, other vendor adapters
