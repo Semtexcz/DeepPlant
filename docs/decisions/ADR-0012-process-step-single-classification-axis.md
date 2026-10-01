@@ -154,7 +154,9 @@ rejected shortcuts are in
 
 - Qualified engineering quantities (`QualifiedValue`, units, `Duty`, `Area`,
   `Head`, `VolumeFlow`, `Pressure`, `Temperature`, mass flow, unit conversion) —
-  a separate decision, and the remaining model-level blocker from Issue #22.
+  the remaining model-level blocker from Issue #22, now decided by
+  [ADR-0013](ADR-0013-qualified-engineering-quantity-boundary.md) (implementation
+  still deferred).
 - Physical realization / equipment technology, and the Process ↔ physical
   realization mapping.
 - `ProcessStepDetail` semantics and any step-refinement/sub-process concept.

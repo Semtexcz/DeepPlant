@@ -20,6 +20,7 @@ decision:
   - docs/decisions/ADR-0009-separate-process-function-from-symbol-role.md
   - docs/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
   - docs/decisions/ADR-0012-process-step-single-classification-axis.md
+  - docs/decisions/ADR-0013-qualified-engineering-quantity-boundary.md
 evidence:
   - docs/dexpi-process-spike.md
   - docs/dexpi-exchanging-thermal-energy-evidence.md
@@ -313,8 +314,11 @@ metadata-fidelity) claim.
   [compatibility matrix](#compatibility-matrix); in particular
   `ExchangingThermalEnergy`, energy/information ports and flows, Plant/P&ID
   content, and graphics/presentation metadata.
-- DEXPI `Method` semantics (ADR-0012) and qualified engineering quantities
-  (Issue #32 — no canonical home yet).
+- DEXPI `Method` semantics (ADR-0012) and qualified engineering quantities:
+  Issue #32 decided a boundary for a reusable canonical quantity value
+  ([ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md))
+  but implemented nothing, so the adapter still rejects the untyped engineering
+  quantities and the DEXPI `QualifiedValue` qualifier fields.
 - Proteus XML and DEXPI 1.x: the adapter targets the pinned DEXPI 2.0.0 XML
   envelope using only the Python standard library.
 
