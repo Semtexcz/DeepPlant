@@ -29,11 +29,13 @@ Everything else is rejected with an explicit :class:`DexpiImportError` /
 never imported as material streams). No Proteus XML, no Plant/P&ID model, no
 graphics, and no presentation data are handled here.
 
-The target DEXPI release is pinned to the latest stable tagged release
-``V2.0.0`` (commit ``260c81c51039789a6148a98af4c6caf23f87a3e2``). At runtime the
-import preflight also requires exactly the pinned Core/Process model URIs
-(``https://data.dexpi.org/models/2.0.0/Core.xml`` and ``.../Process.xml``), so
-an unsupported DEXPI model version fails explicitly until deliberately reviewed.
+The target DEXPI release is deliberately pinned to the ``V2.0.0`` tag (commit
+``260c81c51039789a6148a98af4c6caf23f87a3e2``). DEXPI 2.0.1 was released on
+2026-09-30 but has not been reviewed for compatibility, so the pin does not
+move. At runtime the import preflight also requires exactly the pinned
+Core/Process model URIs
+(``https://data.dexpi.org/models/2.0.0/Core.xml`` and ``.../Process.xml``), so an
+unsupported DEXPI model version fails explicitly until deliberately reviewed.
 Declared ``Port.ConnectorReference`` values are validated when present; the
 exporter covers the deliberately symmetric canonical subset (including reverse
 ``pumping -> Pumping`` for material-port-only pumping steps, decided by
@@ -73,9 +75,9 @@ __all__ = [
 # --- Pinned official DEXPI 2.x target -----------------------------------------
 # Inspected 2026-09-09 from https://dexpi.org/ and
 # https://gitlab.com/dexpi/Specification (releases/tags APIs and the shallow
-# V2.0.0 clone). V2.0.0 is the latest stable release; DEXPI 2.0.1 was reported
-# on dexpi.org (2026-08-25) as "being prepared" but is not yet released, so the
-# stable release remains the implementation target.
+# V2.0.0 clone). The implementation target stays deliberately pinned to V2.0.0.
+# DEXPI 2.0.1 was released on 2026-09-30 but has not been reviewed for
+# compatibility, so the pin does not move yet.
 DEXPI_TARGET_VERSION = "2.0.0"
 DEXPI_TARGET_TAG = "V2.0.0"
 DEXPI_TARGET_REVISION = "260c81c51039789a6148a98af4c6caf23f87a3e2"
@@ -1035,8 +1037,8 @@ def validate_dexpi_xml_structure(xml_text: str) -> None:
     complete DEXPI class vocabulary, class/property cardinalities, RDL semantics,
     DEXPI profile constraints, or full normative conformance. The official DEXPI
     XML schema is a generic envelope schema; model-level class/multiplicity
-    conformance is not enforced by it and remains under upstream clarification
-    for DEXPI 2.0.1.
+    conformance is not enforced by it and remains an upstream clarification area
+    (DEXPI 2.0.1, released 2026-09-30, has not been reviewed by DeepPlant).
     """
     try:
         root = ET.fromstring(xml_text)

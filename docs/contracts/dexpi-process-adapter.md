@@ -54,8 +54,12 @@ superseded_by: null
 The pin is enforced at runtime: an import whose model URIs are missing,
 differently prefixed, from another version, or conflicting fails with
 `DexpiImportError` naming the expected and observed values instead of attempting
-automatic compatibility. DEXPI 2.0.1 is not released; a future release must be
-reviewed deliberately before the pin changes.
+automatic compatibility.
+
+DEXPI 2.0.1 was released on 2026-09-30. DeepPlant remains deliberately pinned to
+DEXPI 2.0.0; DEXPI 2.0.1 has not yet been reviewed for compatibility and is
+therefore outside the supported adapter contract. The pin may move only after a
+separate compatibility review.
 
 ## Public API
 
@@ -163,18 +167,19 @@ row are never claimed in any direction.
 | `ProcessConnection.Source` / `Target` references | supported | `ProcessRef(step, port)` endpoints | supported | supported | must be `#`-IDREF tokens resolving to imported `MaterialPort`s; unresolved or mistyped rejected | `t:test_source_target_references_resolve`, `t:test_unresolved_references_fail_clearly` | spike §5.1 |
 | `Process/Process.ExchangingThermalEnergy` | investigated / unsupported | none — `heat_exchange` stays DeepPlant-native, not equal to the class | investigated / unsupported | none | mandatory `Method: HeatExchangeMethod`; couples ≥2 material streams; thermal side is a separate `ThermalEnergyPort`/`ThermalEnergyFlow`; no canonical port kind or qualified quantity | `t:test_exchanging_thermal_energy_step_class_is_explicitly_unsupported`, `t:test_exchanging_thermal_energy_is_unsupported_without_its_properties` | [Issue #22 evidence](../dexpi-exchanging-thermal-energy-evidence.md); ADR-0012 |
 | `Process/Process.ThermalEnergyPort` | investigated / unsupported | none | investigated / unsupported | none | no canonical non-material port kind | `t:test_non_material_ports_are_not_imported`, `fix:non_material_ports.xml` | Issue #22 §3.1 |
-| `Process/Process.EnergyPort` | investigated / unsupported | none | investigated / unsupported | none | abstract general energy port; no canonical port kind | `fix:non_material_ports.xml` | Issue #22 §3.1 |
+| `Process/Process.EnergyPort` | investigated / unsupported | none | investigated / unsupported | none | abstract general energy port; no canonical port kind | no dedicated executable fixture/test; canonical port-kind gap established by the Process model evidence | Issue #22 §3.1 |
 | `Process/Process.EnergyFlow` (`ThermalEnergyFlow`, `ElectricalEnergyFlow`, `MechanicalEnergyFlow`) | investigated / unsupported | none | investigated / unsupported | none | never collapsed into `ProcessStream`; carries `Duty`/`Temperature` | `t:test_energy_flows_are_not_imported_as_process_streams`, `fix:energy_flows.xml` | Issue #22 §3.2 |
 | `Process/Process.InformationPort` | investigated / unsupported | none | investigated / unsupported | none | no canonical port kind | `t:test_non_material_ports_are_not_imported` | Issue #22 §3.1 |
 | `Process/Process.InformationFlow` | investigated / unsupported | none | investigated / unsupported | none | never collapsed into `ProcessStream` | `t:test_information_flow_is_not_imported_as_process_stream`, `fix:information_flow.xml` | Issue #22 §3.2 |
-| `ProcessStep.SubProcessSteps` | investigated / unsupported | none — no step hierarchy | investigated / unsupported | none | populated `SubProcessSteps` rejected; no dedicated test yet (enforced in `_collect_step`) | `t:test_unexpected_direct_object_child_of_process_model_fails` (related) | ADR-0012 |
-| DEXPI `*Method` properties (`HeatExchangeMethod`, `PumpingMethod`, …) | investigated / unsupported | none | investigated / unsupported | none | heterogeneous enum domains; no second classification axis | `t:test_pumping_with_unsupported_head_property_fails` (property allow-list mechanism) | [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md); [process-step-classification.md](../process-step-classification.md) |
+| `ProcessStep.SubProcessSteps` | investigated / unsupported | none — no step hierarchy | investigated / unsupported | none | populated `SubProcessSteps` rejected; no dedicated test | no dedicated test; enforced by `_collect_step` populated-`SubProcessSteps` branch | ADR-0012 |
+| DEXPI `*Method` properties (`HeatExchangeMethod`, `PumpingMethod`, …) | investigated / unsupported | none | investigated / unsupported | none | heterogeneous enum domains; no second classification axis | no dedicated `Method` test; rejection follows from the `ProcessStep` Data-property allow-list, with `Method` semantics established by ADR-0012 evidence | [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md); [process-step-classification.md](../process-step-classification.md) |
 | Qualified engineering quantities (`Head`, `VolumeFlow`, `Duty`, `Temperature`, `Pressure`, `MassFlow`) | investigated / unsupported | none | investigated / unsupported | none | no canonical qualified-quantity representation (Issue #32) | `t:test_pumping_with_unsupported_head_property_fails`, `t:test_stream_with_unsupported_property_fails`, `t:test_material_port_with_unsupported_property_fails` | ADR-0012 deferred list |
 | Plant / P&ID (`Plant/PlantModel`, `Nozzle`, `PipingNode`, `PipingNetworkSystem`, …) | investigated / unsupported | none | investigated / unsupported | none | Plant-only input rejected; Plant objects ignored in mixed files | `t:test_plant_objects_are_not_imported_and_plant_only_files_fail`, `fix:plant_only.xml`, `fix:mixed_plant_and_process.xml` | [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) |
 | Graphics / presentation metadata (`Core.Diagram`, coordinates, `PlantMetaData`) | investigated / unsupported | none | investigated / unsupported | none | presentation data must not enter the semantic model | `t:test_no_presentation_data_enters_the_semantic_model` | ADR-0003; ADR-0010 |
-| Other DEXPI `ProcessStep` classes (`Compressing`, `ReactingChemicals`, `Storing*`, `DrivingBy*`, `RemovingThermalEnergy`, …) | investigated / unsupported | none | investigated / unsupported | none | fail by name; no generic class-name conversion | `t:test_unsupported_process_step_class_fails_clearly`, `fix:unsupported_process_step.xml` | spike §5.3; ADR-0009 |
+| Other DEXPI `ProcessStep` classes whose `Method` semantics were inspected (`Compressing`, `ReactingChemicals`, `DrivingBy*`, `RemovingThermalEnergy`, `SupplyingThermalEnergy`, …) | investigated / unsupported | none | investigated / unsupported | none | fail by name; no generic class-name conversion; `Method` vocabulary inspected under ADR-0012 | `t:test_unsupported_process_step_class_fails_clearly`, `fix:unsupported_process_step.xml` | spike §5.3; ADR-0009; [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md) |
+| `Process/Process.StoringMaterial` / storage semantics (`StoringInPressureVessel`, `StoringSolids`, …) | not investigated | none established | not investigated | none claimed | rejected by the generic unsupported-class boundary, but no semantic mapping conclusion exists — runtime rejection is not semantic investigation; deliberately deferred, not resolved | no dedicated test; runtime rejection via the generic unsupported-class boundary | deferred `StoringMaterial` evidence context (Issue #21); [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md) |
 | `Core.PersistentIdentifier` | not applicable | none | not applicable | none | originating-system context, not canonical identity; not imported | no dedicated test; analysis only | spike §5.2 |
-| DEXPI 2.0.1 and later | not investigated | none | not investigated | none | not released; the pin refuses non-2.0.0 model URIs | `t:test_wrong_process_version_uri_fails_explicitly` | adapter pin |
+| DEXPI 2.0.1 and later | not investigated | none | not investigated | none | DEXPI 2.0.1 released 2026-09-30 but not investigated and not supported by the current 2.0.0 pin; a separate compatibility review is required before the pin may move | `t:test_wrong_process_version_uri_fails_explicitly` | adapter pin |
 | Proteus XML, DEXPI 1.x | not investigated | none | not investigated | none | only the DEXPI 2.0.0 XML envelope is handled | none | adapter scope |
 
 ## Pumping boundary
@@ -220,13 +225,20 @@ than losing it silently.
 
 ## Fail-closed behaviour (import)
 
-Content outside the supported subset is rejected with a `DexpiImportError` naming
-the offending object and reason, never silently dropped or reinterpreted. The
-per-concept state is in the [compatibility matrix](#compatibility-matrix); the
+Unsupported semantic content inside the `ProcessModel` boundary fails closed: it
+is rejected with a `DexpiImportError` naming the offending object and reason,
+never silently dropped or reinterpreted.
+
+Unrelated Plant/P&ID objects may coexist in a mixed DEXPI file and are outside
+this Process-only adapter's mapping scope; they are ignored when a supported
+`ProcessModel` is present. Plant-only input is rejected explicitly rather than
+converted to an empty `ProcessModel`.
+
+The per-concept state is in the [compatibility matrix](#compatibility-matrix); the
 fail-closed checks are:
 
 - a `ProcessStep` class outside the supported subset (see the "Other DEXPI
-  `ProcessStep` classes" row);
+  ProcessStep classes" and "StoringMaterial / storage semantics" rows);
 - a non-material port class, or a connection class other than material `Stream`;
 - a populated `SubProcessSteps` collection, or any Data/Components/References
   property outside the allow-list for the parsed object (this is the mechanism
