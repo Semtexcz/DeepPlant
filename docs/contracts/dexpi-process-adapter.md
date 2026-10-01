@@ -20,9 +20,11 @@ decision:
   - docs/decisions/ADR-0009-separate-process-function-from-symbol-role.md
   - docs/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
   - docs/decisions/ADR-0012-process-step-single-classification-axis.md
+  - docs/decisions/ADR-0013-qualified-engineering-quantity-boundary.md
 evidence:
   - docs/dexpi-process-spike.md
   - docs/dexpi-exchanging-thermal-energy-evidence.md
+  - docs/research/qualified-engineering-quantities.md
 superseded_by: null
 ---
 
@@ -182,7 +184,7 @@ evidence maturity.
 | `Process/Process.InformationFlow` | investigated / unsupported | none | investigated / unsupported | none | never collapsed into `ProcessStream` | `t:test_information_flow_is_not_imported_as_process_stream`, `fix:information_flow.xml` | Issue #22 §3.2 |
 | `ProcessStep.SubProcessSteps` | investigated / unsupported | none — no step hierarchy | investigated / unsupported | none | populated `SubProcessSteps` rejected; no dedicated test | no dedicated test; enforced by `_collect_step` populated-`SubProcessSteps` branch | ADR-0012 |
 | DEXPI `*Method` **properties** (`HeatExchangeMethod` on `ExchangingThermalEnergy`/`RemovingThermalEnergy`/`SupplyingThermalEnergy`, `CompressionMethod` on `Compressing`, `ReactionProcessType` on `ReactingChemicals`, `EngineDriveMethod`/`MotorDriveMethod`/`TurbineDriveMethod` on `DrivingBy*`, `PumpingMethod` on `Pumping`) | investigated / unsupported | none | investigated / unsupported | none | the `Method` **property semantics** were investigated as one generic canonical-classification concept (ADR-0012), not the class-level mapping of each owning step; heterogeneous enum domains; no second classification axis | no dedicated `Method` test; rejection follows from the `ProcessStep` Data-property allow-list, with `Method` semantics established by ADR-0012 evidence | [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md); [process-step-classification.md](../process-step-classification.md) |
-| Qualified engineering quantities (`Head`, `VolumeFlow`, `Duty`, `Temperature`, `Pressure`, `MassFlow`) | investigated / unsupported | none | investigated / unsupported | none | no canonical qualified-quantity representation (Issue #32) | `t:test_pumping_with_unsupported_head_property_fails`, `t:test_stream_with_unsupported_property_fails`, `t:test_material_port_with_unsupported_property_fails` | ADR-0012 deferred list |
+| Qualified engineering quantities (`Head`, `VolumeFlow`, `Duty`, `Temperature`, `Pressure`, `MassFlow`) | investigated / unsupported | none | investigated / unsupported | none | no implemented canonical qualified-quantity representation; [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md) defines the semantic boundary only, so the adapter still rejects quantity-bearing content | `t:test_pumping_with_unsupported_head_property_fails`, `t:test_stream_with_unsupported_property_fails`, `t:test_material_port_with_unsupported_property_fails` | [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md); [research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md); ADR-0012 (original deferral) |
 | Plant / P&ID (`Plant/PlantModel`, `Nozzle`, `PipingNode`, `PipingNetworkSystem`, …) | investigated / unsupported | none | investigated / unsupported | none | Plant-only input rejected; Plant objects ignored in mixed files | `t:test_plant_objects_are_not_imported_and_plant_only_files_fail`, `fix:plant_only.xml`, `fix:mixed_plant_and_process.xml` | [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) |
 | Graphics / presentation metadata (`Core.Diagram`, coordinates, `PlantMetaData`) | investigated / unsupported | none | investigated / unsupported | none | presentation data must not enter the semantic model | `t:test_no_presentation_data_enters_the_semantic_model` | ADR-0003; ADR-0010 |
 | Other DEXPI `ProcessStep` classes (for example the owners of an inspected `Method` property: `Compressing`, `ReactingChemicals`, `DrivingBy*`, `RemovingThermalEnergy`, `SupplyingThermalEnergy`, …) | not investigated | none established | not investigated | none claimed | the owning classes' **class-level import/export semantic mapping** was not investigated — only their `Method` property semantics were (see the `*Method` row); they fail by name through the generic unsupported-class boundary, and runtime rejection is not semantic investigation | `t:test_unsupported_process_step_class_fails_clearly`, `fix:unsupported_process_step.xml` (runtime rejection only) | spike §5.3; ADR-0009; [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md) (via `Method` semantics, not class-level mapping) |
@@ -219,7 +221,11 @@ round-trip stay unsupported). The blockers are model-level, not class-local:
 - coupling of two or more material streams through one step;
 - no canonical port *kind* (all canonical ports are untyped material ports);
 - no canonical non-material / energy-flow connection kind;
-- no canonical qualified engineering quantity (`Duty`, `Temperature`);
+- no canonical qualified engineering quantity (`Duty`, `Temperature`): the
+  boundary is decided by
+  [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md)
+  but no value is implemented, so G5 stays an implementation/interoperability
+  blocker;
 - mandatory `NominalDirection` is derived from incidence rather than stored.
 
 No mapping is implemented, no field is added to `ProcessStep`, and the
@@ -313,8 +319,11 @@ metadata-fidelity) claim.
   [compatibility matrix](#compatibility-matrix); in particular
   `ExchangingThermalEnergy`, energy/information ports and flows, Plant/P&ID
   content, and graphics/presentation metadata.
-- DEXPI `Method` semantics (ADR-0012) and qualified engineering quantities
-  (Issue #32 — no canonical home yet).
+- DEXPI `Method` semantics (ADR-0012) and qualified engineering quantities:
+  Issue #32 decided a boundary for a reusable canonical quantity value
+  ([ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md))
+  but implemented nothing, so the adapter still rejects the untyped engineering
+  quantities and the DEXPI `QualifiedValue` qualifier fields.
 - Proteus XML and DEXPI 1.x: the adapter targets the pinned DEXPI 2.0.0 XML
   envelope using only the Python standard library.
 

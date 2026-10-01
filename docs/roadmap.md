@@ -68,7 +68,7 @@ evidence-heavy slices, in the linked spike/decision documents.
 ### Operational sequence
 
 ```text
-#32 → re-evaluate the next direction from new evidence
+#32 → delivered its decision/evidence → re-evaluate the next direction
 ```
 
 - **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
@@ -76,10 +76,13 @@ evidence-heavy slices, in the linked spike/decision documents.
   [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md)
   (compatibility matrix, closed support-state vocabulary, per-direction claims,
   and an explicit loss model).
-- **Issue #32 is now the sole Now item:** decide the semantic boundary for
-  qualified engineering quantities.
-- **No third executable task is promoted yet.** Re-evaluate after Issue #32 from
-  the new evidence it produces.
+- **Issue #32 delivered its decision/evidence:** the boundary is decided in
+  [research/qualified-engineering-quantities.md](research/qualified-engineering-quantities.md)
+  and [ADR-0013](decisions/ADR-0013-qualified-engineering-quantity-boundary.md):
+  a reusable canonical quantity value owned by explicit domain properties, units
+  as semantic state, no implementation.
+- **No next executable task has yet been promoted.** The next direction must be
+  selected from the new evidence this decision produced.
 
 Issue #21 is closed. Its `StoringMaterial` topic remains deferred
 strategic/evidence context in the historical and decision records, not an open or
@@ -90,23 +93,20 @@ proposals do not define a competing sequence.
 
 ### Planning context
 
-Issue #20 delivered the DEXPI Process subset and its semantic round-trip
-contract, which names the remaining unsupported concepts without widening the
-subset. Issue #32 is next because qualified engineering quantities remain the
-separate unresolved model boundary identified by the DEXPI evidence; the
-contract's `investigated / unsupported` rows keep that gap explicit. The current
-contracts and ADR-0012 do not authorize a third slice: DEXPI `Method` vocabulary
-is heterogeneous. The future process ↔ physical-realization layer may become the
-home for the subset of `Method` semantics that overlap
-physical-realization/equipment-technology semantics; ADR-0012 does not assign the
-whole vocabulary there.
+Issue #20 delivered the DEXPI Process subset and its round-trip contract. Issue
+#32 then decided the separate quantity boundary the DEXPI evidence identified
+([ADR-0013](decisions/ADR-0013-qualified-engineering-quantity-boundary.md)) — a
+decision only, no implementation; the contract's `investigated / unsupported`
+rows keep the remaining gap explicit. ADR-0012 does not authorize a second
+step-classification axis: DEXPI `Method` vocabulary is heterogeneous, and the
+future process ↔ physical-realization layer may own only the subset overlapping
+equipment-technology semantics.
 
 ### Active milestone
 
-**DEXPI Interoperability v0.1** is the current milestone; Issue #20 completes its
-scope. After #20 merges, Issue #32 becomes the sole Now item (`#32 → re-evaluate
-the next direction from new evidence`); it is **not** automatically part of this
-milestone, and no successor milestone is created or assigned. See
+**DEXPI Interoperability v0.1** is the current milestone; Issue #20 completed its
+scope. Issue #32 was **not** part of it and delivered a decision only; no
+successor milestone is created and no next executable task is promoted. See
 [history/implementation-slices.md](history/implementation-slices.md); P&ID-like
 coverage and engineering-rule breadth stay deferred context.
 

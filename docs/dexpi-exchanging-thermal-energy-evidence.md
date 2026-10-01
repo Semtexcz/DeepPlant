@@ -43,9 +43,11 @@ superseded_by: null
   classification axis).
 - **Current contracts operationalizing the result:**
   [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md).
-- **Conditions for revisiting:** a canonical qualified-quantity representation, a
-  canonical port-kind concept, or a decision recorded through ADR-0012's revisit
-  list.
+- **Conditions for revisiting:** a canonical qualified-quantity representation
+  (the boundary is now decided by
+  [ADR-0013](decisions/ADR-0013-qualified-engineering-quantity-boundary.md), but
+  no value is implemented), a canonical port-kind concept, or a decision recorded
+  through ADR-0012's revisit list.
 
 > This document is the primary analysis deliverable of Issue #22, an
 > **evidence-first interoperability slice**. It is not documentation of a
