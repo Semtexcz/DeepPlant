@@ -33,20 +33,23 @@ based on the pinned official DEXPI `V2.0.0` model (release commit
   the unit family on the *owning property* through a type parameter
   (`QualifiedValue[PhysicalQuantity[PowerUnit]]`, `…[TemperatureUnit]`, …), with
   unit values as controlled enumeration literals;
+- DEXPI represents a physical quantity with an explicit numeric magnitude and an
+  explicit typed unit. Thus physically equivalent values can be represented as
+  structurally different `PhysicalQuantity` states, such as `10 bar` and `1 MPa`;
 - DEXPI carries no uncertainty/tolerance property and no numeric interval object;
   its `Range` is a categorical qualifier enum;
-- DEXPI stores the **authored** unit and does not normalise, so `10 bar` and
-  `1 MPa` remain distinguishable;
 - in DeepPlant no canonical object carries a quantity, and quantities appear as a
-  genuine gap across process, physical/piping (ADR-0011 deferred DN/pressure
-  typing), interoperability, future calculations/rules, and review.
+  genuine gap across process, interoperability, future calculations/rules, and
+  review. ADR-0011's current `PipingSegment.nominal_diameter` remains a nominal
+  designation/string-like property; this ADR does not decide that it becomes a
+  qualified physical quantity.
 
 ## Options
 
 - **A — no canonical quantity yet:** quantities stay adapter/external-schema
   concerns until a native consumer requires them.
 - **B — reusable canonical quantity value + explicit domain fields:** a generic
-  value (authored scalar magnitude + engineering-unit semantics) owned by
+  value (stored scalar magnitude + represented engineering unit) owned by
   explicit, domain-specific properties.
 - **B′ — B with a unit-kind/dimension tag on the value.**
 - **C — generic property/parameter bag:** `entity.properties["duty"] = …`.
@@ -65,8 +68,8 @@ Candidate analysis and trade-offs are in
    magnitude-plus-unit value is genuinely cross-cutting, so it belongs in the
    semantic model, not only in an adapter.
 2. The engineering **property stays explicit and domain-owned** (`duty`, `head`,
-   `temperature`, `nominal_diameter`, …). Property names/meaning are never
-   replaced by generic string keys.
+   `design_pressure`, `wall_thickness`, `outside_diameter`, `mass_flow`, …).
+   Property names/meaning are never replaced by generic string keys.
 3. **No generic property/parameter bag** is introduced on any entity
    (Candidate C rejected; ADR-0012's reasoning transfers unchanged).
 4. **No per-property quantity classes** now (Candidate D rejected); quantity-kind
@@ -74,13 +77,16 @@ Candidate analysis and trade-offs are in
 5. The quantity value is **canonical semantic state**, not presentation
    (ADR-0003). Formatting, display text, precision, and labels stay out.
 6. **Units are semantic state, not presentation-only.**
-7. The **authored magnitude and authored unit are preserved**; `10 bar` and
-   `1 MPa` are distinct authored states with mathematically equivalent
-   magnitudes, and semantic equality compares magnitude **and** authored unit.
-   Normalisation/conversion is a *derived, deferred* operation.
+7. DeepPlant preserves the **stored magnitude and represented unit** in canonical
+   state. In DeepPlant-native authoring these may be called the authored magnitude
+   and authored unit. Therefore `10 bar` and `1 MPa` are distinct canonical
+   representations: canonical-state equality compares both stored fields.
+   Physical/engineering equivalence instead asks whether quantity states represent
+   the same physical value through unit-aware comparison or conversion. That
+   derived operation is explicitly deferred.
 8. The **adapter translates** external representations (for example DEXPI
    `QualifiedValue`/`PhysicalQuantity`) into the canonical value and back; it does
-   not own the semantics.
+   not own the semantics. Concrete mappings are not implemented by this decision.
 9. **Only scalar values** are in scope; richer value semantics and DEXPI `0..*`
    multiplicity mapping are deferred.
 10. **Nothing is implemented by this decision** — no class, field, unit enum,
@@ -93,8 +99,9 @@ Candidate analysis and trade-offs are in
 - The quantity boundary is decided once, so a later slice does not re-litigate it.
 - The reusable value is defined once while every engineering property keeps its
   domain owner and fail-fast (`extra="forbid"`) validation.
-- Authored units are preserved, keeping Git diffs, review, round-trips, and future
-  calculations faithful to engineering intent.
+- DeepPlant's preservation of stored magnitude and represented unit keeps Git
+  diffs, review, and future round-trips transparent. It does not assert import
+  provenance or normalization behavior for DEXPI producers.
 - The boundary matches DEXPI's design (one reusable quantity aggregate plus a
   per-property type parameter) instead of being invented against it.
 - Presentation concerns (including DEXPI `DisplayText`) stay out of the semantic
@@ -104,8 +111,8 @@ Candidate analysis and trade-offs are in
 
 - A new canonical semantic primitive is authorized but not yet implemented; it
   must be introduced deliberately in a later slice with executable tests.
-- Deferring conversion/normalization means calculations need a future conversion
-  mechanism; the canonical model alone does not compute.
+- Deferring physical-equivalence comparison and conversion means calculations need
+  a future conversion mechanism; the canonical model alone does not compute.
 - Deferring DEXPI's qualifier fields means a faithful `QualifiedValue` round-trip
   is not yet available.
 
@@ -122,8 +129,9 @@ semantics, port kind, energy-flow kind, and `NominalDirection` handling
 - Implementing the canonical quantity value and its first owning property field.
 - Concrete DEXPI `QualifiedValue` import/export mappings and the qualifier fields
   (case, case UID, scope, provenance, range, reference/source URIs).
-- Conversion/normalization mechanics, unit registries, dimension algebra,
-  arithmetic, and any units-library or dependency selection.
+- Unit-aware physical-equivalence comparison and conversion mechanics, unit
+  registries, dimension algebra, arithmetic, and any units-library or dependency
+  selection.
 - Non-scalar value semantics: vector values, numeric ranges,
   uncertainty/tolerance, and `float`-vs-exact-decimal precision policy.
 - DEXPI `0..*` property-multiplicity mapping (`Quantity` vs `list[Quantity]`).
@@ -138,7 +146,8 @@ semantics, port kind, energy-flow kind, and `NominalDirection` handling
 - A faithful DEXPI `QualifiedValue` import/export is required.
 - Evidence shows scalar magnitude + unit is insufficient, or that the
   property/quantity boundary is wrong.
-- A units library or conversion mechanism must be selected.
+- A units library, conversion mechanism, or physical-equivalence operation must
+  be selected.
 
 ## Related
 
@@ -153,4 +162,3 @@ semantics, port kind, energy-flow kind, and `NominalDirection` handling
   [contracts/process-model.md](../contracts/process-model.md),
   [contracts/physical-piping.md](../contracts/physical-piping.md),
   [docs/roadmap.md](../roadmap.md).
-

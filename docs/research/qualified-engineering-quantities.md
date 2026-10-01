@@ -36,16 +36,16 @@ superseded_by: null
      required `Value` is a `PhysicalQuantity` (magnitude + typed unit) or a bare
      `Double`, plus optional case/scope/provenance/range/URI qualifiers and a
      required `DisplayText`.
-  2. The reusable part of an engineering quantity is the **value** — authored
-     scalar magnitude plus engineering-unit semantics — not the engineering
+  2. The reusable part of an engineering quantity is the **value** — stored scalar
+     magnitude plus represented engineering-unit semantics — not the engineering
      property name, which is domain-specific (`duty`, `head`, `temperature`,
-     `nominal diameter`).
+     `design_pressure`).
   3. An arbitrary property/parameter bag is rejected: it would erase explicit
      domain ownership and contradict the fail-fast, field-explicit model
      (ADR-0012).
   4. Units are **canonical semantic state**, not presentation: `10 bar` and
-     `1 MPa` are distinct authored states that are only *mathematically*
-     equivalent after conversion.
+     `1 MPa` are distinct stored canonical representations, while they may be
+     physically equivalent after unit-aware comparison or conversion.
   5. A quantity boundary removes exactly **one** `ExchangingThermalEnergy`
      blocker and does not make that class supported; the mandatory `Method`,
      coupled multi-stream semantics, port kind, energy-flow kind, and
@@ -83,7 +83,7 @@ Four things must be kept apart before any answer is useful:
 classification   what kind of engineering function/thing is this?
                  (ProcessStep.function = pumping)              -- not a quantity
 property         which engineering fact is being stated?
-                 (pump head, stream temperature, duty, DN)    -- domain-specific
+                 (pump head, stream temperature, duty)         -- domain-specific
 quantity value   what magnitude and engineering unit qualify it?
                  (45 m, 10 bar, 120 degC, 2.5 MW)             -- reusable value
 presentation     how is it shown? ("120 degC", precision)     -- not semantics
@@ -103,7 +103,7 @@ quantity, unit, or numeric property of any kind:
 | `ProcessStream` | `id`, `name`, `source`, `target` | no `temperature`/`mass_flow`/`pressure` |
 | `ProcessPort` | `id` | identity only |
 | `Equipment` | `id`, `type`, `name`, `ports` | no design data |
-| `PipingSegment` | `id`, `segment_number?`, `nominal_diameter?`, `piping_class?`, `fluid_code?` | open **strings**; ADR-0011 explicitly defers "quantity/unit typing for DN, pressure, temperature, and thickness" |
+| `PipingSegment` | `id`, `segment_number?`, `nominal_diameter?`, `piping_class?`, `fluid_code?` | current open strings; `nominal_diameter` is a nominal designation/string-like property, and ADR-0013 does not decide that it becomes a qualified physical quantity |
 | `Connection` | `id`, `source`, `target` | property-free topology (ADR-0011) |
 
 The DEXPI adapter (`src/deepplant/adapters/dexpi.py`) rejects any populated
@@ -220,13 +220,14 @@ Findings that matter for the boundary:
   vector case is a distinct type (`PhysicalQuantityVector`), used by composition
   properties, not by the scalar step/stream properties inspected here.
 
-### 4.4 Are equivalent values in different units distinguishable?
+### 4.4 What the schema establishes about different unit literals
 
-Yes. `10` with `Unit=…Bar` and `1` with `Unit=…Megapascal` are two different
-`PhysicalQuantity` instances with different `Value` and different unit literals.
-DEXPI stores the **authored unit** as part of the state and does not normalise to
-a base unit. Equivalent magnitudes are therefore serialized differently and
-remain distinguishable.
+`10` with `Unit=…Bar` and `1` with `Unit=…Megapascal` are structurally different
+`PhysicalQuantity` instances: both `Value` and the explicit typed `Unit` differ.
+The schema therefore permits physically equivalent values to be represented by
+different magnitude-and-unit states. Schema shape alone does **not** establish who
+authored the unit, whether producer software normalizes before serialization, or
+whether DEXPI requires preservation of an original user-entered unit.
 
 ## 5. Engineering-semantic distinctions
 
@@ -252,7 +253,7 @@ Conceptual statements such as:
 pump head
 stream temperature
 heat-exchanger duty
-pipe nominal diameter
+pipe design pressure
 ```
 
 Answers: **which engineering fact is being stated?** The property *name and
@@ -273,8 +274,8 @@ Answers: **what numerical magnitude and engineering unit qualify that property?*
 The reusable part is the *value*. The engineering-property name is **not** part of
 the reusable value — it stays with the domain object. Additional semantics beyond
 `value + unit` are only those the evidence justifies; this decision keeps the
-core to an authored scalar magnitude plus engineering-unit semantics and defers
-the DEXPI qualifier fields.
+core to a stored scalar magnitude plus represented engineering-unit semantics and
+defers the DEXPI qualifier fields.
 
 ### 5.4 Presentation
 
@@ -291,10 +292,10 @@ quantity.
 ### 5.5 The relationship (hypothesis under test)
 
 ```text
-ProcessStep.duty ─────┐
-ProcessStream.temp ───┼─> qualified engineering value
-PipingSegment.DN ─────┘        ├─ magnitude
-                               └─ unit semantics
+ProcessStep.duty ──────────────┐
+ProcessStream.temperature ─────┼─> qualified engineering value
+PipingSegment.wall_thickness ──┘        ├─ magnitude
+                                        └─ represented unit
 ```
 
 The arrows show *ownership of a value by an explicit domain property*. They do
@@ -314,7 +315,7 @@ the quantity concept is genuinely cross-cutting or only domain-local. This is a
 | `ProcessStream` | `temperature`, `pressure`, `mass_flow`, `volume_flow` | none | domain-local property, reusable value |
 | `ProcessPort` | a port-level design value (e.g. design pressure) | none | domain-local property, reusable value |
 | `Equipment` | design/rating data (design pressure, volume, power) | none | domain-local property, reusable value |
-| `PipingLine` / `PipingSegment` | `nominal_diameter`, design pressure, wall thickness, temperature | open **strings** (`nominal_diameter: DN80`) | domain-local property, reusable value |
+| `PipingLine` / `PipingSegment` | design pressure, wall thickness, outside diameter, temperature | no quantity fields today | domain-local property, reusable value |
 | Future process ↔ physical realization | mapping constraints expressed as values | not modelled | domain-local property |
 | DEXPI interoperability | `QualifiedValue`/`PhysicalQuantity` on steps and streams | rejected fail-closed | adapter translates into a canonical value |
 | Calculations / simulation | arithmetic on magnitudes with unit checking | not modelled | cross-cutting *value* consumer |
@@ -323,8 +324,10 @@ the quantity concept is genuinely cross-cutting or only domain-local. This is a
 
 **What the inventory shows.** The *value representation* (magnitude + unit) is the
 same everywhere — that is the reusable, cross-cutting part. The *property* is
-always domain-specific: `head` on a pump step, `nominal_diameter` on a segment,
-`mass_flow` on a stream. No consumer suggests that the property name should become
+always domain-specific: `head` on a pump step, `wall_thickness` on a segment,
+`mass_flow` on a stream. Current `PipingSegment.nominal_diameter` remains a
+nominal designation/string-like property; this research and ADR-0013 do not
+reinterpret it as a physical quantity. No consumer suggests that the property name should become
 generic, and none suggests that every entity should acquire an arbitrary
 parameter collection.
 
@@ -458,69 +461,74 @@ exist.
 
 ## 9. Unit semantics
 
-The decision must resolve, conceptually and without implementing a units library,
-the distinction between six ideas:
+The decision distinguishes canonical representation, physical equivalence, and
+presentation without implementing a units library.
 
 | Concept | Meaning | Canonical? |
 |---|---|---|
-| numerical magnitude | the number the author wrote (`45`, `10`, `2.5`) | yes — canonical |
-| engineering unit | which unit the author used (`m`, `bar`, `MW`) | yes — canonical |
+| stored magnitude | the number in canonical state (`45`, `10`, `2.5`) | yes — canonical |
+| represented unit | the explicit unit in canonical state (`m`, `bar`, `MW`) | yes — canonical |
 | physical dimension / quantity kind | `length`, `pressure`, `power` (what the property means) | yes — via the owning **property** |
-| authored unit | the unit as written by the author | yes — preserved |
+| authored magnitude / unit | DeepPlant-native authoring terms for stored magnitude / represented unit | yes — when authoring provenance is known |
 | normalized / base-unit value | a derived, unit-converted magnitude | **deferred / derived** |
 | display unit | the unit symbol as rendered | no — presentation |
 
-### 9.1 The `10 bar` vs `1 MPa` question
+### 9.1 Canonical-state equality and physical equivalence
 
 ```text
 Are 10 bar and 1 MPa:
-  (a) the same canonical state,
-  (b) merely mathematically equivalent states, or
-  (c) distinct authored engineering states with an equivalent normalized value?
+  (a) the same stored canonical representation,
+  (b) physically/engineering equivalent, or
+  (c) both?
 ```
 
-**Answer: (c).** The authored magnitude and the authored engineering unit are part
-of the canonical state; `10 bar` and `1 MPa` are *distinct authored states* whose
-magnitudes are *mathematically equivalent after conversion*. This mirrors the
-verified DEXPI behaviour (§4.4): DEXPI stores the authored unit literal and does
-not normalise, so the two values are serialized differently and remain
-distinguishable.
+**Answer: (c), under two deliberately separate relations.** **Canonical-state
+(representation) equality** compares the stored magnitude and the represented
+unit; therefore `10 bar` and `1 MPa` are distinct canonical states. **Physical/
+engineering equivalence** asks whether two states represent the same physical
+value; with unit-aware comparison or conversion, `10 bar` and `1 MPa` may be
+physically equivalent. Conversion mechanics are deliberately deferred.
+
+This is a DeepPlant design decision, not a claim about DEXPI producer behavior.
+The DEXPI schema establishes only that the two examples can be structurally
+different `PhysicalQuantity` states (§4.4).
 
 Consequences:
 
-- **Git diff:** changing `10 bar` to `1 MPa` is a real, reviewable change to
-  authored state (both magnitude and unit tokens change), not a no-op. Small,
-  stable, authorable diffs are a DeepPlant goal, and preserving the authored unit
-  keeps intent visible.
-- **Semantic equality:** equality must compare magnitude **and** authored unit.
-  Two values are equal only if both match. A normalized comparison is a *derived*
-  operation, not the definition of equality.
-- **Round-trip fidelity:** preserving the authored magnitude and unit is what
-  makes a faithful import/export possible; normalising on load would silently
-  rewrite engineering intent and prevent a faithful round-trip.
-- **Human review:** engineers author and review in their working units; a model
-  that silently converts would be harder to review and trust.
-- **Future calculations:** calculations need conversion and normalization — but
-  these are *derived* operations that consume the canonical authored value. The
-  conversion mechanism (factor tables, units library, dimension algebra) is
-  deliberately **deferred** to a later implementation slice; this decision only
-  fixes that the authored state must be preserved.
-- **DEXPI import/export:** the adapter maps DEXPI's authored unit literal onto the
-  canonical authored unit and back, rather than normalising, so the mapping stays
-  faithful.
+- **Git diff:** changing `10 bar` to `1 MPa` is a real, reviewable canonical-state
+  change (both stored fields change), not a no-op. Preserving the represented unit
+  keeps the state transparent for review.
+- **Canonical-state equality:** representation equality compares magnitude **and**
+  represented unit. It does not answer physical equivalence.
+- **Physical/engineering equivalence:** unit-aware comparison is a *derived*
+  operation, not representation identity. The mechanism is deferred.
+- **Round-trip fidelity:** DeepPlant preserves stored magnitude and represented
+  unit to support transparent diffs, review, and future round-trips. For imported
+  data this is a stored/source representation, not necessarily a user-authored
+  representation.
+- **Human review:** DeepPlant-native authors can review their working units without
+  silent canonical-state rewriting.
+- **Future calculations:** calculations need conversion and normalization. Factor
+  tables, a units library, and dimension algebra are deliberately **deferred** to
+  a later implementation slice.
+- **DEXPI import/export:** concrete mappings are deferred; this decision does not
+  claim that DEXPI producers preserve original user-entered units or avoid
+  normalization before serialization.
 
 ### 9.2 What is canonical, and what is derived
 
-- **Canonical:** authored scalar magnitude + authored engineering unit, with the
+- **Canonical:** stored scalar magnitude + represented engineering unit, with the
   quantity kind owned by the property.
-- **Derived (deferred):** normalized/base-unit magnitude, conversion factors,
-  dimension algebra, arithmetic, and any unit registry.
+- **Derived (deferred):** physical-equivalence comparison, normalized/base-unit
+  magnitude, conversion factors, dimension algebra, arithmetic, and any unit
+  registry.
 - **Presentation (not semantic):** display unit symbol, decimal formatting,
   precision, unit-symbol spelling, and DEXPI `DisplayText`.
 
-This deliberately **defers conversion/normalization mechanics while defining the
-semantic information that must be preserved**: the authored magnitude, the
-authored unit, and the property's quantity kind.
+This deliberately **defers conversion mechanics while defining the canonical
+information DeepPlant preserves**: stored magnitude, represented unit, and the
+property's quantity kind. In DeepPlant-native authoring contexts, the stored
+magnitude and represented unit may also be called authored.
 
 ## 10. Value domain and multiplicity
 
@@ -580,13 +588,15 @@ in this document authorizes any of those shapes.
 explicit terms:
 
 1. **A reusable canonical qualified-engineering-value concept is justified.** The
-   value — an authored scalar magnitude plus engineering-unit semantics — recurs
-   across process, physical/piping, interoperability, calculation, rule, and
-   review consumers, so it is cross-cutting and belongs in the semantic model, not
-   only in an adapter.
+   value — a stored scalar magnitude plus represented engineering-unit semantics
+   — recurs across process, physical/piping, interoperability, calculation, rule,
+   and review consumers, so it is cross-cutting and belongs in the semantic model,
+   not only in an adapter.
 2. **The engineering property stays explicit and domain-owned.** `duty`, `head`,
-   `temperature`, `nominal_diameter`, and similar are domain-field names with
-   domain meaning; they are never replaced by generic string keys.
+   `temperature`, `design_pressure`, `wall_thickness`, and similar are domain-field
+   names with domain meaning; they are never replaced by generic string keys.
+   Current `PipingSegment.nominal_diameter` remains outside this decision as a
+   nominal designation/string-like engineering property.
 3. **No generic property/parameter bag.** Candidate C is rejected (§8.3). No
    entity gains an arbitrary `properties[...]` collection.
 4. **No per-property quantity classes now.** Candidate D is rejected (§8.4).
@@ -595,12 +605,13 @@ explicit terms:
 5. **The value is canonical semantic state and lives in the semantic model, not in
    presentation.** Magnitude and unit are semantic; formatting, display text, and
    precision are not.
-6. **The unit is semantic, not presentation-only.** The authored unit is part of
-   canonical state (§9).
-7. **Authored magnitude and authored unit are preserved.** `10 bar` and `1 MPa`
-   are distinct authored states with mathematically equivalent magnitudes;
-   normalisation/conversion is a derived, deferred operation (§9.1). Semantic
-   equality compares magnitude **and** authored unit.
+6. **The unit is semantic, not presentation-only.** The represented unit is part
+   of canonical state (§9).
+7. **DeepPlant preserves stored magnitude and represented unit.** `10 bar` and
+   `1 MPa` are distinct canonical representations; canonical-state equality
+   compares both fields. They may be physically equivalent through unit-aware
+   comparison, whose mechanics remain derived and deferred (§9.1). In
+   DeepPlant-native authoring contexts these fields may be called authored.
 8. **The adapter translates.** An external representation such as DEXPI
    `QualifiedValue`/`PhysicalQuantity` is translated by the adapter into the
    canonical value (and back); the adapter does not become the home of the
@@ -637,7 +648,9 @@ This decision does **not** authorize, and this slice does **not** perform:
   pressure.
 - The reusable value is defined once, while every engineering property keeps its
   domain owner and fail-fast validation.
-- Authored units are preserved, keeping diffs, review, and round-trips faithful.
+- DeepPlant preserves stored magnitude and represented unit, keeping diffs,
+  review, and future round-trips transparent without asserting DEXPI producer
+  provenance or normalization behavior.
 - The decision is aligned with the external evidence (DEXPI's one reusable
   quantity aggregate + per-property typing) rather than invented against it.
 - DEXPI `DisplayText` and other presentation concerns are explicitly kept out of
@@ -697,7 +710,7 @@ Revisit this boundary (through ADR-0013) when any of these occurs:
 
 - Issue #32 delivered its decision/evidence. A canonical reusable qualified
   engineering quantity is justified, owned by explicit domain properties, with
-  units as semantic state.
+  units as stored canonical state.
 - **No next executable task has yet been promoted.** The next direction must be
   selected from the new evidence this document and ADR-0013 produce.
 - This slice does **not** promote `ExchangingThermalEnergy`, reopen
