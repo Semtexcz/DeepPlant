@@ -103,20 +103,12 @@ whole vocabulary there.
 
 ### Active milestone
 
-**DEXPI Interoperability v0.1** is the current milestone. Issue #20 completes its
-current milestone scope: the auditable DEXPI 2.0.0 supported-subset and semantic
-round-trip contract published in
-[contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md).
-
-After #20 is merged, Issue #32 becomes the sole Now item (see the operational
-sequence above: `#32 → re-evaluate the next direction from new evidence`).
-Issue #32 is **not** automatically part of DEXPI Interoperability v0.1, and this
-slice does not create or assign a successor milestone.
-
-Historical milestone framing and completed-slice detail live in
-[history/implementation-slices.md](history/implementation-slices.md). P&ID-like
-coverage and engineering-rule validation breadth remain deferred context, not
-active milestone obligations.
+**DEXPI Interoperability v0.1** is the current milestone; Issue #20 completes its
+scope. After #20 merges, Issue #32 becomes the sole Now item (`#32 → re-evaluate
+the next direction from new evidence`); it is **not** automatically part of this
+milestone, and no successor milestone is created or assigned. See
+[history/implementation-slices.md](history/implementation-slices.md); P&ID-like
+coverage and engineering-rule breadth stay deferred context.
 
 ### Scope Discipline
 
