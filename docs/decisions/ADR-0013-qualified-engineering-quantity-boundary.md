@@ -118,11 +118,23 @@ Candidate analysis and trade-offs are in
 
 ## DEXPI consequence (explicit)
 
-This decision removes **one** `ExchangingThermalEnergy` blocker and only one. It
-does **not** mark `ExchangingThermalEnergy` supported and changes no adapter
-mapping. The mandatory `Method` (ADR-0012), coupled multi-stream/thermal-side
-semantics, port kind, energy-flow kind, and `NominalDirection` handling
-(G1–G4, G6) remain unresolved.
+This decision resolves the **architectural decision behind G5** by defining the
+future canonical quantity boundary. It does **not** implement that boundary, so G5
+remains an implementation/interoperability blocker, and this decision does not
+mark `ExchangingThermalEnergy` supported or change any adapter mapping:
+
+```text
+G5 architectural uncertainty        -> resolved by this decision
+G5 implementation/interoperability  -> still present until a canonical quantity
+  blocker                              value and relevant explicit domain
+                                       property are implemented
+```
+
+`ExchangingThermalEnergy` therefore remains fully investigated / unsupported for
+import, export, and semantic round-trip. The other blockers are unaffected: the
+mandatory `Method` (ADR-0012), coupled multi-stream/thermal-side semantics, port
+kind, energy-flow kind, and `NominalDirection` handling (G1–G4, G6) remain
+unresolved.
 
 ## Deferred
 

@@ -46,10 +46,13 @@ superseded_by: null
   4. Units are **canonical semantic state**, not presentation: `10 bar` and
      `1 MPa` are distinct stored canonical representations, while they may be
      physically equivalent after unit-aware comparison or conversion.
-  5. A quantity boundary removes exactly **one** `ExchangingThermalEnergy`
-     blocker and does not make that class supported; the mandatory `Method`,
-     coupled multi-stream semantics, port kind, energy-flow kind, and
-     `NominalDirection` blockers remain.
+  5. ADR-0013 resolves the architectural decision behind G5 by defining the future
+     canonical quantity boundary. G5 remains an implementation/interoperability
+     blocker because no canonical quantity value or owning quantity-bearing
+     property exists in the runtime model, so `ExchangingThermalEnergy` stays
+     fully investigated / unsupported for import, export, and semantic
+     round-trip; the mandatory `Method`, coupled multi-stream semantics, port
+     kind, energy-flow kind, and `NominalDirection` blockers also remain.
 - **Resulting ADRs:** ADR-0013.
 - **Current contracts operationalizing the result:** none yet — no canonical
   quantity is implemented. The decision constrains future model work and keeps
@@ -668,26 +671,32 @@ This decision does **not** authorize, and this slice does **not** perform:
 
 ### DEXPI / `ExchangingThermalEnergy` consequence
 
-A quantity boundary removes **one** blocker and **only** one:
+ADR-0013 resolves the architectural decision behind G5 by defining the future
+canonical quantity boundary. G5 remains an implementation/interoperability blocker
+because no canonical quantity value or owning quantity-bearing property exists in
+the runtime model. The final blocker state is:
 
 ```text
-G5  No engineering-quantity representation  -> addressed by this decision
-G1  Mandatory Method                        -> still unresolved (ADR-0012)
-G2  Coupled multi-stream / thermal-side semantics -> still unresolved
-G3  No port kind                            -> still unresolved
-G4  No energy-flow connection kind          -> still unresolved
-G6  NominalDirection handling               -> still unresolved
+G1  mandatory Method                          unresolved
+G2  coupled multi-stream semantics            unresolved
+G3  port kind                                 unresolved
+G4  energy-flow connection kind               unresolved
+G5  quantity representation                   architectural boundary decided,
+                                                runtime implementation absent
+G6  NominalDirection handling                 unresolved
 ```
 
 Therefore:
 
-- `ExchangingThermalEnergy` **remains explicitly unsupported**; this decision does
-  not mark it supported and does not change any adapter mapping.
-- The other Issue #22 blockers are unaffected: a quantity value does not provide
-  the mandatory `Method`, the hot/cold-side grouping, port kind, energy-flow kind,
-  or `NominalDirection`.
-- Even the quantity objective (G5) is only *partially* unblocked: DeepPlant would
-  own the value, but the DEXPI `QualifiedValue` qualifier fields remain unmapped.
+- `ExchangingThermalEnergy` **remains fully investigated / unsupported** for
+  import, export, and semantic round-trip; this decision does not mark it
+  supported and does not change any adapter mapping.
+- The other Issue #22 blockers are unaffected: the decided boundary provides no
+  actual quantity value, and a quantity value would not supply the mandatory
+  `Method`, the hot/cold-side grouping, port kind, energy-flow kind, or
+  `NominalDirection`.
+- G5 is decided architecturally but not implemented: even once a canonical value
+  exists, the DEXPI `QualifiedValue` qualifier fields remain unmapped.
 
 ## 15. Revisit conditions
 
