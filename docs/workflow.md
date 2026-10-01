@@ -1,7 +1,7 @@
 ---
-type: workflow
+type: governance
 status: active
-source_of_truth_for:
+canonical_for:
   - daily-change-loop
 read_when:
   - implement-change
@@ -9,6 +9,10 @@ read_when:
   - verify-change
 update_when:
   - workflow-policy-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Workflow
@@ -16,16 +20,13 @@ update_when:
 Project type: `script`. Runtime level: `shared`.
 Governance: `lightweight`. Workflow mode: `pr`.
 
-DeepPlant is past the project-foundation state: the semantic domain model
-(minimal `PlantModel`/`Plant`/`Equipment`, `Port` + `Connection` + reference
-validation, and the standalone `ProcessModel` with `ProcessStep[]`/
-`ProcessStream[]`), YAML load/save, the packaged `basic` process symbol pack,
-the headless process renderer, and the narrow DEXPI 2.x Process adapter spike
-are implemented (see [roadmap.md](roadmap.md) and
-[dexpi-process-spike.md](dexpi-process-spike.md)). Work proceeds as small
-vertical changes; the next step is deliberately reconsidered from the roadmap's
-current evidence. Do not implement capabilities ahead of the roadmap slice that
-authorizes them.
+DeepPlant is past the project-foundation state. Work proceeds as small vertical
+changes, and the next step is deliberately reconsidered from the roadmap's
+current evidence. What exists today, and what each document owns, is recorded in
+[architecture.md](architecture.md) (boundary map), the
+[contracts](contracts/index.md) (current obligations), and
+[roadmap.md](roadmap.md) (current state and next direction). Do not implement
+capabilities ahead of the slice that authorizes them.
 
 ## Change Loop
 

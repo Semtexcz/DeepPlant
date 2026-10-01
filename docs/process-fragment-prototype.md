@@ -1,16 +1,44 @@
 ---
-type: research
-status: proposed
-source_of_truth_for:
+type: prototype
+status: historical
+canonical_for:
   - process-fragment-prototype
 read_when:
   - process-model-implementation
   - pfd-modeling
 update_when:
   - process-model-decision
+depends_on: []
+decision: []
+evidence: []
+superseded_by: docs/contracts/process-model.md
 ---
 
 # Process Fragment Prototype
+
+## Outcome card
+
+- **Question investigated:** can one realistic PFD fragment be represented with
+  explicit process steps, ports, streams, junctions, and a recycle, and does the
+  physical layer stand in for it?
+- **Status:** historical prototype; the concepts it validated now ship, and its
+  proposed schema wording is superseded by the process contract and ADR-0005/6.
+- **Conclusions:**
+  1. The fragment was representable with no new schema: seven steps, seven
+     streams, a legal recycle cycle, and explicit mixing/splitting functions.
+  2. The 1:1 "equipment stands in for a process step" assumption is invalid:
+     junction steps have no equipment, and an inline valve is equipment with no
+     step.
+  3. `ProcessStream` must not duplicate `Connection` endpoints.
+  4. `ProcessModel` ownership (C1) resolved the container question.
+  5. Junction-port and exchanger-side mapping questions remain open.
+- **Resulting ADRs:** ADR-0005, ADR-0006.
+- **Current contracts operationalizing the result:**
+  [contracts/process-model.md](contracts/process-model.md),
+  [contracts/plant-model.md](contracts/plant-model.md); runnable example
+  `examples/realistic-process-fragment/`.
+- **Conditions for revisiting:** a second realistic fragment, or evidence that
+  makes the deferred junction/exchanger mapping questions actionable.
 
 > Decision status: the process-model container decision is **resolved by
 > ADR-0005 (Accepted)**. Remaining open questions in this document do not block

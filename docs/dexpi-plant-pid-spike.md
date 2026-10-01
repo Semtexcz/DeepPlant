@@ -1,7 +1,7 @@
 ---
-type: spike-report
-status: active
-source_of_truth_for:
+type: evidence
+status: historical
+canonical_for:
   - dexpi-2-plant-pid-semantic-boundary-evidence
 read_when:
   - interoperability-work
@@ -13,9 +13,39 @@ update_when:
   - dexpi-model-change
   - canonical-model-change
   - adapter-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # DEXPI 2.x Plant / P&ID Semantic Mapping Spike
+
+## Outcome card
+
+- **Question investigated:** where does the semantic boundary run between DEXPI
+  Plant/P&ID concepts and the canonical DeepPlant physical model?
+- **Status:** historical evidence (investigation complete; boundary owned by
+  ADR-0010/ADR-0011 and the plant/piping contracts).
+- **Inspection scope and date:** official DEXPI `V2.0.0` model definitions
+  (`Plant/**`, `Core/**`) and the official Reference P&ID instance, inspected
+  2026-09-21.
+- **Conclusions:**
+  1. `Port` remains sufficient for the physical-topology abstraction DeepPlant
+     claims; it is a documented collapse of DEXPI `Nozzle` + `PipingNode`.
+  2. `Connection` stays directed, property-free adjacency — never a pipe, pipe
+     piece, line, stream, signal, or cable.
+  3. Piping realization and instrumentation are separate future layers that must
+     not be folded into `Port`, `Connection`, or `Equipment.type`.
+  4. Piping-line identity belongs to the piping network system, not to a
+     connection; piping connectivity is directed and item+node addressed.
+  5. DEXPI diagram/graphics constructs stay presentation-only.
+- **Resulting ADRs:** ADR-0010, ADR-0011.
+- **Current contracts operationalizing the result:**
+  [contracts/plant-model.md](contracts/plant-model.md),
+  [contracts/physical-piping.md](contracts/physical-piping.md).
+- **Conditions for revisiting:** a requirement for node-level connectivity,
+  nozzle engineering data, `1:N` realizations, or instrumentation semantics.
 
 > This document is the primary analysis deliverable of the DEXPI Plant/P&ID
 > semantic-mapping spike (Issue #19), not secondary documentation. It is an

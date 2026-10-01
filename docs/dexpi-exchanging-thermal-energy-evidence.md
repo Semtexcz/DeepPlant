@@ -1,7 +1,7 @@
 ---
-type: spike-report
-status: active
-source_of_truth_for:
+type: evidence
+status: historical
+canonical_for:
   - dexpi-2-exchanging-thermal-energy-mapping-evidence
 read_when:
   - interoperability-work
@@ -12,9 +12,40 @@ update_when:
   - dexpi-model-change
   - canonical-model-change
   - adapter-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # DEXPI 2.x `ExchangingThermalEnergy` Semantic Mapping Evidence (Issue #22)
+
+## Outcome card
+
+- **Question investigated:** can DEXPI `ExchangingThermalEnergy` be mapped
+  honestly to canonical `ProcessStep(function="heat_exchange")`, and can import,
+  export, or semantic round-trip be claimed?
+- **Status:** historical evidence; the class remains explicitly unsupported.
+- **Inspection scope and date:** DEXPI `V2.0.0` Process model definition and the
+  class's mandatory properties, inspected 2026-09-22.
+- **Conclusions:**
+  1. The class-level engineering function does correspond to canonical
+     `heat_exchange` as a process function.
+  2. No mapping is claimed: DEXPI requires a mandatory `Method:
+     HeatExchangeMethod`, couples two or more material flows through one step,
+     and carries qualified quantities.
+  3. Canonical `ProcessStep` cannot express port *kind* or an energy-flow
+     connection, so the gap is model-level, not class-local.
+  4. The blockers are shared with the rest of the DEXPI `ProcessStep` family, so
+     per-class probing alone cannot close them.
+  5. A test-pinned negative fixture keeps the rejection structural.
+- **Resulting ADRs:** ADR-0009 (function/role boundary), ADR-0012 (no second
+  classification axis).
+- **Current contracts operationalizing the result:**
+  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md).
+- **Conditions for revisiting:** a canonical qualified-quantity representation, a
+  canonical port-kind concept, or a decision recorded through ADR-0012's revisit
+  list.
 
 > This document is the primary analysis deliverable of Issue #22, an
 > **evidence-first interoperability slice**. It is not documentation of a

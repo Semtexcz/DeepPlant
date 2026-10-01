@@ -1,7 +1,7 @@
 ---
-type: reference-product-landscape
+type: evidence
 status: active
-source_of_truth_for:
+canonical_for:
   - future-generic-ux-and-infrastructure-research-principles
 read_when:
   - engineering-view-planning
@@ -11,9 +11,36 @@ read_when:
 update_when:
   - candidate-evaluated-in-a-bounded-spike
   - upstream-license-or-scope-materially-changes
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Reference Products and Reuse Landscape
+
+## Outcome card
+
+- **Question investigated:** which existing projects are credible direct-reuse,
+  integration, external-tool, or reference candidates for future engineering
+  views and interactive editing?
+- **Status:** open evidence; it selects no framework, dependency, or
+  integration, and authorizes no implementation.
+- **Conclusions:**
+  1. Generic capabilities (layout, routing, docking, editors) should be compared
+     against existing projects before being reinvented.
+  2. Licence terms, not feature lists, are the blocking factor for several
+     candidates; repository metadata sometimes contradicts the licence file.
+  3. The IPD Studio upstream location and licence remain unresolved.
+  4. No external GUI or editor framework may dictate the canonical domain model.
+  5. Reuse decisions require a focused OSS landscape review per capability.
+- **Resulting ADRs:** none yet (references ADR-0002, ADR-0003, ADR-0009,
+  ADR-0010 as constraints).
+- **Current contracts operationalizing the result:** none; it informs
+  [direction.md](direction.md) stages 3–4, which are not authorized.
+- **Conditions for revisiting:** a concrete engineering-view or editing
+  requirement reaching the current horizon, or a resolved licence for a blocked
+  candidate.
 
 > **Status:** directional product and architecture research. This document selects
 > no GUI framework, editor, renderer, layout engine, routing engine, dependency,
@@ -37,8 +64,8 @@ The landscape below is deliberately a study list, not a plan.
 ## Scope and the reuse-first design rule
 
 This document supports the directional
-[Engineering Views](roadmap.md#stage-3--engineering-views) and
-[Interactive Editing](roadmap.md#stage-4--interactive-editing) stages. It changes
+[Engineering Views](direction.md#stage-3--engineering-views) and
+[Interactive Editing](direction.md#stage-4--interactive-editing) stages. It changes
 nothing about their timing, and the
 [anti-roadmap](roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
 still governs: a future stage justifies no architecture today.

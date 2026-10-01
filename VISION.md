@@ -196,9 +196,11 @@ Only a subset exists today, in executable, evidence-producing vertical slices:
 - a narrow DEXPI 2.0 Process import/export adapter spike
   ([docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)).
 
-Everything else in the capability map is direction, tracked as horizon state in
-the strategic GitHub Project and sequenced by evidence in
-[docs/roadmap.md](docs/roadmap.md).
+Everything else in the capability map is direction: the long-term capability
+progression is recorded in [docs/direction.md](docs/direction.md), the current
+state and next evidence-producing steps in [docs/roadmap.md](docs/roadmap.md),
+and the strategic horizon state in the GitHub Project. Current obligations live
+in [docs/contracts/index.md](docs/contracts/index.md).
 
 ## North-Star Workflow
 
@@ -238,8 +240,9 @@ implemented direction of today's model and CLI.
   evolve the domain model — after evidence, not before it.
 - Long-term capabilities are relatively stable; their implementation design is
   not.
-- Build narrowly, one vertical slice at a time; the directional roadmap is
-  product context, not implementation authorization.
+- Build narrowly, one vertical slice at a time; the directional roadmap
+  ([docs/direction.md](docs/direction.md)) is product context, not
+  implementation authorization.
 
 ## What DeepPlant Is Not
 
@@ -262,11 +265,13 @@ adapters, and agents over the semantic model — not the model itself.
 ## Current Status
 
 DeepPlant is an experimental repository (AGPL-3.0-only) in its early
-evidence-driven phase. The current state, sequenced reasoning, unresolved
-questions, and next evidence candidates are recorded in
-[docs/roadmap.md](docs/roadmap.md). The strategic capability state is
-visualized in the GitHub Project; the roadmap document remains the source of
-sequencing rationale.
+evidence-driven phase. What exists and what it must conform to is recorded in
+[docs/architecture.md](docs/architecture.md) and
+[docs/contracts/index.md](docs/contracts/index.md); the current state,
+unresolved questions, and next evidence candidates are recorded in
+[docs/roadmap.md](docs/roadmap.md); the long-term capability progression is in
+[docs/direction.md](docs/direction.md). The strategic capability state is
+visualized in the GitHub Project.
 
 Nothing in this vision document authorizes implementation. The current scoped
 vertical slice does; this document describes the destination, not a delivery

@@ -8,6 +8,8 @@ Start by reading the durable project context:
 sed -n '1,220p' project/brief.md
 sed -n '1,220p' docs/architecture.md
 sed -n '1,220p' docs/workflow.md
+sed -n '1,220p' docs/contracts/index.md
+sed -n '1,220p' docs/conventions.md
 ```
 
 
@@ -136,11 +138,14 @@ Before opening or finalizing the PR:
    testing the semantic model against a realistic executable example before
    introducing new abstractions or presentation architecture.
 6. Ensure these roadmap sections are mutually consistent:
-   - Current Implementation Roadmap
+   - Current State
    - Completed
    - Backlog (Suggested Order)
    - Milestones
    - Next Task
+   - Scope Discipline
+   - the Directional Capability Roadmap pointer (the long-term capability
+     progression itself lives in `docs/direction.md`)
 7. Search touched documentation for stale statements such as:
    `next task`, `not yet implemented`, `deferred`, `open decision`,
    `prerequisite`, and similar status wording.

@@ -1,7 +1,7 @@
 ---
-type: planning
+type: governance
 status: active
-source_of_truth_for:
+canonical_for:
   - strategic-planning-governance
 read_when:
   - feature-planning
@@ -9,6 +9,10 @@ read_when:
   - project-board-change
 update_when:
   - planning-policy-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Strategic Planning
@@ -37,8 +41,12 @@ Each layer has one job:
 | Layer | Job |
 |---|---|
 | [VISION.md](../VISION.md) | Long-term destination / thesis — where DeepPlant is going |
-| [docs/architecture.md](architecture.md) | Current architecture and durable constraints — what exists and its boundaries |
-| [docs/roadmap.md](roadmap.md) | Sequencing reasoning and evidence — why the work is ordered as it is |
+| [docs/product.md](product.md) | Product thesis, users, and durable non-goals |
+| [docs/direction.md](direction.md) | Long-term capability progression — product context, not authorization |
+| [docs/architecture.md](architecture.md) | Boundary map — what exists and its module boundaries |
+| [docs/contracts/index.md](contracts/index.md) | Current model, format, CLI, renderer, and adapter obligations |
+| [docs/roadmap.md](roadmap.md) | Current state, immediate direction, and unresolved evidence gaps |
+| [docs/conventions.md](conventions.md) | Documentation authority, metadata, length, and linking rules |
 | GitHub Project | Strategic capability map + operational horizon — visible portfolio state |
 | GitHub Milestones | Active or near-active capability goals containing concrete work |
 | GitHub Issues | Concrete bounded work that is Ready to execute |
@@ -140,7 +148,10 @@ receive empty Milestones, and no arbitrary due dates are assigned.
 |---|---|
 | Where is DeepPlant going? | `VISION.md` |
 | What major capabilities are part of the vision? | `VISION.md` capability map + GitHub Project |
-| What exists today? | `docs/architecture.md`, `docs/roadmap.md` (Completed) |
+| What exists today, and what must hold now? | `docs/contracts/`, `docs/architecture.md` |
+| What is the immediate next direction and evidence gap? | `docs/roadmap.md` |
+| What is the long-term capability progression? | `docs/direction.md` (product context, not authorization) |
+| What shipped already? | `docs/history/implementation-slices.md` |
 | What is Now / Next / Later / Exploration? | GitHub Project Horizon field |
 | Which capabilities are active enough for Milestones? | current roadmap state + Milestone policy above |
 | Which concrete work is actually Ready? | bounded Issues created just in time |

@@ -1,7 +1,7 @@
 ---
 type: product
-status: draft
-source_of_truth_for:
+status: active
+canonical_for:
   - product-vision
   - long-term-non-goals
 read_when:
@@ -9,6 +9,10 @@ read_when:
   - roadmap-change
 update_when:
   - product-vision-change
+depends_on: []
+decision: []
+evidence: []
+superseded_by: null
 ---
 
 # Product
@@ -30,7 +34,8 @@ The long-term destination is a canonical semantic representation of a process
 plant from which multiple engineering views and workflows are derived — PFDs,
 P&IDs, line lists, validation reports, simulation inputs, and exchange formats.
 That destination is reached one small vertical slice at a time
-([roadmap.md](roadmap.md)).
+([roadmap.md](roadmap.md)), with the capability progression in
+[direction.md](direction.md).
 
 ```text
                      engineers
@@ -108,72 +113,21 @@ automatically. The principle is that semantic information should be reusable
 instead of manually duplicated wherever practical. Presentation data stays
 separate from engineering semantics.
 
-## Git-Native Engineering Workflow
+## Workflow, Judgment, and Product Position
 
-DeepPlant should enable engineering workflows analogous to modern software
-development:
+Three durable positions are stated in full in [VISION.md](../VISION.md) and are
+deliberately not repeated here:
 
-```text
-change
-  ↓
-semantic diff
-  ↓
-validation
-  ↓
-engineering review
-  ↓
-CI checks
-  ↓
-approved version
-```
-
-Intended benefits: traceability, reviewability, reproducibility, automated
-consistency checks, and collaboration between engineers and agents. Today the
-versionable YAML model and the `validate` CLI exist; the rest is target
-direction.
-
-## Human Engineering Judgment Remains Essential
-
-DeepPlant is not intended to replace engineering judgment. A useful future
-hierarchy of constraints is:
-
-1. physical laws
-2. legislation and mandatory standards
-3. organizational / company rules
-4. project configuration
-5. engineering judgment
-
-Hard deterministic constraints should increasingly be machine-checkable.
-Judgment, trade-offs, and design intent remain human responsibilities. This
-document designs no rules engine; rules appear only as a directional roadmap
-stage.
-
-## Product Position — a Semantic and Automation Layer
-
-DeepPlant should not necessarily replace every engineering tool. A major value
-proposition may be acting as a semantic and automation layer across
-heterogeneous engineering tools:
-
-```text
-                    DeepPlant
-               canonical plant model
-                       │
-       ┌────────┬──────┼───────┬────────────┐
-       ▼        ▼      ▼       ▼            ▼
-     DEXPI    COMOS  AVEVA  simulators  calculations
-                                     
-                       │
-                       ▼
-             other engineering systems
-```
-
-This is analogous in spirit to control-plane approaches such as Infrastructure
-as Code, without claiming identical architecture. External ecosystems are
-adapters around the canonical model. Consumer-specific representation concerns
-must not leak into the semantic domain model; a genuine engineering concept
-discovered through DEXPI, simulation, or another integration may legitimately
-cause the domain model to evolve, but an external schema shape alone must not
-dictate the canonical model.
+- **Git-native engineering workflow** — semantic diff, validation, engineering
+  review, and CI over a versionable model. The versionable YAML model and the
+  `validate` CLI exist today; the rest is target direction.
+- **Human engineering judgment remains essential** — only deterministic
+  constraints should be automated. Judgment, trade-offs, and design intent stay
+  human responsibilities, and this document designs no rules engine.
+- **Product position: a semantic and automation layer** — DeepPlant complements
+  rather than replaces heterogeneous engineering tools. External ecosystems
+  (DEXPI, COMOS, AVEVA, simulators, calculations) are adapters around the
+  canonical model, and no external schema shape dictates that model.
 
 ## Users
 
@@ -192,23 +146,11 @@ is assumed by this document.
 
 ## Where DeepPlant Is Now
 
-Implemented today:
-
-- `Plant` and `Equipment` objects with strict, non-empty semantic ids.
-- Equipment owns `Port` objects. Port identity is local to the owning
-  equipment/component; the same port id may exist on different equipment.
-- `Connection` is a **directed semantic topological relationship** between two
-  `PortRef` endpoints, from `source` to `target`.
-- A `PortRef` resolves by `(component id, port id)`, and reference validation
-  rejects unknown components and unknown ports.
-- strict YAML loading into typed Pydantic models and the `deepplant validate`
-  CLI on a runnable example.
-
-This does **not** yet define process streams, pipes, signals, physical lines,
-or nozzles. `Connection` remains topology only; what should represent process
-piping / streams in the canonical model is the next open modeling question.
-See [architecture.md](architecture.md) for the current technical shape and
-[roadmap.md](roadmap.md) for what is next.
+Current implementation facts are not repeated here. The boundary map is
+[architecture.md](architecture.md); the current obligations are the
+[contracts](contracts/index.md) (plant model, process model, physical piping,
+YAML format, CLI, renderer, symbol pack, DEXPI Process adapter); the actionable
+current and next state is [roadmap.md](roadmap.md).
 
 ## Hypotheses
 
@@ -225,22 +167,12 @@ Current working hypotheses, not validated facts:
 
 ## Long-Term Capability Vision
 
-The initial semantic core is implemented: `Plant`, `Equipment`, equipment-owned
-`Port` objects, `PortRef` endpoints, directed `Connection` edges, and reference
-validation. This is not yet the complete canonical plant model — process
-streams, pipes / pipelines, nozzle semantics, and instrumentation topology
-remain unresolved. The open pipes/process-stream representation question is the
-next modeling decision. The remaining order of work lives in
-[roadmap.md](roadmap.md):
-
-- pipes / process-stream representation (open modeling question)
-- YAML save / round-trip serialization
-- PFD / P&ID rendering
-- interactive editor
-- validation and engineering rules
-- Git diff / CI workflows
-- DEXPI import/export
-- later integration with simulators and engineering tools
+The capability progression — the stages, their goals, their dependencies, and
+the questions deliberately left open in each — is recorded in
+[direction.md](direction.md). It is product context, not implementation
+authorization: the [anti-roadmap](roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
+still governs, and the actionable current/next state lives in
+[roadmap.md](roadmap.md).
 
 ## Product Principles
 
@@ -275,9 +207,13 @@ next modeling decision. The remaining order of work lives in
 
 ## Related
 
-- [architecture.md](architecture.md) — current architecture and directional
-  architecture invariants.
-- [roadmap.md](roadmap.md) — current implementation roadmap, directional
-  capability roadmap, and anti-roadmap.
+- [architecture.md](architecture.md) — boundary map of what exists, and the
+  durable invariants.
+- [contracts/index.md](contracts/index.md) — current model, format, CLI,
+  renderer, and adapter obligations.
+- [direction.md](direction.md) — long-term capability progression (product
+  context, not authorization).
+- [roadmap.md](roadmap.md) — current state, next direction, anti-roadmap.
 - [workflow.md](workflow.md) — the daily change loop.
 - [decisions/index.md](decisions/index.md) — architectural decisions.
+- [VISION.md](../VISION.md) — the durable long-term thesis and capability map.

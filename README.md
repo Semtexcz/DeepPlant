@@ -49,11 +49,15 @@ with PFD/P&ID views, engineering checks, simulations, and external exchange
 handled as derived views, computations, or adapters.
 
 See [VISION.md](VISION.md) for where DeepPlant is going,
-[docs/architecture.md](docs/architecture.md) for what exists,
-[docs/roadmap.md](docs/roadmap.md) for sequencing reasoning, and the
+[docs/architecture.md](docs/architecture.md) for the boundary map of what
+exists, [docs/contracts/index.md](docs/contracts/index.md) for current
+obligations, [docs/roadmap.md](docs/roadmap.md) for the current state and next
+direction, [docs/direction.md](docs/direction.md) for long-term capability
+progression, and the
 [DeepPlant Roadmap GitHub Project](https://github.com/users/Semtexcz/DeepPlant/projects/2)
 for the strategic capability map. Planning governance is defined in
-[docs/planning.md](docs/planning.md).
+[docs/planning.md](docs/planning.md); documentation authority and conventions in
+[docs/conventions.md](docs/conventions.md).
 
 ## Quick Start
 
@@ -117,16 +121,20 @@ project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 | Need | Open |
 |---|---|
 | Vision | [VISION.md](VISION.md) |
+| Documentation index | [docs/index.md](docs/index.md) |
+| Current contracts (model, YAML, CLI, renderer, DEXPI) | [docs/contracts/index.md](docs/contracts/index.md) |
+| Current architecture (boundary map) | [docs/architecture.md](docs/architecture.md) |
+| Current state, next direction, evidence gaps | [docs/roadmap.md](docs/roadmap.md) |
+| Long-term capability progression | [docs/direction.md](docs/direction.md) |
+| Product position | [docs/product.md](docs/product.md) |
 | Strategic planning | [docs/planning.md](docs/planning.md) |
-| Product brief | [docs/product.md](docs/product.md) |
-| Roadmap | [docs/roadmap.md](docs/roadmap.md) |
-| Current architecture | [docs/architecture.md](docs/architecture.md) |
-| Headless process renderer | [docs/rendering.md](docs/rendering.md) |
-| DEXPI 2.x Process adapter spike | [docs/dexpi-process-spike.md](docs/dexpi-process-spike.md) |
+| Implementation history | [docs/history/implementation-slices.md](docs/history/implementation-slices.md) |
+| Decisions | [docs/decisions/index.md](docs/decisions/index.md) |
+| Evidence and research | [docs/research/index.md](docs/research/index.md) |
+| Documentation conventions | [docs/conventions.md](docs/conventions.md) |
 | Project brief | [project/brief.md](project/brief.md) |
 | Workflow | [docs/workflow.md](docs/workflow.md) |
 | Quality gates | [docs/quality.md](docs/quality.md) |
 | Standards & asset provenance | [docs/standards.md](docs/standards.md) |
-| Decisions | [docs/decisions/index.md](docs/decisions/index.md) |
 | Agent instructions | [AGENTS.md](AGENTS.md) |
 | Example area | [examples/minimal-process/README.md](examples/minimal-process/README.md) |

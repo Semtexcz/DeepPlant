@@ -141,6 +141,21 @@ validate-docs:
 	@test -f docs/planning.md
 	@test -f docs/workflow.md
 	@test -f docs/quality.md
+	@test -f docs/index.md
+	@test -f docs/conventions.md
+	@test -f docs/direction.md
+	@test -f docs/contracts/index.md
+	@test -f docs/contracts/plant-model.md
+	@test -f docs/contracts/process-model.md
+	@test -f docs/contracts/physical-piping.md
+	@test -f docs/contracts/yaml-format.md
+	@test -f docs/contracts/cli.md
+	@test -f docs/contracts/dexpi-process-adapter.md
+	@test -f docs/decisions/index.md
+	@test -f docs/research/index.md
+	@test -f docs/history/implementation-slices.md
+	@test -f docs/rendering.md
+	@test -f docs/svg-symbols.md
 	@test -f project/brief.md
 
 

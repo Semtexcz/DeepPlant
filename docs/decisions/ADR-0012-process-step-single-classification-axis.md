@@ -159,7 +159,7 @@ rejected shortcuts are in
   realization mapping.
 - `ProcessStepDetail` semantics and any step-refinement/sub-process concept.
 - Function-specific semantic details, if new evidence ever justifies them.
-- `StoringMaterial` storage classes (Issue #21).
+- `StoringMaterial` storage classes (Issue #21, closed; its topic remains deferred evidence context).
 - DEXPI Process subset expansion.
 
 ## Revisit When
