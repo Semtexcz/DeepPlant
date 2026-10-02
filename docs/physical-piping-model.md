@@ -1078,4 +1078,4 @@ cardinality, pipe-piece identity, and process ↔ physical realization.
 - [docs/process-topology.md](process-topology.md) — the duplication invariant
   that motivates referencing `Connection` instead of restating endpoints.
 - [docs/architecture.md](architecture.md), [docs/roadmap.md](roadmap.md),
-  [docs/rendering.md](rendering.md).
+  [docs/contracts/rendering.md](contracts/rendering.md).

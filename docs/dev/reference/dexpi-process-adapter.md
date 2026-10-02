@@ -36,8 +36,8 @@ superseded_by: null
 >
 > Implemented in `src/deepplant/adapters/dexpi.py`. DEXPI is an external
 > representation; the canonical model is DeepPlant's own
-> ([process-model.md](process-model.md), ADR-0002, ADR-0003). Research and
-> mapping rationale: [../dexpi-process-spike.md](../dexpi-process-spike.md).
+> ([process-model.md](../../contracts/process-model.md), ADR-0002, ADR-0003). Research and
+> mapping rationale: [../../dexpi-process-spike.md](../../dexpi-process-spike.md).
 >
 > Support is **not** a single yes/no feature: every DEXPI concept has a per-row
 > state and per-direction claim in the [compatibility matrix](#compatibility-matrix).
@@ -80,7 +80,7 @@ The `DEXPI_*` module constants (`DEXPI_TARGET_VERSION`, `DEXPI_TARGET_TAG`,
 expose the pin above for callers and tests.
 
 Both import functions construct the canonical `ProcessModel` through its public
-Pydantic constructors, so S1–S4 (see [process-model.md](process-model.md)) run on
+Pydantic constructors, so S1–S4 (see [process-model.md](../../contracts/process-model.md)) run on
 imported content.
 
 ## Support states (closed vocabulary)
@@ -170,19 +170,19 @@ evidence maturity.
 | Data `NominalDirection` (port) | supported (validated) | validated against, and derived from, `ProcessStream` incidence; never stored | supported (derived) | supported (preserved via incidence) | contradiction with incidence rejected; required on every port for export | `t:test_direction_contradiction_fails_clearly`, `t:test_export_rejects_port_without_incident_stream` | ADR-0009; spike §5.2 |
 | `Port.ConnectorReference` | import-only (validated) | validated against stream incidence; never stored | not applicable (never emitted) | does not break the defined round-trip; redundant with incidence | DEXPI multiplicity unresolved (`TODO check multiplicities`); tolerated when absent | `t:test_valid_connector_reference_to_matching_stream_succeeds`, `t:test_inconsistent_connector_reference_incidence_fails` | spike §5.1 |
 | `ProcessConnection.Source` / `Target` references | supported | `ProcessRef(step, port)` endpoints | supported | supported | must be `#`-IDREF tokens resolving to imported `MaterialPort`s; unresolved or mistyped rejected | `t:test_source_target_references_resolve`, `t:test_unresolved_references_fail_clearly` | spike §5.1 |
-| `Process/Process.ExchangingThermalEnergy` | investigated / unsupported | none — `heat_exchange` stays DeepPlant-native, not equal to the class | investigated / unsupported | none | mandatory `Method: HeatExchangeMethod`; couples ≥2 material streams; thermal side is a separate `ThermalEnergyPort`/`ThermalEnergyFlow`; no canonical port kind or qualified quantity | `t:test_exchanging_thermal_energy_step_class_is_explicitly_unsupported`, `t:test_exchanging_thermal_energy_is_unsupported_without_its_properties` | [Issue #22 evidence](../dexpi-exchanging-thermal-energy-evidence.md); ADR-0012 |
+| `Process/Process.ExchangingThermalEnergy` | investigated / unsupported | none — `heat_exchange` stays DeepPlant-native, not equal to the class | investigated / unsupported | none | mandatory `Method: HeatExchangeMethod`; couples ≥2 material streams; thermal side is a separate `ThermalEnergyPort`/`ThermalEnergyFlow`; no canonical port kind or qualified quantity | `t:test_exchanging_thermal_energy_step_class_is_explicitly_unsupported`, `t:test_exchanging_thermal_energy_is_unsupported_without_its_properties` | [Issue #22 evidence](../../dexpi-exchanging-thermal-energy-evidence.md); ADR-0012 |
 | `Process/Process.ThermalEnergyPort` | investigated / unsupported | none | investigated / unsupported | none | no canonical non-material port kind | `t:test_non_material_ports_are_not_imported`, `fix:non_material_ports.xml` | Issue #22 §3.1 |
 | `Process/Process.EnergyPort` | investigated / unsupported | none | investigated / unsupported | none | abstract general energy port; no canonical port kind | no dedicated executable fixture/test; canonical port-kind gap established by the Process model evidence | Issue #22 §3.1 |
 | `Process/Process.EnergyFlow` (`ThermalEnergyFlow`, `ElectricalEnergyFlow`, `MechanicalEnergyFlow`) | investigated / unsupported | none | investigated / unsupported | none | never collapsed into `ProcessStream`; carries `Duty`/`Temperature` | `t:test_energy_flows_are_not_imported_as_process_streams`, `fix:energy_flows.xml` | Issue #22 §3.2 |
 | `Process/Process.InformationPort` | investigated / unsupported | none | investigated / unsupported | none | no canonical port kind | `t:test_non_material_ports_are_not_imported` | Issue #22 §3.1 |
 | `Process/Process.InformationFlow` | investigated / unsupported | none | investigated / unsupported | none | never collapsed into `ProcessStream` | `t:test_information_flow_is_not_imported_as_process_stream`, `fix:information_flow.xml` | Issue #22 §3.2 |
 | `ProcessStep.SubProcessSteps` | investigated / unsupported | none — no step hierarchy | investigated / unsupported | none | populated `SubProcessSteps` rejected; no dedicated test | no dedicated test; enforced by `_collect_step` populated-`SubProcessSteps` branch | ADR-0012 |
-| DEXPI `*Method` **properties** (`HeatExchangeMethod` on `ExchangingThermalEnergy`/`RemovingThermalEnergy`/`SupplyingThermalEnergy`, `CompressionMethod` on `Compressing`, `ReactionProcessType` on `ReactingChemicals`, `EngineDriveMethod`/`MotorDriveMethod`/`TurbineDriveMethod` on `DrivingBy*`, `PumpingMethod` on `Pumping`) | investigated / unsupported | none | investigated / unsupported | none | the `Method` **property semantics** were investigated as one generic canonical-classification concept (ADR-0012), not the class-level mapping of each owning step; heterogeneous enum domains; no second classification axis | no dedicated `Method` test; rejection follows from the `ProcessStep` Data-property allow-list, with `Method` semantics established by ADR-0012 evidence | [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md); [process-step-classification.md](../process-step-classification.md) |
-| Qualified engineering quantities (`Head`, `VolumeFlow`, `Duty`, `Temperature`, `Pressure`, `MassFlow`) | investigated / unsupported | none | investigated / unsupported | none | no implemented canonical qualified-quantity representation; [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md) defines the semantic boundary only, so the adapter still rejects quantity-bearing content | `t:test_pumping_with_unsupported_head_property_fails`, `t:test_stream_with_unsupported_property_fails`, `t:test_material_port_with_unsupported_property_fails` | [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md); [research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md); ADR-0012 (original deferral) |
-| Plant / P&ID (`Plant/PlantModel`, `Nozzle`, `PipingNode`, `PipingNetworkSystem`, …) | investigated / unsupported | none | investigated / unsupported | none | Plant-only input rejected; Plant objects ignored in mixed files | `t:test_plant_objects_are_not_imported_and_plant_only_files_fail`, `fix:plant_only.xml`, `fix:mixed_plant_and_process.xml` | [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) |
+| DEXPI `*Method` **properties** (`HeatExchangeMethod` on `ExchangingThermalEnergy`/`RemovingThermalEnergy`/`SupplyingThermalEnergy`, `CompressionMethod` on `Compressing`, `ReactionProcessType` on `ReactingChemicals`, `EngineDriveMethod`/`MotorDriveMethod`/`TurbineDriveMethod` on `DrivingBy*`, `PumpingMethod` on `Pumping`) | investigated / unsupported | none | investigated / unsupported | none | the `Method` **property semantics** were investigated as one generic canonical-classification concept (ADR-0012), not the class-level mapping of each owning step; heterogeneous enum domains; no second classification axis | no dedicated `Method` test; rejection follows from the `ProcessStep` Data-property allow-list, with `Method` semantics established by ADR-0012 evidence | [ADR-0012](../../decisions/ADR-0012-process-step-single-classification-axis.md); [process-step-classification.md](../../process-step-classification.md) |
+| Qualified engineering quantities (`Head`, `VolumeFlow`, `Duty`, `Temperature`, `Pressure`, `MassFlow`) | investigated / unsupported | none | investigated / unsupported | none | no implemented canonical qualified-quantity representation; [ADR-0013](../../decisions/ADR-0013-qualified-engineering-quantity-boundary.md) defines the semantic boundary only, so the adapter still rejects quantity-bearing content | `t:test_pumping_with_unsupported_head_property_fails`, `t:test_stream_with_unsupported_property_fails`, `t:test_material_port_with_unsupported_property_fails` | [ADR-0013](../../decisions/ADR-0013-qualified-engineering-quantity-boundary.md); [research/qualified-engineering-quantities.md](../../research/qualified-engineering-quantities.md); ADR-0012 (original deferral) |
+| Plant / P&ID (`Plant/PlantModel`, `Nozzle`, `PipingNode`, `PipingNetworkSystem`, …) | investigated / unsupported | none | investigated / unsupported | none | Plant-only input rejected; Plant objects ignored in mixed files | `t:test_plant_objects_are_not_imported_and_plant_only_files_fail`, `fix:plant_only.xml`, `fix:mixed_plant_and_process.xml` | [ADR-0010](../../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) |
 | Graphics / presentation metadata (`Core.Diagram`, coordinates, `PlantMetaData`) | investigated / unsupported | none | investigated / unsupported | none | presentation data must not enter the semantic model | `t:test_no_presentation_data_enters_the_semantic_model` | ADR-0003; ADR-0010 |
-| Other DEXPI `ProcessStep` classes (for example the owners of an inspected `Method` property: `Compressing`, `ReactingChemicals`, `DrivingBy*`, `RemovingThermalEnergy`, `SupplyingThermalEnergy`, …) | not investigated | none established | not investigated | none claimed | the owning classes' **class-level import/export semantic mapping** was not investigated — only their `Method` property semantics were (see the `*Method` row); they fail by name through the generic unsupported-class boundary, and runtime rejection is not semantic investigation | `t:test_unsupported_process_step_class_fails_clearly`, `fix:unsupported_process_step.xml` (runtime rejection only) | spike §5.3; ADR-0009; [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md) (via `Method` semantics, not class-level mapping) |
-| `Process/Process.StoringMaterial` / storage semantics (`StoringInPressureVessel`, `StoringSolids`, …) | not investigated | none established | not investigated | none claimed | rejected by the generic unsupported-class boundary, but no semantic mapping conclusion exists — runtime rejection is not semantic investigation; deliberately deferred, not resolved | no dedicated test; runtime rejection via the generic unsupported-class boundary | deferred `StoringMaterial` evidence context (Issue #21); [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md) |
+| Other DEXPI `ProcessStep` classes (for example the owners of an inspected `Method` property: `Compressing`, `ReactingChemicals`, `DrivingBy*`, `RemovingThermalEnergy`, `SupplyingThermalEnergy`, …) | not investigated | none established | not investigated | none claimed | the owning classes' **class-level import/export semantic mapping** was not investigated — only their `Method` property semantics were (see the `*Method` row); they fail by name through the generic unsupported-class boundary, and runtime rejection is not semantic investigation | `t:test_unsupported_process_step_class_fails_clearly`, `fix:unsupported_process_step.xml` (runtime rejection only) | spike §5.3; ADR-0009; [ADR-0012](../../decisions/ADR-0012-process-step-single-classification-axis.md) (via `Method` semantics, not class-level mapping) |
+| `Process/Process.StoringMaterial` / storage semantics (`StoringInPressureVessel`, `StoringSolids`, …) | not investigated | none established | not investigated | none claimed | rejected by the generic unsupported-class boundary, but no semantic mapping conclusion exists — runtime rejection is not semantic investigation; deliberately deferred, not resolved | no dedicated test; runtime rejection via the generic unsupported-class boundary | deferred `StoringMaterial` evidence context (Issue #21); [ADR-0012](../../decisions/ADR-0012-process-step-single-classification-axis.md) |
 | `Core.PersistentIdentifier` | not applicable | none | not applicable | none | originating-system context, not canonical identity; not imported | no dedicated test; analysis only | spike §5.2 |
 | DEXPI 2.0.1 and later | not investigated | none | not investigated | none | DEXPI 2.0.1 released 2026-09-30 but not investigated and not supported by the current 2.0.0 pin; a separate compatibility review is required before the pin may move | `t:test_wrong_process_version_uri_fails_explicitly` | adapter pin |
 | Proteus XML, DEXPI 1.x | not investigated | none | not investigated | none | only the DEXPI 2.0.0 XML envelope is handled | none | adapter scope |
@@ -208,7 +208,7 @@ asserts `pumping ↔ Process/Process.Pumping` (ADR-0009) and nothing more.
 ## `ExchangingThermalEnergy` (investigated / unsupported)
 
 Carried forward from Issue #22
-([evidence](../dexpi-exchanging-thermal-energy-evidence.md): import, export, and
+([evidence](../../dexpi-exchanging-thermal-energy-evidence.md): import, export, and
 round-trip stay unsupported). The blockers are model-level, not class-local:
 
 - mandatory `Method: HeatExchangeMethod`, with no canonical home (ADR-0012);
@@ -217,7 +217,7 @@ round-trip stay unsupported). The blockers are model-level, not class-local:
 - no canonical non-material / energy-flow connection kind;
 - no canonical qualified engineering quantity (`Duty`, `Temperature`): the
   boundary is decided by
-  [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md)
+  [ADR-0013](../../decisions/ADR-0013-qualified-engineering-quantity-boundary.md)
   but no value is implemented, so G5 stays an implementation/interoperability
   blocker;
 - mandatory `NominalDirection` is derived from incidence rather than stored.
@@ -314,7 +314,7 @@ metadata-fidelity) claim.
   content, and graphics/presentation metadata.
 - DEXPI `Method` semantics (ADR-0012) and qualified engineering quantities:
   Issue #32 decided a boundary for a reusable canonical quantity value
-  ([ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md))
+  ([ADR-0013](../../decisions/ADR-0013-qualified-engineering-quantity-boundary.md))
   but implemented nothing, so the adapter still rejects the untyped engineering
   quantities and the DEXPI `QualifiedValue` qualifier fields.
 - Proteus XML and DEXPI 1.x: the adapter targets the pinned DEXPI 2.0.0 XML
@@ -334,15 +334,15 @@ metadata-fidelity) claim.
 
 ## Related
 
-- [../dexpi-process-spike.md](../dexpi-process-spike.md) — pin research, mapping
+- [../../dexpi-process-spike.md](../../dexpi-process-spike.md) — pin research, mapping
   matrix, identity semantics, export-feasibility assessment.
-- [../dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md)
-  and [../process-step-classification.md](../process-step-classification.md) —
+- [../../dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md)
+  and [../../process-step-classification.md](../../process-step-classification.md) —
   the evidence for the unsupported areas.
 - `tests/test_dexpi_adapter.py` and `tests/fixtures/dexpi/2.0.0/` — the
   executable evidence and provenance behind every matrix row.
-- [process-model.md](process-model.md) — the canonical target model.
-- [ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
-  [ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-  [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md),
-  [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md).
+- [process-model.md](../../contracts/process-model.md) — the canonical target model.
+- [ADR-0002](../../decisions/ADR-0002-semantic-model-is-the-core.md),
+  [ADR-0009](../../decisions/ADR-0009-separate-process-function-from-symbol-role.md),
+  [ADR-0010](../../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md),
+  [ADR-0012](../../decisions/ADR-0012-process-step-single-classification-axis.md).

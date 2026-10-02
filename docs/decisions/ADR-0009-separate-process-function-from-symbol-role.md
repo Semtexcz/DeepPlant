@@ -134,6 +134,6 @@ function vocabulary/ontology from that evidence).
 - [ADR-0008-process-svg-symbol-and-anchor-contract.md](ADR-0008-process-svg-symbol-and-anchor-contract.md)
   (partially superseded: only the `ProcessStep.type` → symbol-role coupling;
   the role → pack → SVG + anchor contract remains in force)
-- [../svg-symbols.md](../svg-symbols.md), [../rendering.md](../rendering.md),
+- [../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md), [../contracts/rendering.md](../contracts/rendering.md),
   [../architecture.md](../architecture.md),
   [../dexpi-process-spike.md](../dexpi-process-spike.md)

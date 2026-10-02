@@ -28,13 +28,13 @@ navigation map, not a content dump. The structure is decided in
 (Documentation Architecture v2.1), refining
 [ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
 
-This audience layer is the eventual **physical owner** of developer/agent
-material: architecture, workflow/governance, planning, developer-only
-contracts/reference, decisions, research/evidence, and history are canonical *and*
-developer-owned, and will move from the `docs/` root into this tree. They remain
-canonical after the move. Until then the links below still resolve from the root;
-the current → target mapping is in
-[documentation-migration.md](../documentation-migration.md).
+This audience layer is the **physical owner** of developer/agent material:
+architecture, workflow/governance, planning, developer-only contracts/reference,
+decisions, research/evidence, and history are canonical *and* developer-owned.
+The developer-only reference layer has already moved here
+([reference/](reference/svg-symbols.md)); the remaining root documents move in
+later slices and stay canonical after their move. The current → target mapping is
+in [documentation-migration.md](../documentation-migration.md).
 
 ## Start here
 
@@ -60,8 +60,9 @@ table, not an orchestration engine.
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
-| Change the renderer or symbols | [rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md) — target: shared renderer contract; developer-only symbol reference |
-| Change the DEXPI adapter | [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md) — target: `docs/dev/reference/` |
+| Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
+| Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
+| Change the DEXPI adapter | [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md) — the developer-only DEXPI Process adapter contract |
 | Decide or record an architecture boundary | [decisions/index.md](../decisions/index.md), [conventions.md](../conventions.md) |
 | Add or change evidence | [research/index.md](../research/index.md) |
 | Change documentation | [conventions.md](../conventions.md), [documentation-migration.md](../documentation-migration.md) |
@@ -80,8 +81,8 @@ authoritative.
 - **Cross-audience contract** (shared) — [contracts/index.md](../contracts/index.md):
   what users and developers must both rely on.
 - **Developer-only contract/reference** (developer-owned) —
-  [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md),
-  [svg-symbols.md](../svg-symbols.md): target `docs/dev/reference/`.
+  [reference/svg-symbols.md](reference/svg-symbols.md),
+  [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md).
 - **Decision** (developer-owned) — [decisions/index.md](../decisions/index.md):
   why a boundary exists.
 - **Evidence** (developer-owned) — [research/index.md](../research/index.md): what

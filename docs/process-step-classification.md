@@ -40,7 +40,7 @@ superseded_by: null
 - **Resulting ADRs:** ADR-0012.
 - **Current contracts operationalizing the result:**
   [contracts/process-model.md](contracts/process-model.md),
-  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md).
+  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md).
 - **Conditions for revisiting:** ADR-0012's *Revisit When* list (a native
   equipment-independent process principle, a coherent later DEXPI axis, or
   `ProcessStepDetail` mapping evidence).

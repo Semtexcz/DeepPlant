@@ -148,7 +148,7 @@ sufficient for placement here.
 | `docs/contracts/plant-model.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
 | `docs/contracts/process-model.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
 | `docs/contracts/physical-piping.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
-| `docs/rendering.md` | shared | contract | MOVE | `docs/contracts/rendering.md` | Public renderer API and output behaviour are needed by callers/users and implementers | medium (17) |
+| `docs/contracts/rendering.md` | shared | contract | KEEP | — | Public renderer API and output behaviour are needed by callers/users and implementers | medium (17) |
 
 ## Developer reference layer — `docs/dev/reference/`
 
@@ -158,8 +158,8 @@ contract. It is a narrow ownership category, not a generic dumping ground.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
-| `docs/contracts/dexpi-process-adapter.md` | dev/agent | contract | MOVE | `docs/dev/reference/dexpi-process-adapter.md` | Adapter implementers/integrators need its supported-subset and fail-closed contract; users do not need it to use DeepPlant | medium |
-| `docs/svg-symbols.md` | dev/agent | contract | MOVE | `docs/dev/reference/svg-symbols.md` | Renderer/symbol developers need the packaged asset and anchor contract; it is not user-facing reference | medium (20) |
+| `docs/dev/reference/dexpi-process-adapter.md` | dev/agent | contract | KEEP | — | Adapter implementers/integrators need its supported-subset and fail-closed contract; users do not need it to use DeepPlant | medium |
+| `docs/dev/reference/svg-symbols.md` | dev/agent | contract | KEEP | — | Renderer/symbol developers need the packaged asset and anchor contract; it is not user-facing reference | medium (20) |
 
 `rendering.md`, `svg-symbols.md`, and `dexpi-process-adapter.md` are classified
 independently. The public renderer API is cross-audience; the SVG asset/anchor and
@@ -268,8 +268,7 @@ planning governance, or historical spikes to be read.
 **Stays genuinely shared (unchanged or co-located):**
 
 - Cross-audience contracts: `docs/contracts/plant-model.md`, `process-model.md`,
-  `physical-piping.md`, `yaml-format.md`, `cli.md`, and, once relocated,
-  `rendering.md`.
+  `physical-piping.md`, `yaml-format.md`, `cli.md`, and `rendering.md`.
 
 **Repository-role exceptions and navigation (not shared ownership):**
 
@@ -279,13 +278,13 @@ planning governance, or historical spikes to be read.
 - `docs/index.md` remains global navigation; `docs/dev/index.md` and
   `docs/user/index.md` remain audience navigation.
 
-**Developer-only canonical reference:**
+**Developer-only canonical reference (relocated in Phase 2):**
 
-- `docs/contracts/dexpi-process-adapter.md` →
-  `docs/dev/reference/dexpi-process-adapter.md`.
-- `docs/svg-symbols.md` → `docs/dev/reference/svg-symbols.md`.
+- `docs/dev/reference/dexpi-process-adapter.md`
+  (was `docs/contracts/dexpi-process-adapter.md`).
+- `docs/dev/reference/svg-symbols.md` (was `docs/svg-symbols.md`).
 
-**Eventually leaves the `docs/` root (nothing moves in this slice):**
+**Still to leave the `docs/` root (later slices):**
 
 - `docs/architecture.md` → `docs/dev/architecture/index.md`
 - `docs/workflow.md` → `docs/dev/workflow/index.md`
@@ -301,7 +300,6 @@ planning governance, or historical spikes to be read.
 - `docs/decisions/**` → `docs/dev/decisions/**`
 - `docs/research/**` → `docs/dev/research/**`
 - `docs/history/**` → `docs/dev/history/**`
-- `docs/rendering.md` → `docs/contracts/rendering.md`
 - `docs/dexpi-process-spike.md`, `docs/dexpi-plant-pid-spike.md`,
   `docs/dexpi-exchanging-thermal-energy-evidence.md`,
   `docs/physical-piping-model.md`, `docs/process-topology.md`,
@@ -325,21 +323,21 @@ documentation layer.
 ## Migration sequence
 
 Directional and incremental. Each step is its own bounded, independently
-reviewable change; no follow-up Issues are created by this slice, and a later
-slice may reorder these steps if repository evidence supports it.
+reviewable change; the sequence does not pre-create Issues for later steps, and a
+later slice may reorder these steps if repository evidence supports it.
 
 ```text
-1. Documentation Architecture v2.1 target-tree correction
-   (this slice — ADR-0015 + this inventory + navigation/convention updates)
+1. Documentation Architecture v2.1 target-tree correction — DONE
+   (ADR-0015 + this inventory + navigation/convention updates)
 
-2. Contract / reference ownership migration
+2. Contract / reference ownership migration — DONE
    docs/rendering.md → docs/contracts/rendering.md
    docs/contracts/dexpi-process-adapter.md
        → docs/dev/reference/dexpi-process-adapter.md
    docs/svg-symbols.md → docs/dev/reference/svg-symbols.md
-   reconcile affected inbound links, navigation, metadata, and agent routing
+   reconciled inbound links, navigation, metadata, and agent routing
 
-3. Developer authority-layer migration
+3. Developer authority-layer migration — NEXT
    architecture; workflow / quality / conventions / documentation-migration;
    planning / roadmap / direction / product; decisions; research; history
 
@@ -369,16 +367,24 @@ affected inbound links, navigation, metadata, and agent routing in the same pass
 Step 2 establishes the contract/reference homes before developer or user pages
 link to them. Step 3 precedes step 4 so user pages can link into a stable developer
 tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
-reuse links already reconciled once.
+reuse links already reconciled once. Steps 1 and 2 are complete; step 3 is the
+next bounded slice.
 
 ## Agent context consequences
 
-This slice records the routing consequences; it does not build a routing engine.
-After the migration (not in this slice),
-[.agents/context-map.yaml](../.agents/context-map.yaml) `change_patterns` must
-be updated so that every migrated path — both the pattern key and the routed
-context files — is named at its v2.1 target location rather than its current root
-path:
+Agent routing is updated with each migration slice; this is routing
+configuration, not a routing engine. Phase 2 updated
+[.agents/context-map.yaml](../.agents/context-map.yaml) `change_patterns` so
+developer-reference work resolves to the new v2.1 locations:
+
+- renderer changes route to `docs/contracts/rendering.md` and
+  `docs/dev/reference/svg-symbols.md`;
+- symbol-pack changes route to `docs/dev/reference/svg-symbols.md`;
+- DEXPI adapter changes route to `docs/dev/reference/dexpi-process-adapter.md`.
+
+Later slices must keep doing this so that every migrated path — both the pattern
+key and the routed context files — is named at its v2.1 location rather than its
+historical root path:
 
 - `docs/**` routes to `docs/index.md`, `docs/dev/index.md`,
   `docs/dev/workflow/conventions.md`, and

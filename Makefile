@@ -150,12 +150,12 @@ validate-docs:
 	@test -f docs/contracts/physical-piping.md
 	@test -f docs/contracts/yaml-format.md
 	@test -f docs/contracts/cli.md
-	@test -f docs/contracts/dexpi-process-adapter.md
+	@test -f docs/dev/reference/dexpi-process-adapter.md
 	@test -f docs/decisions/index.md
 	@test -f docs/research/index.md
 	@test -f docs/history/implementation-slices.md
-	@test -f docs/rendering.md
-	@test -f docs/svg-symbols.md
+	@test -f docs/contracts/rendering.md
+	@test -f docs/dev/reference/svg-symbols.md
 	@test -f project/brief.md
 
 

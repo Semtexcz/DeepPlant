@@ -56,7 +56,7 @@ superseded_by: null
 - **Resulting ADRs:** ADR-0013.
 - **Current contracts operationalizing the result:** none yet — no canonical
   quantity is implemented. The decision constrains future model work and keeps
-  [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md)
+  [dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md)
   describing current behaviour only (quantities stay unsupported).
 - **Conditions for revisiting:** ADR-0013's *Revisit When* list — a concrete
   DeepPlant-native authoring, calculation, engineering-rule, or interoperability
@@ -112,7 +112,7 @@ quantity, unit, or numeric property of any kind:
 The DEXPI adapter (`src/deepplant/adapters/dexpi.py`) rejects any populated
 Data/Components/References property outside its allow-list, which is the
 mechanism that currently rejects `QualifiedValue` content and `Method`
-([contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md)).
+([dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md)).
 
 Three durable constraints bound any answer:
 
@@ -138,7 +138,7 @@ sentences):
 | DEXPI `V2.0.0` Process model | `src/model/Process/Process/Process.py` @ `260c81c5…` | which process properties carry quantities |
 | Issue #22 evidence | [dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md) | the thermal-quantity property table and G5 |
 | Process-step classification | [process-step-classification.md](../process-step-classification.md) | rejected generic property/second-axis shapes |
-| Adapter contract | [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md) | current fail-closed behaviour for quantities |
+| Adapter contract | [dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md) | current fail-closed behaviour for quantities |
 
 Licence: DEXPI 2.0.0 is CC BY 4.0; only identifiers, type expressions,
 multiplicities, and short class-definition sentences are quoted (ADR-0007).
@@ -737,7 +737,7 @@ Revisit this boundary (through ADR-0013) when any of these occurs:
   — the Issue #22 evidence and gaps G1–G6.
 - [process-step-classification.md](../process-step-classification.md) — the
   rejected generic property/second-axis shapes (ADR-0012).
-- [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md),
+- [dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md),
   [contracts/process-model.md](../contracts/process-model.md),
   [contracts/physical-piping.md](../contracts/physical-piping.md) — current
   behaviour, unchanged.

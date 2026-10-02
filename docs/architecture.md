@@ -52,9 +52,9 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | Piping realization, C1 + P1–P5 | `src/deepplant/model.py` | [contracts/physical-piping.md](contracts/physical-piping.md) |
 | YAML load/save boundary | `src/deepplant/io.py` | [contracts/yaml-format.md](contracts/yaml-format.md) |
 | CLI (`--help`, `version`, `validate`) | `src/deepplant/__main__.py` | [contracts/cli.md](contracts/cli.md) |
-| Headless process renderer | `src/deepplant/render.py` | [rendering.md](rendering.md) |
-| `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [svg-symbols.md](svg-symbols.md) |
-| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md) |
+| Headless process renderer | `src/deepplant/render.py` | [contracts/rendering.md](contracts/rendering.md) |
+| `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) |
+| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 
 Runtime and toolchain:

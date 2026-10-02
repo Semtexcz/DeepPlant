@@ -184,6 +184,6 @@ The diagram is derived from the semantic `ProcessModel` only: the physical
 bootstrap layer (`T-101`, `P-101`, `FV-101`, `E-101`, `V-101`) is intentionally
 absent, mixing/splitting stay explicit process functions, and the recycle
 (`S-002`) renders on a dedicated return lane below the process without any
-recycle-specific semantic kind. See [docs/rendering.md](../../docs/rendering.md)
+recycle-specific semantic kind. See [docs/contracts/rendering.md](../../docs/contracts/rendering.md)
 for the layout/routing heuristics and their limitations.
 

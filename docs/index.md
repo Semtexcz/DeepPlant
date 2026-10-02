@@ -59,7 +59,7 @@ will eventually live under `dev/`; the current → target mapping is in
 
 Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
-[contracts/](contracts/index.md); developer-only canonical contracts/reference will
+[contracts/](contracts/index.md); developer-only canonical contracts/reference
 live under `dev/reference/`; the rest is canonical for its authority type and
 currently still reaches from the `docs/` root (see
 [documentation-migration.md](documentation-migration.md) for the target owners).

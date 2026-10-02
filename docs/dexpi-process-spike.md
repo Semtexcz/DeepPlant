@@ -41,7 +41,7 @@ superseded_by: null
   5. Full schema conformance and byte-identical round-trip are not claimed.
 - **Resulting ADRs:** ADR-0009.
 - **Current contracts operationalizing the result:**
-  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md),
+  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md),
   [contracts/process-model.md](contracts/process-model.md).
 - **Conditions for revisiting:** a DEXPI 2.0.1+ stable release, a canonical home
   for qualified quantities, or a deliberate subset expansion Issue.

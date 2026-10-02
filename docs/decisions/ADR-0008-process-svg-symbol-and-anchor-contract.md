@@ -120,7 +120,7 @@ introduced.
 
 ## Related
 
-- [docs/svg-symbols.md](../svg-symbols.md) — the contract in implementation
+- [docs/dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md) — the contract in implementation
   detail.
 - [ADR-0009-separate-process-function-from-symbol-role.md](ADR-0009-separate-process-function-from-symbol-role.md) —
   supersedes only this ADR's `ProcessStep.type` → symbol-role coupling.
