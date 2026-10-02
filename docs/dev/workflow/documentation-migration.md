@@ -217,32 +217,34 @@ separate authority classes and are not merged.
 | `docs/dev/history/implementation-slices.md` | dev/agent | history | KEEP | — | Completion history; developer-owned (relocated in Phase 3C; was `docs/history/implementation-slices.md`) | medium |
 
 Phase 3C moved only the documents that already lived under `docs/research/**`.
-The root-level evidence and prototype documents in the next section still sit in
-the `docs/` root; moving, grouping, and splitting them is Phase 5, not Phase 3C.
+The remaining root-level evidence and prototype documents were relocated into
+`docs/dev/research/` by Phase 5 (5A for the DEXPI cluster, 5B for the five
+remaining documents).
 
 ## Root evidence and prototypes → `docs/dev/research/`
 
-Evidence and prototype documents that currently sit in the `docs/` root. They
-are not shared: only developers, agents, and decision-makers read them.
+Evidence and prototype documents relocated from the `docs/` root into
+`docs/dev/research/`. They are not shared: only developers, agents, and
+decision-makers read them.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
 | `docs/dexpi-process-spike.md` | dev/agent | evidence | MOVE (Phase 5A done) | `docs/dev/research/dexpi/process-adapter-spike.md` | DEXPI Process interoperability evidence | medium (16) |
 | `docs/dexpi-plant-pid-spike.md` | dev/agent | evidence | MOVE + SPLIT (Phase 5A done) | `docs/dev/research/dexpi/plant-pid-semantic-boundary.md`, `…/plant-pid-instrumentation.md`, `…/plant-pid-presentation.md` | Evidence; also mixes physical-topology, instrumentation, and presentation questions | medium (11) |
 | `docs/dexpi-exchanging-thermal-energy-evidence.md` | dev/agent | evidence | MOVE (Phase 5A done) | `docs/dev/research/dexpi/exchanging-thermal-energy.md` | `ExchangingThermalEnergy` mapping evidence | medium (14) |
-| `docs/physical-piping-model.md` | dev/agent | evidence | MOVE | `docs/dev/research/physical-piping-model.md` | Design evidence behind a contract | low (8) |
-| `docs/process-topology.md` | dev/agent | evidence | MOVE | `docs/dev/research/process-topology.md` | Process-topology evidence behind a contract | low (8) |
-| `docs/process-fragment-prototype.md` | dev/agent | evidence | MOVE | `docs/dev/research/process-fragment-prototype.md` | Prototype modelling evidence | low (5) |
-| `docs/process-step-classification.md` | dev/agent | evidence | MOVE | `docs/dev/research/process-step-classification.md` | Evidence behind ADR-0012 | low (8) |
-| `docs/reference-products.md` | dev/agent | evidence | MOVE | `docs/dev/research/reference-products.md` | Reference/reuse landscape research | low (4) |
+| `docs/dev/research/physical-piping-model.md` | dev/agent | evidence | KEEP | — | Design evidence behind a contract (relocated in Phase 5B; was `docs/physical-piping-model.md`) | low (8) |
+| `docs/dev/research/process-topology.md` | dev/agent | evidence | KEEP | — | Process-topology evidence behind a contract (relocated in Phase 5B; was `docs/process-topology.md`) | low (8) |
+| `docs/dev/research/process-fragment-prototype.md` | dev/agent | evidence | KEEP | — | Prototype modelling evidence (relocated in Phase 5B; was `docs/process-fragment-prototype.md`) | low (5) |
+| `docs/dev/research/process-step-classification.md` | dev/agent | evidence | KEEP | — | Evidence behind ADR-0012 (relocated in Phase 5B; was `docs/process-step-classification.md`) | low (8) |
+| `docs/dev/research/reference-products.md` | dev/agent | evidence | KEEP | — | Reference/reuse landscape research (relocated in Phase 5B; was `docs/reference-products.md`) | low (4) |
 
-## DEXPI evidence cluster — the Phase 5A slice
+## Evidence and prototype cleanup — the Phase 5 slices
 
 Phase 5 decomposes into an independently reviewable DEXPI cluster slice and a
-remaining root-evidence slice:
+remaining root-evidence slice, both now complete:
 
 ```text
-5. Evidence and prototype cleanup — IN PROGRESS
+5. Evidence and prototype cleanup — DONE
 
    5A. DEXPI evidence cluster — DONE
        docs/dexpi-process-spike.md
@@ -257,19 +259,34 @@ remaining root-evidence slice:
              docs/dev/research/dexpi/plant-pid-instrumentation.md
              docs/dev/research/dexpi/plant-pid-presentation.md
 
-   5B. remaining root evidence/prototypes — NEXT
+   5B. remaining root evidence/prototypes — DONE
        docs/physical-piping-model.md
+           → docs/dev/research/physical-piping-model.md
+
        docs/process-topology.md
+           → docs/dev/research/process-topology.md
+
        docs/process-fragment-prototype.md
+           → docs/dev/research/process-fragment-prototype.md
+
        docs/process-step-classification.md
+           → docs/dev/research/process-step-classification.md
+
        docs/reference-products.md
+           → docs/dev/research/reference-products.md
+
+Phase 5 — COMPLETE
+Phase 6 — NEXT (the `standards.md` split)
 ```
 
 The `dexpi/` cluster therefore exists now, with one canonical home per evidence
 responsibility, and the historical monolithic Plant/P&ID spike no longer exists
-as a single active evidence document. Phase 5 as a whole is **not** complete;
-Phase 5B still has to relocate the five remaining root evidence/prototype
-documents, and no Phase 5B Issue is created in advance.
+as a single active evidence document. Phase 5B relocated the five remaining root
+evidence/prototype documents into `docs/dev/research/` with no split or content
+redesign, so Phase 5 is **complete**: no root evidence or prototype document
+remains in the `docs/` root, and `docs/standards.md` is the only remaining
+substantive root document. Phase 6 (the `standards.md` split) is next, and no
+Phase 6 Issue is created in advance.
 
 ## `standards.md` — explicit split assessment
 
@@ -382,10 +399,13 @@ governance, or historical spikes to be read.
 
 - `docs/standards.md` → split into `docs/dev/workflow/`,
   `docs/dev/reference/`, and `docs/dev/research/`
-- `docs/physical-piping-model.md`, `docs/process-topology.md`,
-  `docs/process-fragment-prototype.md`, `docs/process-step-classification.md`,
-  `docs/reference-products.md` → `docs/dev/research/` (Phase 5B; the DEXPI
-  documents already left the root in Phase 5A)
+
+The Phase 5 evidence/prototype relocation is complete: the DEXPI documents left
+the root in Phase 5A, and the five remaining documents
+(`docs/physical-piping-model.md`, `docs/process-topology.md`,
+`docs/process-fragment-prototype.md`, `docs/process-step-classification.md`,
+`docs/reference-products.md`) left it in Phase 5B. No root evidence or prototype
+document remains.
 
 After full migration the `docs/` root holds only `index.md` plus the three
 audience/authority trees (`user/`, `dev/`, `contracts/`). Every other current
@@ -444,12 +464,16 @@ later slice may reorder these steps if repository evidence supports it.
    reference/index; user pages link to cross-audience contracts instead of
    duplicating them
 
-5. Evidence and prototype cleanup — IN PROGRESS
+5. Evidence and prototype cleanup — DONE
    5A. DEXPI evidence cluster — DONE
        dexpi/ grouping; the monolithic Plant/P&ID spike split into
        physical-boundary, instrumentation, and presentation evidence
-   5B. remaining root evidence/prototypes — NEXT
-       root evidence → docs/dev/research/; no DEXPI document remains at the root
+   5B. remaining root evidence/prototypes — DONE
+       the five remaining root evidence/prototype documents
+       (physical-piping-model, process-topology, process-fragment-prototype,
+       process-step-classification, reference-products) → docs/dev/research/;
+       no evidence/prototype document remains at the root
+   Phase 5 — COMPLETE
 
 6. Standards split
    workflow policy; developer reference registry; licensing evidence
@@ -464,17 +488,17 @@ step 2 covered the three contract/reference `MOVE` rows; step 3 (decomposed into
 itself), planning, decisions, research, and history `MOVE` rows; step 4 created
 every user-owned page planned for the Phase 4 foundation; step 5 covers every
 root research/prototype `MOVE` — phase 5A delivered the `MOVE` / `MOVE + SPLIT`
-DEXPI cluster and phase 5B delivers the five remaining root documents; and step 6
+DEXPI cluster and phase 5B delivered the five remaining root documents, so step 5
+is complete; and step 6
 covers the `standards.md` `SPLIT`. Each move/split slice
 reconciles its affected inbound links, navigation, metadata, and agent routing
 in the same pass.
 
 Step 2 established the contract/reference homes before developer or user pages
 link to them. Step 3 preceded step 4 so the audience layers were already
-separated before user content was added. Step 5 follows step 4 so evidence moves
-reuse links already reconciled once. Steps 1, 2, 3 (3A, 3B, 3C), and 4 are
-complete, and step 5 is in progress: phase 5A (the DEXPI evidence cluster) is
-DONE and phase 5B (the remaining root evidence/prototypes) is NEXT.
+separated before user content was added. Step 5 followed step 4 so evidence moves
+reuse links already reconciled once. Steps 1, 2, 3 (3A, 3B, 3C), 4, and 5
+(5A and 5B) are complete; step 6 (the `standards.md` split) is next.
 
 ## Agent context consequences
 

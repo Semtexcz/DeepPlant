@@ -2,7 +2,7 @@
 
 A **synthetic** process fragment, written as public YAML and loaded through the
 production semantic model. It encodes the realistic fragment documented in
-[docs/process-fragment-prototype.md](../../docs/process-fragment-prototype.md)
+[docs/dev/research/process-fragment-prototype.md](../../docs/dev/research/process-fragment-prototype.md)
 to prove the current model can represent fresh feed, mixing, a pump, a heat
 exchanger, splitting, a vessel, a downstream boundary, and recycle — without
 inventing schema to make the fixture fit.

@@ -47,16 +47,16 @@ boundaries, instrumentation/signals, and presentation/graphics.
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [process-step-classification.md](../../process-step-classification.md) | Does canonical `ProcessStep` need a second classification concept beside `function`? | No: DEXPI's nine `Method` properties across seven enums are heterogeneous and partly physical-realization semantics | [contracts/process-model.md](../../contracts/process-model.md), ADR-0012 |
+| [process-step-classification.md](process-step-classification.md) | Does canonical `ProcessStep` need a second classification concept beside `function`? | No: DEXPI's nine `Method` properties across seven enums are heterogeneous and partly physical-realization semantics | [contracts/process-model.md](../../contracts/process-model.md), ADR-0012 |
 | [qualified-engineering-quantities.md](qualified-engineering-quantities.md) | What semantic boundary should DeepPlant use for numerical engineering values with units? | A reusable canonical quantity value (stored scalar magnitude + represented unit semantics) owned by explicit domain properties is justified; units are semantic, not presentation; generic property bags and per-property quantity classes rejected; not implemented | ADR-0013 (no contract yet — no quantity implemented) |
-| [physical-piping-model.md](../../physical-piping-model.md) | What is the physical piping graph, and which minimal canonical shape represents it? | Candidate B selected (line → segment → realization over identified connections); the contract now owns the rules it defines | [contracts/physical-piping.md](../../contracts/physical-piping.md), ADR-0011 |
-| [process-topology.md](../../process-topology.md) | How should process topology relate to physical topology without duplicating connectivity? | Duplicate-endpoint `ProcessStream` rejected; separate process graph required | [contracts/process-model.md](../../contracts/process-model.md), ADR-0005 |
+| [physical-piping-model.md](physical-piping-model.md) | What is the physical piping graph, and which minimal canonical shape represents it? | Candidate B selected (line → segment → realization over identified connections); the contract now owns the rules it defines | [contracts/physical-piping.md](../../contracts/physical-piping.md), ADR-0011 |
+| [process-topology.md](process-topology.md) | How should process topology relate to physical topology without duplicating connectivity? | Duplicate-endpoint `ProcessStream` rejected; separate process graph required | [contracts/process-model.md](../../contracts/process-model.md), ADR-0005 |
 
 ## Prototypes and historical modelling work
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [process-fragment-prototype.md](../../process-fragment-prototype.md) | Can one realistic PFD fragment be modelled with explicit steps, ports, streams, junctions, and a recycle? | Concepts validated; 1:1 equipment-as-step assumption disproved; container ownership decided | [contracts/process-model.md](../../contracts/process-model.md), ADR-0005/ADR-0006, `examples/realistic-process-fragment/` |
+| [process-fragment-prototype.md](process-fragment-prototype.md) | Can one realistic PFD fragment be modelled with explicit steps, ports, streams, junctions, and a recycle? | Concepts validated; 1:1 equipment-as-step assumption disproved; container ownership decided | [contracts/process-model.md](../../contracts/process-model.md), ADR-0005/ADR-0006, `examples/realistic-process-fragment/` |
 
 ## Planning selection evidence
 
@@ -68,7 +68,7 @@ boundaries, instrumentation/signals, and presentation/graphics.
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [reference-products.md](../../reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../planning/direction.md) stages 3–4 (not authorized) |
+| [reference-products.md](reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../planning/direction.md) stages 3–4 (not authorized) |
 | [standards.md](../../standards.md) | Which standards may be referenced, what may be stored, and what provenance do distributed symbols need? | Policy plus registry plus source assessment (shared document; policy is the active part) | ADR-0007 |
 
 Implementation history is maintained separately in

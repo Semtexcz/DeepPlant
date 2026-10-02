@@ -15,7 +15,7 @@ decision:
   - docs/dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
   - docs/dev/decisions/ADR-0011-canonical-physical-piping-realization.md
 evidence:
-  - docs/physical-piping-model.md
+  - docs/dev/research/physical-piping-model.md
   - docs/dev/research/dexpi/plant-pid-semantic-boundary.md
 superseded_by: null
 ---
@@ -29,7 +29,7 @@ superseded_by: null
 > [yaml-format.md](yaml-format.md); the topology it references in
 > [plant-model.md](plant-model.md). Design rationale, rejected candidates, and
 > worked diffs are evidence in
-> [../physical-piping-model.md](../physical-piping-model.md).
+> [../dev/research/physical-piping-model.md](../dev/research/physical-piping-model.md).
 
 ## Invariants this layer preserves
 
@@ -221,7 +221,7 @@ authorized by its absence here.
 - [ADR-0011](../dev/decisions/ADR-0011-canonical-physical-piping-realization.md) —
   the decision; [ADR-0010](../dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md)
   — the `Port`/`Connection` boundary.
-- [../physical-piping-model.md](../physical-piping-model.md) — the design
+- [../dev/research/physical-piping-model.md](../dev/research/physical-piping-model.md) — the design
   evidence: requirement analysis, candidate B selection, worked fragment, Git
   diff behaviour, and rule/adapter/rendering implications.
 - [../dev/research/dexpi/plant-pid-semantic-boundary.md](../dev/research/dexpi/plant-pid-semantic-boundary.md) — the official

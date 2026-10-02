@@ -55,8 +55,9 @@ The target column is **v2.1 ownership**
 ([ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
 *should* own each type, deliberately replacing the earlier assumption that all
 canonical content lives in a shared root. All authority classes now have their
-canonical v2.1 homes established; some legacy root-level evidence/prototype
-documents still await Phase 5 relocation into `docs/dev/research/`. The migration
+canonical v2.1 homes established; the Phase 5 evidence/prototype relocation into
+`docs/dev/research/` is complete, and `docs/standards.md` is the only remaining
+substantive root document scheduled to leave/split under Phase 6. The migration
 inventory, including the full current → target mapping, is kept in
 [documentation-migration.md](documentation-migration.md).
 
@@ -304,8 +305,8 @@ physical-ownership boundary. Current state:
   navigation maps. The contract/reference moves were the first canonical
   documents to leave the `docs/` root; the Phase 3A architecture and
   workflow/governance moves, the Phase 3B planning moves, and the Phase 3C
-  decision/evidence/history moves followed. Remaining root evidence and prototype
-  documents are still reached from the root until Phase 5.
+  decision/evidence/history moves followed, and Phase 5 relocated the remaining
+  root evidence and prototype documents into `docs/dev/research/`.
 - **Shared documentation layer (narrow)**: cross-audience `docs/contracts/*`
   (plant model, process model, physical piping, YAML format, CLI, and the public
   renderer contract [contracts/rendering.md](../../contracts/rendering.md)).
@@ -329,11 +330,11 @@ physical-ownership boundary. Current state:
   in the same slice.
 - **Developer-owned canonical content (still target `docs/dev/`)**:
   [standards.md](../../standards.md).
-- **Decision, evidence, and history (target `docs/dev/`)**: [decisions/](../decisions/index.md),
+- **Decision, evidence, and history (`docs/dev/`)**: [decisions/](../decisions/index.md),
   [research/](../research/index.md),
   [history/implementation-slices.md](../history/implementation-slices.md), and the
-  root-level evidence/prototype documents listed in
-  [research/index.md](../research/index.md).
+  evidence/prototype documents in [research/index.md](../research/index.md)
+  (relocated in Phases 3C and 5; `docs/standards.md` is split later).
 - **Repository-role exceptions and global navigation**: `README.md` and
   `VISION.md` remain broad public/repository entry documents; `AGENTS.md` and
   `project/brief.md` remain developer/agent-oriented despite their root or

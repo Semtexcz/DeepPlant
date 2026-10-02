@@ -79,7 +79,7 @@ superseded_by: null
 > implementation by itself.
 >
 > Follow-up status: §14 item 1 (the specification/decision slice) was completed
-> by Issue #24 — [physical-piping-model.md](../../../physical-piping-model.md) and
+> by Issue #24 — [physical-piping-model.md](../physical-piping-model.md) and
 > [ADR-0011](../../decisions/ADR-0011-canonical-physical-piping-realization.md)
 > decided the canonical physical-piping shape (`PipingLine` / `PipingSegment` /
 > `PipingRealization` over identified `Connection`s) without changing
