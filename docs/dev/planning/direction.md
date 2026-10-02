@@ -8,8 +8,8 @@ read_when:
   - feature-planning
   - capability-planning
 depends_on:
-  - docs/roadmap.md
-  - docs/product.md
+  - docs/dev/planning/roadmap.md
+  - docs/dev/planning/product.md
 decision: []
 evidence: []
 superseded_by: null
@@ -76,7 +76,7 @@ its root/loadable integration (`PlantModel.process`), and canonical YAML
 save/round-trip. Implemented primitives are not the same as a completed
 capability stage: the Stage 1 exit signal below has now been exercised on the
 documented realistic fragment encoded as a loadable synthetic example
-([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
+([examples/realistic-process-fragment/plant.yaml](../../../examples/realistic-process-fragment/plant.yaml))
 through the production models. Two physical-model questions were open at that
 stage: the **physical-piping realization** question — decided at the
 canonical-model level by ADR-0011 and now implemented by Issue #26 / PR #27 as
@@ -124,7 +124,7 @@ Likely capabilities: PFD rendering, P&ID rendering, symbol library,
 presentation/layout model, manual layout override. Semantic and presentation
 models stay separate. Any future generic rendering, layout, or routing choice
 starts from the evidence-first
-[reference-product landscape](reference-products.md), which authorizes no
+[reference-product landscape](../../reference-products.md), which authorizes no
 implementation.
 
 ### Stage 4 — Interactive Editing
@@ -134,7 +134,7 @@ drawing the source of truth. Potential surfaces: PFD/P&ID editor, property
 editor, symbol placement, connection editing. Directional only; it does not
 justify web architecture now. Generic editor, workspace, and interaction
 technology must be compared against the
-[reference-product landscape](reference-products.md) rather than assumed, and no
+[reference-product landscape](../../reference-products.md) rather than assumed, and no
 GUI framework may dictate the domain model.
 
 ### Stage 5 — Git-native Engineering Workflow

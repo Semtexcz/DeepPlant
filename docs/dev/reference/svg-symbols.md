@@ -242,5 +242,5 @@ are current basic-pack variant properties, not domain invariants.
   vocabulary.
 - [rendering.md](../../contracts/rendering.md) — the headless renderer that consumes this
   contract.
-- [roadmap.md](../../roadmap.md) — slice sequence and next tasks.
+- [roadmap.md](../planning/roadmap.md) — slice sequence and next tasks.
 

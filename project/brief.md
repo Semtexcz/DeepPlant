@@ -43,7 +43,7 @@ boundary map, not by this brief:
   boundaries;
 - [docs/contracts/index.md](../docs/contracts/index.md) — current model, format,
   CLI, renderer, and adapter obligations;
-- [docs/roadmap.md](../docs/roadmap.md) — current state, next direction, and
+- [docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) — current state, next direction, and
   unresolved evidence gaps.
 
 ## Problem
@@ -130,10 +130,10 @@ CLI, and receives a clear validation report for structural and reference errors
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
 - Do not create empty architecture directories before real code exists.
-- Long-term vision lives in `VISION.md` and `docs/product.md`; capability
-  progression lives in `docs/direction.md`; the actionable current/next state
-  lives in `docs/roadmap.md`; strategic planning governance (vision → roadmap →
-  GitHub Project → milestones → ready issues → PRs) lives in `docs/planning.md`;
+- Long-term vision lives in `VISION.md` and `docs/dev/planning/product.md`; capability
+  progression lives in `docs/dev/planning/direction.md`; the actionable current/next state
+  lives in `docs/dev/planning/roadmap.md`; strategic planning governance (vision → roadmap →
+  GitHub Project → milestones → ready issues → PRs) lives in `docs/dev/planning/index.md`;
   documentation authority, audience, atomicity, and metadata conventions live in
   `docs/dev/workflow/conventions.md`; the documentation migration inventory
   lives in `docs/dev/workflow/documentation-migration.md`. Directional material

@@ -56,13 +56,13 @@ investigated, with dates, sources, and outcomes. Current obligations live in
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39); quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../roadmap.md) (sole `Now` item) |
+| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39); quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../dev/planning/roadmap.md) (sole `Now` item) |
 
 ## Reuse, standards, and asset evidence
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [reference-products.md](../reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../direction.md) stages 3–4 (not authorized) |
+| [reference-products.md](../reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../dev/planning/direction.md) stages 3–4 (not authorized) |
 | [standards.md](../standards.md) | Which standards may be referenced, what may be stored, and what provenance do distributed symbols need? | Policy plus registry plus source assessment (shared document; policy is the active part) | ADR-0007 |
 
 ## History

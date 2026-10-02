@@ -148,7 +148,7 @@ Expected output (the CLI reports the physical/bootstrap layer counts):
 ✓ connections: 2
 ```
 
-See [docs/roadmap.md](../../docs/roadmap.md) and
+See [docs/dev/planning/roadmap.md](../../docs/dev/planning/roadmap.md) and
 [docs/dev/architecture/index.md](../../docs/dev/architecture/index.md).
 
 ## Generated process diagram

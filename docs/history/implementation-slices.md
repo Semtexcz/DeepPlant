@@ -7,7 +7,7 @@ read_when:
   - roadmap-history
   - slice-provenance
 depends_on:
-  - docs/roadmap.md
+  - docs/dev/planning/roadmap.md
 decision: []
 evidence: []
 superseded_by: null
@@ -30,7 +30,7 @@ superseded_by: null
 - **Conditions for revisiting:** when a future slice produces new evidence.
 
 > **Status:** historical record, moved verbatim out of
-> [roadmap.md](../roadmap.md) when the roadmap was reduced to current state,
+> [roadmap.md](../dev/planning/roadmap.md) when the roadmap was reduced to current state,
 > immediate direction, and unresolved evidence gaps.
 >
 > This file answers *what shipped and when*, not *what must hold now*. Current

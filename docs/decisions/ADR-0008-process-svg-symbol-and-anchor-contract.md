@@ -128,4 +128,4 @@ introduced.
 - [ADR-0007-standards-and-symbol-provenance.md](ADR-0007-standards-and-symbol-provenance.md)
 - [docs/standards.md](../standards.md) — provenance policy and verification
   vocabulary.
-- [docs/roadmap.md](../roadmap.md) — slice sequence and current next tasks.
+- [docs/dev/planning/roadmap.md](../dev/planning/roadmap.md) — slice sequence and current next tasks.

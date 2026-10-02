@@ -34,10 +34,11 @@ decisions, research/evidence, and history are canonical *and* developer-owned.
 The developer-only reference layer moved here first
 ([reference/](reference/svg-symbols.md)); the architecture and
 workflow/governance documents followed in Phase 3A
-([architecture/](architecture/index.md), [workflow/](workflow/index.md)).
-Planning, decisions, research/evidence, and history are still reached from the
-`docs/` root until their own slices, and stay canonical after their move. The
-current → target mapping is in
+([architecture/](architecture/index.md), [workflow/](workflow/index.md)), and
+planning followed in Phase 3B ([planning/](planning/index.md)). Decisions,
+research/evidence, and history are still reached from the `docs/` root until
+their own slices, and stay canonical after their move. The current → target
+mapping is in
 [documentation-migration.md](workflow/documentation-migration.md).
 
 ## Start here
@@ -46,7 +47,7 @@ current → target mapping is in
   boundaries, durable invariants.
 - **Governance** — [workflow.md](workflow/index.md): the change loop.
 - **Governance** — [quality.md](workflow/quality.md): checks and test expectations.
-- **Current** — [roadmap.md](../roadmap.md): current state and next direction.
+- **Current** — [roadmap.md](planning/roadmap.md): current state and next direction.
 - **Governance** — [conventions.md](workflow/conventions.md): documentation rules.
 
 ## Smallest relevant context for a task
@@ -60,7 +61,8 @@ table, not an orchestration engine.
 
 | Task / change | Read |
 |---|---|
-| Orient in the repository | [architecture.md](architecture/index.md), [roadmap.md](../roadmap.md) |
+| Orient in the repository | [architecture.md](architecture/index.md), [roadmap.md](planning/roadmap.md) |
+| Plan or pick the next slice | [planning/roadmap.md](planning/roadmap.md), [planning/index.md](planning/index.md) |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
@@ -94,11 +96,11 @@ authoritative.
 - **History** (developer-owned) —
   [history/implementation-slices.md](../history/implementation-slices.md): what
   shipped, in what order.
-- **Governance** (developer-owned) — [planning.md](../planning.md),
+- **Governance** (developer-owned) — [planning.md](planning/index.md),
   [standards.md](../standards.md), [quality.md](workflow/quality.md),
   [workflow.md](workflow/index.md), [conventions.md](workflow/conventions.md).
-- **Direction** (developer-owned) — [direction.md](../direction.md),
-  [product.md](../product.md).
+- **Direction** (developer-owned) — [direction.md](planning/direction.md),
+  [product.md](planning/product.md).
 
 ## User-facing material
 

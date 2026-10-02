@@ -55,8 +55,8 @@ also developer-owned and are not required reading for users. The structure is de
 
 ## Understand what DeepPlant is
 
-- **Transitional current link** — [product.md](../product.md): internal
-  product/planning thesis and long-term non-goals. After migration, the user-facing
+- **Transitional current link** — [product.md](../dev/planning/product.md): internal
+  product/planning thesis and long-term non-goals. The user-facing
   explanation will be `docs/user/concepts/what-is-deepplant.md`; that page is a
   planned target and is not created by this PR.
 - **Current** — [architecture.md](../dev/architecture/index.md): what exists today. This is

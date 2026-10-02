@@ -18,8 +18,8 @@ superseded_by: null
 # Product
 
 The durable long-term thesis and capability map live in
-[VISION.md](../VISION.md); this page is the product-level view of the same
-direction. Planning governance is in [planning.md](planning.md).
+[VISION.md](../../../VISION.md); this page is the product-level view of the same
+direction. Planning governance is in [planning.md](index.md).
 
 ## Vision — Engineering as Code
 
@@ -85,7 +85,7 @@ either view. Detailed view-projection rules are deliberately not decided here.
 
 The semantic engineering model is the durable core artifact and the
 authoritative system of record for engineering intent and project state managed
-by DeepPlant (see [VISION.md](../VISION.md)). Conceptually it feeds the
+by DeepPlant (see [VISION.md](../../../VISION.md)). Conceptually it feeds the
 engineering deliverables — where DeepPlant owns the information — instead of
 each deliverable being authored in isolation:
 
@@ -115,7 +115,7 @@ separate from engineering semantics.
 
 ## Workflow, Judgment, and Product Position
 
-Three durable positions are stated in full in [VISION.md](../VISION.md) and are
+Three durable positions are stated in full in [VISION.md](../../../VISION.md) and are
 deliberately not repeated here:
 
 - **Git-native engineering workflow** — semantic diff, validation, engineering
@@ -147,8 +147,8 @@ is assumed by this document.
 ## Where DeepPlant Is Now
 
 Current implementation facts are not repeated here. The boundary map is
-[architecture.md](dev/architecture/index.md); the current obligations are the
-[contracts](contracts/index.md) (plant model, process model, physical piping,
+[architecture.md](../architecture/index.md); the current obligations are the
+[contracts](../../contracts/index.md) (plant model, process model, physical piping,
 YAML format, CLI, renderer, symbol pack, DEXPI Process adapter); the actionable
 current and next state is [roadmap.md](roadmap.md).
 
@@ -207,13 +207,13 @@ still governs, and the actionable current/next state lives in
 
 ## Related
 
-- [architecture.md](dev/architecture/index.md) — boundary map of what exists, and the
+- [architecture.md](../architecture/index.md) — boundary map of what exists, and the
   durable invariants.
-- [contracts/index.md](contracts/index.md) — current model, format, CLI,
+- [contracts/index.md](../../contracts/index.md) — current model, format, CLI,
   renderer, and adapter obligations.
 - [direction.md](direction.md) — long-term capability progression (product
   context, not authorization).
 - [roadmap.md](roadmap.md) — current state, next direction, anti-roadmap.
-- [workflow.md](dev/workflow/index.md) — the daily change loop.
-- [decisions/index.md](decisions/index.md) — architectural decisions.
-- [VISION.md](../VISION.md) — the durable long-term thesis and capability map.
+- [workflow.md](../workflow/index.md) — the daily change loop.
+- [decisions/index.md](../../decisions/index.md) — architectural decisions.
+- [VISION.md](../../../VISION.md) — the durable long-term thesis and capability map.

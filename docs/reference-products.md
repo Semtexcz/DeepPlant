@@ -37,7 +37,7 @@ superseded_by: null
 - **Resulting ADRs:** none yet (references ADR-0002, ADR-0003, ADR-0009,
   ADR-0010 as constraints).
 - **Current contracts operationalizing the result:** none; it informs
-  [direction.md](direction.md) stages 3–4, which are not authorized.
+  [direction.md](dev/planning/direction.md) stages 3–4, which are not authorized.
 - **Conditions for revisiting:** a concrete engineering-view or editing
   requirement reaching the current horizon, or a resolved licence for a blocked
   candidate.
@@ -64,10 +64,10 @@ The landscape below is deliberately a study list, not a plan.
 ## Scope and the reuse-first design rule
 
 This document supports the directional
-[Engineering Views](direction.md#stage-3--engineering-views) and
-[Interactive Editing](direction.md#stage-4--interactive-editing) stages. It changes
+[Engineering Views](dev/planning/direction.md#stage-3--engineering-views) and
+[Interactive Editing](dev/planning/direction.md#stage-4--interactive-editing) stages. It changes
 nothing about their timing, and the
-[anti-roadmap](roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
+[anti-roadmap](dev/planning/roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
 still governs: a future stage justifies no architecture today.
 
 Future design rule:
@@ -516,7 +516,7 @@ Nothing in this document authorizes:
 
 ## Related
 
-- [roadmap.md](roadmap.md) — Stage 3 (Engineering Views) and Stage 4
+- [roadmap.md](dev/planning/roadmap.md) — Stage 3 (Engineering Views) and Stage 4
   (Interactive Editing) are the stages this landscape informs; the anti-roadmap
   still governs.
 - [standards.md](standards.md) — standards registry, symbol provenance policy,

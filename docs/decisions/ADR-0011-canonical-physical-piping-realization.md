@@ -121,7 +121,7 @@ rendering implications are in
 |---|---|
 | **A — line metadata over topology** | One property set per line cannot express a DN or piping-class change inside one line, and it has no way to distinguish direct from pipe-realized adjacency. A property change would have to be faked as a new "line", asserting a line identity the engineering data does not support. It survives as the single-segment special case of the accepted shape. |
 | **C — independent piping graph** | It authors physical connectivity a second time (endpoints restated as nodes), the exact duplication class [process-topology.md](../process-topology.md) rejected for `ProcessStream`. It also imports node identity and a node-kind taxonomy that the evidence does not justify and `Port` already covers. |
-| **D — widen `Connection` with piping properties** | Makes the topology primitive a physical engineering object, forces one property set per adjacency instead of per property boundary, copies line-level data onto every connection, and still does not provide line or segment identity. Forbidden by the anti-roadmap in [roadmap.md](../roadmap.md). |
+| **D — widen `Connection` with piping properties** | Makes the topology primitive a physical engineering object, forces one property set per adjacency instead of per property boundary, copies line-level data onto every connection, and still does not provide line or segment identity. Forbidden by the anti-roadmap in [roadmap.md](../dev/planning/roadmap.md). |
 | **Canonical `Pipe` class now** | Would duplicate the extent of `Connection` without adding engineering meaning (DEXPI's `Pipe` has no own data). Deferred, not rejected in principle. |
 | **`Nozzle` + `PipingNode` now** | Conditional on node-level connectivity DeepPlant does not have; ADR-0010 already recorded the collapse and the unresolved `Port.id` derivation. |
 | **Separate `PipingComponent` kind now** | Duplicates `Equipment` identity, ownership, and port mechanics without a distinguishing requirement. |
@@ -233,4 +233,4 @@ neither depends on the other, and no cross-layer cardinality is claimed.
   [ADR-0006](ADR-0006-process-model-root-integration.md),
   [ADR-0009](ADR-0009-separate-process-function-from-symbol-role.md).
 - [docs/process-topology.md](../process-topology.md),
-  [docs/dev/architecture/index.md](../dev/architecture/index.md), [docs/roadmap.md](../roadmap.md).
+  [docs/dev/architecture/index.md](../dev/architecture/index.md), [docs/dev/planning/roadmap.md](../dev/planning/roadmap.md).

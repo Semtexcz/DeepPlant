@@ -301,8 +301,8 @@ physical-ownership boundary. Current state:
   [user/index.md](../../user/index.md) and [dev/index.md](../index.md) are the audience
   navigation maps. The contract/reference moves were the first canonical
   documents to leave the `docs/` root; the Phase 3A architecture and
-  workflow/governance moves followed. Remaining root documents are still reached
-  from the root until their own slices.
+  workflow/governance moves and the Phase 3B planning moves followed. Remaining
+  root documents are still reached from the root until their own slices.
 - **Shared documentation layer (narrow)**: cross-audience `docs/contracts/*`
   (plant model, process model, physical piping, YAML format, CLI, and the public
   renderer contract [contracts/rendering.md](../../contracts/rendering.md)).
@@ -317,9 +317,14 @@ physical-ownership boundary. Current state:
   [documentation-migration.md](documentation-migration.md) now live under
   `docs/dev/`; their inbound links, navigations, metadata, and agent routing
   were reconciled in the same slice.
+- **Developer-owned canonical planning (relocated in Phase 3B)**:
+  [planning/index.md](../planning/index.md),
+  [planning/roadmap.md](../planning/roadmap.md),
+  [planning/direction.md](../planning/direction.md), and
+  [planning/product.md](../planning/product.md) now live under `docs/dev/planning/`;
+  their inbound links, navigations, metadata, and agent routing were reconciled
+  in the same slice.
 - **Developer-owned canonical content (still target `docs/dev/`)**:
-  [planning.md](../../planning.md), [roadmap.md](../../roadmap.md),
-  [direction.md](../../direction.md), [product.md](../../product.md), and
   [standards.md](../../standards.md).
 - **Decision, evidence, and history (target `docs/dev/`)**: [decisions/](../../decisions/index.md),
   [research/](../../research/index.md),
