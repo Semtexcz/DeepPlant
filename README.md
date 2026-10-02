@@ -1,65 +1,51 @@
 # DeepPlant
 
-DeepPlant is a Git-native semantic engineering platform for process plants and
-the first product implementing the idea of **Engineering as Code**: engineering
-intent is expressed as a semantic model that can be validated, versioned,
-diffed, and rendered.
+DeepPlant is a Git-native semantic engineering platform for process plants and the
+first product implementing the idea of **Engineering as Code**: engineering intent
+is expressed as a semantic model that can be validated, versioned, diffed, and
+rendered.
 
-This repository currently ships the project foundation plus executable semantic
-vertical slices: a minimal `PlantModel`/`Plant`/`Equipment` domain model, the
-topology slice (`Port`, identified `Connection`, reference validation), the
-physical piping-realization layer (`PipingModel` with `PipingLine` →
-`PipingSegment` → `PipingRealization` referencing identified `Connection`s;
-ADR-0011), the standalone
-process-domain model (`ProcessModel` with `ProcessStep[]`/`ProcessStream[]` —
-mixing, splitting, and recycle are legal), YAML load/save into typed Pydantic
-models, strict structural validation, a `deepplant validate` command, the SVG +
-anchor `basic` symbol-pack contract, a headless read-only process renderer
-(`render_process_svg()`) that derives standalone PFD-style SVG from a
-`ProcessModel`, and a narrow DEXPI 2.0.0 Process import/export adapter
-(`deepplant.adapters.dexpi`; supported subset, directions, and limits in
-[docs/contracts/dexpi-process-adapter.md](docs/contracts/dexpi-process-adapter.md),
-evidence in
-[docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)). Import preflight
-pins the DEXPI 2.0.0 Core/Process model URIs and global XML `Object@id`
-uniqueness; export covers the deliberately symmetric canonical subset
-(including material-port-only `pumping` after ADR-0009). `ProcessStep.function`
-is canonical engineering semantics (ADR-0009); symbol roles are resolved at the
-rendering boundary by a default presentation policy or explicit per-step
-overrides, never stored in the semantic model. Full DEXPI, other
-adapters (COMOS, AVEVA), the interactive editor, and P&ID rendering are planned
-but not implemented.
+This repository ships the project foundation plus executable semantic vertical
+slices: the physical/plant model (`PlantModel`/`Plant`/`Equipment`, `Port`,
+identified `Connection`), the physical piping-realization layer (`PipingModel`
+with line → segment → realization over identified connections; ADR-0011), the
+standalone process-domain model (`ProcessModel` with `ProcessStep`/`ProcessStream`),
+YAML load/save into typed Pydantic models with strict structural validation, a
+`deepplant validate` CLI, the SVG + anchor `basic` symbol-pack contract, a headless
+read-only process renderer (`render_process_svg()`), and a narrow DEXPI 2.0.0
+Process import/export adapter (`deepplant.adapters.dexpi`; supported subset,
+directions, and limits in
+[docs/contracts/dexpi-process-adapter.md](docs/contracts/dexpi-process-adapter.md)).
+Full DEXPI, other vendor adapters (COMOS, AVEVA), the interactive editor,
+engineering rules, and P&ID rendering are planned but not implemented.
 
 Selected profile: `script-shared` (Python CLI package). Governance: `lightweight`.
 Workflow mode: `pr`.
+
+## Where to Start
+
+```text
+I want to use DeepPlant
+    → user documentation: docs/user/index.md
+
+I want to develop, extend, or understand DeepPlant internals
+    → developer documentation: docs/dev/index.md
+```
+
+[docs/index.md](docs/index.md) routes by audience and by knowledge authority. The
+long-term thesis is in [VISION.md](VISION.md); the strategic capability map is the
+[DeepPlant Roadmap GitHub Project](https://github.com/users/Semtexcz/DeepPlant/projects/2).
 
 ## Product Principles
 
 - The semantic engineering model is the product core; CLI, GUI, renderers, and
   adapters depend on it.
 - Presentation data (symbols, coordinates, routing) stays separate from
-  engineering semantics; a `ProcessStep` states its engineering `function`,
-  never its drawing role (ADR-0009).
+  engineering semantics; a `ProcessStep` states its engineering `function`, never
+  its drawing role (ADR-0009).
 - YAML is a serialization format, not the domain model.
 - Connectivity follows `Component -> Ports -> Connections`; piping realization
   references identified connections instead of restating endpoints (ADR-0011).
-
-DeepPlant is an experimental Git-native semantic engineering platform for
-process plants. Its semantic model is intended to become the authoritative
-system of record for DeepPlant-managed engineering intent and project state,
-with PFD/P&ID views, engineering checks, simulations, and external exchange
-handled as derived views, computations, or adapters.
-
-See [VISION.md](VISION.md) for where DeepPlant is going,
-[docs/architecture.md](docs/architecture.md) for the boundary map of what
-exists, [docs/contracts/index.md](docs/contracts/index.md) for current
-obligations, [docs/roadmap.md](docs/roadmap.md) for the current state and next
-direction, [docs/direction.md](docs/direction.md) for long-term capability
-progression, and the
-[DeepPlant Roadmap GitHub Project](https://github.com/users/Semtexcz/DeepPlant/projects/2)
-for the strategic capability map. Planning governance is defined in
-[docs/planning.md](docs/planning.md); documentation authority and conventions in
-[docs/conventions.md](docs/conventions.md).
 
 ## Quick Start
 
@@ -80,22 +66,17 @@ uv run deepplant version
 uv run deepplant validate examples/minimal-process/plant.yaml
 ```
 
-
-
-
-
 ## Workflow
 
-Reusable agent skills are available under `.agents/skills/` for orientation,
-implementation, verification, review, documentation updates, ADRs, conventional
-commits, and learning capture. `.codex/` contains thin Codex adapters that
-delegate to those canonical skills.
+Reusable agent skills live under `.agents/skills/` (orientation, implementation,
+verification, review, documentation, ADRs, conventional commits, learning
+capture); `.codex/` holds thin adapters that delegate to them.
 
-Start with enough context to work safely:
+Start from the smallest relevant context, not the whole repository — use the
+task-to-context table in [docs/dev/index.md](docs/dev/index.md) and
+[AGENTS.md](AGENTS.md):
 
 ```bash
-sed -n '1,220p' project/brief.md
-sed -n '1,220p' docs/architecture.md
 make validate-agent-skills
 make check
 ```
@@ -122,21 +103,16 @@ project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 
 | Need | Open |
 |---|---|
-| Vision | [VISION.md](VISION.md) |
-| Documentation index | [docs/index.md](docs/index.md) |
+| Documentation router | [docs/index.md](docs/index.md) |
+| User documentation | [docs/user/index.md](docs/user/index.md) |
+| Developer / agent documentation | [docs/dev/index.md](docs/dev/index.md) |
 | Current contracts (model, YAML, CLI, renderer, DEXPI) | [docs/contracts/index.md](docs/contracts/index.md) |
 | Current architecture (boundary map) | [docs/architecture.md](docs/architecture.md) |
 | Current state, next direction, evidence gaps | [docs/roadmap.md](docs/roadmap.md) |
 | Long-term capability progression | [docs/direction.md](docs/direction.md) |
-| Product position | [docs/product.md](docs/product.md) |
-| Strategic planning | [docs/planning.md](docs/planning.md) |
-| Implementation history | [docs/history/implementation-slices.md](docs/history/implementation-slices.md) |
 | Decisions | [docs/decisions/index.md](docs/decisions/index.md) |
 | Evidence and research | [docs/research/index.md](docs/research/index.md) |
+| Implementation history | [docs/history/implementation-slices.md](docs/history/implementation-slices.md) |
 | Documentation conventions | [docs/conventions.md](docs/conventions.md) |
 | Project brief | [project/brief.md](project/brief.md) |
-| Workflow | [docs/workflow.md](docs/workflow.md) |
-| Quality gates | [docs/quality.md](docs/quality.md) |
-| Standards & asset provenance | [docs/standards.md](docs/standards.md) |
 | Agent instructions | [AGENTS.md](AGENTS.md) |
-| Example area | [examples/minimal-process/README.md](examples/minimal-process/README.md) |

@@ -46,7 +46,7 @@ Each layer has one job:
 | [docs/architecture.md](architecture.md) | Boundary map — what exists and its module boundaries |
 | [docs/contracts/index.md](contracts/index.md) | Current model, format, CLI, renderer, and adapter obligations |
 | [docs/roadmap.md](roadmap.md) | Current state, immediate direction, and unresolved evidence gaps |
-| [docs/conventions.md](conventions.md) | Documentation authority, metadata, length, and linking rules |
+| [docs/conventions.md](conventions.md) | Documentation authority, audience, metadata, atomicity, and linking rules |
 | GitHub Project | Strategic capability map + operational horizon — visible portfolio state |
 | GitHub Milestones | Active or near-active capability goals containing concrete work |
 | GitHub Issues | Concrete bounded work that is Ready to execute |

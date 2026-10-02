@@ -51,9 +51,14 @@ Capability skills:
 
 ## Context Map
 
-`.agents/context-map.yaml` defines the minimum files to load. Core context uses
-durable files that exist in lightweight and managed projects: `AGENTS.md`,
-`project/brief.md`, architecture, workflow, quality, and ADR documentation.
+`.agents/context-map.yaml` defines a small routing model. Its `always` list is
+only the universal bootstrap/invariants; task files, project-type paths, and
+changed-file patterns select the rest of the durable context. A selected skill
+may add only the specific reads it needs, so the effective context stays small:
+
+```text
+task + changed files + selected skill -> small relevant context
+```
 
 Managed projects may add `project/state.yaml`, `project/index.md`,
 `project/board.md`, and active task files. Core skills must not require those

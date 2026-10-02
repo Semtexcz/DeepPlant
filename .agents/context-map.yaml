@@ -1,13 +1,9 @@
 schema_version: 1
 
+# Universal bootstrap and invariants only. All other durable context is routed
+# from the task, project type, changed paths, or the selected skill.
 always:
   - AGENTS.md
-  - project/brief.md
-  - docs/architecture.md
-  - docs/workflow.md
-  - docs/quality.md
-  - docs/roadmap.md
-  - docs/decisions/index.md
 
 task:
   include:
@@ -56,9 +52,15 @@ change_patterns:
   "src/**/*.py":
     - pyproject.toml
     - tests/
+    - docs/architecture.md
+    - docs/contracts/index.md
+    - docs/quality.md
   "tests/**/*.py":
     - pyproject.toml
     - src/
+    - docs/architecture.md
+    - docs/contracts/index.md
+    - docs/quality.md
   "backend/**/*.py":
     - docs/architecture.md
     - docs/quality.md
@@ -70,10 +72,35 @@ change_patterns:
     - backend/src/app/main.py
     - frontend/shared/api/
   "project/**":
-    - project/roadmap.md
     - project/brief.md
+    - docs/roadmap.md
+    - docs/planning.md
+  "docs/**":
+    - docs/index.md
+    - docs/dev/index.md
+    - docs/conventions.md
+    - docs/documentation-migration.md
+  "docs/architecture.md":
+    - docs/contracts/index.md
+    - docs/decisions/index.md
+  "docs/workflow.md":
+    - docs/quality.md
+    - docs/planning.md
+  "docs/quality.md":
+    - docs/workflow.md
+  "docs/roadmap.md":
+    - docs/architecture.md
+    - docs/planning.md
+    - docs/direction.md
+  "docs/decisions/**":
+    - docs/architecture.md
+    - docs/decisions/index.md
   ".agents/**":
     - .agents/README.md
+    - docs/dev/index.md
+  "AGENTS.md":
+    - .agents/context-map.yaml
+    - docs/dev/index.md
   "**/Dockerfile":
     - docs/architecture.md
 
@@ -89,6 +116,8 @@ checks:
   "artifacts/openapi.json":
     - make api-check
   "project/**":
+    - make validate-docs
+  "docs/**":
     - make validate-docs
   ".agents/**":
     - make validate-agent-skills

@@ -9,7 +9,8 @@ read_when:
   - update-documentation
 depends_on:
   - docs/index.md
-decision: []
+decision:
+  - docs/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
 ---
@@ -18,22 +19,55 @@ superseded_by: null
 
 > **Question this document answers:** how must a DeepPlant document be typed,
 > bounded, linked, and reviewed so readers can tell current rules from evidence
-> and history?
+> and history, and so users, developers, and agents can find the right starting
+> point? Two independent dimensions apply: **audience** and **knowledge
+> authority** ([ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md)).
 
-## One document, one question
+## One document, one durable responsibility (atomicity)
 
-Every document answers exactly **one stable primary question** and has exactly
-one authoritative purpose. Four authority types are never mixed in one file:
+Conceptual atomicity is the primary decomposition rule:
+
+> One document primarily owns one durable concept, workflow, task, or question.
+
+Split a document because it contains **independently maintained responsibilities
+or lifecycles**, not merely because it is long. A section that answers a
+different question with a different lifecycle moves to its own document; a
+coherent, single-question document stays whole however long it is. Length alone
+is never a reason to split (see [Size as a review signal](#size-as-a-review-signal)).
+
+Documents should not mix independent authority types. This is the target
+architectural rule; known legacy exceptions awaiting bounded migration are
+recorded in [documentation-migration.md](documentation-migration.md):
 
 | Type | Answers | Lives in |
 |---|---|---|
 | contract / policy | what must hold now? | `docs/contracts/`, root-level governance documents under `docs/`, `project/brief.md` |
 | decision | why does this boundary exist? | `docs/decisions/` |
-| evidence | what was investigated, and what came out of it? | `docs/research/`, slice documents |
+| evidence | what was investigated, and what came out of it? | `docs/research/`, root-level evidence/prototype documents pending migration |
 | history | what shipped, in what order? | `docs/history/` |
 
-A section that answers a different question with a different lifecycle moves to
-its own document. Length alone is never a reason to split.
+## Audience model
+
+Knowledge **authority** (contract / decision / evidence / history) and **audience**
+(user / developer / agent) are independent dimensions
+([ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md)). Audience is
+expressed by three mechanisms, with deliberately chosen responsibilities:
+
+| Mechanism | Role in expressing audience |
+|---|---|
+| Physical location | Only for content that is genuinely audience-specific: `docs/user/`, `docs/dev/`. A canonical document that serves more than one audience stays in the shared canonical layer and must **not** be forced under an audience directory. |
+| Navigation / indexes | The primary audience signal. `docs/index.md` routes by audience; `docs/user/index.md` and `docs/dev/index.md` are the audience maps; `read_when` contexts/tasks carry the signal for agents. |
+| Metadata | Not used for audience. There is deliberately **no `audience:` front-matter field**; audience is a navigation concern, not a document-authority field. |
+
+Rules:
+
+1. A document canonical for more than one audience stays in the shared canonical
+   layer; both audience indexes link to it. Keep one canonical copy — never
+   duplicate a fact to give it an audience home.
+2. Add `docs/user/` or `docs/dev/` material only when it is genuinely
+   audience-specific. Do not create empty audience trees to match a taxonomy.
+3. Filesystem location is never the only audience signal; a reader or agent must
+   also be able to tell the audience from the navigation.
 
 ## Front matter
 
@@ -49,8 +83,8 @@ type: architecture | governance | contract | roadmap | direction | project-brief
 status: active | historical | superseded | proposed
 canonical_for:   # the stable question or contract key this document owns
   - example-key
-read_when:       # reader intents, not maintenance activities
-  - example-intent
+read_when:       # contexts/tasks in which this document should be read
+  - example-context-or-task
 depends_on:      # repository-root-relative paths of prerequisites
   - docs/contracts/index.md
 decision:        # ADRs that constrain this document
@@ -61,42 +95,65 @@ superseded_by: null   # required for historical/superseded documents
 ---
 ```
 
+The vocabulary is deliberately small. Every field must earn its keep for
+ownership, authority/lifecycle, navigation, or agent-context routing:
+
+| Field | Required | Purpose it serves |
+|---|---|---|
+| `type` | yes | ownership / classification |
+| `status` | yes | authority / lifecycle |
+| `canonical_for` | yes | ownership — the one question the document owns |
+| `read_when` | yes | contexts/tasks in which to read the document; agent-context routing / navigation |
+| `update_when` | no | maintenance trigger for a document with a lifecycle |
+| `depends_on` | no | prerequisites / navigation |
+| `decision` | no | traceability to the ADRs that constrain it |
+| `evidence` | no | traceability to the evidence behind it |
+| `superseded_by` | when superseded | lifecycle |
+
 Rules:
 
 1. `type`, `status`, `canonical_for`, and `read_when` are required.
-2. `canonical_for` names the question or contract key this document owns. An
+2. `read_when` lists the contexts or tasks in which the document should be loaded
+   or read. Values may express a reader intent (for example,
+   `authoring-plant-yaml`) or a change trigger (for example, `implement-change`
+   or `architecture-change`); `update_when` remains the separate maintenance
+   trigger.
+3. `canonical_for` names the question or contract key this document owns. An
    evidence document names its *evidence question*, never a current contract.
-3. Paths in `depends_on`, `decision`, and `evidence` are repository-root-relative
+4. Paths in `depends_on`, `decision`, and `evidence` are repository-root-relative
    and unambiguous.
-4. `superseded_by` is required when `status` is `historical` or `superseded` and
+5. `superseded_by` is required when `status` is `historical` or `superseded` and
    a replacement exists; use `null` only when no replacement is appropriate.
-5. ADRs keep their in-body header (`> Status: …`, `> Date: …`), which is the
+6. ADRs keep their in-body header (`> Status: …`, `> Date: …`), which is the
    ADR metadata form; supersession is stated in that status line.
-6. Future tooling should validate front matter, allowed types, required fields,
-   relative links, heading anchors, and hard-limit violations. This convention
-   does not require a documentation-linter framework today.
+7. Do **not** add an `audience:` field (see [Audience model](#audience-model)).
+   Do not extend the vocabulary without a demonstrated need.
+8. Future tooling should validate front matter, allowed types, required fields,
+   relative links, heading anchors, and size signals. This convention does not
+   require a documentation-linter framework today.
 
-## Length policy
+## Size as a review signal
 
-Line counts are `wc -l` of the committed Markdown file, including front matter
-and blank lines.
+Document size is a **review signal, not an architectural validity rule**. There
+are no numeric hard limits: a coherent research report that answers one auditable
+question may legitimately run to many hundreds of lines, and reformatting a
+document to satisfy a line count is not a real change
+([ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md)).
 
-| Document type | Soft limit | Hard limit | Required action beyond hard limit |
-|---|---:|---:|---|
-| Navigation, project brief, roadmap | 150 | 220 | Split historical/detail content out or replace it with links |
-| Governance/policy, architecture, contracts, direction (vision/direction documents use this row too) | 250 | 350 | Extract independent contracts, evidence, or extended examples |
-| ADR | 160 | 250 | Move detailed evidence and investigations to an evidence document |
-| Research/evidence/spike/prototype/history | 500 | no fixed hard limit | Add or improve a ≤40-line outcome card; split only by independent research question |
-| Registry, catalogue, reference inventory | 300 | 500 | Split by independently maintained domain, or generate it later |
+When a document grows large, ask the atomicity question first: does it still own
+one durable concept, workflow, task, or question? Split only when it does not.
 
-Exception process:
+One soft signal is retained, with a concrete operational reason — navigation
+value decays as a router grows:
 
-- Crossing a **soft** limit requires an explicit statement in the change: retain
-  with reason, shorten, split, reclassify, or justify as auditable evidence.
-- Crossing a **hard** limit blocks ordinary growth until independent material is
-  extracted. A current contract may not hide rules inside an evidence report.
-- The "no fixed hard limit" exception applies only to material that must remain
-  auditable, and only together with a compliant outcome card.
+| Document kind | Soft signal | Why it exists |
+|---|---:|---|
+| Navigation and entry points (`README.md`, `docs/index.md`, `docs/user/index.md`, `docs/dev/index.md`, `*/index.md`) | 120 lines | A navigation document's only job is routing. Past this size it is usually dumping content into a router, which is the specific failure mode that harms findability. |
+
+Crossing the navigation soft signal requires an explicit statement in the change:
+retain with reason, shorten, or split. No other document kind has a numeric
+limit; a long document is reviewed for concept count and lifecycle mixing, not
+for length.
 
 ## Outcome card for evidence, research, and history
 
@@ -139,10 +196,76 @@ title, with a card of at most 40 lines:
 8. **Superseded material stays readable.** Documents are not deleted; they are
    reclassified and linked with an outcome card or supersession note.
 
+## Documentation impact review
+
+Every change answers two independent documentation-impact questions. They are
+review questions for the author and reviewer, not automated gates:
+
+- **User Documentation Impact** — did user-facing behavior, YAML shape, CLI
+  output, or public guidance change? If yes, the relevant user-facing contract and
+  the `docs/user/` navigation may need an update; if no, state that.
+- **Developer Documentation Impact** — did architecture, a contract boundary, a
+  decision, or an invariant change? If yes, update the affected contract, ADR, or
+  `docs/dev/` navigation; if no, state that.
+
+```text
+internal semantic-model refactor
+    → User Documentation Impact: none expected
+    → Developer Documentation Impact: review (architecture / contract)
+
+new CLI command
+    → User Documentation Impact: required (contracts/cli.md + user navigation)
+    → Developer Documentation Impact: review too
+```
+
+Answering "none" for both is valid — record the reason instead of inventing
+documentation. This stays lightweight: no separate workflow, labels, or
+automation are introduced.
+
+## Path stability: KEEP, MOVE, or SPLIT
+
+Stable paths are worth more than an aesthetically perfect tree. Decide per
+document:
+
+- **KEEP** (default) — the path is stable and the document owns one
+  responsibility. Do not move it merely because a cleaner taxonomy is possible.
+- **MOVE** — the document's authority already belongs in a different layer (for
+  example, root-level evidence that belongs under `docs/research/`) and its
+  inbound links can be reconciled in one pass.
+- **SPLIT** — the document mixes independently maintained responsibilities or
+  lifecycles, so each part moves to the document type that owns it.
+
+Consider before acting: inbound repository links, external GitHub links to the
+path, cross-audience use, authority stability, and migration cost. The current
+inventory is in [documentation-migration.md](documentation-migration.md).
+
+### Performing a move
+
+A move is complete only when all of these hold in the same change:
+
+1. repository-internal inbound links are updated;
+2. indexes and navigation (`docs/index.md`, `docs/user/index.md`,
+   `docs/dev/index.md`, the relevant `*/index.md`) are updated;
+3. front-matter references (`depends_on`, `decision`, `evidence`) that name the
+   old path are updated;
+4. `README.md` and `AGENTS.md` references are updated where relevant;
+5. relative links resolve and validation passes;
+6. exactly one canonical copy remains.
+
+Permanent Markdown redirect stubs are **not** the default. Create a compatibility
+stub at the old path only when a concrete, external consumer needs the old URL to
+keep working and cannot be updated in the same change; a stub is a link and a
+pointer only, never a second copy of the content.
+
 ## Migration status
 
-This repository adopted the conventions above in stages. Current state:
+The repository adopted the conventions above in stages, and
+[ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md) adds the audience
+layer on top of the authority model. Current state:
 
+- **Audience layer**: [index.md](index.md) routes by audience;
+  [user/index.md](user/index.md) and [dev/index.md](dev/index.md) are the audience
+  navigation maps. No canonical document moved to create them.
 - **Canonical contracts**: `docs/contracts/*` (plant model, process model,
   physical piping, YAML format, CLI, DEXPI Process adapter) plus
   [rendering.md](rendering.md) and [svg-symbols.md](svg-symbols.md), which are
@@ -151,27 +274,34 @@ This repository adopted the conventions above in stages. Current state:
   [roadmap.md](roadmap.md), [direction.md](direction.md),
   [product.md](product.md), [planning.md](planning.md),
   [workflow.md](workflow.md), [quality.md](quality.md),
-  [standards.md](standards.md), `project/brief.md`.
+  [standards.md](standards.md),
+  [documentation-migration.md](documentation-migration.md), `project/brief.md`.
 - **Evidence and history**: [decisions/](decisions/index.md),
   [history/implementation-slices.md](history/implementation-slices.md), and the
   DEXPI/prototype/design documents listed in
   [research/index.md](research/index.md).
 
-Still outstanding (each a small, independently reviewable change):
+The evidence-backed inventory and ordering for the remaining work live in
+[documentation-migration.md](documentation-migration.md); each item there is a
+small, independently reviewable change, not a pre-approved backlog:
 
-1. Relocate the two in-place canonical contracts (`rendering.md`,
-   `svg-symbols.md`) under `docs/contracts/` and update their inbound links.
-2. Split `standards.md` into an active policy document, a standards registry, and
+1. Split `standards.md` into an active policy document, a standards registry, and
    source/asset-licence evidence.
-3. Split the DEXPI Plant/P&ID spike by research question (physical topology,
+2. Split the DEXPI Plant/P&ID spike by research question (physical topology,
    instrumentation, presentation) and split the physical-piping design evidence
    from its contract, each with an outcome card.
-4. Relocate the historical prototype/evidence documents into `docs/research/`
+3. Relocate the historical prototype/evidence documents into `docs/research/`
    subdirectories once their inbound links can be updated in one pass.
 
 ## Related
 
-- [index.md](index.md) — question-led navigation with authority labels.
+- [index.md](index.md) — the audience/authority router.
+- [user/index.md](user/index.md), [dev/index.md](dev/index.md) — audience
+  navigation maps.
 - [contracts/index.md](contracts/index.md) — the current contract set.
 - [decisions/index.md](decisions/index.md) — decision records.
 - [research/index.md](research/index.md) — evidence and prototype index.
+- [documentation-migration.md](documentation-migration.md) — migration inventory
+  and sequence.
+- [decisions/ADR-0014-documentation-architecture-v2.md](decisions/ADR-0014-documentation-architecture-v2.md)
+  — the documentation architecture decision.
