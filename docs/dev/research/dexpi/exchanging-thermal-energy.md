@@ -414,7 +414,7 @@ hot/cold side identity per port       no port role/side field
 
 DeepPlant declines to store the last item's *statement* deliberately:
 `ProcessPort` is a named connection point with no role, and direction is derived
-from `ProcessStream` incidence (ADR-0009, [process-topology.md](../../../process-topology.md)).
+from `ProcessStream` incidence (ADR-0009, [process-topology.md](../process-topology.md)).
 That design is defensible and is not the problem. The problem is that DEXPI uses
 a mandatory `Method` plus hot/cold-side quantities to state things DeepPlant has
 no place to put.

@@ -49,7 +49,7 @@ It does **not** answer how `ProcessStep` maps to `Equipment` or how
 
 Candidate analysis, worked examples, Git-diff behaviour, rule, adapter, and
 rendering implications are in
-[docs/physical-piping-model.md](../../physical-piping-model.md).
+[docs/dev/research/physical-piping-model.md](../research/physical-piping-model.md).
 
 ## Decision
 
@@ -120,7 +120,7 @@ rendering implications are in
 | Alternative | Why rejected |
 |---|---|
 | **A — line metadata over topology** | One property set per line cannot express a DN or piping-class change inside one line, and it has no way to distinguish direct from pipe-realized adjacency. A property change would have to be faked as a new "line", asserting a line identity the engineering data does not support. It survives as the single-segment special case of the accepted shape. |
-| **C — independent piping graph** | It authors physical connectivity a second time (endpoints restated as nodes), the exact duplication class [process-topology.md](../../process-topology.md) rejected for `ProcessStream`. It also imports node identity and a node-kind taxonomy that the evidence does not justify and `Port` already covers. |
+| **C — independent piping graph** | It authors physical connectivity a second time (endpoints restated as nodes), the exact duplication class [process-topology.md](../research/process-topology.md) rejected for `ProcessStream`. It also imports node identity and a node-kind taxonomy that the evidence does not justify and `Port` already covers. |
 | **D — widen `Connection` with piping properties** | Makes the topology primitive a physical engineering object, forces one property set per adjacency instead of per property boundary, copies line-level data onto every connection, and still does not provide line or segment identity. Forbidden by the anti-roadmap in [roadmap.md](../planning/roadmap.md). |
 | **Canonical `Pipe` class now** | Would duplicate the extent of `Connection` without adding engineering meaning (DEXPI's `Pipe` has no own data). Deferred, not rejected in principle. |
 | **`Nozzle` + `PipingNode` now** | Conditional on node-level connectivity DeepPlant does not have; ADR-0010 already recorded the collapse and the unresolved `Port.id` derivation. |
@@ -219,7 +219,7 @@ neither depends on the other, and no cross-layer cardinality is claimed.
 
 ## Related
 
-- [docs/physical-piping-model.md](../../physical-piping-model.md) — the
+- [docs/dev/research/physical-piping-model.md](../research/physical-piping-model.md) — the
   specification this ADR decides (requirements, candidates, worked fragment,
   diffs, rule/adapter/rendering implications).
 - [docs/dev/research/dexpi/plant-pid-semantic-boundary.md](../research/dexpi/plant-pid-semantic-boundary.md) — the DEXPI
@@ -232,5 +232,5 @@ neither depends on the other, and no cross-layer cardinality is claimed.
   [ADR-0005](ADR-0005-process-model-container.md),
   [ADR-0006](ADR-0006-process-model-root-integration.md),
   [ADR-0009](ADR-0009-separate-process-function-from-symbol-role.md).
-- [docs/process-topology.md](../../process-topology.md),
+- [docs/dev/research/process-topology.md](../research/process-topology.md),
   [docs/dev/architecture/index.md](../architecture/index.md), [docs/dev/planning/roadmap.md](../planning/roadmap.md).

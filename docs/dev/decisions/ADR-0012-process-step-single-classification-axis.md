@@ -20,7 +20,7 @@ possible second concept   = HOW / by what process principle / variant?
 ```
 
 The investigation is documented in
-[docs/process-step-classification.md](../../process-step-classification.md), based
+[docs/dev/research/process-step-classification.md](../research/process-step-classification.md), based
 on the pinned official DEXPI Specification 2.0.0 (`V2.0.0`, release commit
 `260c81c51039789a6148a98af4c6caf23f87a3e2`, dated 2025-10-10, inspected
 2026-09-22). It found that:
@@ -67,7 +67,7 @@ It does **not** answer how a `ProcessStep` maps to a physical realization.
 
 Candidate analysis, the layer separation, the DeepPlant-authoring test, and the
 rejected shortcuts are in
-[docs/process-step-classification.md](../../process-step-classification.md) §7–§9.
+[docs/dev/research/process-step-classification.md](../research/process-step-classification.md) §7–§9.
 ## Decision
 
 **A is accepted**, on the following explicit terms:
@@ -188,7 +188,7 @@ rejected shortcuts are in
 - [ADR-0009-separate-process-function-from-symbol-role.md](ADR-0009-separate-process-function-from-symbol-role.md)
 - [ADR-0010-dexpi-plant-pid-semantic-boundary.md](ADR-0010-dexpi-plant-pid-semantic-boundary.md)
 - [ADR-0011-canonical-physical-piping-realization.md](ADR-0011-canonical-physical-piping-realization.md)
-- [../../process-step-classification.md](../../process-step-classification.md) — the
+- [../research/process-step-classification.md](../research/process-step-classification.md) — the
   full evidence and candidate analysis (Issue #31)
 - [../research/dexpi/exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md),
   [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md),

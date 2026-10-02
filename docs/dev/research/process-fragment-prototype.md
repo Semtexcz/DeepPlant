@@ -34,8 +34,8 @@ superseded_by: docs/contracts/process-model.md
   5. Junction-port and exchanger-side mapping questions remain open.
 - **Resulting ADRs:** ADR-0005, ADR-0006.
 - **Current contracts operationalizing the result:**
-  [contracts/process-model.md](contracts/process-model.md),
-  [contracts/plant-model.md](contracts/plant-model.md); runnable example
+  [contracts/process-model.md](../../contracts/process-model.md),
+  [contracts/plant-model.md](../../contracts/plant-model.md); runnable example
   `examples/realistic-process-fragment/`.
 - **Conditions for revisiting:** a second realistic fragment, or evidence that
   makes the deferred junction/exchanger mapping questions actionable.
@@ -958,7 +958,7 @@ PlantModel                               Process graph (conceptual)
 
 ## Process-Model Container Decision
 
-[ADR-0005](dev/decisions/ADR-0005-process-model-container.md) (Accepted) selects
+[ADR-0005](../decisions/ADR-0005-process-model-container.md) (Accepted) selects
 **C1**: `PlantModel` remains the overall semantic aggregate for one plant and
 contains one independently constructible `ProcessModel`; `ProcessModel` owns the
 process graph and defines its S1–S4 reference-validation boundary. This resolves

@@ -235,7 +235,7 @@ implemented direction of today's model and CLI.
 - DeepPlant integrates with the engineering ecosystem rather than assuming it
   replaces every existing tool; future generic UX and infrastructure decisions
   follow the evidence-first
-  [reference-product landscape](docs/reference-products.md).
+  [reference-product landscape](docs/dev/research/reference-products.md).
 - A genuine engineering concept discovered through an adapter may legitimately
   evolve the domain model — after evidence, not before it.
 - Long-term capabilities are relatively stable; their implementation design is

@@ -39,8 +39,8 @@ superseded_by: null
      classification axis.
 - **Resulting ADRs:** ADR-0012.
 - **Current contracts operationalizing the result:**
-  [contracts/process-model.md](contracts/process-model.md),
-  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md).
+  [contracts/process-model.md](../../contracts/process-model.md),
+  [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md).
 - **Conditions for revisiting:** ADR-0012's *Revisit When* list (a native
   equipment-independent process principle, a coherent later DEXPI axis, or
   `ProcessStepDetail` mapping evidence).
@@ -83,7 +83,7 @@ DEXPI ProcessStep subclasses may carry a required, non-derivable Method
 `Method: HeatExchangeMethod` is `1..1`. Issue #22 recorded that this blocker is
 **model-level and shared with the rest of the DEXPI ProcessStep family** rather
 than specific to thermal steps
-([dev/research/dexpi/exchanging-thermal-energy.md](dev/research/dexpi/exchanging-thermal-energy.md)).
+([dev/research/dexpi/exchanging-thermal-energy.md](dexpi/exchanging-thermal-energy.md)).
 Issue #31 was created to answer that model-level half — and only that half —
 before any new canonical field is designed.
 
@@ -147,9 +147,9 @@ non-empty string).
 Policy applied: *stable release exists → target the latest stable release; a
 beta/RC newer than stable is inspected but is not made the production target
 unless strongly justified.* This is the same policy and the same pin used by
-[dev/research/dexpi/process-adapter-spike.md](dev/research/dexpi/process-adapter-spike.md),
-[dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md), and
-[dev/research/dexpi/exchanging-thermal-energy.md](dev/research/dexpi/exchanging-thermal-energy.md).
+[dev/research/dexpi/process-adapter-spike.md](dexpi/process-adapter-spike.md),
+[dev/research/dexpi/plant-pid-semantic-boundary.md](dexpi/plant-pid-semantic-boundary.md), and
+[dev/research/dexpi/exchanging-thermal-energy.md](dexpi/exchanging-thermal-energy.md).
 **No re-pinning was performed**, because no repository evidence shows the pin
 has changed.
 
@@ -167,7 +167,7 @@ has changed.
 | DeepPlant evidence baseline | branch `research/issue-31-process-step-classification`, created from `origin/main` |
 
 The tag-object-versus-release-commit distinction is the same one recorded in
-[dev/research/dexpi/exchanging-thermal-energy.md](dev/research/dexpi/exchanging-thermal-energy.md)
+[dev/research/dexpi/exchanging-thermal-energy.md](dexpi/exchanging-thermal-energy.md)
 §1; both identifiers are recorded rather than silently substituting one for the
 other. The shallow clone used for this inspection resolved to exactly
 `260c81c51039789a6148a98af4c6caf23f87a3e2`.
@@ -188,7 +188,7 @@ All DEXPI semantic claims below come from these official `V2.0.0` paths:
 
 DEXPI 2.0.0 is published under CC BY 4.0, which permits use with attribution, so
 the official model definitions may be inspected for this analysis (ADR-0007,
-[standards.md](standards.md)). This document reproduces only class names,
+[standards.md](../../standards.md)). This document reproduces only class names,
 property names, multiplicities, type references, enumeration literal names, and
 at most the short class-definition sentence needed to make the engineering
 judgement auditable. No DEXPI figures, symbol artwork, PDF text, or substantial

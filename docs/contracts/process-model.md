@@ -17,8 +17,8 @@ decision:
   - docs/dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md
   - docs/dev/decisions/ADR-0012-process-step-single-classification-axis.md
 evidence:
-  - docs/process-fragment-prototype.md
-  - docs/process-step-classification.md
+  - docs/dev/research/process-fragment-prototype.md
+  - docs/dev/research/process-step-classification.md
   - docs/dev/research/dexpi/process-adapter-spike.md
 superseded_by: null
 ---
@@ -152,5 +152,5 @@ questions and their revisit conditions.
   [ADR-0006](../dev/decisions/ADR-0006-process-model-root-integration.md),
   [ADR-0009](../dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
   [ADR-0012](../dev/decisions/ADR-0012-process-step-single-classification-axis.md).
-- [process-fragment-prototype.md](../process-fragment-prototype.md) — the
+- [process-fragment-prototype.md](../dev/research/process-fragment-prototype.md) — the
   evidence/prototype that validated these concepts.

@@ -37,7 +37,7 @@ superseded_by: null
 - **Resulting ADRs:** none yet (references ADR-0002, ADR-0003, ADR-0009,
   ADR-0010 as constraints).
 - **Current contracts operationalizing the result:** none; it informs
-  [direction.md](dev/planning/direction.md) stages 3–4, which are not authorized.
+  [direction.md](../planning/direction.md) stages 3–4, which are not authorized.
 - **Conditions for revisiting:** a concrete engineering-view or editing
   requirement reaching the current horizon, or a resolved licence for a blocked
   candidate.
@@ -64,10 +64,10 @@ The landscape below is deliberately a study list, not a plan.
 ## Scope and the reuse-first design rule
 
 This document supports the directional
-[Engineering Views](dev/planning/direction.md#stage-3--engineering-views) and
-[Interactive Editing](dev/planning/direction.md#stage-4--interactive-editing) stages. It changes
+[Engineering Views](../planning/direction.md#stage-3--engineering-views) and
+[Interactive Editing](../planning/direction.md#stage-4--interactive-editing) stages. It changes
 nothing about their timing, and the
-[anti-roadmap](dev/planning/roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
+[anti-roadmap](../planning/roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
 still governs: a future stage justifies no architecture today.
 
 Future design rule:
@@ -99,10 +99,10 @@ These terms are used consistently across this document.
 
 ## Architectural invariants
 
-[ADR-0002](dev/decisions/ADR-0002-semantic-model-is-the-core.md),
-[ADR-0003](dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-[ADR-0009](dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-and [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) remain
+[ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
+[ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+[ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md),
+and [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) remain
 authoritative. Reuse never relaxes them.
 
 ### The semantic model remains authoritative
@@ -134,7 +134,7 @@ layout, interactive handles, sheet tabs, and framework node/edge objects must no
 silently become canonical engineering semantics. If evidence later requires a
 persistent view model, it belongs outside semantic YAML and must be designed
 deliberately, consistent with the deferral already recorded in
-[ADR-0009](dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md).
+[ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md).
 
 ### DeepPlant-specific differentiation
 
@@ -276,13 +276,13 @@ separate:
 
 | Aspect | Status | DeepPlant consequence |
 |---|---|---|
-| Code that may legally be reused | Not established. The repository URL recorded in [standards.md](standards.md#ipd-studio-historicalcurrent-symbol-assets) was **not reachable at the 2026-09-30 re-check**, so neither the current licence nor the historical version boundary could be re-confirmed from upstream at that time. | Treat as **needs review**. Do not incorporate code. |
-| Code that must not be incorporated | Any release whose terms are source-available/non-commercial or otherwise incompatible with DeepPlant's public AGPL-3.0-only repository and commercial-use requirements. The earlier assessment recorded in [standards.md](standards.md) placed current releases (`v0.13.0+`) under a non-commercial source-available licence. | Not a reuse candidate; re-verify terms before any future claim. |
+| Code that may legally be reused | Not established. The repository URL recorded in [standards.md](../../standards.md#ipd-studio-historicalcurrent-symbol-assets) was **not reachable at the 2026-09-30 re-check**, so neither the current licence nor the historical version boundary could be re-confirmed from upstream at that time. | Treat as **needs review**. Do not incorporate code. |
+| Code that must not be incorporated | Any release whose terms are source-available/non-commercial or otherwise incompatible with DeepPlant's public AGPL-3.0-only repository and commercial-use requirements. The earlier assessment recorded in [standards.md](../../standards.md) placed current releases (`v0.13.0+`) under a non-commercial source-available licence. | Not a reuse candidate; re-verify terms before any future claim. |
 | UX and architectural concepts that may be studied | The product's interaction and workflow ideas are public product behaviour. | Study freely as **UX inspiration**. |
 
 Do not copy source code from IPD Studio. The already-recorded version-based
-assessment in [standards.md](standards.md) and
-[ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md) remains the
+assessment in [standards.md](../../standards.md) and
+[ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md) remains the
 governing provenance policy; this document adds no new permission, and a future
 reuse proposal must pin an exact upstream revision and verify the licence text
 at that revision before anything else.
@@ -366,8 +366,8 @@ asset licensing is frequently the harder question:
 - third-party engineering symbol packs
 
 Asset decisions follow the provenance, restricted-standards, and
-human-verification rules already recorded in [standards.md](standards.md) and
-[ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md). This document
+human-verification rules already recorded in [standards.md](../../standards.md) and
+[ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md). This document
 deliberately does not restate or extend them; it only records that a reuse
 proposal must answer the code question and the asset question independently.
 
@@ -463,7 +463,7 @@ Licence and capability claims above were checked against upstream sources on
 - [FreeCAD/FreeCAD](https://github.com/FreeCAD/FreeCAD) — repository licence
   metadata (LGPL-2.1).
 - IPD Studio — the upstream repository URL recorded in
-  [standards.md](standards.md) returned HTTP 404 at the 2026-09-30 check, and
+  [standards.md](../../standards.md) returned HTTP 404 at the 2026-09-30 check, and
   the maintainer account no longer lists it publicly, although it is still
   advertised. **Unresolved.**
 - [bcakmakoglu/vue-flow](https://github.com/bcakmakoglu/vue-flow) — `LICENSE`
@@ -516,19 +516,19 @@ Nothing in this document authorizes:
 
 ## Related
 
-- [roadmap.md](dev/planning/roadmap.md) — Stage 3 (Engineering Views) and Stage 4
+- [roadmap.md](../planning/roadmap.md) — Stage 3 (Engineering Views) and Stage 4
   (Interactive Editing) are the stages this landscape informs; the anti-roadmap
   still governs.
-- [standards.md](standards.md) — standards registry, symbol provenance policy,
+- [standards.md](../../standards.md) — standards registry, symbol provenance policy,
   and the existing IPD Studio asset assessment.
-- [contracts/rendering.md](contracts/rendering.md) — the implemented headless renderer and its
+- [contracts/rendering.md](../../contracts/rendering.md) — the implemented headless renderer and its
   explicit deferrals.
-- [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) — the symbol and anchor contract a future
+- [dev/reference/svg-symbols.md](../reference/svg-symbols.md) — the symbol and anchor contract a future
   editor would consume.
-- [architecture.md](dev/architecture/index.md) — current architecture and durable
+- [architecture.md](../architecture/index.md) — current architecture and durable
   boundaries.
-- [ADR-0002](dev/decisions/ADR-0002-semantic-model-is-the-core.md),
-  [ADR-0003](dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-  [ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md),
-  [ADR-0009](dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-  [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md).
+- [ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
+  [ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+  [ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md),
+  [ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md),
+  [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md).

@@ -178,5 +178,5 @@ Issue. This ADR authorizes no implementation by itself, and the anti-roadmap in
 - [ADR-0002](ADR-0002-semantic-model-is-the-core.md),
   [ADR-0003](ADR-0003-separate-semantic-and-presentation-models.md),
   [ADR-0007](ADR-0007-standards-and-symbol-provenance.md).
-- [docs/process-topology.md](../../process-topology.md),
+- [docs/dev/research/process-topology.md](../research/process-topology.md),
   [docs/dev/architecture/index.md](../architecture/index.md), [docs/dev/planning/roadmap.md](../planning/roadmap.md).

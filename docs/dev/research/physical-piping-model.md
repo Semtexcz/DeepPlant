@@ -38,13 +38,13 @@ superseded_by: docs/contracts/physical-piping.md
   5. Worked diffs show small, reviewable engineering changes with no renumbering.
 - **Resulting ADRs:** ADR-0011.
 - **Current contracts operationalizing the result:**
-  [contracts/physical-piping.md](contracts/physical-piping.md).
+  [contracts/physical-piping.md](../../contracts/physical-piping.md).
 - **Conditions for revisiting:** ADR-0011's *Revisit When* list (property breaks
   off a connection boundary, `1:N` realizations, pipe-piece identity, node-level
   connectivity, or a DEXPI semantics change).
 
 > Decision status: **the canonical boundary is decided and recorded in
-> [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md).**
+> [ADR-0011](../decisions/ADR-0011-canonical-physical-piping-realization.md).**
 > This document is the specification/decision deliverable of Issue #24.
 >
 > Implementation status: **the first vertical slice of this shape is
@@ -69,7 +69,7 @@ known directed adjacency* (`Equipment` with owned `Port`s, property-free
 `Connection`s) but it had no canonical piping-line identity, no property
 boundary, and no elementary piping realization. ADR-0011 specified the missing
 layer, and Issue #26 implements its first executable slice. The DEXPI Plant/P&ID
-spike ([dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md), ADR-0010) showed
+spike ([dev/research/dexpi/plant-pid-semantic-boundary.md](dexpi/plant-pid-semantic-boundary.md), ADR-0010) showed
 that gap is real engineering semantics present in the official DEXPI Reference
 P&ID and that **none of it can be closed by changing `Port` or `Connection`**.
 
@@ -168,7 +168,7 @@ shape exists; they are not a wish list.
 ## Evidence from DEXPI / ADR-0010
 
 This section reuses the evidence already established in
-[dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md) §7–§8 and ADR-0010 and does
+[dev/research/dexpi/plant-pid-semantic-boundary.md](dexpi/plant-pid-semantic-boundary.md) §7–§8 and ADR-0010 and does
 not repeat that investigation. The DEXPI pin is unchanged: official stable
 `V2.0.0` (tag `V2.0.0`, commit `260c81c5`, 2025-10-10, CC BY 4.0), plus the
 official Reference P&ID instance.
@@ -315,7 +315,7 @@ Assessment:
 ## Rejected variant D — widen `Connection` with piping properties
 
 Put `line`, `nominal_diameter`, `piping_class`, and `fluid_code` directly on
-`Connection`. Rejected by the anti-roadmap in [roadmap.md](dev/planning/roadmap.md) and by
+`Connection`. Rejected by the anti-roadmap in [roadmap.md](../planning/roadmap.md) and by
 ADR-0010: it makes the topology primitive a physical engineering object,
 collapses "one connection = one property set" onto an adjacency that can share
 a property set with many adjacencies, and gives every connection a copy of
@@ -553,7 +553,7 @@ is a reportable spare).
 ## Worked realistic fragment
 
 The committed fixture
-([examples/realistic-process-fragment/plant.yaml](../examples/realistic-process-fragment/plant.yaml))
+([examples/realistic-process-fragment/plant.yaml](../../../examples/realistic-process-fragment/plant.yaml))
 now contains the required physical chain **and** its pipe realization, so
 `Connection.id` and the `piping` section are loadable (Issue #26). The YAML
 below illustrates the decided shape with *example* engineering values
@@ -1066,16 +1066,16 @@ cardinality, pipe-piece identity, and process ↔ physical realization.
 
 ## Related
 
-- [docs/dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md) — the DEXPI
+- [docs/dev/research/dexpi/plant-pid-semantic-boundary.md](dexpi/plant-pid-semantic-boundary.md) — the DEXPI
   `V2.0.0` model + Reference P&ID evidence this specification builds on.
-- [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md) —
+- [ADR-0011](../decisions/ADR-0011-canonical-physical-piping-realization.md) —
   the durable decision this document specifies.
-- [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) —
+- [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) —
   `Port`/`Connection` boundary and the deferred piping/instrumentation layers.
-- [ADR-0005](dev/decisions/ADR-0005-process-model-container.md),
-  [ADR-0006](dev/decisions/ADR-0006-process-model-root-integration.md) — the
+- [ADR-0005](../decisions/ADR-0005-process-model-container.md),
+  [ADR-0006](../decisions/ADR-0006-process-model-root-integration.md) — the
   submodel-container precedent this layer follows.
-- [docs/process-topology.md](process-topology.md) — the duplication invariant
+- [docs/dev/research/process-topology.md](process-topology.md) — the duplication invariant
   that motivates referencing `Connection` instead of restating endpoints.
-- [docs/dev/architecture/index.md](dev/architecture/index.md), [docs/dev/planning/roadmap.md](dev/planning/roadmap.md),
-  [docs/contracts/rendering.md](contracts/rendering.md).
+- [docs/dev/architecture/index.md](../architecture/index.md), [docs/dev/planning/roadmap.md](../planning/roadmap.md),
+  [docs/contracts/rendering.md](../../contracts/rendering.md).

@@ -46,8 +46,8 @@ documents, while `AGENTS.md` and `project/brief.md` remain developer/agent-orien
 despite their locations. `docs/index.md` is global navigation, not shared
 documentation. Developer/agent material is canonical *and* developer-owned, so it
 lives under `dev/`; architecture, workflow/governance, planning, decisions,
-evidence, and history have moved there, and the remaining root evidence/prototype
-documents follow in a later slice. The current → target
+evidence, and history have moved there, and the Phase 5 evidence/prototype
+relocation is complete. The current → target
 mapping is in
 [documentation-migration.md](dev/workflow/documentation-migration.md).
 
@@ -65,9 +65,10 @@ Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
 [contracts/](contracts/index.md); developer-only canonical contracts/reference
 live under `dev/reference/`; architecture, workflow/governance, planning,
-decisions, evidence, and history are now canonical under `dev/`; the five
-remaining root evidence/prototype documents are still canonical for their
-authority type and move under `dev/research/` in Phase 5B (see
+decisions, evidence, and history are now canonical under `dev/`; the Phase 5
+evidence/prototype relocation is complete, so every evidence/prototype document
+except `docs/standards.md` now lives under `dev/research/`, and
+`docs/standards.md` awaits its Phase 6 split (see
 [documentation-migration.md](dev/workflow/documentation-migration.md) for the
 target owners).
 
