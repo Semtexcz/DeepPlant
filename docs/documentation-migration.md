@@ -326,27 +326,43 @@ slice may reorder these steps if repository evidence supports it.
 1. Documentation Architecture v2.1 target-tree correction
    (this slice — ADR-0015 + this inventory + navigation/convention updates)
 
-2. Developer authority-layer migration
-   architecture / workflow / planning / decisions / research / history
-   move under docs/dev/** with reconciled inbound links
+2. Contract / reference ownership migration
+   docs/rendering.md → docs/contracts/rendering.md
+   docs/contracts/dexpi-process-adapter.md
+       → docs/dev/reference/dexpi-process-adapter.md
+   docs/svg-symbols.md → docs/dev/reference/svg-symbols.md
+   reconcile affected inbound links, navigation, metadata, and agent routing
 
-3. User documentation foundation
-   getting-started + primary workflows (create, validate, render, diagnose),
-   linking to contracts instead of duplicating them
+3. Developer authority-layer migration
+   architecture; workflow / quality / conventions; planning / roadmap /
+   direction / product; decisions; research; history
 
-4. Evidence and prototype cleanup
-   root evidence → docs/dev/research/; dexpi/ subfolder; spike splits
+4. User documentation foundation
+   getting-started; what-is-deepplant; primary workflows (create, validate,
+   render, diagnose); link to cross-audience contracts instead of duplicating them
 
-5. Standards split
-   policy / registry / licence evidence into the developer layer
+5. Evidence and prototype cleanup
+   root evidence → docs/dev/research/; dexpi/ grouping; atomic spike splits
 
-6. Optional documentation renderer/search
+6. Standards split
+   workflow policy; developer reference registry; licensing evidence
+
+7. Optional documentation renderer/search integration
    only if a real need appears
 ```
 
-Step 2 is placed before step 3 because user pages must link into a stable
-developer tree, not into the pre-migration root. Step 4 is after step 2 so the
-evidence moves reuse the links already reconciled once.
+This sequence covers every inventory action that changes or adds a document home:
+step 2 covers the three contract/reference `MOVE` rows; step 3 covers the
+architecture, workflow, planning, decisions, research, and history `MOVE` rows;
+step 4 covers every user `ADD (later)` row; step 5 covers every root
+research/prototype `MOVE`, including the `MOVE + SPLIT` DEXPI plant/P&ID spike;
+and step 6 covers the `standards.md` `SPLIT`. Each move/split slice reconciles its
+affected inbound links, navigation, metadata, and agent routing in the same pass.
+
+Step 2 establishes the contract/reference homes before developer or user pages
+link to them. Step 3 precedes step 4 so user pages can link into a stable developer
+tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
+reuse links already reconciled once.
 
 ## Agent context consequences
 

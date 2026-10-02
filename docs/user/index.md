@@ -23,9 +23,10 @@ superseded_by: null
 
 For people who **use** DeepPlant rather than change its internals. This layer will
 eventually own the how-to-use guidance. Today it routes to existing pages;
-canonical **contracts** stay shared in [contracts/](../contracts/index.md), while
-architecture, decisions, planning, and evidence are developer-owned and are not
-required reading for users. The structure is decided in
+canonical **cross-audience contracts** stay shared in
+[contracts/](../contracts/index.md), while developer-only contracts/reference remain
+canonical but developer-owned. Architecture, decisions, planning, and evidence are
+also developer-owned and are not required reading for users. The structure is decided in
 [ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md), refining
 [ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
 
