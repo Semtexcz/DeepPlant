@@ -425,10 +425,11 @@ This sequence covers every inventory action that changes or adds a document home
 step 2 covered the three contract/reference `MOVE` rows; step 3 (decomposed into
 3A, 3B, and 3C) covered the architecture, workflow (including this inventory
 itself), planning, decisions, research, and history `MOVE` rows; step 4 created
-every user-owned page; step 5 will cover every root research/prototype `MOVE`,
-including the `MOVE + SPLIT` DEXPI plant/P&ID spike; and step 6 covers the
-`standards.md` `SPLIT`. Each move/split slice reconciles its affected inbound
-links, navigation, metadata, and agent routing in the same pass.
+every user-owned page planned for the Phase 4 foundation; step 5 will cover every
+root research/prototype `MOVE`, including the `MOVE + SPLIT` DEXPI plant/P&ID
+spike; and step 6 covers the `standards.md` `SPLIT`. Each move/split slice
+reconciles its affected inbound links, navigation, metadata, and agent routing
+in the same pass.
 
 Step 2 established the contract/reference homes before developer or user pages
 link to them. Step 3 preceded step 4 so the audience layers were already

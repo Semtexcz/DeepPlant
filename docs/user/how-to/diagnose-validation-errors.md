@@ -13,6 +13,8 @@ update_when:
 depends_on:
   - docs/contracts/yaml-format.md
   - docs/contracts/plant-model.md
+  - docs/contracts/process-model.md
+  - docs/contracts/physical-piping.md
   - docs/contracts/cli.md
 decision: []
 evidence: []

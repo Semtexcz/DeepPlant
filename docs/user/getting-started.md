@@ -42,8 +42,10 @@ DeepPlant with its dependencies. It needs `uv` and `make` to be installed.
 uv run deepplant version
 ```
 
+You should see the current DeepPlant version, for example:
+
 ```text
-DeepPlant 0.1.0
+DeepPlant <version>
 ```
 
 `uv run` executes the command inside the project environment, so you do not need

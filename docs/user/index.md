@@ -10,7 +10,6 @@ update_when:
   - user-documentation-change
 depends_on:
   - docs/index.md
-  - docs/dev/workflow/conventions.md
   - docs/contracts/index.md
 decision:
   - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
