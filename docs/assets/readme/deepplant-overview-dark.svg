@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 740" width="1200" height="740" role="img" aria-labelledby="title desc">
+  <title id="title">DeepPlant — Engineering as Code overview (dark theme)</title>
+  <desc id="desc">Engineering intent is authored in Git-tracked files and loaded into the semantic engineering model, which is the product core. From it flow Git diff, review and validation, and then derived outputs. Validation, the process SVG renderer, and a narrow DEXPI 2.0.0 Process adapter are implemented today; engineering rules, simulation integration, and richer views remain direction.</desc>
+
+  <style>
+    .bg { fill: none; }
+    .title { font: 700 27px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #E6EDF3; }
+    .label { font: 700 19px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #E6EDF3; }
+    .body { font: 400 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; fill: #9DA7B3; }
+    .micro { font: 700 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: 1.4px; fill: #8B949E; }
+    .tag-current { font: 700 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: 1.4px; fill: #FF5C5C; }
+    .tag-future { font: 700 12px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: 1.4px; fill: #8B949E; }
+    .arrow { fill: none; stroke: #E6EDF3; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .arrow-muted { fill: none; stroke: #6E7681; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 8 8; }
+    .box { fill: #161B22; stroke: #E6EDF3; stroke-width: 2; }
+    .core { fill: #2A1214; stroke: #F11E1E; stroke-width: 3; }
+    .current { fill: #161B22; stroke: #F11E1E; stroke-width: 2; }
+    .future { fill: #12161C; stroke: #6E7681; stroke-width: 2; stroke-dasharray: 8 7; }
+  </style>
+
+  <defs>
+    <marker id="arrow-head" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#E6EDF3" />
+    </marker>
+    <marker id="arrow-head-muted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6E7681" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1200" height="740" />
+
+  <text class="title" x="600" y="56" text-anchor="middle">Engineering intent becomes an explicit semantic model</text>
+
+  <!-- Engineering intent -->
+  <rect class="box" x="390" y="92" width="420" height="104" rx="12" />
+  <text class="micro" x="600" y="130" text-anchor="middle">AUTHORED AS VERSIONED TEXT</text>
+  <text class="label" x="600" y="160" text-anchor="middle">Engineering intent</text>
+  <text class="body" x="600" y="184" text-anchor="middle">equipment · connections · process · piping</text>
+
+  <path class="arrow" d="M 600 196 V 296" marker-end="url(#arrow-head)" />
+
+  <!-- Product core -->
+  <rect class="core" x="300" y="306" width="600" height="150" rx="14" />
+  <text class="tag-current" x="600" y="346" text-anchor="middle">PRODUCT CORE</text>
+  <text class="label" x="600" y="384" text-anchor="middle">Semantic engineering model</text>
+  <text class="body" x="600" y="412" text-anchor="middle">typed, machine-readable engineering semantics</text>
+  <text class="body" x="600" y="436" text-anchor="middle">the single source of engineering meaning</text>
+
+  <path class="arrow" d="M 600 456 V 508" marker-end="url(#arrow-head)" />
+
+  <!-- Git workflow gate -->
+  <rect class="box" x="350" y="516" width="500" height="82" rx="12" />
+  <text class="label" x="600" y="550" text-anchor="middle">Git · diff · review · validation</text>
+  <text class="body" x="600" y="576" text-anchor="middle">repeatable checks on a reviewable change</text>
+
+  <!-- Split to outputs -->
+  <path class="arrow" d="M 350 557 H 162 V 636" marker-end="url(#arrow-head)" />
+  <path class="arrow" d="M 600 598 V 636" marker-end="url(#arrow-head)" />
+  <path class="arrow-muted" d="M 850 557 H 1038 V 636" marker-end="url(#arrow-head-muted)" />
+
+  <!-- Implemented today -->
+  <rect class="current" x="42" y="640" width="240" height="80" rx="11" />
+  <text class="tag-current" x="162" y="670" text-anchor="middle">IMPLEMENTED</text>
+  <text class="body" x="162" y="696" text-anchor="middle">validation</text>
+
+  <rect class="current" x="480" y="640" width="240" height="80" rx="11" />
+  <text class="tag-current" x="600" y="670" text-anchor="middle">IMPLEMENTED</text>
+  <text class="body" x="600" y="696" text-anchor="middle">process SVG · DEXPI subset</text>
+
+  <!-- Direction -->
+  <rect class="future" x="918" y="640" width="240" height="80" rx="11" />
+  <text class="tag-future" x="1038" y="670" text-anchor="middle">DIRECTION</text>
+  <text class="body" x="1038" y="696" text-anchor="middle">rules · simulation · views</text>
+</svg>
