@@ -521,9 +521,9 @@ Nothing in this document authorizes:
   still governs.
 - [standards.md](standards.md) — standards registry, symbol provenance policy,
   and the existing IPD Studio asset assessment.
-- [rendering.md](rendering.md) — the implemented headless renderer and its
+- [contracts/rendering.md](contracts/rendering.md) — the implemented headless renderer and its
   explicit deferrals.
-- [svg-symbols.md](svg-symbols.md) — the symbol and anchor contract a future
+- [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) — the symbol and anchor contract a future
   editor would consume.
 - [architecture.md](architecture.md) — current architecture and durable
   boundaries.

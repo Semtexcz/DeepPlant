@@ -5,7 +5,7 @@
 
 This module renders a semantic :class:`~deepplant.model.ProcessModel` into a
 complete standalone SVG document. It is the first runtime consumer of the
-pack-aware SVG symbol + anchor contract (ADR-0008, ``docs/svg-symbols.md``).
+pack-aware SVG symbol + anchor contract (ADR-0008, ``docs/dev/reference/svg-symbols.md``).
 
 Architecture (ADR-0009):
 
@@ -67,7 +67,7 @@ _TOP_LEVEL_GEOMETRY_NAMES = frozenset(
 
 # --- Renderer-internal presentation geometry ---------------------------------
 # The built-in pack draws every symbol on a canonical 100x100 local viewBox
-# (docs/svg-symbols.md). The renderer places those canvases on a deterministic
+# (docs/dev/reference/svg-symbols.md). The renderer places those canvases on a deterministic
 # grid; the constants below are implementation heuristics, not engineering
 # semantics.
 SYMBOL_SIZE = 100.0

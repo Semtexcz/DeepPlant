@@ -153,7 +153,7 @@ unresolved.
   [ADR-0011](ADR-0011-canonical-physical-piping-realization.md),
   [ADR-0012](ADR-0012-process-step-single-classification-axis.md).
 - [dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md),
-  [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md),
+  [dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md),
   [contracts/process-model.md](../contracts/process-model.md),
   [contracts/physical-piping.md](../contracts/physical-piping.md),
   [docs/roadmap.md](../roadmap.md).

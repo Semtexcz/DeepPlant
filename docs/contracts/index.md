@@ -37,15 +37,14 @@ of restating the facts.
 | Physical piping | [physical-piping.md](physical-piping.md) | How is physical piping realized over identified connections, and which rules (C1, P1–P5) apply? |
 | YAML format | [yaml-format.md](yaml-format.md) | What is the authored YAML document shape, and what does load/save guarantee? |
 | CLI surface | [cli.md](cli.md) | Which commands exist, what do they print, and what exit codes do they use? |
-| Headless process renderer | [../rendering.md](../rendering.md) | What is the public renderer API and its deterministic behaviour? |
+| Headless process renderer | [rendering.md](rendering.md) | What is the public renderer API and its deterministic behaviour? |
 
-The public renderer contract still lives at the `docs/` root and is scheduled to
-**MOVE** to this shared layer. The DEXPI Process adapter
-([dexpi-process-adapter.md](dexpi-process-adapter.md)) and SVG symbol pack
-([../svg-symbols.md](../svg-symbols.md)) retain contract authority but are
-developer-only reference, so they are scheduled to move to `docs/dev/reference/`,
-not here. Contract authority does not by itself establish shared ownership. The
-move is a later bounded slice; see
+The public renderer contract now lives in this shared layer. The DEXPI Process
+adapter ([../dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md))
+and SVG symbol pack ([../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md))
+retain contract authority but are developer-only reference, so they live under
+`docs/dev/reference/`, not here. Contract authority does not by itself establish
+shared ownership. See
 [documentation-migration.md](../documentation-migration.md).
 
 ## How contracts relate to the other document types

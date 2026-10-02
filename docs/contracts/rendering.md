@@ -18,7 +18,7 @@ superseded_by: null
 
 # Basic Headless Process Renderer
 
-`deepplant.render` renders a semantic [`ProcessModel`](architecture.md) into a
+`deepplant.render` renders a semantic [`ProcessModel`](../architecture.md) into a
 complete standalone SVG process/PFD diagram. It is the first end-to-end
 presentation slice:
 
@@ -40,7 +40,7 @@ libraries, browser runtime, drag/drop, zoom/pan, or manual diagram editing.
 ## Purpose
 
 The renderer proves that the semantic `ProcessModel`, the pack-aware SVG
-symbol contract ([svg-symbols.md](svg-symbols.md), ADR-0008), and
+symbol contract ([../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md), ADR-0008), and
 `ProcessStream` topology are sufficient to generate a readable standalone
 process diagram. It is deliberately small and deterministic; it is not a
 general automatic diagramming tool.
@@ -228,10 +228,10 @@ from semantic YAML, without reintroducing the conflation this boundary removes
 
 ## Related
 
-- [svg-symbols.md](svg-symbols.md) — the SVG + anchor contract consumed here.
-- [architecture.md](architecture.md) — current architecture.
-- [roadmap.md](roadmap.md) — slice sequence.
-- [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-  [ADR-0008](decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md),
-  [ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md).
+- [../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md) — the SVG + anchor contract consumed here.
+- [../architecture.md](../architecture.md) — current architecture.
+- [../roadmap.md](../roadmap.md) — slice sequence.
+- [ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+  [ADR-0008](../decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md),
+  [ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md).
 

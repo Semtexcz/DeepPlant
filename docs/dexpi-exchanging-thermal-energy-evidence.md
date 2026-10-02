@@ -42,7 +42,7 @@ superseded_by: null
 - **Resulting ADRs:** ADR-0009 (function/role boundary), ADR-0012 (no second
   classification axis).
 - **Current contracts operationalizing the result:**
-  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md).
+  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md).
 - **Conditions for revisiting:** a canonical qualified-quantity representation
   (the boundary is now decided by
   [ADR-0013](decisions/ADR-0013-qualified-engineering-quantity-boundary.md), but

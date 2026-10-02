@@ -1,7 +1,7 @@
 """Deterministic contract tests for the basic process SVG symbol pack.
 
 These tests validate the SVG + anchor contract defined in
-``docs/svg-symbols.md`` and decided in ADR-0008, using only the standard
+``docs/dev/reference/svg-symbols.md`` and decided in ADR-0008, using only the standard
 library XML parser. They enforce the *current basic-pack variant* anchor
 cardinalities without encoding any semantic-model validation: the domain model
 keeps ``ProcessStep.function`` an open string (ADR-0009), a symbol role is a

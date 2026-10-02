@@ -15,7 +15,7 @@ YAML load/save into typed Pydantic models with strict structural validation, a
 read-only process renderer (`render_process_svg()`), and a narrow DEXPI 2.0.0
 Process import/export adapter (`deepplant.adapters.dexpi`; supported subset,
 directions, and limits in
-[docs/contracts/dexpi-process-adapter.md](docs/contracts/dexpi-process-adapter.md)).
+[docs/dev/reference/dexpi-process-adapter.md](docs/dev/reference/dexpi-process-adapter.md)).
 Full DEXPI, other vendor adapters (COMOS, AVEVA), the interactive editor,
 engineering rules, and P&ID rendering are planned but not implemented.
 

@@ -31,7 +31,7 @@ superseded_by: null
 > Implemented in `src/deepplant/model.py`; authored shape in
 > [yaml-format.md](yaml-format.md); the physical layer in
 > [plant-model.md](plant-model.md); presentation symbol roles in
-> [../rendering.md](../rendering.md) and [../svg-symbols.md](../svg-symbols.md).
+> [rendering.md](rendering.md) and [../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md).
 
 ## Scope
 

@@ -21,7 +21,7 @@ purpose: fallback/reference implementation, contract validation, renderer
 standards status: non-normative / unverified
 ```
 
-The SVG + anchor contract is defined in [docs/svg-symbols.md](../../../../../../docs/svg-symbols.md)
+The SVG + anchor contract is defined in [docs/dev/reference/svg-symbols.md](../../../../../../docs/dev/reference/svg-symbols.md)
 and decided in [ADR-0008](../../../../../../docs/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
 
 ## Role, pack, and asset

@@ -299,16 +299,16 @@ physical-ownership boundary. Current state:
 
 - **Audience layer**: [index.md](index.md) routes by audience;
   [user/index.md](user/index.md) and [dev/index.md](dev/index.md) are the audience
-  navigation maps. No canonical document has moved yet; the audience directories
-  are still navigation over the `docs/` root.
+  navigation maps. The contract/reference moves below are the first canonical
+  documents to leave the `docs/` root; the remaining root documents are still
+  reached from the root until their own slices.
 - **Shared documentation layer (narrow)**: cross-audience `docs/contracts/*`
-  (plant model, process model, physical piping, YAML format, CLI).
-  [rendering.md](rendering.md) is a public renderer contract scheduled to move to
-  `docs/contracts/`.
-- **Developer-only canonical reference (target `docs/dev/reference/`)**:
-  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md) and
-  [svg-symbols.md](svg-symbols.md) retain contract authority but are scheduled to
-  move to developer-owned reference, not the shared layer.
+  (plant model, process model, physical piping, YAML format, CLI, and the public
+  renderer contract [contracts/rendering.md](contracts/rendering.md)).
+- **Developer-only canonical reference (`docs/dev/reference/`)**:
+  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md)
+  and [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) retain contract
+  authority under developer ownership, not in the shared layer.
 - **Developer-owned canonical content (target `docs/dev/`)**:
   [architecture.md](architecture.md), [workflow.md](workflow.md),
   [quality.md](quality.md), [conventions.md](conventions.md),

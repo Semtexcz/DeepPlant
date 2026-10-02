@@ -47,10 +47,10 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   ([contracts/physical-piping.md](contracts/physical-piping.md));
 - YAML load/save ([contracts/yaml-format.md](contracts/yaml-format.md)) and the
   `validate` CLI ([contracts/cli.md](contracts/cli.md));
-- the basic headless read-only process renderer ([rendering.md](rendering.md))
-  and the `basic` SVG symbol-pack contract ([svg-symbols.md](svg-symbols.md));
+- the basic headless read-only process renderer ([contracts/rendering.md](contracts/rendering.md))
+  and the `basic` SVG symbol-pack contract ([dev/reference/svg-symbols.md](dev/reference/svg-symbols.md));
 - the narrow DEXPI 2.0.0 Process adapter
-  ([contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md)).
+  ([dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md)).
 
 Not implemented: full DEXPI and Plant/P&ID import/export, other vendor adapters
 (COMOS, AVEVA), instrumentation and signal semantics, engineering rules, P&ID
@@ -73,7 +73,7 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 - **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
   semantic round-trip contract is published in
-  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md)
+  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md)
   (compatibility matrix, closed support-state vocabulary, per-direction claims,
   and an explicit loss model).
 - **Issue #32 delivered its decision/evidence:** the boundary is decided in

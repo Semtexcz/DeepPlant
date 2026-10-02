@@ -61,6 +61,13 @@ change_patterns:
     - docs/architecture.md
     - docs/contracts/index.md
     - docs/quality.md
+  "src/deepplant/render.py":
+    - docs/contracts/rendering.md
+    - docs/dev/reference/svg-symbols.md
+  "src/deepplant/assets/symbols/**":
+    - docs/dev/reference/svg-symbols.md
+  "src/deepplant/adapters/**":
+    - docs/dev/reference/dexpi-process-adapter.md
   "backend/**/*.py":
     - docs/architecture.md
     - docs/quality.md

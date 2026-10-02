@@ -38,8 +38,8 @@ Governance/research slice behind
 2026-09-08. This page started as a documentation slice (no SVG symbol library,
 renderer, or runtime provenance framework was introduced there); the basic
 symbol pack and the headless process renderer have since been implemented
-under the rules recorded here (see [svg-symbols.md](svg-symbols.md) and
-[rendering.md](rendering.md)).
+under the rules recorded here (see [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) and
+[contracts/rendering.md](contracts/rendering.md)).
 
 This document defines a durable boundary between four concerns that must never
 be collapsed:
@@ -400,7 +400,7 @@ DeepPlant SVG library     → implementation asset layer with independent proven
   independent provenance. The first process/PFD pack ships as the non-normative
   `basic` pack, packaged inside the Python package under
   `deepplant/assets/symbols/process/basic/` (contract:
-  [svg-symbols.md](svg-symbols.md); consumed by [rendering.md](rendering.md)),
+  [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md); consumed by [contracts/rendering.md](contracts/rendering.md)),
   as DeepPlant-original fallback geometry under AGPL-3.0-only. Future
   standards-aligned, company, and custom packs keep independent provenance and
   may carry their own licences.

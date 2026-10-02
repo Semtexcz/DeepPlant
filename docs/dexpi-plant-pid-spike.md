@@ -934,7 +934,7 @@ semantic. `NozzleStandardLabel` exists because the *drawing* labels a nozzle; it
 carries no engineering meaning DeepPlant would have to store. Likewise
 `ShapeCatalogue`/`Shape` (with `SymbolRegistrationNumber`) is asset cataloguing —
 the concern DeepPlant already handles as symbol packs with provenance
-([svg-symbols.md](svg-symbols.md), ADR-0007/ADR-0008), not as model data.
+([dev/reference/svg-symbols.md](dev/reference/svg-symbols.md), ADR-0007/ADR-0008), not as model data.
 
 **Finding G3.** `PlantMetaData` is the expected home of drawing-level facts in an
 imported file. A future importer must decide explicitly whether to discard it
