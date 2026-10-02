@@ -191,9 +191,9 @@ v2.1 paths.
 | `docs/dev/planning/roadmap.md` | dev/agent | current | KEEP | — | Current execution state and next direction; relocated in Phase 3B (was `docs/roadmap.md`) | high (34) |
 | `docs/dev/planning/direction.md` | dev/agent | current | KEEP | — | Long-term capability progression; relocated in Phase 3B (was `docs/direction.md`) | medium (18) |
 | `docs/dev/planning/product.md` | dev/agent | current | KEEP | — | Internal product/planning thesis; relocated in Phase 3B (was `docs/product.md`); its user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
-| `docs/dev/workflow/standards.md` | dev/agent | governance | KEEP | — | Active standards usage and symbol-provenance policy; created by the Phase 6 split of `docs/standards.md` | medium (17) |
-| `docs/dev/reference/standards-registry.md` | dev/agent | reference | KEEP | — | Current standards/specification lookup data; created by the Phase 6 split of `docs/standards.md` | medium (17) |
-| `docs/dev/research/standards-licensing-evidence.md` | dev/agent | evidence | KEEP | — | Source, licence, and provenance investigation; created by the Phase 6 split of `docs/standards.md` | medium (17) |
+| `docs/dev/workflow/standards.md` | dev/agent | governance | KEEP | — | Active standards usage and symbol-provenance policy; created by the Phase 6 split of `docs/standards.md` | medium (20) |
+| `docs/dev/reference/standards-registry.md` | dev/agent | reference | KEEP | — | Current standards/specification lookup data; created by the Phase 6 split of `docs/standards.md` | medium (12) |
+| `docs/dev/research/standards-licensing-evidence.md` | dev/agent | evidence | KEEP | — | Source, licence, and provenance investigation; created by the Phase 6 split of `docs/standards.md` | medium (10) |
 
 `product.md` and `VISION.md` need a deliberate distinction: `README.md` remains
 the concise product/repository front door; `VISION.md` remains the durable

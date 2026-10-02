@@ -97,12 +97,9 @@ authoritative.
 
 - **Cross-audience contract** (shared) — [contracts/index.md](../contracts/index.md):
   what users and developers must both rely on.
-- **Developer-only contract/reference** (developer-owned) —
-  [reference/svg-symbols.md](reference/svg-symbols.md),
-  [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md), and
-  the lookup catalogue
-  [reference/standards-registry.md](reference/standards-registry.md)
-  (`type: reference`).
+- **Developer-only contract** (developer-owned) —
+  [reference/svg-symbols.md](reference/svg-symbols.md) and
+  [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md).
 - **Decision** (developer-owned) — [decisions/index.md](decisions/index.md):
   why a boundary exists.
 - **Evidence** (developer-owned) — [research/index.md](research/index.md): what

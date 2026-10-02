@@ -11,7 +11,6 @@ read_when:
 update_when:
   - standards-usage-policy-change
   - provenance-policy-change
-  - new-symbol-source-decision
 depends_on:
   - docs/dev/reference/standards-registry.md
 decision:

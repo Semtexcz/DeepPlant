@@ -48,7 +48,7 @@ in [documentation-migration.md](documentation-migration.md):
 | decision | why does this boundary exist? | `docs/dev/decisions/` |
 | evidence | what was investigated, and what came out of it? | `docs/dev/research/**` |
 | history | what shipped, in what order? | `docs/dev/history/` |
-| developer reference | implementation-facing canonical reference not covered above | `docs/dev/reference/` — developer-only contracts/reference, not a dumping ground |
+| reference | what current developer-facing lookup/catalogue data applies? | `docs/dev/reference/` — canonical developer-facing lookup/reference information that imposes neither a contract nor workflow policy |
 | guidance | how do I use what exists now? | `docs/user/**` — user-owned task/workflow guidance that links to contracts instead of restating them |
 
 The target column is **v2.1 ownership**
