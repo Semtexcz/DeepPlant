@@ -136,7 +136,7 @@ sentences):
 | DEXPI `V2.0.0` physical quantities | `src/model/Core/PhysicalQuantities/PhysicalQuantities.py` @ `260c81c5…` | `PhysicalQuantity`, `PhysicalQuantityVector` |
 | DEXPI `V2.0.0` data types | `src/model/Core/DataTypes/DataTypes.py` @ `260c81c5…` | `Scope`, `QuantityProvenance`, `QuantityRange` |
 | DEXPI `V2.0.0` Process model | `src/model/Process/Process/Process.py` @ `260c81c5…` | which process properties carry quantities |
-| Issue #22 evidence | [dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md) | the thermal-quantity property table and G5 |
+| Issue #22 evidence | [dexpi/exchanging-thermal-energy.md](dexpi/exchanging-thermal-energy.md) | the thermal-quantity property table and G5 |
 | Process-step classification | [process-step-classification.md](../../process-step-classification.md) | rejected generic property/second-axis shapes |
 | Adapter contract | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) | current fail-closed behaviour for quantities |
 
@@ -733,7 +733,7 @@ Revisit this boundary (through ADR-0013) when any of these occurs:
 
 - [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md) —
   the decision this evidence produces.
-- [dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md)
+- [dexpi/exchanging-thermal-energy.md](dexpi/exchanging-thermal-energy.md)
   — the Issue #22 evidence and gaps G1–G6.
 - [process-step-classification.md](../../process-step-classification.md) — the
   rejected generic property/second-axis shapes (ADR-0012).

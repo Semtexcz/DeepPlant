@@ -16,7 +16,7 @@ decision:
   - docs/dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
   - docs/dev/decisions/ADR-0011-canonical-physical-piping-realization.md
 evidence:
-  - docs/dexpi-plant-pid-spike.md
+  - docs/dev/research/dexpi/plant-pid-semantic-boundary.md
 superseded_by: null
 ---
 
@@ -150,5 +150,5 @@ here.
   [yaml-format.md](yaml-format.md) — the sibling canonical contracts.
 - [ADR-0010](../dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md),
   [ADR-0011](../dev/decisions/ADR-0011-canonical-physical-piping-realization.md).
-- [dexpi-plant-pid-spike.md](../dexpi-plant-pid-spike.md) — the evidence behind
+- [plant-pid-semantic-boundary.md](../dev/research/dexpi/plant-pid-semantic-boundary.md) — the evidence behind
   the `Port`/`Connection` boundary.

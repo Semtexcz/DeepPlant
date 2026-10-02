@@ -12,7 +12,7 @@
 
     DeepPlant has no canonical representation for the mandatory Method, for the
     coupling of two or more material streams through one step, or for the
-    thermal-energy side. See docs/dexpi-exchanging-thermal-energy-evidence.md.-->
+    thermal-energy side. See docs/dev/research/dexpi/exchanging-thermal-energy.md.-->
 <Model name="DeepPlantExchangingThermalEnergyProbe" uri="https://example.org/deepplant/dexpi-2-exchanging-thermal-energy-probe">
   <Import prefix="Core" source="https://data.dexpi.org/models/2.0.0/Core.xml"/>
   <Import prefix="Process" source="https://data.dexpi.org/models/2.0.0/Process.xml"/>

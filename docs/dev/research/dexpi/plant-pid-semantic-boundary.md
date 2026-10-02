@@ -19,14 +19,14 @@ evidence: []
 superseded_by: null
 ---
 
-# DEXPI 2.x Plant / P&ID Semantic Mapping Spike
+# DEXPI 2.x Plant / P&ID Physical Semantic Boundary Evidence
 
 ## Outcome card
 
-- **Question investigated:** where does the semantic boundary run between DEXPI
-  Plant/P&ID concepts and the canonical DeepPlant physical model?
-- **Status:** historical evidence (investigation complete; boundary owned by
-  ADR-0010/ADR-0011 and the plant/piping contracts).
+- **Question investigated:** how do DEXPI Plant/P&ID physical concepts map to the
+  current DeepPlant physical topology and piping boundaries?
+- **Status:** historical evidence (investigation complete; the current boundary is
+  owned by ADR-0010/ADR-0011 and the plant/piping contracts).
 - **Inspection scope and date:** official DEXPI `V2.0.0` model definitions
   (`Plant/**`, `Core/**`) and the official Reference P&ID instance, inspected
   2026-09-21.
@@ -35,23 +35,29 @@ superseded_by: null
      claims; it is a documented collapse of DEXPI `Nozzle` + `PipingNode`.
   2. `Connection` stays directed, property-free adjacency — never a pipe, pipe
      piece, line, stream, signal, or cable.
-  3. Piping realization and instrumentation are separate future layers that must
-     not be folded into `Port`, `Connection`, or `Equipment.type`.
-  4. Piping-line identity belongs to the piping network system, not to a
-     connection; piping connectivity is directed and item+node addressed.
-  5. DEXPI diagram/graphics constructs stay presentation-only.
+  3. Piping realization is a separate future physical layer; piping-line identity
+     belongs to that layer, not to a connection.
+  4. Plant/P&ID import stays unimplemented, and this evidence changes no adapter
+     or semantic-model behaviour.
 - **Resulting ADRs:** ADR-0010, ADR-0011.
 - **Current contracts operationalizing the result:**
-  [contracts/plant-model.md](contracts/plant-model.md),
-  [contracts/physical-piping.md](contracts/physical-piping.md).
+  [contracts/plant-model.md](../../../contracts/plant-model.md),
+  [contracts/physical-piping.md](../../../contracts/physical-piping.md).
 - **Conditions for revisiting:** a requirement for node-level connectivity,
-  nozzle engineering data, `1:N` realizations, or instrumentation semantics.
+  nozzle engineering data, `1:N` realizations, or Plant/P&ID import/export.
 
-> This document is the primary analysis deliverable of the DEXPI Plant/P&ID
-> semantic-mapping spike (Issue #19), not secondary documentation. It is an
-> **evidence-producing architecture spike**, not an importer implementation. Its
-> purpose is to establish where the semantic boundary runs between DEXPI
-> Plant/P&ID concepts and the canonical DeepPlant physical model:
+> This document is the physical-semantics part of the former monolithic DEXPI
+> Plant/P&ID semantic-mapping spike (Issue #19), decomposed by durable
+> responsibility. It owns the shared DEXPI release pin, the inspected-source
+> inventory, the evidence-level method, and the physical-topology and
+> piping-boundary evidence. The instrumentation/signal evidence now lives in
+> [plant-pid-instrumentation.md](plant-pid-instrumentation.md); the
+> presentation/graphics evidence lives in
+> [plant-pid-presentation.md](plant-pid-presentation.md).
+>
+> It remains an **evidence-producing architecture spike**, not an importer
+> implementation. Its purpose is to establish where the semantic boundary runs
+> between DEXPI Plant/P&ID concepts and the canonical DeepPlant physical model:
 >
 > ```text
 > DEXPI Plant / P&ID semantics
@@ -63,15 +69,19 @@ superseded_by: null
 > what belongs only in presentation?
 > ```
 >
-> The durable decisions this spike produced are recorded in
-> [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). No generic
-> Plant/P&ID importer is implemented, and this document authorizes no
+> Section numbering follows the original spike so its internal references
+> (`§5 N1/N2`, `§7 P2`, `§8 I3`, `§14`) stay valid; §9 and §10 now live in the two
+> sibling documents.
+>
+> The durable decisions this evidence produced are recorded in
+> [ADR-0010](../../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). No
+> generic Plant/P&ID importer is implemented, and this document authorizes no
 > implementation by itself.
 >
 > Follow-up status: §14 item 1 (the specification/decision slice) was completed
-> by Issue #24 — [physical-piping-model.md](physical-piping-model.md) and
-> [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md) decide
-> the canonical physical-piping shape (`PipingLine` / `PipingSegment` /
+> by Issue #24 — [physical-piping-model.md](../../../physical-piping-model.md) and
+> [ADR-0011](../../decisions/ADR-0011-canonical-physical-piping-realization.md)
+> decided the canonical physical-piping shape (`PipingLine` / `PipingSegment` /
 > `PipingRealization` over identified `Connection`s) without changing
 > `Connection` semantics. §14 item 2 (the first piping vertical slice) was
 > implemented by Issue #26 / PR #27. §14 item 3 (further DEXPI Process subset
@@ -116,7 +126,7 @@ strongly justified.*
 - **Known-upcoming risk (recorded, not worked around):** 2.0.1 is expected to
   bring **Process Model** corrections and clarifications. That risk applies to
   the Process adapter pin
-  ([dexpi-process-spike.md](dexpi-process-spike.md)), not to the Plant/P&ID
+  ([process-adapter-spike.md](process-adapter-spike.md)), not to the Plant/P&ID
   findings below, which are additionally corroborated by an official `V2.0.0`
   instance. This document should still be rechecked against 2.0.1 before any
   Plant/P&ID mapping is encoded in production code.
@@ -661,7 +671,7 @@ code, nominal diameter, and elementary pipe boundaries exist in the official
 reference P&ID and have no honest home in today's `Connection` or `Equipment`.
 **But no, that is not authorized or implemented now**: no DeepPlant requirement,
 example, or executable check currently consumes any of those facts, and the
-anti-roadmap rule in [roadmap.md](dev/planning/roadmap.md) forbids attaching pipe semantics to
+anti-roadmap rule in [roadmap.md](../../planning/roadmap.md) forbids attaching pipe semantics to
 `Connection` or introducing the layer without a current vertical slice. The
 evidence is recorded here so a future slice starts from facts rather than
 guesses.
@@ -749,203 +759,15 @@ stay `Equipment`. This spike records the discrepancy and recommends **not**
 deciding it now, because the fixture does not need the distinction and DEXPI's
 class hierarchy is not a design mandate.
 
-## 9. Instrumentation and signals
+## 11. Concept classification matrix (physical rows)
 
-*(confirmed by model/schema unless stated otherwise. The goal is classification
-only — no instrumentation support is designed or implemented here.)*
+Legend — "New semantic concept required?": **not now** = evidence recorded, no implementation authorized; **candidate** = evidence-justified future canonical concept in a distinct layer; **no** = not a canonical concern.
 
-DEXPI does **not** model instrumentation as connections. It models a **function
-layer** with its own objects, ownership, and directed references:
-
-```text
-ProcessInstrumentationFunction  (concrete: ConceptualObject +
-                                 SignalConveyingFunctionSource +
-                                 SignalConveyingFunctionTarget + TechnicalItem)
-    description: "A requirement for instrumentation and/or control structures
-                  relating to Process Engineering."
-    composes: ActuatingFunctions, ActuatingElectricalFunctions,
-              ProcessSignalGeneratingFunctions, SignalConveyingFunctions,
-              SignalConnectors (SignalOffPageConnector)
-    data:     ProcessInstrumentationFunctionNumber, Category, Modifier,
-              Location, DeviceInformation, PanelIdentificationCode,
-              GmpRelevance, GuaranteedSupplyFunction, …
-
-ProcessSignalGeneratingFunction (concrete: ConceptualObject +
-                                 SignalConveyingFunctionSource + TechnicalItem)
-    references SensingLocation → Instrumentation.SensingLocation
-    references Systems → MeasuringSystem
-
-ActuatingFunction               (concrete: ConceptualObject + Source + Target + TechnicalItem)
-    references ActuatingLocation → Piping.PipingNetworkSegment
-    references Systems → ActuatingSystem
-
-ActuatingElectricalFunction     (concrete: ConceptualObject + SignalConveyingFunctionTarget + TechnicalItem)
-    references ActuatingElectricalLocation, Systems → ActuatingElectricalSystem
-
-SignalConveyingFunction         (concrete: ConceptualObject)
-    references Source → SignalConveyingFunctionSource
-    references Target → SignalConveyingFunctionTarget
-    data: SignalConveyingType, PortStatus, SignalPointNumber, SignalProcessControlFunctions
-    └── SignalLineFunction, MeasuringLineFunction
-
-MeasuringSystem                 (concrete: ConceptualObject + TechnicalItem)
-    composes MeasuringElement, Transmitter, SensorwellReference
-    └── FlowDetector
-MeasuringElement → InlineMeasuringElementReference | OfflineMeasuringElement
-Nozzle / PipingComponent / PipingNetworkSegment  are all SensingLocation subtypes
-```
-
-`SensingLocation` is documented as "An object that can act as the
-`ProcessSignalGeneratingFunction.SensingLocation` of a
-`ProcessSignalGeneratingFunction`."
-
-### Instance evidence for a complete signal chain
-
-```xml
-<Object id="ProcessInstrumentationFunction1" type="Plant/Instrumentation.ProcessInstrumentationFunction">
-  <Data property="ProcessInstrumentationFunctionCategory"><String>P</String></Data>
-  <Data property="ProcessInstrumentationFunctionNumber"><String>4712.01</String></Data>
-  <Components property="ProcessSignalGeneratingFunctions">
-    <Object id="ProcessSignalGeneratingFunction1" type="Plant/Instrumentation.ProcessSignalGeneratingFunction">
-      <References objects="#BlindFlange1" property="SensingLocation"/>
-    </Object>
-  </Components>
-</Object>
-
-<Object id="SignalConveyingFunction1" type="Plant/Instrumentation.SignalConveyingFunction">
-  <References objects="#ProcessInstrumentationFunction2" property="Source"/>
-  <References objects="#ActuatingFunction1"               property="Target"/>
-</Object>
-```
-
-*(confirmed by official instance)*
-
-Three important structural observations:
-
-1. **`SensingLocation` can be a piping item, not just equipment.** In the
-   instance a `ProcessSignalGeneratingFunction` senses at `#BlindFlange1` — a
-   piping fitting. Instrumentation attaches to the *physical realization*, not
-   only to tagged equipment.
-2. **`ActuatingLocation` is a `PipingNetworkSegment`.** Actuation is localized
-   at segment level, again coupling instrumentation to the piping layer rather
-   than to `Equipment` directly.
-3. **Signal direction reuses the same directed-reference idiom as piping.**
-   `Source`/`Target` references with endpoint roles
-   `SignalConveyingFunctionSource` / `SignalConveyingFunctionTarget`, and some
-   classes (`ActuatingFunction`, `ProcessInstrumentationFunction`) hold both
-   roles.
-
-### Required classification of instrumentation concepts
-
-| DEXPI concept | Current DeepPlant concept? | New canonical concept required? | Adapter-only? | Presentation-only? |
-|---|---|---|---|---|
-| `ProcessInstrumentationFunction` (control requirement, number, category, location) | no | **not now** — future-capability evidence | would be adapter-mapped if a slice existed | no |
-| `ProcessSignalGeneratingFunction` (measurement function + `SensingLocation`) | no | **not now** | adapter boundary | no |
-| `MeasuringSystem`, `MeasuringElement`, `Transmitter`, `OfflineMeasuringElement` | no | **not now** | adapter boundary | no |
-| `ActuatingFunction`, `ActuatingSystem`, `ControlledActuator`, `Positioner` | no | **not now** | adapter boundary | no |
-| `ActuatingElectricalFunction`, `ActuatingElectricalSystem`, `ElectronicFrequencyConverter` | no | **not now** | adapter boundary | no |
-| `SignalConveyingFunction` / `SignalLineFunction` / `MeasuringLineFunction` (the directed signal edge) | no — and **must not** become `Connection` | **not now** | adapter boundary | no |
-| `SignalOffPageConnector`, `PipeOffPageConnector` (+ reference-by-number / by-object variants) | no | **not now** — DEXPI's own way to express a cross-sheet dangling endpoint | must be adapter-handled explicitly, never silently dropped or invented | partly: number/description labels are `Plant/Diagram` classes |
-| `SensingLocation` targets (nozzle / piping component / piping segment) | no | **not now** | adapter boundary | no |
-| instrumentation labels (`ProcessInstrumentationFunctionLabel`, `SignalConveyingFunctionLabel`, `ActuatingSystemNumberLabel`, …) | no | no | no | **yes** |
-| positions/symbols (`InstrumentationNodePosition`, `ShapeUsage`, `Core/Diagram.*`) | no | no | no | **yes** |
-
-**Finding S1.** Instrumentation is a **third semantic layer**, not a variant of
-physical connectivity. A signal edge (`SignalConveyingFunction`) and a material
-piping edge (`PipingConnection`) share a direction idiom but are different
-models with different endpoint roles. The DEXPI evidence therefore gives an
-independent reason to keep `Connection` narrow: if `Connection` became "any
-directed relationship", it would immediately contend with instrumentation
-signals, which DEXPI itself keeps in a separate package.
-
-**Finding S2 (sequencing dependency).** Instrumentation attaches to the
-*physical realization* (`SensingLocation` = nozzle / piping component /
-segment; `ActuatingLocation` = piping segment). A future instrumentation slice
-therefore depends on the piping-realization layer existing first; it cannot be
-modelled honestly by anchoring instrumentation to `Equipment` or `Port` alone.
-This is recorded as a dependency, not as a reason to build anything now.
-
-**Finding S3 (nothing implemented, nothing claimed).** No instrumentation class,
-signal concept, sensing-location field, or `Connection` widening is added by
-this spike. Instrumentation remains directional capability only (VISION.md
-capability map, roadmap Stage 10 "Multi-discipline Engineering").
-
-## 10. Presentation and graphics
-
-*(confirmed by model/schema; counts confirmed by official instance)*
-
-DEXPI keeps graphics out of the conceptual objects and inside the same document:
-
-```text
-Core.EngineeringModel.Diagram         → Core.Diagram.Diagram
-Core.EngineeringModel.ShapeCatalogues → Core.Diagram.ShapeCatalogue (composes Shape)
-Core.ConceptualModel.MetaData         → Core.Diagram.MetaData
-
-Core.Diagram.*  primitives and representation:
-    GraphicalElement, GraphicalPrimitive, NodePosition, Point, Color, Stroke,
-    Ellipse, EllipseArc, Polygon, PolyLine, Text, TextTemplate,
-    AttributeRepresentation, ConnectorLine, GraphicsGroup, RepresentationGroup,
-    Border, Static, Label, LiteralText, Symbol (→ PipeFlowArrow,
-    PipeSlopeSymbol, InsulationSymbol, CustomSymbol), Shape, ShapeUsage
-
-Core.Diagram.ShapeUsage       (an element of a RepresentationGroup)
-    IsMirrored (Boolean, required), Position (Point, required),
-    Rotation, ScaleX, ScaleY, Shape (reference, required)
-
-Plant.Diagram.*  plant-layer labels and positions:
-    EquipmentBarLabel, EquipmentTagNameLabel, NozzleStandardLabel, FittingLabel,
-    SafetyValveOrFittingLabel, PipingClassBreakLabel, PipingNodePosition
-        (superTypes DIAGRAM.NodePosition; reference property Node → Piping.PipingNode),
-    ProcessInstrumentationFunctionLabel, SignalConveyingFunctionLabel, ValveLabel,
-    ActuatingSystemNumberLabel, InsulationLabel, PipingNetworkSystemLabel,
-    PipingNetworkSegmentLabel, FailActionLabel, ReducerLabel,
-    InstrumentationNodePosition, SignalHigh*/SignalLow*Label, SafetyRelevanceLabel,
-    PlantMetaData, CustomLabel, OffPageConnector*Label, NoteIdentifierLabel…
-```
-
-Structural facts:
-
-- **No geometry, position, colour, or label lives on the conceptual classes.**
-  `Nozzle`, `Pipe`, `PipingNetworkSegment`, `CentrifugalPump`, and
-  `ProcessInstrumentationFunction` have no coordinate or symbol properties.
-  Position belongs to `ShapeUsage`/`NodePosition`; labels are `Diagram.Label`
-  subclasses.
-- `PipingNodePosition` is a `DIAGRAM.NodePosition` that **references** a semantic
-  `PipingNode`: the graphical position is a separate object pointing at the
-  semantic object, not a field on it.
-- `PlantMetaData` (block name/number, creator, revision, confidentiality…) is a
-  **`Core.Diagram`** construct reachable through `Core.ConceptualModel.MetaData`.
-  It is drawing metadata, not plant data.
-- The official instance is dominated by graphics objects alongside the semantic
-  ones: 954 `Core/Diagram.Point`, 486 `Color`, 245 `Text`, 190 `PolyLine`,
-  185 `RepresentationGroup`, 62 `ShapeUsage`, 65
-  `Plant/Diagram.PipingNodePosition`, 19 `Plant/Diagram.NozzleStandardLabel`,
-  8 `ValveLabel`, 5 `EquipmentBarLabel`, 8 `PipeFlowArrow`, 35 `ConnectorLine`.
-
-**Finding G1.** DEXPI's own information model **independently corroborates
-ADR-0003**. A standard designed for P&ID exchange separates `ConceptualModel`
-from `Diagram`, keeps engineering objects free of coordinates and symbols, and
-places drawing metadata in the graphical layer. DeepPlant's stricter file-level
-separation (no graphics at all in semantic YAML) is a superset of the same
-boundary, not a deviation from the domain.
-
-**Finding G2.** DEXPI has no presentation construct that DeepPlant must treat as
-semantic. `NozzleStandardLabel` exists because the *drawing* labels a nozzle; it
-carries no engineering meaning DeepPlant would have to store. Likewise
-`ShapeCatalogue`/`Shape` (with `SymbolRegistrationNumber`) is asset cataloguing —
-the concern DeepPlant already handles as symbol packs with provenance
-([dev/reference/svg-symbols.md](dev/reference/svg-symbols.md), ADR-0007/ADR-0008), not as model data.
-
-**Finding G3.** `PlantMetaData` is the expected home of drawing-level facts in an
-imported file. A future importer must decide explicitly whether to discard it
-(lossy, documented) or surface it outside the semantic model; it must not become
-a `PlantModel` field.
-
-## 11. Concept classification matrix
-
-Legend — "New semantic concept required?": **not now** = evidence recorded, no
-implementation authorized; **candidate** = evidence-justified future canonical
-concept in a distinct layer; **no** = not a canonical concern.
+The former mixed matrix is decomposed by evidence responsibility. The rows below
+are the physical-topology and piping classification evidence; the instrumentation
+and presentation rows are owned by
+[plant-pid-instrumentation.md](plant-pid-instrumentation.md) and
+[plant-pid-presentation.md](plant-pid-presentation.md).
 
 | DEXPI Plant/P&ID concept | Current DeepPlant concept? | New semantic concept required? | Adapter-only? | Presentation-only? |
 |---|---|---|---|---|
@@ -965,16 +787,11 @@ concept in a distinct layer; **no** = not a canonical concern.
 | `Piping.PipingNetworkSystem` (+ `LineNumber`) | – | **candidate** — line identity (§7 P2) | adapter-only until canonicalized | `PipingNetworkSystemLabel` |
 | `Piping.PipingComponent` + valve/fitting/measuring subclasses | `Equipment` + `type` (placeholder) | **candidate** for a component kind; **not now** (§8 I3) | class → `type`/lossy rule | `ValveLabel`, `FittingLabel`, … |
 | `Piping.PipeOffPageConnector` (+ by-number/by-object) | – | not now | explicit handling of dangling endpoints | `OffPageConnector*Label` |
-| `Instrumentation.*` functions, systems, elements | – | **not now** (§9) | adapter boundary | labels/positions |
-| `Instrumentation.SignalConveyingFunction` (signal edge) | – and **must not** become `Connection` | **not now** | adapter boundary | `SignalConveyingFunctionLabel` |
-| `Instrumentation.SensingLocation` / `ActuatingLocation` | – | **not now** (depends on piping layer) | adapter boundary | no |
 | `PlantStructure.*` (enterprise, site, plant, area, system, train) | – | **not now** (asset hierarchy is a different concern) | out of scope | no |
-| `Core.Diagram.*` primitives, `ShapeUsage`, `ShapeCatalogue` | – | no | no | **yes** |
-| `Plant/Diagram.*` labels, `PipingNodePosition`, `InstrumentationNodePosition`, `PlantMetaData` | – | no | no | **yes** |
 | DEXPI XML `Object@id` / `References` | – (engineering identity stays `Equipment.id`) | no | serialization mechanics | no |
 | `Import` declarations, model URIs, `ExportDateTime`, originating-system metadata | – | no | version preflight + provenance | no |
 
-## 12. Direct answers to the Issue's questions
+## 12. Direct answers to the Plant/P&ID physical questions
 
 | Issue question | Answer | Evidence level |
 |---|---|---|
@@ -989,7 +806,7 @@ concept in a distinct layer; **no** = not a canonical concern.
 | Does DeepPlant eventually need a canonical piping object distinct from `Connection`? | **Yes as a direction, no as a current slice.** Line/segment/pipe identity and piping engineering data are real, present in the official reference P&ID, and cannot live on `Connection`. This is the physical-piping realization question: what is the physical piping graph? | confirmed by model/schema + official instance |
 | Does DEXPI establish process↔physical realization? | **No.** The inspected evidence establishes neither `ProcessStep` ↔ equipment nor `ProcessStream` ↔ piping realization, and establishes no `1:1`, `1:N`, `N:1`, or `N:M` cardinality. | confirmed by model/schema + official instance |
 | Should a generic Plant/P&ID importer be implemented now? | **No.** No evidence-backed, loss-aware minimal Plant/P&ID slice was found that does not require the piping-realization layer first. That layer does not decide process↔physical realization. | engineering conclusion from the above |
-| Is an ADR justified? | **Yes** — the boundary decision (keep `Port`/`Connection`; keep piping/instrumentation out of them; keep Plant import unimplemented and fail-closed) is recorded in [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). | this document |
+| Is an ADR justified? | **Yes** — the boundary decision (keep `Port`/`Connection`; keep piping/instrumentation out of them; keep Plant import unimplemented and fail-closed) is recorded in [ADR-0010](../../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). | this document |
 
 The remaining physical-model work is split into two independent questions:
 
@@ -1061,7 +878,7 @@ In smallest order:
    reuses the existing adapter boundary. The `ExchangingThermalEnergy` example
    this spike listed has since been investigated by Issue #22 and resolved as an
    explicit unsupported status
-   ([docs/dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)):
+   ([exchanging-thermal-energy.md](exchanging-thermal-energy.md)):
    its blockers are model-level and shared with the rest of the DEXPI ProcessStep
    family, so it is no longer a candidate for a narrow per-class slice.
 

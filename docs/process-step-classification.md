@@ -83,7 +83,7 @@ DEXPI ProcessStep subclasses may carry a required, non-derivable Method
 `Method: HeatExchangeMethod` is `1..1`. Issue #22 recorded that this blocker is
 **model-level and shared with the rest of the DEXPI ProcessStep family** rather
 than specific to thermal steps
-([dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)).
+([dev/research/dexpi/exchanging-thermal-energy.md](dev/research/dexpi/exchanging-thermal-energy.md)).
 Issue #31 was created to answer that model-level half — and only that half —
 before any new canonical field is designed.
 
@@ -147,9 +147,9 @@ non-empty string).
 Policy applied: *stable release exists → target the latest stable release; a
 beta/RC newer than stable is inspected but is not made the production target
 unless strongly justified.* This is the same policy and the same pin used by
-[dexpi-process-spike.md](dexpi-process-spike.md),
-[dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), and
-[dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md).
+[dev/research/dexpi/process-adapter-spike.md](dev/research/dexpi/process-adapter-spike.md),
+[dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md), and
+[dev/research/dexpi/exchanging-thermal-energy.md](dev/research/dexpi/exchanging-thermal-energy.md).
 **No re-pinning was performed**, because no repository evidence shows the pin
 has changed.
 
@@ -167,7 +167,7 @@ has changed.
 | DeepPlant evidence baseline | branch `research/issue-31-process-step-classification`, created from `origin/main` |
 
 The tag-object-versus-release-commit distinction is the same one recorded in
-[dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)
+[dev/research/dexpi/exchanging-thermal-energy.md](dev/research/dexpi/exchanging-thermal-energy.md)
 §1; both identifiers are recorded rather than silently substituting one for the
 other. The shallow clone used for this inspection resolved to exactly
 `260c81c51039789a6148a98af4c6caf23f87a3e2`.

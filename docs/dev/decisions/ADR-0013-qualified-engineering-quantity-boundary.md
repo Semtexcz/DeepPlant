@@ -152,7 +152,7 @@ unresolved.
   [ADR-0003](ADR-0003-separate-semantic-and-presentation-models.md),
   [ADR-0011](ADR-0011-canonical-physical-piping-realization.md),
   [ADR-0012](ADR-0012-process-step-single-classification-axis.md).
-- [dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md),
+- [exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md),
   [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md),
   [contracts/process-model.md](../../contracts/process-model.md),
   [contracts/physical-piping.md](../../contracts/physical-piping.md),

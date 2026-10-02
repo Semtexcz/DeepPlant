@@ -15,7 +15,7 @@ Targeted DEXPI release: **V2.0.0** (DEXPI Specification 2.0.0, released
 | `information_flow.xml` | DeepPlant synthetic negative probe | `Process/Process.InformationFlow` class identifier from the official model | same | original; intentionally not a complete/valid process instance (diagnostic probe) | proves InformationFlow raises, never becomes `ProcessStream` |
 | `non_material_ports.xml` | DeepPlant synthetic negative probe | `Process/Process.ThermalEnergyPort`, `Process/Process.InformationPort` class identifiers from the official model | same | original; intentionally minimal (diagnostic probe) | proves non-material ports raise instead of mapping to `ProcessPort` |
 | `unsupported_process_step.xml` | DeepPlant synthetic negative probe | `Process/Process.ReactingChemicals` class identifier from the official model | same | original; intentionally minimal (diagnostic probe) | proves an out-of-subset ProcessStep class raises |
-| `exchanging_thermal_energy.xml` | DeepPlant synthetic structural negative probe | `Process/Process.ExchangingThermalEnergy`, `Process/Process.ThermalEnergyPort` class identifiers and the `HeatExchangeMethod` enumeration literals from the official model | same | original; intentionally incomplete as a full DEXPI Process instance (no complete `ProcessConnections` / connector-reference graph) | proves `ExchangingThermalEnergy` raises at the class level before connection/reference resolution; the probe carries the mandatory `Method`, representative material ports, and a thermal port (Issue #22, [docs/dexpi-exchanging-thermal-energy-evidence.md](../../../../docs/dexpi-exchanging-thermal-energy-evidence.md)) |
+| `exchanging_thermal_energy.xml` | DeepPlant synthetic structural negative probe | `Process/Process.ExchangingThermalEnergy`, `Process/Process.ThermalEnergyPort` class identifiers and the `HeatExchangeMethod` enumeration literals from the official model | same | original; intentionally incomplete as a full DEXPI Process instance (no complete `ProcessConnections` / connector-reference graph) | proves `ExchangingThermalEnergy` raises at the class level before connection/reference resolution; the probe carries the mandatory `Method`, representative material ports, and a thermal port (Issue #22, [docs/dev/research/dexpi/exchanging-thermal-energy.md](../../../../docs/dev/research/dexpi/exchanging-thermal-energy.md)) |
 | `unresolved_reference.xml` | DeepPlant synthetic negative probe | official DEXPI XML `References`/`#`-IDREF envelope | same | original; intentionally broken reference (diagnostic probe) | proves unresolved port references raise clearly |
 | `duplicate_identifier.xml` | DeepPlant synthetic negative probe | official `Identifier` data-property semantics | same | original; intentionally duplicated Identifier (diagnostic probe) | proves duplicate imported canonical ids raise |
 
@@ -64,7 +64,7 @@ Targeted DEXPI release: **V2.0.0** (DEXPI Specification 2.0.0, released
    `Plant/Enumerations.FailActionClassification.FailClose`). No official
    Process instance exists to confirm the Process package path string
    byte-for-byte; this inference is recorded in
-   [`docs/dexpi-process-spike.md`](../../../../docs/dexpi-process-spike.md).
+   [`docs/dev/research/dexpi/process-adapter-spike.md`](../../../../docs/dev/research/dexpi/process-adapter-spike.md).
 3. `energy_flows.xml` and `information_flow.xml` intentionally omit required
    reference values: they exist only to trigger the class-level "unsupported
    DEXPI connection" diagnostic before reference resolution, and are **not**

@@ -194,7 +194,7 @@ Only a subset exists today, in executable, evidence-producing vertical slices:
 - a packaged `basic` process symbol pack and a headless read-only process SVG
   renderer;
 - a narrow DEXPI 2.0 Process import/export adapter spike
-  ([docs/dexpi-process-spike.md](docs/dexpi-process-spike.md)).
+  ([docs/dev/research/dexpi/process-adapter-spike.md](docs/dev/research/dexpi/process-adapter-spike.md)).
 
 Everything else in the capability map is direction: the long-term capability
 progression is recorded in [docs/dev/planning/direction.md](docs/dev/planning/direction.md), the current

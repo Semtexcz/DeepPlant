@@ -4,7 +4,7 @@
 """DEXPI 2.x Process adapter spike tests.
 
 These tests are the executable evidence for
-``docs/dexpi-process-spike.md``. They run fully offline against committed
+``docs/dev/research/dexpi/process-adapter-spike.md``. They run fully offline against committed
 fixtures whose provenance is recorded in
 ``tests/fixtures/dexpi/2.0.0/ATTRIBUTION.md``. Assertions are semantic
 (canonical ``ProcessModel`` content), not XML-layout-based.
@@ -176,9 +176,14 @@ def test_official_target_version_is_pinned() -> None:
     assert DEXPI_SOURCE_URL == "https://gitlab.com/dexpi/Specification"
     assert DEXPI_INSPECTION_DATE == "2026-09-09"
 
-    spike_doc = (Path(__file__).resolve().parents[1] / "docs" / "dexpi-process-spike.md").read_text(
-        encoding="utf-8"
-    )
+    spike_doc = (
+        Path(__file__).resolve().parents[1]
+        / "docs"
+        / "dev"
+        / "research"
+        / "dexpi"
+        / "process-adapter-spike.md"
+    ).read_text(encoding="utf-8")
     assert "V2.0.0" in spike_doc
     assert DEXPI_TARGET_REVISION in spike_doc
     assert DEXPI_SOURCE_URL in spike_doc
@@ -488,7 +493,7 @@ def test_exchanging_thermal_energy_step_class_is_explicitly_unsupported() -> Non
     ports, and a ``ThermalEnergyPort``). It is intentionally incomplete as a full
     DEXPI Process instance and exercises rejection before connection/reference
     resolution, proving the adapter refuses the class itself and returns no
-    partial canonical model. See ``docs/dexpi-exchanging-thermal-energy-evidence.md``.
+    partial canonical model. See ``docs/dev/research/dexpi/exchanging-thermal-energy.md``.
     """
     with pytest.raises(DexpiImportError) as exc_info:
         _import_fixture("exchanging_thermal_energy.xml")

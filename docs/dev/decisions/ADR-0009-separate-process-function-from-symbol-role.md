@@ -6,7 +6,7 @@
 ## Context
 
 The DEXPI 2.x Process adapter spike
-([docs/dexpi-process-spike.md](../../dexpi-process-spike.md)) proved a canonical
+([docs/dev/research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md)) proved a canonical
 model correction with executable evidence: `ProcessStep.type` conflated two
 concepts. It was used as both the canonical engineering classification of a
 step and the presentation symbol role consumed by the renderer and the `basic`
@@ -71,7 +71,7 @@ pack-local SVG asset
     persist presentation configuration separately from semantic YAML.
 
 DEXPI evidence for this decision is documented in
-[docs/dexpi-process-spike.md](../../dexpi-process-spike.md): the type-vocabulary
+[docs/dev/research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md): the type-vocabulary
 conflation finding (§9), the export-feasibility analysis (§12), and the
 resulting reverse `pumping` round-trip are the executable basis.
 
@@ -136,4 +136,4 @@ function vocabulary/ontology from that evidence).
   the role → pack → SVG + anchor contract remains in force)
 - [../reference/svg-symbols.md](../reference/svg-symbols.md), [../../contracts/rendering.md](../../contracts/rendering.md),
   [../architecture/index.md](../architecture/index.md),
-  [../../dexpi-process-spike.md](../../dexpi-process-spike.md)
+  [../../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md)

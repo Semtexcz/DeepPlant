@@ -31,11 +31,17 @@ investigated, with dates, sources, and outcomes. Current obligations live in
 
 ## DEXPI interoperability evidence
 
+DEXPI evidence lives in the `dexpi/` cluster. The former monolithic Plant/P&ID
+spike is split by evidence responsibility: physical topology and piping
+boundaries, instrumentation/signals, and presentation/graphics.
+
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [dexpi-process-spike.md](../../dexpi-process-spike.md) | Can a DEXPI 2.x Process subset map into the canonical `ProcessModel` without hidden invention, and can it be exported back? | Narrow material subset supported; function/role conflation found and fixed; unsupported content fails by name | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md), ADR-0009 |
-| [dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md) | Can DEXPI `ExchangingThermalEnergy` map honestly to `ProcessStep(function="heat_exchange")`? | No mapping claimed: mandatory `Method`, coupled multi-stream semantics, and missing qualified quantities; class stays explicitly unsupported | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
-| [dexpi-plant-pid-spike.md](../../dexpi-plant-pid-spike.md) | Where is the semantic boundary between DEXPI Plant/P&ID and the canonical physical model? | `Port` stays sufficient for the claimed abstraction; piping and instrumentation are separate layers; Plant import stays unimplemented | [contracts/plant-model.md](../../contracts/plant-model.md), [contracts/physical-piping.md](../../contracts/physical-piping.md), ADR-0010 |
+| [dexpi/process-adapter-spike.md](dexpi/process-adapter-spike.md) | Can a DEXPI 2.x Process subset map into the canonical `ProcessModel` without hidden invention, and can it be exported back? | Narrow material subset supported; function/role conflation found and fixed; unsupported content fails by name | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md), ADR-0009 |
+| [dexpi/exchanging-thermal-energy.md](dexpi/exchanging-thermal-energy.md) | Can DEXPI `ExchangingThermalEnergy` map honestly to `ProcessStep(function="heat_exchange")`? | No mapping claimed: mandatory `Method`, coupled multi-stream semantics, and missing qualified quantities; class stays explicitly unsupported | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
+| [dexpi/plant-pid-semantic-boundary.md](dexpi/plant-pid-semantic-boundary.md) | How do DEXPI Plant/P&ID physical concepts map to the current DeepPlant physical topology and piping boundaries? | `Port` stays sufficient for the claimed abstraction; piping realization is a separate layer; Plant import stays unimplemented | [contracts/plant-model.md](../../contracts/plant-model.md), [contracts/physical-piping.md](../../contracts/physical-piping.md), ADR-0010, ADR-0011 |
+| [dexpi/plant-pid-instrumentation.md](dexpi/plant-pid-instrumentation.md) | What does inspected DEXPI Plant/P&ID evidence show about instrumentation, signals, and their relationship to DeepPlant's semantic layers? | Instrumentation is a separate function layer; signal edges must not become `Connection`; nothing implemented or claimed | ADR-0010 |
+| [dexpi/plant-pid-presentation.md](dexpi/plant-pid-presentation.md) | Where do DEXPI Plant/P&ID diagram/graphics constructs belong relative to DeepPlant semantics? | Diagram/graphics constructs are presentation-only and never become canonical engineering semantics | ADR-0003 |
 
 ## Canonical-model evidence
 

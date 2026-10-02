@@ -42,10 +42,10 @@ superseded_by: null
 - **Resulting ADRs:** ADR-0009 (function/role boundary), ADR-0012 (no second
   classification axis).
 - **Current contracts operationalizing the result:**
-  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md).
+  [dev/reference/dexpi-process-adapter.md](../../reference/dexpi-process-adapter.md).
 - **Conditions for revisiting:** a canonical qualified-quantity representation
   (the boundary is now decided by
-  [ADR-0013](dev/decisions/ADR-0013-qualified-engineering-quantity-boundary.md), but
+  [ADR-0013](../../decisions/ADR-0013-qualified-engineering-quantity-boundary.md), but
   no value is implemented), a canonical port-kind concept, or a decision recorded
   through ADR-0012's revisit list.
 
@@ -80,8 +80,8 @@ superseded_by: null
 Policy applied: *stable release exists → target the latest stable release;
 beta/RC newer than stable → inspect but do not make the production target unless
 strongly justified.* This is the same policy and the same pin already used by
-[dexpi-process-spike.md](dexpi-process-spike.md) and
-[dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md); no re-pinning is performed.
+[process-adapter-spike.md](process-adapter-spike.md) and
+[plant-pid-semantic-boundary.md](plant-pid-semantic-boundary.md); no re-pinning is performed.
 
 | Fact | Value |
 |---|---|
@@ -140,7 +140,7 @@ authoritative repository; the only XML files upstream under `V2.0.0` are
 and `src/documentation/_static/reference_pid.xml` (a Plant/P&ID instance). That
 limitation is inherited from the earlier spikes and is not resolved here.
 
-**Licence and provenance policy applied (ADR-0007, [standards.md](standards.md)).**
+**Licence and provenance policy applied (ADR-0007, [standards.md](../../../standards.md)).**
 DEXPI 2.0.0 is published under CC BY 4.0, which permits use with attribution, so
 the official model definitions may be inspected for this analysis. This document
 reproduces only class names, property names, multiplicities, type references,
@@ -414,7 +414,7 @@ hot/cold side identity per port       no port role/side field
 
 DeepPlant declines to store the last item's *statement* deliberately:
 `ProcessPort` is a named connection point with no role, and direction is derived
-from `ProcessStream` incidence (ADR-0009, [process-topology.md](process-topology.md)).
+from `ProcessStream` incidence (ADR-0009, [process-topology.md](../../../process-topology.md)).
 That design is defensible and is not the problem. The problem is that DEXPI uses
 a mandatory `Method` plus hot/cold-side quantities to state things DeepPlant has
 no place to put.
@@ -514,7 +514,7 @@ Change C-2
 Change C-3
     A canonical representation of qualified engineering quantities (value + unit)
     on steps and streams. This is the already-recorded prerequisite for any
-    broader DEXPI Process work (dexpi-process-spike.md §9 item 2), and it is far
+    broader DEXPI Process work (process-adapter-spike.md §9 item 2), and it is far
     larger than this class.
 
 Change C-4
@@ -539,7 +539,7 @@ is strictly better than an invented mapping and requires nothing.
 
 ## 8. Executable guardrails shipped with this slice
 
-Per [workflow.md](dev/workflow/index.md), an executable guardrail outranks a textual rule, so
+Per [workflow.md](../../workflow/index.md), an executable guardrail outranks a textual rule, so
 this decision is pinned by tests rather than by prose alone:
 
 - `tests/fixtures/dexpi/2.0.0/exchanging_thermal_energy.xml` — a DeepPlant-authored
@@ -620,7 +620,7 @@ All tests run offline; the DEXPI research happened during development only.
   evidence-gated renderer work. Do not mechanically promote a backlog row.
 - **Why this follows from the current repository state:** the three earlier DEXPI
   slices converged on the same conclusion from different directions — non-material
-  energy/information semantics (dexpi-process-spike.md §9), quantity representation
+  energy/information semantics (process-adapter-spike.md §9), quantity representation
   (§9 item 2), and port direction/identity — and this slice shows that one concrete
   class fails to map for exactly those reasons plus one coupling statement. The
   evidence therefore supports a model-level decision before further per-class

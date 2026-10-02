@@ -41,8 +41,8 @@ superseded_by: null
   5. Full schema conformance and byte-identical round-trip are not claimed.
 - **Resulting ADRs:** ADR-0009.
 - **Current contracts operationalizing the result:**
-  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md),
-  [contracts/process-model.md](contracts/process-model.md).
+  [dev/reference/dexpi-process-adapter.md](../../reference/dexpi-process-adapter.md),
+  [contracts/process-model.md](../../../contracts/process-model.md).
 - **Conditions for revisiting:** a DEXPI 2.0.1+ stable release, a canonical home
   for qualified quantities, or a deliberate subset expansion Issue.
 
@@ -216,7 +216,7 @@ Per the task policy, this spike therefore:
    official model/schema/supporting material (smallest useful instance needed
    to exercise the parser);
 3. labels it clearly as *DeepPlant synthetic DEXPI 2.x fixture* (see
-   [`tests/fixtures/dexpi/2.0.0/ATTRIBUTION.md`](../tests/fixtures/dexpi/2.0.0/ATTRIBUTION.md));
+   [`tests/fixtures/dexpi/2.0.0/ATTRIBUTION.md`](../../../../tests/fixtures/dexpi/2.0.0/ATTRIBUTION.md));
 4. does **not** claim the PR proved vendor/external round-trip
    interoperability.
 
@@ -318,7 +318,7 @@ records only the decisions taken.
 | `SplittingMaterial` | `splitting_material` | `lossless-normalization` | Material split; one Inlet + several Outlets. Abstract `Splitting` parent and `SplittingEnergy` are not mapped. The older `splitting` string was a presentation symbol role; since ADR-0009 the canonical value is the engineering function `splitting_material`, which the renderer's presentation policy maps back onto the `splitting` role. |
 | `Pumping` | `pumping` | `lossy` (material subset) | Defensible for liquid pumping with material ports only. DEXPI Pumping may own a driver energy port and carries `Head`/`Method`/`VolumeFlow`; the energy port is rejected and those properties are unsupported data. Since ADR-0009 the canonical function `pumping` is an engineering classification, so it **is** reverse-exported as material-only `Process/Process.Pumping` (see §12). |
 
-| `ExchangingThermalEnergy` | (`heat_exchange`) | `requires-model-change` (not imported) | Realized by a heat exchanger; transfers thermal energy between two or more material streams. DeepPlant's fragment models only one selected side, and canonical `ProcessStep` has no coupling/side/role concept to pair two flows. If an explicit thermal-energy / utility connection is modelled, it would additionally require EnergyFlow semantics. The DeepPlant function `heat_exchange` stays canonical and renderable (as `heat_exchanger` presentation role) but is **not** claimed to equal `ExchangingThermalEnergy`. Not mapped in this slice. **Investigated in full by Issue #22** against the pinned `V2.0.0` model definition, which confirmed the class's mandatory `Method: HeatExchangeMethod` (`1..1`) and its hot/cold-side qualified quantities; the resulting exact gap, verdicts (import/export/round-trip all *not claimed*), and the smallest justified model change are recorded in [dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md), with executable guardrails in `tests/test_dexpi_adapter.py`. |
+| `ExchangingThermalEnergy` | (`heat_exchange`) | `requires-model-change` (not imported) | Realized by a heat exchanger; transfers thermal energy between two or more material streams. DeepPlant's fragment models only one selected side, and canonical `ProcessStep` has no coupling/side/role concept to pair two flows. If an explicit thermal-energy / utility connection is modelled, it would additionally require EnergyFlow semantics. The DeepPlant function `heat_exchange` stays canonical and renderable (as `heat_exchanger` presentation role) but is **not** claimed to equal `ExchangingThermalEnergy`. Not mapped in this slice. **Investigated in full by Issue #22** against the pinned `V2.0.0` model definition, which confirmed the class's mandatory `Method: HeatExchangeMethod` (`1..1`) and its hot/cold-side qualified quantities; the resulting exact gap, verdicts (import/export/round-trip all *not claimed*), and the smallest justified model change are recorded in [exchanging-thermal-energy.md](exchanging-thermal-energy.md), with executable guardrails in `tests/test_dexpi_adapter.py`. |
 | `StoringFluids` / `StoringInTank` / `StoringInPressureVessel` / other `StoringMaterial` children | (`unspecified`) | `requires-model-change` (not imported) | The DEXPI classes distinguish tank vs pressure-vessel regimes. The realistic fragment's `PS-vessel` is semantically honest as `function: unspecified` (ADR-0009); a storage function would be assigned only with evidence, and tank-vs-pressure-vessel regime remains a deeper distinction canonical does not yet express. Not mapped in this slice. |
 | `ReactingChemicals`, `Separating` subtree, `Transporting*`, `SteeringFlow` subtree, `Emitting`, `Flaring`, `Supplying*`, and the remaining classes | — | `unsupported` (this slice) | Rejected with class name and object identity. Each family needs its own semantic review against a real instance before any mapping claim. |
 | Instrumentation/signal classes (`InstrumentationActivity`, `MeasuringProcessVariable`, `ControllingProcessVariable`, `Calculating*`, `TransformingProcessVariable`, `ConveyingSignal`, `InstrumentationSystemActivity`) | — | `unsupported` | Signal/instrumentation semantics; out of scope. |
@@ -428,7 +428,7 @@ are reported here; none required a model change to prove the supported subset:
    `Area`, `HotFlow`, `ColdFlow`, heat-transfer coefficients, `ΔT`) is a
    qualified physical quantity. Import, export, and semantic round-trip are
    therefore all explicitly **not claimed**. See
-   [dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md).
+   [exchanging-thermal-energy.md](exchanging-thermal-energy.md).
 5. **Storage regime** — `StoringInTank` vs `StoringInPressureVessel` regimes are
    not representable by a single canonical engineering function, and DeepPlant
    does not store a containment/presentation role for that purpose. The
@@ -663,7 +663,7 @@ XML/XSD dependency was added; tests run fully offline.
     Plant/P&ID mapping spike; do not mechanically promote the old backlog row.
     See the Roadmap check below. **Updated by Issue #22:** the
     `ExchangingThermalEnergy` candidate has since been investigated in full
-    ([dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md));
+    ([exchanging-thermal-energy.md](exchanging-thermal-energy.md));
     it resolved as an explicit unsupported status whose blockers are
     model-level (`Method` classification and qualified engineering quantities)
     rather than specific to that class, so the remaining per-class candidate is
@@ -727,4 +727,4 @@ All tests run offline; research happened during development only.
   promote the old backlog row. **Superseded in part by Issue #22:** the
   `ExchangingThermalEnergy` candidate is no longer a candidate — it resolved as
   an explicit unsupported status
-  ([dexpi-exchanging-thermal-energy-evidence.md](dexpi-exchanging-thermal-energy-evidence.md)).
+  ([exchanging-thermal-energy.md](exchanging-thermal-energy.md)).

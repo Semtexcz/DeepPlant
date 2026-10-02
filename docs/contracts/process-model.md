@@ -19,7 +19,7 @@ decision:
 evidence:
   - docs/process-fragment-prototype.md
   - docs/process-step-classification.md
-  - docs/dexpi-process-spike.md
+  - docs/dev/research/dexpi/process-adapter-spike.md
 superseded_by: null
 ---
 

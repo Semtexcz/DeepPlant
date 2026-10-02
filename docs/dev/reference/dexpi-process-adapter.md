@@ -22,8 +22,8 @@ decision:
   - docs/dev/decisions/ADR-0012-process-step-single-classification-axis.md
   - docs/dev/decisions/ADR-0013-qualified-engineering-quantity-boundary.md
 evidence:
-  - docs/dexpi-process-spike.md
-  - docs/dexpi-exchanging-thermal-energy-evidence.md
+  - docs/dev/research/dexpi/process-adapter-spike.md
+  - docs/dev/research/dexpi/exchanging-thermal-energy.md
   - docs/dev/research/qualified-engineering-quantities.md
 superseded_by: null
 ---
@@ -37,7 +37,7 @@ superseded_by: null
 > Implemented in `src/deepplant/adapters/dexpi.py`. DEXPI is an external
 > representation; the canonical model is DeepPlant's own
 > ([process-model.md](../../contracts/process-model.md), ADR-0002, ADR-0003). Research and
-> mapping rationale: [../../dexpi-process-spike.md](../../dexpi-process-spike.md).
+> mapping rationale: [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md).
 >
 > Support is **not** a single yes/no feature: every DEXPI concept has a per-row
 > state and per-direction claim in the [compatibility matrix](#compatibility-matrix).
@@ -170,7 +170,7 @@ evidence maturity.
 | Data `NominalDirection` (port) | supported (validated) | validated against, and derived from, `ProcessStream` incidence; never stored | supported (derived) | supported (preserved via incidence) | contradiction with incidence rejected; required on every port for export | `t:test_direction_contradiction_fails_clearly`, `t:test_export_rejects_port_without_incident_stream` | ADR-0009; spike §5.2 |
 | `Port.ConnectorReference` | import-only (validated) | validated against stream incidence; never stored | not applicable (never emitted) | does not break the defined round-trip; redundant with incidence | DEXPI multiplicity unresolved (`TODO check multiplicities`); tolerated when absent | `t:test_valid_connector_reference_to_matching_stream_succeeds`, `t:test_inconsistent_connector_reference_incidence_fails` | spike §5.1 |
 | `ProcessConnection.Source` / `Target` references | supported | `ProcessRef(step, port)` endpoints | supported | supported | must be `#`-IDREF tokens resolving to imported `MaterialPort`s; unresolved or mistyped rejected | `t:test_source_target_references_resolve`, `t:test_unresolved_references_fail_clearly` | spike §5.1 |
-| `Process/Process.ExchangingThermalEnergy` | investigated / unsupported | none — `heat_exchange` stays DeepPlant-native, not equal to the class | investigated / unsupported | none | mandatory `Method: HeatExchangeMethod`; couples ≥2 material streams; thermal side is a separate `ThermalEnergyPort`/`ThermalEnergyFlow`; no canonical port kind or qualified quantity | `t:test_exchanging_thermal_energy_step_class_is_explicitly_unsupported`, `t:test_exchanging_thermal_energy_is_unsupported_without_its_properties` | [Issue #22 evidence](../../dexpi-exchanging-thermal-energy-evidence.md); ADR-0012 |
+| `Process/Process.ExchangingThermalEnergy` | investigated / unsupported | none — `heat_exchange` stays DeepPlant-native, not equal to the class | investigated / unsupported | none | mandatory `Method: HeatExchangeMethod`; couples ≥2 material streams; thermal side is a separate `ThermalEnergyPort`/`ThermalEnergyFlow`; no canonical port kind or qualified quantity | `t:test_exchanging_thermal_energy_step_class_is_explicitly_unsupported`, `t:test_exchanging_thermal_energy_is_unsupported_without_its_properties` | [Issue #22 evidence](../research/dexpi/exchanging-thermal-energy.md); ADR-0012 |
 | `Process/Process.ThermalEnergyPort` | investigated / unsupported | none | investigated / unsupported | none | no canonical non-material port kind | `t:test_non_material_ports_are_not_imported`, `fix:non_material_ports.xml` | Issue #22 §3.1 |
 | `Process/Process.EnergyPort` | investigated / unsupported | none | investigated / unsupported | none | abstract general energy port; no canonical port kind | no dedicated executable fixture/test; canonical port-kind gap established by the Process model evidence | Issue #22 §3.1 |
 | `Process/Process.EnergyFlow` (`ThermalEnergyFlow`, `ElectricalEnergyFlow`, `MechanicalEnergyFlow`) | investigated / unsupported | none | investigated / unsupported | none | never collapsed into `ProcessStream`; carries `Duty`/`Temperature` | `t:test_energy_flows_are_not_imported_as_process_streams`, `fix:energy_flows.xml` | Issue #22 §3.2 |
@@ -208,7 +208,7 @@ asserts `pumping ↔ Process/Process.Pumping` (ADR-0009) and nothing more.
 ## `ExchangingThermalEnergy` (investigated / unsupported)
 
 Carried forward from Issue #22
-([evidence](../../dexpi-exchanging-thermal-energy-evidence.md): import, export, and
+([evidence](../research/dexpi/exchanging-thermal-energy.md): import, export, and
 round-trip stay unsupported). The blockers are model-level, not class-local:
 
 - mandatory `Method: HeatExchangeMethod`, with no canonical home (ADR-0012);
@@ -334,9 +334,9 @@ metadata-fidelity) claim.
 
 ## Related
 
-- [../../dexpi-process-spike.md](../../dexpi-process-spike.md) — pin research, mapping
+- [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md) — pin research, mapping
   matrix, identity semantics, export-feasibility assessment.
-- [../../dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md)
+- [../research/dexpi/exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md)
   and [../../process-step-classification.md](../../process-step-classification.md) —
   the evidence for the unsupported areas.
 - `tests/test_dexpi_adapter.py` and `tests/fixtures/dexpi/2.0.0/` — the

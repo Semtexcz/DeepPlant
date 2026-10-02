@@ -65,9 +65,9 @@ Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
 [contracts/](contracts/index.md); developer-only canonical contracts/reference
 live under `dev/reference/`; architecture, workflow/governance, planning,
-decisions, evidence, and history are now canonical under `dev/`; the remaining
-root evidence/prototype documents are still canonical for their authority type and
-will move under `dev/research/` in a later slice (see
+decisions, evidence, and history are now canonical under `dev/`; the five
+remaining root evidence/prototype documents are still canonical for their
+authority type and move under `dev/research/` in Phase 5B (see
 [documentation-migration.md](dev/workflow/documentation-migration.md) for the
 target owners).
 
