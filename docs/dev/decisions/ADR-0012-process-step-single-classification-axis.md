@@ -190,7 +190,7 @@ rejected shortcuts are in
 - [ADR-0011-canonical-physical-piping-realization.md](ADR-0011-canonical-physical-piping-realization.md)
 - [../../process-step-classification.md](../../process-step-classification.md) — the
   full evidence and candidate analysis (Issue #31)
-- [../../research/dexpi/exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md),
-  [../../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md),
+- [../research/dexpi/exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md),
+  [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md),
   [../architecture/index.md](../architecture/index.md), [../planning/roadmap.md](../planning/roadmap.md)
 

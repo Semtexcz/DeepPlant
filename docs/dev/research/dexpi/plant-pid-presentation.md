@@ -40,8 +40,8 @@ superseded_by: null
   3. A future importer must decide explicitly how to handle drawing data outside
      the semantic model; this evidence neither selects that behaviour nor designs
      persistent views.
-- **Resulting ADRs:** ADR-0003 (the semantic/presentation boundary this evidence
-  independently corroborates); ADR-0010 recorded the Plant/P&ID consequence.
+- **Resulting ADRs:** ADR-0010. This evidence independently corroborates
+  ADR-0003, which predates this investigation.
 - **Current contracts operationalizing the result:**
   [contracts/rendering.md](../../../contracts/rendering.md) and
   [dev/reference/svg-symbols.md](../../reference/svg-symbols.md) own presentation

@@ -136,4 +136,4 @@ function vocabulary/ontology from that evidence).
   the role → pack → SVG + anchor contract remains in force)
 - [../reference/svg-symbols.md](../reference/svg-symbols.md), [../../contracts/rendering.md](../../contracts/rendering.md),
   [../architecture/index.md](../architecture/index.md),
-  [../../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md)
+  [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md)
