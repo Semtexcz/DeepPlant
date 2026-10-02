@@ -149,7 +149,7 @@ Expected output (the CLI reports the physical/bootstrap layer counts):
 ```
 
 See [docs/roadmap.md](../../docs/roadmap.md) and
-[docs/architecture.md](../../docs/architecture.md).
+[docs/dev/architecture/index.md](../../docs/dev/architecture/index.md).
 
 ## Generated process diagram
 

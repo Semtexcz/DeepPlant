@@ -1146,6 +1146,6 @@ fixture, no dependency, and no network access at test time.
 - **Stale-wording sweep:** `docs/roadmap.md` backlog row 1 previously said to run
   the Plant/P&ID mapping spike "if Plant evidence is stronger then"; that
   conditional is now resolved and the roadmap/Next-Task text is updated
-  accordingly. `docs/architecture.md`'s statement that only a narrow DEXPI 2.0
+  accordingly. `docs/dev/architecture/index.md`'s statement that only a narrow DEXPI 2.0
   Process adapter exists remains true and is annotated with a pointer to this
   spike rather than rewritten.

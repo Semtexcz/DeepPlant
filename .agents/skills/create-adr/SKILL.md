@@ -7,7 +7,7 @@ inputs:
   required:
     - decision
 reads:
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
   - docs/decisions/index.md
   - .agents/templates/adr.md
 commands:

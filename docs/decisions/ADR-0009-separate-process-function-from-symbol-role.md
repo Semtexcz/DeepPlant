@@ -135,5 +135,5 @@ function vocabulary/ontology from that evidence).
   (partially superseded: only the `ProcessStep.type` → symbol-role coupling;
   the role → pack → SVG + anchor contract remains in force)
 - [../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md), [../contracts/rendering.md](../contracts/rendering.md),
-  [../architecture.md](../architecture.md),
+  [../dev/architecture/index.md](../dev/architecture/index.md),
   [../dexpi-process-spike.md](../dexpi-process-spike.md)

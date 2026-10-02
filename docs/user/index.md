@@ -11,7 +11,7 @@ update_when:
   - user-documentation-change
 depends_on:
   - docs/index.md
-  - docs/conventions.md
+  - docs/dev/workflow/conventions.md
 decision:
   - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
@@ -59,7 +59,7 @@ also developer-owned and are not required reading for users. The structure is de
   product/planning thesis and long-term non-goals. After migration, the user-facing
   explanation will be `docs/user/concepts/what-is-deepplant.md`; that page is a
   planned target and is not created by this PR.
-- **Current** — [architecture.md](../architecture.md): what exists today. This is
+- **Current** — [architecture.md](../dev/architecture/index.md): what exists today. This is
   developer-oriented; read it only if you want the internal boundary map.
 
 A user should not need architecture research, ADRs, planning governance, or

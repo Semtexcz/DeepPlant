@@ -233,4 +233,4 @@ neither depends on the other, and no cross-layer cardinality is claimed.
   [ADR-0006](ADR-0006-process-model-root-integration.md),
   [ADR-0009](ADR-0009-separate-process-function-from-symbol-role.md).
 - [docs/process-topology.md](../process-topology.md),
-  [docs/architecture.md](../architecture.md), [docs/roadmap.md](../roadmap.md).
+  [docs/dev/architecture/index.md](../dev/architecture/index.md), [docs/roadmap.md](../roadmap.md).

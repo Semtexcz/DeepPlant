@@ -43,10 +43,10 @@ Each layer has one job:
 | [VISION.md](../VISION.md) | Long-term destination / thesis — where DeepPlant is going |
 | [docs/product.md](product.md) | Product thesis, users, and durable non-goals |
 | [docs/direction.md](direction.md) | Long-term capability progression — product context, not authorization |
-| [docs/architecture.md](architecture.md) | Boundary map — what exists and its module boundaries |
+| [docs/dev/architecture/index.md](dev/architecture/index.md) | Boundary map — what exists and its module boundaries |
 | [docs/contracts/index.md](contracts/index.md) | Current model, format, CLI, renderer, and adapter obligations |
 | [docs/roadmap.md](roadmap.md) | Current state, immediate direction, and unresolved evidence gaps |
-| [docs/conventions.md](conventions.md) | Documentation authority, audience, metadata, atomicity, and linking rules |
+| [docs/dev/workflow/conventions.md](dev/workflow/conventions.md) | Documentation authority, audience, metadata, atomicity, and linking rules |
 | GitHub Project | Strategic capability map + operational horizon — visible portfolio state |
 | GitHub Milestones | Active or near-active capability goals containing concrete work |
 | GitHub Issues | Concrete bounded work that is Ready to execute |
@@ -148,7 +148,7 @@ receive empty Milestones, and no arbitrary due dates are assigned.
 |---|---|
 | Where is DeepPlant going? | `VISION.md` |
 | What major capabilities are part of the vision? | `VISION.md` capability map + GitHub Project |
-| What exists today, and what must hold now? | `docs/contracts/`, `docs/architecture.md` |
+| What exists today, and what must hold now? | `docs/contracts/`, `docs/dev/architecture/index.md` |
 | What is the immediate next direction and evidence gap? | `docs/roadmap.md` |
 | What is the long-term capability progression? | `docs/direction.md` (product context, not authorization) |
 | What shipped already? | `docs/history/implementation-slices.md` |

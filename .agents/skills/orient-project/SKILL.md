@@ -8,9 +8,9 @@ inputs:
 reads:
   - AGENTS.md
   - project/brief.md
-  - docs/architecture.md
-  - docs/workflow.md
-  - docs/quality.md
+  - docs/dev/architecture/index.md
+  - docs/dev/workflow/index.md
+  - docs/dev/workflow/quality.md
   - docs/decisions/
   - .agents/context-map.yaml
 commands:

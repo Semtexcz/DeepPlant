@@ -8,7 +8,7 @@ read_when:
   - user-documentation
 depends_on:
   - docs/contracts/yaml-format.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
 decision:
   - docs/decisions/ADR-0002-semantic-model-is-the-core.md
 evidence: []
@@ -73,4 +73,4 @@ currently library/API-level only.
 ## Related
 
 - [yaml-format.md](yaml-format.md) — error-message contract behind `validate`.
-- [architecture.md](../architecture.md) — `tests -> CLI -> io.load_plant -> model`.
+- [architecture.md](../dev/architecture/index.md) — `tests -> CLI -> io.load_plant -> model`.

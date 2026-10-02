@@ -9,7 +9,7 @@ read_when:
   - next-task-selection
 depends_on:
   - docs/contracts/index.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
   - docs/planning.md
 decision: []
 evidence: []
@@ -23,7 +23,7 @@ superseded_by: null
 It answers that question through three aspects:
 
 1. **Current state** — a short summary; canonical facts live in
-   [contracts/](contracts/index.md) and [architecture.md](architecture.md).
+   [contracts/](contracts/index.md) and [architecture.md](dev/architecture/index.md).
 2. **Immediate operational sequence** — the authorized next work and its order.
 3. **Unresolved evidence gaps** — questions whose evidence must precede another
    executable task.
@@ -55,7 +55,7 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
 Not implemented: full DEXPI and Plant/P&ID import/export, other vendor adapters
 (COMOS, AVEVA), instrumentation and signal semantics, engineering rules, P&ID
 rendering, and the interactive editor. The authoritative boundary map, including
-directional-but-unimplemented components, is [architecture.md](architecture.md).
+directional-but-unimplemented components, is [architecture.md](dev/architecture/index.md).
 
 ## Completed
 

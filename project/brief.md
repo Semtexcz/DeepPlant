@@ -39,7 +39,7 @@ yet.
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:
 
-- [docs/architecture.md](../docs/architecture.md) — what exists and its module
+- [docs/dev/architecture/index.md](../docs/dev/architecture/index.md) — what exists and its module
   boundaries;
 - [docs/contracts/index.md](../docs/contracts/index.md) — current model, format,
   CLI, renderer, and adapter obligations;
@@ -135,10 +135,10 @@ CLI, and receives a clear validation report for structural and reference errors
   lives in `docs/roadmap.md`; strategic planning governance (vision → roadmap →
   GitHub Project → milestones → ready issues → PRs) lives in `docs/planning.md`;
   documentation authority, audience, atomicity, and metadata conventions live in
-  `docs/conventions.md`; the documentation migration inventory lives in
-  `docs/documentation-migration.md`. Directional material is product context, not
-  implementation authorization: implement only the currently scoped vertical
-  slice.
+  `docs/dev/workflow/conventions.md`; the documentation migration inventory
+  lives in `docs/dev/workflow/documentation-migration.md`. Directional material
+  is product context, not implementation authorization: implement only the
+  currently scoped vertical slice.
 
 ## Risks
 

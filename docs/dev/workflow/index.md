@@ -23,9 +23,9 @@ Governance: `lightweight`. Workflow mode: `pr`.
 DeepPlant is past the project-foundation state. Work proceeds as small vertical
 changes, and the next step is deliberately reconsidered from the roadmap's
 current evidence. What exists today, and what each document owns, is recorded in
-[architecture.md](architecture.md) (boundary map), the
-[contracts](contracts/index.md) (current obligations), and
-[roadmap.md](roadmap.md) (current state and next direction). Do not implement
+[architecture.md](../architecture/index.md) (boundary map), the
+[contracts](../../contracts/index.md) (current obligations), and
+[roadmap.md](../../roadmap.md) (current state and next direction). Do not implement
 capabilities ahead of the slice that authorizes them.
 
 ## Change Loop
@@ -86,7 +86,7 @@ generated board, milestone gate, or ready-for-development gate. Keep durable
 context small:
 
 - `project/brief.md` for problem, users, outcome, constraints, and first slice
-- `docs/architecture.md` for current technical shape
+- `docs/dev/architecture/index.md` for current technical shape
 - `docs/decisions/` for ADRs when decisions become durable
 
 Ordinary reversible implementation work can proceed when it fits that context

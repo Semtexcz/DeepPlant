@@ -10,7 +10,7 @@ read_when:
 depends_on:
   - docs/contracts/yaml-format.md
   - docs/contracts/plant-model.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
 decision:
   - docs/decisions/ADR-0005-process-model-container.md
   - docs/decisions/ADR-0006-process-model-root-integration.md
@@ -145,7 +145,7 @@ questions and their revisit conditions.
 
 ## Related
 
-- [architecture.md](../architecture.md) — boundary map.
+- [architecture.md](../dev/architecture/index.md) — boundary map.
 - [plant-model.md](plant-model.md), [physical-piping.md](physical-piping.md),
   [yaml-format.md](yaml-format.md) — sibling contracts.
 - [ADR-0005](../decisions/ADR-0005-process-model-container.md),

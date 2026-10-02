@@ -11,7 +11,7 @@ update_when:
   - research-document-added
   - evidence-status-change
 depends_on:
-  - docs/conventions.md
+  - docs/dev/workflow/conventions.md
   - docs/contracts/index.md
 decision: []
 evidence: []
@@ -74,7 +74,7 @@ investigated, with dates, sources, and outcomes. Current obligations live in
 ## Outcome-card convention
 
 Every document listed above is being brought to the conventions in
-[../conventions.md](../conventions.md): front matter, an outcome card at the top,
+[../dev/workflow/conventions.md](../dev/workflow/conventions.md): front matter, an outcome card at the top,
 and an explicit statement of the current contract that operationalizes its
 outcome. Where an older document still mixes a proposed or historical shape with
 current rules, the current rule lives in the linked contract.

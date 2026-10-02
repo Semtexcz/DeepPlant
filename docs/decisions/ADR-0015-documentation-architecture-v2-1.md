@@ -34,7 +34,7 @@ absent, so:
   sits beside shared contracts in the same flat root;
 - a reader or agent looking for "the user documentation" or "the developer
   documentation" still lands in the same root directory;
-- [`docs/documentation-migration.md`](../documentation-migration.md) defaulted
+- [`docs/dev/workflow/documentation-migration.md`](../dev/workflow/documentation-migration.md) defaulted
   most root paths to `KEEP` because they already exist — a migration-cost
   argument, not a semantic-ownership argument.
 
@@ -200,8 +200,8 @@ force.
 This decision defines the target; it moves nothing. `KEEP` no longer means "the
 path already exists" and `MOVE` no longer means "a cleaner taxonomy is
 preferable". Each move is a separate bounded change with reconciled inbound links
-([docs/conventions.md](../conventions.md)). The current inventory and sequence
-are in [docs/documentation-migration.md](../documentation-migration.md).
+([docs/dev/workflow/conventions.md](../dev/workflow/conventions.md)). The current inventory and sequence
+are in [docs/dev/workflow/documentation-migration.md](../dev/workflow/documentation-migration.md).
 
 ## Consequences
 
@@ -249,8 +249,8 @@ are in [docs/documentation-migration.md](../documentation-migration.md).
 - [ADR-0014](ADR-0014-documentation-architecture-v2.md) — the preceding decision;
   its `audience != knowledge authority` invariant is retained and only its
   physical-ownership interpretation is superseded.
-- [docs/conventions.md](../conventions.md) — operational documentation rules.
-- [docs/documentation-migration.md](../documentation-migration.md) — current →
+- [docs/dev/workflow/conventions.md](../dev/workflow/conventions.md) — operational documentation rules.
+- [docs/dev/workflow/documentation-migration.md](../dev/workflow/documentation-migration.md) — current →
   target inventory and migration sequence.
 - [docs/index.md](../index.md) — the documentation router.
 - Issue #46 — this decision's origin; Issue #41 / PR #45 — the preceding

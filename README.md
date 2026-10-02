@@ -107,12 +107,12 @@ project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 | User documentation | [docs/user/index.md](docs/user/index.md) |
 | Developer / agent documentation | [docs/dev/index.md](docs/dev/index.md) |
 | Current contracts (model, YAML, CLI, renderer, DEXPI) | [docs/contracts/index.md](docs/contracts/index.md) |
-| Current architecture (boundary map) | [docs/architecture.md](docs/architecture.md) |
+| Current architecture (boundary map) | [docs/dev/architecture/index.md](docs/dev/architecture/index.md) |
 | Current state, next direction, evidence gaps | [docs/roadmap.md](docs/roadmap.md) |
 | Long-term capability progression | [docs/direction.md](docs/direction.md) |
 | Decisions | [docs/decisions/index.md](docs/decisions/index.md) |
 | Evidence and research | [docs/research/index.md](docs/research/index.md) |
 | Implementation history | [docs/history/implementation-slices.md](docs/history/implementation-slices.md) |
-| Documentation conventions | [docs/conventions.md](docs/conventions.md) |
+| Documentation conventions | [docs/dev/workflow/conventions.md](docs/dev/workflow/conventions.md) |
 | Project brief | [project/brief.md](project/brief.md) |
 | Agent instructions | [AGENTS.md](AGENTS.md) |

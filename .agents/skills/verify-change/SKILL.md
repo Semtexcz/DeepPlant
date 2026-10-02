@@ -8,8 +8,8 @@ inputs:
     - change_summary
 reads:
   - .agents/context-map.yaml
-  - docs/quality.md
-  - docs/workflow.md
+  - docs/dev/workflow/quality.md
+  - docs/dev/workflow/index.md
   - Makefile
 commands:
   - make validate-docs

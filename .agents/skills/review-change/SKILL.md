@@ -10,9 +10,9 @@ reads:
   - AGENTS.md
   - .agents/context-map.yaml
   - project/brief.md
-  - docs/architecture.md
-  - docs/quality.md
-  - docs/workflow.md
+  - docs/dev/architecture/index.md
+  - docs/dev/workflow/quality.md
+  - docs/dev/workflow/index.md
 commands:
   - git diff --stat
   - git diff

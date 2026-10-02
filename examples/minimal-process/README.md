@@ -64,5 +64,5 @@ A connection is semantic topology only: it is not yet a pipe, stream, signal, or
 other physical engineering object. Port identity is local to its equipment; the
 connection endpoints reference equipment ids and the port ids they own. Invalid
 references (an unknown component or a port the component does not own) fail
-validation. See [docs/architecture.md](../../docs/architecture.md) and
+validation. See [docs/dev/architecture/index.md](../../docs/dev/architecture/index.md) and
 [docs/roadmap.md](../../docs/roadmap.md).
