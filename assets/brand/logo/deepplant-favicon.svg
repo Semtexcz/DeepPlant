@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 512 512"
+     width="512" height="512"
+     role="img"
+     aria-labelledby="title desc">
+  <title id="title">DeepPlant favicon</title>
+  <desc id="desc">Optimized square favicon version of the DeepPlant icon.</desc>
+
+  <g id="icon" transform="translate(-10 -10)">
+    <g id="pipes"
+       fill="none"
+       stroke="#000000"
+       stroke-width="52"
+       stroke-linecap="butt"
+       stroke-linejoin="round">
+      <path d="M 142 104
+               H 300
+               C 372 104 408 150 408 266" />
+      <path d="M 142 408
+               H 300
+               C 372 408 408 362 408 266" />
+      <path d="M 142 104
+               V 212
+               C 142 246 164 266 198 266
+               H 268" />
+      <path d="M 142 408
+               H 218
+               C 250 408 268 388 268 356
+               V 266" />
+      <path d="M 268 266 H 408" />
+    </g>
+
+    <g id="nodes"
+       fill="#F11E1E"
+       stroke="#FFFFFF"
+       stroke-width="9">
+      <circle cx="142" cy="104" r="36" />
+      <circle cx="268" cy="266" r="36" />
+      <circle cx="408" cy="266" r="36" />
+      <circle cx="142" cy="408" r="36" />
+    </g>
+  </g>
+</svg>
