@@ -1,6 +1,9 @@
 # DeepPlant
 
-![DeepPlant logo](assets/brand/logo/deepplant-horizontal-master.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo/deepplant-horizontal-dark.svg">
+  <img src="assets/brand/logo/deepplant-horizontal-master.svg" alt="DeepPlant logo" width="480">
+</picture>
 
 DeepPlant is a Git-native semantic engineering platform for process plants and the
 first product implementing the idea of **Engineering as Code**: engineering intent

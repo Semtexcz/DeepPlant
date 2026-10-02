@@ -23,9 +23,12 @@ non-normative fallback assets in
 That record is the per-asset provenance source and does not claim standards
 compliance.
 
-The brand logos in [`assets/brand/logo/`](assets/brand/logo/) are also
-DeepPlant-original assets. Their [asset record](assets/brand/logo/README.md)
-states their intended variants, provenance, and distribution terms.
+The brand logo artwork in [`assets/brand/logo/`](assets/brand/logo/) is
+project-authored. Its horizontal wordmark paths were generated from Inter Bold,
+then converted to vector outlines; the SVGs have no runtime font dependency.
+Inter is distributed under the SIL Open Font License 1.1. The [asset
+record](assets/brand/logo/README.md) links the Inter project and licence and
+states the variants and distribution terms.
 
 ## Standards, vendors, and unresolved boundaries
 
