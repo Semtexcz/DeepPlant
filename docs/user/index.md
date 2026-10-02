@@ -5,13 +5,13 @@ canonical_for:
   - user-documentation-navigation
 read_when:
   - start-work
-  - authoring-plant-yaml
-  - cli-change
+  - using-deepplant
 update_when:
   - user-documentation-change
 depends_on:
   - docs/index.md
   - docs/dev/workflow/conventions.md
+  - docs/contracts/index.md
 decision:
   - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/dev/decisions/ADR-0014-documentation-architecture-v2.md
@@ -21,55 +21,42 @@ superseded_by: null
 
 # User Documentation
 
-For people who **use** DeepPlant rather than change its internals. This layer will
-eventually own the how-to-use guidance. Today it routes to existing pages;
-canonical **cross-audience contracts** stay shared in
-[contracts/](../contracts/index.md), while developer-only contracts/reference remain
-canonical but developer-owned. Architecture, decisions, planning, and evidence are
-also developer-owned and are not required reading for users. The structure is decided in
-[ADR-0015](../dev/decisions/ADR-0015-documentation-architecture-v2-1.md), refining
-[ADR-0014](../dev/decisions/ADR-0014-documentation-architecture-v2.md).
+For people who **use** DeepPlant rather than change its internals: authoring a
+model, validating it, understanding errors, and rendering a diagram.
+
+User guidance explains **workflows**. It does not own the exact rules. Every
+technical obligation — YAML shape, field semantics, CLI behaviour, renderer API —
+stays canonical in [contracts/](../contracts/index.md), and these pages link to it
+instead of restating it.
 
 ## Start here
 
-- Install, build, and run: [README.md](../../README.md) (Quick Start).
-- Minimal example: [examples/minimal-process/README.md](../../examples/minimal-process/README.md).
-- Realistic fragment and its rendered SVG:
-  [examples/realistic-process-fragment/README.md](../../examples/realistic-process-fragment/README.md).
+- [getting-started.md](getting-started.md) — from a checkout to a first validated
+  model.
 
-## Use the CLI
+## Understand DeepPlant
 
-- **Contract** — [contracts/cli.md](../contracts/cli.md): commands, printed
-  output, and exit codes.
+- [concepts/what-is-deepplant.md](concepts/what-is-deepplant.md) — what DeepPlant
+  is, what a semantic model is, and what does not exist yet.
 
-## Author a plant model as YAML
+## Common tasks
 
-- **Contract** — [contracts/yaml-format.md](../contracts/yaml-format.md):
-  authored document shape, load/save guarantees, error messages.
-- **Contract** — [contracts/plant-model.md](../contracts/plant-model.md):
-  equipment, ports, and connections.
-- **Contract** — [contracts/process-model.md](../contracts/process-model.md):
-  process steps and streams.
-- **Contract** — [contracts/physical-piping.md](../contracts/physical-piping.md):
-  piping lines, segments, and realizations.
+- Author a plant model as YAML:
+  [how-to/author-plant-yaml.md](how-to/author-plant-yaml.md)
+- Validate a model: [how-to/validate-a-model.md](how-to/validate-a-model.md)
+- Diagnose validation errors:
+  [how-to/diagnose-validation-errors.md](how-to/diagnose-validation-errors.md)
+- Render a process diagram to SVG:
+  [how-to/render-process-svg.md](how-to/render-process-svg.md)
 
-## Understand what DeepPlant is
+## Reference
 
-- **Transitional current link** — [product.md](../dev/planning/product.md): internal
-  product/planning thesis and long-term non-goals. The user-facing
-  explanation will be `docs/user/concepts/what-is-deepplant.md`; that page is a
-  planned target and is not created by this PR.
-- **Current** — [architecture.md](../dev/architecture/index.md): what exists today. This is
-  developer-oriented; read it only if you want the internal boundary map.
-
-A user should not need architecture research, ADRs, planning governance, or
-historical spikes to use DeepPlant. The pages above link to contracts, which are
-the shared authoritative reference.
+- [reference/index.md](reference/index.md) — routes to the exact canonical rules.
+- Canonical contracts: [contracts/index.md](../contracts/index.md).
 
 ## Developer or agent?
 
 If you are changing DeepPlant rather than using it, start from
-[../dev/index.md](../dev/index.md). Only the **contracts** above are shared
-between audiences; developer/agent material (architecture, decisions, evidence,
-planning, history) is canonical but developer-owned, and the audience layer
-changes both where you begin and what you should read.
+[../dev/index.md](../dev/index.md). Only the contracts are shared between
+audiences; architecture, decisions, evidence, planning, and history are
+developer-owned and are not required reading to use DeepPlant.

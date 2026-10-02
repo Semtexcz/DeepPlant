@@ -157,6 +157,14 @@ validate-docs:
 	@test -f docs/dev/history/implementation-slices.md
 	@test -f docs/contracts/rendering.md
 	@test -f docs/dev/reference/svg-symbols.md
+	@test -f docs/user/index.md
+	@test -f docs/user/getting-started.md
+	@test -f docs/user/concepts/what-is-deepplant.md
+	@test -f docs/user/how-to/author-plant-yaml.md
+	@test -f docs/user/how-to/validate-a-model.md
+	@test -f docs/user/how-to/diagnose-validation-errors.md
+	@test -f docs/user/how-to/render-process-svg.md
+	@test -f docs/user/reference/index.md
 	@test -f project/brief.md
 
 
