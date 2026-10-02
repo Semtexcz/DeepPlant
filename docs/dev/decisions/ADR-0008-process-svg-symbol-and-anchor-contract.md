@@ -28,7 +28,7 @@ DeepPlant-original geometry should be the first `basic`/fallback pack rather
 than the globally canonical engineering representation.
 
 The realistic process fragment
-([examples/realistic-process-fragment/plant.yaml](../../examples/realistic-process-fragment/plant.yaml))
+([examples/realistic-process-fragment/plant.yaml](../../../examples/realistic-process-fragment/plant.yaml))
 is the reference workload; its `ProcessStep.type` values are `source`, `mixing`,
 `pump`, `heat_exchanger`, `splitting`, `vessel`, and `sink`. ADR-0007 requires
 explicit provenance for distributed assets and restricts normative artwork, so
@@ -120,12 +120,12 @@ introduced.
 
 ## Related
 
-- [docs/dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md) — the contract in implementation
+- [docs/dev/reference/svg-symbols.md](../reference/svg-symbols.md) — the contract in implementation
   detail.
 - [ADR-0009-separate-process-function-from-symbol-role.md](ADR-0009-separate-process-function-from-symbol-role.md) —
   supersedes only this ADR's `ProcessStep.type` → symbol-role coupling.
 - [ADR-0003-separate-semantic-and-presentation-models.md](ADR-0003-separate-semantic-and-presentation-models.md)
 - [ADR-0007-standards-and-symbol-provenance.md](ADR-0007-standards-and-symbol-provenance.md)
-- [docs/standards.md](../standards.md) — provenance policy and verification
+- [docs/standards.md](../../standards.md) — provenance policy and verification
   vocabulary.
-- [docs/dev/planning/roadmap.md](../dev/planning/roadmap.md) — slice sequence and current next tasks.
+- [docs/dev/planning/roadmap.md](../planning/roadmap.md) — slice sequence and current next tasks.

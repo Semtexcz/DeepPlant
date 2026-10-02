@@ -215,5 +215,5 @@ still governs, and the actionable current/next state lives in
   context, not authorization).
 - [roadmap.md](roadmap.md) — current state, next direction, anti-roadmap.
 - [workflow.md](../workflow/index.md) — the daily change loop.
-- [decisions/index.md](../../decisions/index.md) — architectural decisions.
+- [decisions/index.md](../decisions/index.md) — architectural decisions.
 - [VISION.md](../../../VISION.md) — the durable long-term thesis and capability map.

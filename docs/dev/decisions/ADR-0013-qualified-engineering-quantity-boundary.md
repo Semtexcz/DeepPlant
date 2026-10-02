@@ -16,7 +16,7 @@ Issue #32 asked, before any field or class existed, what semantic boundary
 DeepPlant should use for numerical engineering values with units.
 
 The investigation is in
-[docs/research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md),
+[docs/dev/research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md),
 based on the pinned official DEXPI `V2.0.0` model (release commit
 `260c81c51039789a6148a98af4c6caf23f87a3e2`, inspected 2026-10-01); that document
 holds the full inventory, type analysis, and candidate comparison. It found that
@@ -146,14 +146,14 @@ unresolved.
 
 ## Related
 
-- [docs/research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md)
+- [docs/dev/research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md)
   — the full evidence and candidate analysis (Issue #32).
 - [ADR-0002](ADR-0002-semantic-model-is-the-core.md),
   [ADR-0003](ADR-0003-separate-semantic-and-presentation-models.md),
   [ADR-0011](ADR-0011-canonical-physical-piping-realization.md),
   [ADR-0012](ADR-0012-process-step-single-classification-axis.md).
-- [dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md),
-  [dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md),
-  [contracts/process-model.md](../contracts/process-model.md),
-  [contracts/physical-piping.md](../contracts/physical-piping.md),
-  [docs/dev/planning/roadmap.md](../dev/planning/roadmap.md).
+- [dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md),
+  [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md),
+  [contracts/process-model.md](../../contracts/process-model.md),
+  [contracts/physical-piping.md](../../contracts/physical-piping.md),
+  [docs/dev/planning/roadmap.md](../planning/roadmap.md).

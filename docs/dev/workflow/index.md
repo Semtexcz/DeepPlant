@@ -87,7 +87,7 @@ context small:
 
 - `project/brief.md` for problem, users, outcome, constraints, and first slice
 - `docs/dev/architecture/index.md` for current technical shape
-- `docs/decisions/` for ADRs when decisions become durable
+- `docs/dev/decisions/` for ADRs when decisions become durable
 
 Ordinary reversible implementation work can proceed when it fits that context
 and `make check` passes.

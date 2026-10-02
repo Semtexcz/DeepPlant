@@ -12,7 +12,7 @@ depends_on:
   - docs/dev/architecture/index.md
   - docs/dev/workflow/conventions.md
 decision:
-  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
+  - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
 evidence: []
 superseded_by: null
 ---
@@ -51,9 +51,9 @@ shared ownership. See
 
 ```text
 contract (here)      what must hold now
-decisions/           why the current boundary exists (ADRs, immutable record)
-research/            what was investigated, with outcomes and evidence
-history/             what shipped in which slice, in what order
+dev/decisions/       why the current boundary exists (ADRs, immutable record)
+dev/research/        what was investigated, with outcomes and evidence
+dev/history/         what shipped in which slice, in what order
 governance/          how work, planning, quality, and standards are governed
 ```
 

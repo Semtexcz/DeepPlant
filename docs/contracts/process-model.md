@@ -12,10 +12,10 @@ depends_on:
   - docs/contracts/plant-model.md
   - docs/dev/architecture/index.md
 decision:
-  - docs/decisions/ADR-0005-process-model-container.md
-  - docs/decisions/ADR-0006-process-model-root-integration.md
-  - docs/decisions/ADR-0009-separate-process-function-from-symbol-role.md
-  - docs/decisions/ADR-0012-process-step-single-classification-axis.md
+  - docs/dev/decisions/ADR-0005-process-model-container.md
+  - docs/dev/decisions/ADR-0006-process-model-root-integration.md
+  - docs/dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md
+  - docs/dev/decisions/ADR-0012-process-step-single-classification-axis.md
 evidence:
   - docs/process-fragment-prototype.md
   - docs/process-step-classification.md
@@ -148,9 +148,9 @@ questions and their revisit conditions.
 - [architecture.md](../dev/architecture/index.md) — boundary map.
 - [plant-model.md](plant-model.md), [physical-piping.md](physical-piping.md),
   [yaml-format.md](yaml-format.md) — sibling contracts.
-- [ADR-0005](../decisions/ADR-0005-process-model-container.md),
-  [ADR-0006](../decisions/ADR-0006-process-model-root-integration.md),
-  [ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-  [ADR-0012](../decisions/ADR-0012-process-step-single-classification-axis.md).
+- [ADR-0005](../dev/decisions/ADR-0005-process-model-container.md),
+  [ADR-0006](../dev/decisions/ADR-0006-process-model-root-integration.md),
+  [ADR-0009](../dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
+  [ADR-0012](../dev/decisions/ADR-0012-process-step-single-classification-axis.md).
 - [process-fragment-prototype.md](../process-fragment-prototype.md) — the
   evidence/prototype that validated these concepts.

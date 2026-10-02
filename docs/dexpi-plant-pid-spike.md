@@ -64,13 +64,13 @@ superseded_by: null
 > ```
 >
 > The durable decisions this spike produced are recorded in
-> [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). No generic
+> [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). No generic
 > Plant/P&ID importer is implemented, and this document authorizes no
 > implementation by itself.
 >
 > Follow-up status: §14 item 1 (the specification/decision slice) was completed
 > by Issue #24 — [physical-piping-model.md](physical-piping-model.md) and
-> [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md) decide
+> [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md) decide
 > the canonical physical-piping shape (`PipingLine` / `PipingSegment` /
 > `PipingRealization` over identified `Connection`s) without changing
 > `Connection` semantics. §14 item 2 (the first piping vertical slice) was
@@ -989,7 +989,7 @@ concept in a distinct layer; **no** = not a canonical concern.
 | Does DeepPlant eventually need a canonical piping object distinct from `Connection`? | **Yes as a direction, no as a current slice.** Line/segment/pipe identity and piping engineering data are real, present in the official reference P&ID, and cannot live on `Connection`. This is the physical-piping realization question: what is the physical piping graph? | confirmed by model/schema + official instance |
 | Does DEXPI establish process↔physical realization? | **No.** The inspected evidence establishes neither `ProcessStep` ↔ equipment nor `ProcessStream` ↔ piping realization, and establishes no `1:1`, `1:N`, `N:1`, or `N:M` cardinality. | confirmed by model/schema + official instance |
 | Should a generic Plant/P&ID importer be implemented now? | **No.** No evidence-backed, loss-aware minimal Plant/P&ID slice was found that does not require the piping-realization layer first. That layer does not decide process↔physical realization. | engineering conclusion from the above |
-| Is an ADR justified? | **Yes** — the boundary decision (keep `Port`/`Connection`; keep piping/instrumentation out of them; keep Plant import unimplemented and fail-closed) is recorded in [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). | this document |
+| Is an ADR justified? | **Yes** — the boundary decision (keep `Port`/`Connection`; keep piping/instrumentation out of them; keep Plant import unimplemented and fail-closed) is recorded in [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md). | this document |
 
 The remaining physical-model work is split into two independent questions:
 

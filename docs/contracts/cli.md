@@ -10,7 +10,7 @@ depends_on:
   - docs/contracts/yaml-format.md
   - docs/dev/architecture/index.md
 decision:
-  - docs/decisions/ADR-0002-semantic-model-is-the-core.md
+  - docs/dev/decisions/ADR-0002-semantic-model-is-the-core.md
 evidence: []
 superseded_by: null
 ---

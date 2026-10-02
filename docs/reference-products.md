@@ -99,10 +99,10 @@ These terms are used consistently across this document.
 
 ## Architectural invariants
 
-[ADR-0002](decisions/ADR-0002-semantic-model-is-the-core.md),
-[ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-[ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-and [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) remain
+[ADR-0002](dev/decisions/ADR-0002-semantic-model-is-the-core.md),
+[ADR-0003](dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+[ADR-0009](dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
+and [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) remain
 authoritative. Reuse never relaxes them.
 
 ### The semantic model remains authoritative
@@ -134,7 +134,7 @@ layout, interactive handles, sheet tabs, and framework node/edge objects must no
 silently become canonical engineering semantics. If evidence later requires a
 persistent view model, it belongs outside semantic YAML and must be designed
 deliberately, consistent with the deferral already recorded in
-[ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md).
+[ADR-0009](dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md).
 
 ### DeepPlant-specific differentiation
 
@@ -282,7 +282,7 @@ separate:
 
 Do not copy source code from IPD Studio. The already-recorded version-based
 assessment in [standards.md](standards.md) and
-[ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md) remains the
+[ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md) remains the
 governing provenance policy; this document adds no new permission, and a future
 reuse proposal must pin an exact upstream revision and verify the licence text
 at that revision before anything else.
@@ -367,7 +367,7 @@ asset licensing is frequently the harder question:
 
 Asset decisions follow the provenance, restricted-standards, and
 human-verification rules already recorded in [standards.md](standards.md) and
-[ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md). This document
+[ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md). This document
 deliberately does not restate or extend them; it only records that a reuse
 proposal must answer the code question and the asset question independently.
 
@@ -527,8 +527,8 @@ Nothing in this document authorizes:
   editor would consume.
 - [architecture.md](dev/architecture/index.md) — current architecture and durable
   boundaries.
-- [ADR-0002](decisions/ADR-0002-semantic-model-is-the-core.md),
-  [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-  [ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md),
-  [ADR-0009](decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-  [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md).
+- [ADR-0002](dev/decisions/ADR-0002-semantic-model-is-the-core.md),
+  [ADR-0003](dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+  [ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md),
+  [ADR-0009](dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
+  [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md).

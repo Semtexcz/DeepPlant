@@ -27,7 +27,7 @@ specification repository). It is an open semantic/interchange and
 information-model specification — not a drawing or symbol-style standard.
 
 Detailed research and the standards registry live in
-[docs/standards.md](../standards.md); this ADR records only the stable decision.
+[docs/standards.md](../../standards.md); this ADR records only the stable decision.
 
 ## Decision
 
@@ -100,8 +100,8 @@ human verification (this ADR assumes that never happens).
 
 ## Related
 
-- [docs/standards.md](../standards.md) — standards registry, research evidence,
+- [docs/standards.md](../../standards.md) — standards registry, research evidence,
   provenance policy, seven-symbol assessment.
 - [ADR-0003-separate-semantic-and-presentation-models.md](ADR-0003-separate-semantic-and-presentation-models.md)
 - [ADR-0002-semantic-model-is-the-core.md](ADR-0002-semantic-model-is-the-core.md)
-- [AGENTS.md](../../AGENTS.md) — Licensed Standards instruction for agents.
+- [AGENTS.md](../../../AGENTS.md) — Licensed Standards instruction for agents.

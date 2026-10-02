@@ -64,7 +64,7 @@ Connection != ProcessStream != PipingLine
 There is no stream thermodynamic-property model, `Component` hierarchy, or DEXPI
 extension in scope here. The physical-piping layer this document originally left
 open is now decided by
-[ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md) and
+[ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md) and
 implemented (Issue #26); it does not change any process-side conclusion below.
 
 ## Current DeepPlant model and design problem
@@ -294,7 +294,7 @@ long-term refinement is deliberately open (C2/C3), not decided by its existence.
 
 > Follow-up (2026-09-21): the plant/physical role of `Connection` is now
 > evidenced by the DEXPI Plant/P&ID spike and decided by
-> [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md): it is
+> [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md): it is
 > the single authored physical adjacency fact, and the piping layer references
 > identified `Connection`s (`PipingLine` / `PipingSegment` / `PipingRealization`)
 > instead of restating endpoints. `Connection` therefore gains canonical identity

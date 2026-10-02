@@ -25,7 +25,7 @@ superseded_by: null
 > vocabulary) with **evidence** (source and licence assessments, candidate asset
 > inventories). The policy sections govern current work; the assessments are
 > research findings with their own inspection dates. Under
-> [ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) this material
+> [ADR-0015](dev/decisions/ADR-0015-documentation-architecture-v2-1.md) this material
 > is developer/agent-owned and is a planned **SPLIT** into a policy document
 > (`docs/dev/workflow/`), a registry (`docs/dev/reference/`), and licence
 > evidence (`docs/dev/research/`); the split, with the current → target mapping,
@@ -34,7 +34,7 @@ superseded_by: null
 > in this slice.
 
 Governance/research slice behind
-[ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md). Recorded
+[ADR-0007](dev/decisions/ADR-0007-standards-and-symbol-provenance.md). Recorded
 2026-09-08. This page started as a documentation slice (no SVG symbol library,
 renderer, or runtime provenance framework was introduced there); the basic
 symbol pack and the headless process renderer have since been implemented
@@ -425,6 +425,6 @@ Official/public sources consulted on 2026-09-08:
 
 Related project documents:
 
-- [ADR-0007 — restrict standards content and require symbol provenance](decisions/ADR-0007-standards-and-symbol-provenance.md)
-- [Architecture](dev/architecture/index.md) and [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md) for the semantic/presentation boundary.
+- [ADR-0007 — restrict standards content and require symbol provenance](dev/decisions/ADR-0007-standards-and-symbol-provenance.md)
+- [Architecture](dev/architecture/index.md) and [ADR-0003](dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md) for the semantic/presentation boundary.
 - [Roadmap](dev/planning/roadmap.md) for the symbol-slice sequence.

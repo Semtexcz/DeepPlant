@@ -45,7 +45,7 @@ superseded_by: null
   [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md).
 - **Conditions for revisiting:** a canonical qualified-quantity representation
   (the boundary is now decided by
-  [ADR-0013](decisions/ADR-0013-qualified-engineering-quantity-boundary.md), but
+  [ADR-0013](dev/decisions/ADR-0013-qualified-engineering-quantity-boundary.md), but
   no value is implemented), a canonical port-kind concept, or a decision recorded
   through ADR-0012's revisit list.
 

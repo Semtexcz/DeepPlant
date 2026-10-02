@@ -19,7 +19,7 @@ superseded_by: null
 # DeepPlant SVG Symbol and Anchor Contract
 
 The first presentation-asset slice behind
-[ADR-0008](../../decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md) is the
+[ADR-0008](../decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md) is the
 DeepPlant `basic` process symbol pack. Its canonical copy is packaged inside
 the Python package at `src/deepplant/assets/symbols/process/basic/` so the
 headless process renderer resolves it at runtime through `importlib.resources`
@@ -229,15 +229,15 @@ are current basic-pack variant properties, not domain invariants.
 
 ## Related
 
-- [ADR-0008](../../decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md) —
+- [ADR-0008](../decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md) —
   durable decision for the pack-aware contract (its `ProcessStep.type` →
   symbol-role coupling is superseded by ADR-0009; the role → pack → SVG +
   anchor contract remains in force).
-- [ADR-0009](../../decisions/ADR-0009-separate-process-function-from-symbol-role.md) —
+- [ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md) —
   separates the canonical engineering function from the presentation symbol
   role.
-- [ADR-0003](../../decisions/ADR-0003-separate-semantic-and-presentation-models.md)
-  and [ADR-0007](../../decisions/ADR-0007-standards-and-symbol-provenance.md).
+- [ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md)
+  and [ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md).
 - [standards.md](../../standards.md) — provenance/licensing policy and verification
   vocabulary.
 - [rendering.md](../../contracts/rendering.md) — the headless renderer that consumes this

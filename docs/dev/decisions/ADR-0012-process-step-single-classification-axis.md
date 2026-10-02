@@ -9,7 +9,7 @@ Issue #22 established a recurring model-level blocker and reported that it was
 not class-local: DEXPI `ProcessStep` subclasses may carry a **required,
 non-derivable** `Method` property, and `ProcessStep.function` alone cannot
 preserve it
-([docs/dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md)).
+([docs/dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md)).
 Issue #31 was created to decide — before any new canonical field was designed —
 whether those `Method` properties expose one reusable canonical engineering
 concept beside `ProcessStep.function`:
@@ -20,7 +20,7 @@ possible second concept   = HOW / by what process principle / variant?
 ```
 
 The investigation is documented in
-[docs/process-step-classification.md](../process-step-classification.md), based
+[docs/process-step-classification.md](../../process-step-classification.md), based
 on the pinned official DEXPI Specification 2.0.0 (`V2.0.0`, release commit
 `260c81c51039789a6148a98af4c6caf23f87a3e2`, dated 2025-10-10, inspected
 2026-09-22). It found that:
@@ -67,7 +67,7 @@ It does **not** answer how a `ProcessStep` maps to a physical realization.
 
 Candidate analysis, the layer separation, the DeepPlant-authoring test, and the
 rejected shortcuts are in
-[docs/process-step-classification.md](../process-step-classification.md) §7–§9.
+[docs/process-step-classification.md](../../process-step-classification.md) §7–§9.
 ## Decision
 
 **A is accepted**, on the following explicit terms:
@@ -188,9 +188,9 @@ rejected shortcuts are in
 - [ADR-0009-separate-process-function-from-symbol-role.md](ADR-0009-separate-process-function-from-symbol-role.md)
 - [ADR-0010-dexpi-plant-pid-semantic-boundary.md](ADR-0010-dexpi-plant-pid-semantic-boundary.md)
 - [ADR-0011-canonical-physical-piping-realization.md](ADR-0011-canonical-physical-piping-realization.md)
-- [../process-step-classification.md](../process-step-classification.md) — the
+- [../process-step-classification.md](../../process-step-classification.md) — the
   full evidence and candidate analysis (Issue #31)
-- [../dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md),
-  [../dexpi-process-spike.md](../dexpi-process-spike.md),
-  [../dev/architecture/index.md](../dev/architecture/index.md), [../dev/planning/roadmap.md](../dev/planning/roadmap.md)
+- [../dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md),
+  [../dexpi-process-spike.md](../../dexpi-process-spike.md),
+  [../dev/architecture/index.md](../architecture/index.md), [../dev/planning/roadmap.md](../planning/roadmap.md)
 

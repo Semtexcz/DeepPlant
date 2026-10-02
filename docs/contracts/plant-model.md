@@ -11,10 +11,10 @@ depends_on:
   - docs/contracts/yaml-format.md
   - docs/dev/architecture/index.md
 decision:
-  - docs/decisions/ADR-0002-semantic-model-is-the-core.md
-  - docs/decisions/ADR-0003-separate-semantic-and-presentation-models.md
-  - docs/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
-  - docs/decisions/ADR-0011-canonical-physical-piping-realization.md
+  - docs/dev/decisions/ADR-0002-semantic-model-is-the-core.md
+  - docs/dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md
+  - docs/dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
+  - docs/dev/decisions/ADR-0011-canonical-physical-piping-realization.md
 evidence:
   - docs/dexpi-plant-pid-spike.md
 superseded_by: null
@@ -148,7 +148,7 @@ here.
 - [architecture.md](../dev/architecture/index.md) — boundary map and module layout.
 - [process-model.md](process-model.md), [physical-piping.md](physical-piping.md),
   [yaml-format.md](yaml-format.md) — the sibling canonical contracts.
-- [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md),
-  [ADR-0011](../decisions/ADR-0011-canonical-physical-piping-realization.md).
+- [ADR-0010](../dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md),
+  [ADR-0011](../dev/decisions/ADR-0011-canonical-physical-piping-realization.md).
 - [dexpi-plant-pid-spike.md](../dexpi-plant-pid-spike.md) — the evidence behind
   the `Port`/`Connection` boundary.

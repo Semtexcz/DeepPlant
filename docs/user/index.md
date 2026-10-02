@@ -13,8 +13,8 @@ depends_on:
   - docs/index.md
   - docs/dev/workflow/conventions.md
 decision:
-  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
-  - docs/decisions/ADR-0014-documentation-architecture-v2.md
+  - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
+  - docs/dev/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
 ---
@@ -27,8 +27,8 @@ canonical **cross-audience contracts** stay shared in
 [contracts/](../contracts/index.md), while developer-only contracts/reference remain
 canonical but developer-owned. Architecture, decisions, planning, and evidence are
 also developer-owned and are not required reading for users. The structure is decided in
-[ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md), refining
-[ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
+[ADR-0015](../dev/decisions/ADR-0015-documentation-architecture-v2-1.md), refining
+[ADR-0014](../dev/decisions/ADR-0014-documentation-architecture-v2.md).
 
 ## Start here
 

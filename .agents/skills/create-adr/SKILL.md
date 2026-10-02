@@ -8,7 +8,7 @@ inputs:
     - decision
 reads:
   - docs/dev/architecture/index.md
-  - docs/decisions/index.md
+  - docs/dev/decisions/index.md
   - .agents/templates/adr.md
 commands:
   - make validate-docs

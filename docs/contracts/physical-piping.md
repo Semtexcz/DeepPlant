@@ -12,8 +12,8 @@ depends_on:
   - docs/contracts/yaml-format.md
   - docs/dev/architecture/index.md
 decision:
-  - docs/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
-  - docs/decisions/ADR-0011-canonical-physical-piping-realization.md
+  - docs/dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
+  - docs/dev/decisions/ADR-0011-canonical-physical-piping-realization.md
 evidence:
   - docs/physical-piping-model.md
   - docs/dexpi-plant-pid-spike.md
@@ -218,8 +218,8 @@ authorized by its absence here.
 
 - [plant-model.md](plant-model.md) — the topology this layer references.
 - [yaml-format.md](yaml-format.md) — load/save mechanics.
-- [ADR-0011](../decisions/ADR-0011-canonical-physical-piping-realization.md) —
-  the decision; [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md)
+- [ADR-0011](../dev/decisions/ADR-0011-canonical-physical-piping-realization.md) —
+  the decision; [ADR-0010](../dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md)
   — the `Port`/`Connection` boundary.
 - [../physical-piping-model.md](../physical-piping-model.md) — the design
   evidence: requirement analysis, candidate B selection, worked fragment, Git

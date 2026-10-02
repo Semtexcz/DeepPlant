@@ -110,9 +110,9 @@ project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 | Current architecture (boundary map) | [docs/dev/architecture/index.md](docs/dev/architecture/index.md) |
 | Current state, next direction, evidence gaps | [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md) |
 | Long-term capability progression | [docs/dev/planning/direction.md](docs/dev/planning/direction.md) |
-| Decisions | [docs/decisions/index.md](docs/decisions/index.md) |
-| Evidence and research | [docs/research/index.md](docs/research/index.md) |
-| Implementation history | [docs/history/implementation-slices.md](docs/history/implementation-slices.md) |
+| Decisions | [docs/dev/decisions/index.md](docs/dev/decisions/index.md) |
+| Evidence and research | [docs/dev/research/index.md](docs/dev/research/index.md) |
+| Implementation history | [docs/dev/history/implementation-slices.md](docs/dev/history/implementation-slices.md) |
 | Documentation conventions | [docs/dev/workflow/conventions.md](docs/dev/workflow/conventions.md) |
 | Project brief | [project/brief.md](project/brief.md) |
 | Agent instructions | [AGENTS.md](AGENTS.md) |

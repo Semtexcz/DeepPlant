@@ -21,11 +21,11 @@
 ## Context
 
 DeepPlant's documentation already separates **knowledge authority** from a single
-undifferentiated pile: [contracts](../contracts/index.md) own what must hold now,
+undifferentiated pile: [contracts](../../contracts/index.md) own what must hold now,
 [decisions](index.md) record why a boundary exists,
 [research](../research/index.md) records what was investigated, and
 [history](../history/implementation-slices.md) records what shipped. The rules
-for that authority model live in [docs/dev/workflow/conventions.md](../dev/workflow/conventions.md).
+for that authority model live in [docs/dev/workflow/conventions.md](../workflow/conventions.md).
 
 Issue #41 found that authority separation is necessary but **not sufficient** as
 a navigation model:
@@ -76,8 +76,8 @@ Scored against the criteria Issue #41 requires:
 Evidence for the choice: existing contracts already declare cross-audience
 reader intents (`docs/contracts/cli.md` lists `user-documentation`;
 `docs/contracts/yaml-format.md` lists `authoring-plant-yaml`), and
-[docs/contracts/index.md](../contracts/index.md) already treats the in-place root
-contracts ([rendering.md](../contracts/rendering.md), [svg-symbols.md](../dev/reference/svg-symbols.md))
+[docs/contracts/index.md](../../contracts/index.md) already treats the in-place root
+contracts ([rendering.md](../../contracts/rendering.md), [svg-symbols.md](../reference/svg-symbols.md))
 as canonical *where they are*. Canonical truth is cross-audience, not
 audience-owned.
 
@@ -110,9 +110,9 @@ terms:
 
 The operational rules that implement this — document types, the metadata
 vocabulary, the audience model, and the KEEP / MOVE / SPLIT policy — live in
-[docs/dev/workflow/conventions.md](../dev/workflow/conventions.md). The evidence-backed migration inventory
+[docs/dev/workflow/conventions.md](../workflow/conventions.md). The evidence-backed migration inventory
 and the proposed incremental sequence live in
-[docs/dev/workflow/documentation-migration.md](../dev/workflow/documentation-migration.md).
+[docs/dev/workflow/documentation-migration.md](../workflow/documentation-migration.md).
 
 ## Consequences
 
@@ -151,10 +151,10 @@ and the proposed incremental sequence live in
 
 ## Related
 
-- [docs/dev/workflow/conventions.md](../dev/workflow/conventions.md) — operational documentation rules.
-- [docs/dev/workflow/documentation-migration.md](../dev/workflow/documentation-migration.md) — migration
+- [docs/dev/workflow/conventions.md](../workflow/conventions.md) — operational documentation rules.
+- [docs/dev/workflow/documentation-migration.md](../workflow/documentation-migration.md) — migration
   inventory and sequence.
-- [docs/index.md](../index.md) — the audience/authority router.
-- [docs/decisions/index.md](index.md) — decision index.
+- [docs/index.md](../../index.md) — the audience/authority router.
+- [docs/dev/decisions/index.md](index.md) — decision index.
 - Issue #41 — this decision's origin. Issue #39 — the independent semantic-model
   `Now` item, unaffected by this decision.
