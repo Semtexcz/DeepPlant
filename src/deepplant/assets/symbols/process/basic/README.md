@@ -40,7 +40,7 @@ Every SVG here is **DeepPlant-original** and independently authored. No
 ISO/ISA/IEC figure was copied, traced, screenshot-reused, or AI-derived. No
 geometry from draw.io, IPD Studio, ISPF, or any other third-party pack was
 copied or adapted. This pack is governed by
-[docs/standards.md](../../../../../../docs/standards.md) and
+[docs/dev/workflow/standards.md](../../../../../../docs/dev/workflow/standards.md) and
 [ADR-0007](../../../../../../docs/dev/decisions/ADR-0007-standards-and-symbol-provenance.md).
 
 | Role | File | Origin | Licence | Copyright holder | Modification state | Upstream revision | Standards status |

@@ -238,8 +238,8 @@ are current basic-pack variant properties, not domain invariants.
   role.
 - [ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md)
   and [ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md).
-- [standards.md](../../standards.md) — provenance/licensing policy and verification
-  vocabulary.
+- [standards.md](../workflow/standards.md) — provenance/licensing policy and
+  verification vocabulary.
 - [rendering.md](../../contracts/rendering.md) — the headless renderer that consumes this
   contract.
 - [roadmap.md](../planning/roadmap.md) — slice sequence and next tasks.

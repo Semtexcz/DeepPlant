@@ -188,7 +188,7 @@ All DEXPI semantic claims below come from these official `V2.0.0` paths:
 
 DEXPI 2.0.0 is published under CC BY 4.0, which permits use with attribution, so
 the official model definitions may be inspected for this analysis (ADR-0007,
-[standards.md](../../standards.md)). This document reproduces only class names,
+[standards.md](../workflow/standards.md)). This document reproduces only class names,
 property names, multiplicities, type references, enumeration literal names, and
 at most the short class-definition sentence needed to make the engineering
 judgement auditable. No DEXPI figures, symbol artwork, PDF text, or substantial

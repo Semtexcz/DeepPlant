@@ -38,8 +38,8 @@ coherent, single-question document stays whole however long it is. Length alone
 is never a reason to split (see [Size as a review signal](#size-as-a-review-signal)).
 
 Documents should not mix independent authority types. This is the target
-architectural rule; known legacy exceptions awaiting bounded migration are
-recorded in [documentation-migration.md](documentation-migration.md):
+architectural rule; the migration that removed the legacy exceptions is recorded
+in [documentation-migration.md](documentation-migration.md):
 
 | Type | Answers | Target home |
 |---|---|---|
@@ -55,9 +55,9 @@ The target column is **v2.1 ownership**
 ([ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
 *should* own each type, deliberately replacing the earlier assumption that all
 canonical content lives in a shared root. All authority classes now have their
-canonical v2.1 homes established; the Phase 5 evidence/prototype relocation into
-`docs/dev/research/` is complete, and `docs/standards.md` is the only remaining
-substantive root document scheduled to leave/split under Phase 6. The migration
+canonical v2.1 homes established; the Phase 5 evidence/prototype relocation and
+the Phase 6 standards authority split are complete, so the `docs/` root holds
+only `index.md` plus the `contracts/`, `dev/`, and `user/` trees. The migration
 inventory, including the full current → target mapping, is kept in
 [documentation-migration.md](documentation-migration.md).
 
@@ -106,9 +106,9 @@ them directly.
 
 ```yaml
 ---
-type: architecture | governance | contract | roadmap | direction | project-brief
-      | navigation | product | history | evidence | prototype | design-evidence
-      | guidance
+type: architecture | governance | contract | reference | roadmap | direction
+      | project-brief | navigation | product | history | evidence | prototype
+      | design-evidence | guidance
 status: active | historical | superseded | proposed
 canonical_for:   # the stable question or contract key this document owns
   - example-key
@@ -126,6 +126,13 @@ superseded_by: null   # required for historical/superseded documents
 
 The vocabulary is deliberately small. Every field must earn its keep for
 ownership, authority/lifecycle, navigation, or agent-context routing:
+
+The `reference` type is narrow: it marks canonical **developer-facing
+lookup/catalogue** information that describes current project reference data but
+does not itself impose a contract or workflow policy — for example the standards
+registry (`docs/dev/reference/standards-registry.md`). A document that imposes
+obligations remains `contract` (model/format/API behaviour) or `governance`
+(rules and process), never `reference`.
 
 | Field | Required | Purpose it serves |
 |---|---|---|
@@ -305,8 +312,14 @@ physical-ownership boundary. Current state:
   navigation maps. The contract/reference moves were the first canonical
   documents to leave the `docs/` root; the Phase 3A architecture and
   workflow/governance moves, the Phase 3B planning moves, and the Phase 3C
-  decision/evidence/history moves followed, and Phase 5 relocated the remaining
-  root evidence and prototype documents into `docs/dev/research/`.
+  decision/evidence/history moves followed, Phase 5 relocated the remaining
+  root evidence and prototype documents into `docs/dev/research/`, and Phase 6
+  split the last root standards document into policy
+  ([standards.md](standards.md), `docs/dev/workflow/`), reference
+  ([standards-registry.md](../reference/standards-registry.md),
+  `docs/dev/reference/`), and evidence
+  ([standards-licensing-evidence.md](../research/standards-licensing-evidence.md),
+  `docs/dev/research/`).
 - **Shared documentation layer (narrow)**: cross-audience `docs/contracts/*`
   (plant model, process model, physical piping, YAML format, CLI, and the public
   renderer contract [contracts/rendering.md](../../contracts/rendering.md)).
@@ -328,13 +341,18 @@ physical-ownership boundary. Current state:
   [planning/product.md](../planning/product.md) now live under `docs/dev/planning/`;
   their inbound links, navigations, metadata, and agent routing were reconciled
   in the same slice.
-- **Developer-owned canonical content (still target `docs/dev/`)**:
-  [standards.md](../../standards.md).
+- **Developer-owned canonical standards material (split by authority in
+  Phase 6)**: policy [standards.md](standards.md), reference
+  [standards-registry.md](../reference/standards-registry.md), and
+  evidence
+  [standards-licensing-evidence.md](../research/standards-licensing-evidence.md).
+  The former single `docs/standards.md` was split into these three homes and no
+  longer exists.
 - **Decision, evidence, and history (`docs/dev/`)**: [decisions/](../decisions/index.md),
   [research/](../research/index.md),
   [history/implementation-slices.md](../history/implementation-slices.md), and the
   evidence/prototype documents in [research/index.md](../research/index.md)
-  (relocated in Phases 3C and 5; `docs/standards.md` is split later).
+  (relocated in Phases 3C and 5; the standards split landed in Phase 6).
 - **Repository-role exceptions and global navigation**: `README.md` and
   `VISION.md` remain broad public/repository entry documents; `AGENTS.md` and
   `project/brief.md` remain developer/agent-oriented despite their root or

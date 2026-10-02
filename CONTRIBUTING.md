@@ -33,7 +33,7 @@ source, licence, modifications, and attribution requirements for:
 
 Public availability is not proof that material may be redistributed. The
 repository's [third-party notices](THIRD_PARTY_NOTICES.md) and existing
-[standards policy](docs/standards.md) describe the evidence maintainers need.
+[standards policy](docs/dev/workflow/standards.md) describe the evidence maintainers need.
 
 ## Pull request checklist
 

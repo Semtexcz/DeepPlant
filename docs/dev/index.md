@@ -38,7 +38,13 @@ workflow/governance documents followed in Phase 3A
 planning followed in Phase 3B ([planning/](planning/index.md)); and decisions,
 research/evidence, and history followed in Phase 3C
 ([decisions/](decisions/index.md), [research/](research/index.md),
-[history/](history/implementation-slices.md)). The current → target mapping is in
+[history/](history/implementation-slices.md)). Phase 5 relocated the last root
+evidence/prototype documents, and Phase 6 split the standards document into
+policy ([workflow/standards.md](workflow/standards.md)), registry
+([reference/standards-registry.md](reference/standards-registry.md)), and
+evidence
+([research/standards-licensing-evidence.md](research/standards-licensing-evidence.md)).
+The current → target mapping is in
 [documentation-migration.md](workflow/documentation-migration.md).
 
 ## Start here
@@ -49,6 +55,8 @@ research/evidence, and history followed in Phase 3C
 - **Governance** — [quality.md](workflow/quality.md): checks and test expectations.
 - **Current** — [roadmap.md](planning/roadmap.md): current state and next direction.
 - **Governance** — [conventions.md](workflow/conventions.md): documentation rules.
+- **Governance** — [standards.md](workflow/standards.md): standards usage and
+  symbol-provenance policy.
 
 ## Smallest relevant context for a task
 
@@ -69,6 +77,8 @@ table, not an orchestration engine.
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
 | Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
 | Change the DEXPI adapter | [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md) — the developer-only DEXPI Process adapter contract |
+| Work with standards material or symbol assets | [workflow/standards.md](workflow/standards.md), then [reference/standards-registry.md](reference/standards-registry.md) |
+| Investigate a symbol-asset source or licence | [research/standards-licensing-evidence.md](research/standards-licensing-evidence.md) |
 | Decide or record an architecture boundary | [decisions/index.md](decisions/index.md), [conventions.md](workflow/conventions.md) |
 | Add or change evidence | [research/index.md](research/index.md) |
 | Review implementation history | [history/implementation-slices.md](history/implementation-slices.md) |
@@ -89,7 +99,10 @@ authoritative.
   what users and developers must both rely on.
 - **Developer-only contract/reference** (developer-owned) —
   [reference/svg-symbols.md](reference/svg-symbols.md),
-  [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md).
+  [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md), and
+  the lookup catalogue
+  [reference/standards-registry.md](reference/standards-registry.md)
+  (`type: reference`).
 - **Decision** (developer-owned) — [decisions/index.md](decisions/index.md):
   why a boundary exists.
 - **Evidence** (developer-owned) — [research/index.md](research/index.md): what
@@ -98,8 +111,11 @@ authoritative.
   [history/implementation-slices.md](history/implementation-slices.md): what
   shipped, in what order.
 - **Governance** (developer-owned) — [planning.md](planning/index.md),
-  [standards.md](../standards.md), [quality.md](workflow/quality.md),
+  [standards.md](workflow/standards.md), [quality.md](workflow/quality.md),
   [workflow.md](workflow/index.md), [conventions.md](workflow/conventions.md).
+- **Reference** (developer-owned) —
+  [standards-registry.md](reference/standards-registry.md): current standards
+  lookup data (not policy).
 - **Direction** (developer-owned) — [direction.md](planning/direction.md),
   [product.md](planning/product.md).
 

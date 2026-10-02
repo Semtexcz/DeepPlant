@@ -191,7 +191,9 @@ v2.1 paths.
 | `docs/dev/planning/roadmap.md` | dev/agent | current | KEEP | — | Current execution state and next direction; relocated in Phase 3B (was `docs/roadmap.md`) | high (34) |
 | `docs/dev/planning/direction.md` | dev/agent | current | KEEP | — | Long-term capability progression; relocated in Phase 3B (was `docs/direction.md`) | medium (18) |
 | `docs/dev/planning/product.md` | dev/agent | current | KEEP | — | Internal product/planning thesis; relocated in Phase 3B (was `docs/product.md`); its user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
-| `docs/standards.md` | dev/agent | governance + evidence | SPLIT | see below | Mixes policy, registry, and licence evidence | medium (17) |
+| `docs/dev/workflow/standards.md` | dev/agent | governance | KEEP | — | Active standards usage and symbol-provenance policy; created by the Phase 6 split of `docs/standards.md` | medium (17) |
+| `docs/dev/reference/standards-registry.md` | dev/agent | reference | KEEP | — | Current standards/specification lookup data; created by the Phase 6 split of `docs/standards.md` | medium (17) |
+| `docs/dev/research/standards-licensing-evidence.md` | dev/agent | evidence | KEEP | — | Source, licence, and provenance investigation; created by the Phase 6 split of `docs/standards.md` | medium (17) |
 
 `product.md` and `VISION.md` need a deliberate distinction: `README.md` remains
 the concise product/repository front door; `VISION.md` remains the durable
@@ -278,25 +280,32 @@ remaining root-evidence slice, both now complete:
            → docs/dev/research/reference-products.md
 
 Phase 5 — COMPLETE
-Phase 6 — NEXT (the `standards.md` split)
+Phase 6 — COMPLETE (the `standards.md` authority split)
+
+Phases 1–6 — COMPLETE
+Structural migration: COMPLETE
+Phase 7 — OPTIONAL (documentation renderer/search integration only if a real
+           need appears)
 ```
 
 The `dexpi/` cluster therefore exists now, with one canonical home per evidence
 responsibility, and the historical monolithic Plant/P&ID spike no longer exists
 as a single active evidence document. Phase 5B relocated the five remaining root
 evidence/prototype documents into `docs/dev/research/` with no split or content
-redesign, so Phase 5 is **complete**: no root evidence or prototype document
-remains in the `docs/` root, and `docs/standards.md` is the only remaining
-substantive root document. Phase 6 (the `standards.md` split) is next, and no
-Phase 6 Issue is created in advance.
+redesign, so Phase 5 is **complete**. Phase 6 then split the last substantive
+root document by authority, so no substantive document remains in the `docs/`
+root and the Documentation Architecture v2.1 structural migration is complete.
 
-## `standards.md` — explicit split assessment
+## `standards.md` — authority split (Phase 6, complete)
 
-`docs/standards.md` mixes three independently maintained responsibilities with
-different lifecycles. Under v2.1 all three are developer/agent-owned, so the
-split moves them into the developer layer rather than leaving them shared:
+`docs/standards.md` mixed three independently maintained responsibilities with
+different lifecycles. Phase 6 split it by authority; all three results are
+developer/agent-owned:
 
 ```text
+docs/standards.md
+    → SPLIT into:
+
 active policy        restricted-standards rules, symbol-provenance
                      policy, verification vocabulary
                      -> docs/dev/workflow/standards.md          (governance)
@@ -310,10 +319,11 @@ evidence             source and licensing assessments, with
                                                                 (evidence)
 ```
 
-The split itself is a later bounded slice, not part of this correction. Until it
-lands, the policy sections are the active part and the assessments are evidence
-with their own dates. `docs/dev/reference/` is reserved for internal reference
-material that is neither workflow governance nor investigation evidence.
+Phase 6 — COMPLETE. The original `docs/standards.md` no longer exists; the three
+files above are the current canonical homes, and the `reference` front-matter
+type was introduced for the registry. `docs/dev/reference/` stays reserved for
+internal reference material that is neither workflow governance nor
+investigation evidence.
 
 ## User layer — the Phase 4 foundation
 
@@ -397,20 +407,22 @@ governance, or historical spikes to be read.
   `docs/user/how-to/render-process-svg.md`, and
   `docs/user/reference/index.md` — new user-owned pages, not relocations.
 
-**Still to leave the `docs/` root (later slices):**
+**Nothing remains to leave the `docs/` root:**
 
-- `docs/standards.md` → split into `docs/dev/workflow/`,
-  `docs/dev/reference/`, and `docs/dev/research/`
+- `docs/standards.md` → SPLIT into `docs/dev/workflow/standards.md`,
+  `docs/dev/reference/standards-registry.md`, and
+  `docs/dev/research/standards-licensing-evidence.md` (Phase 6, complete)
 
 The Phase 5 evidence/prototype relocation is complete: the DEXPI documents left
 the root in Phase 5A, and the five remaining documents
 (`docs/physical-piping-model.md`, `docs/process-topology.md`,
 `docs/process-fragment-prototype.md`, `docs/process-step-classification.md`,
-`docs/reference-products.md`) left it in Phase 5B. No root evidence or prototype
-document remains.
+`docs/reference-products.md`) left it in Phase 5B. Phase 6 then split the last
+substantive root document. No substantive document remains at the `docs/` root.
 
 After full migration the `docs/` root holds only `index.md` plus the three
-audience/authority trees (`user/`, `dev/`, `contracts/`). Every other current
+audience/authority trees (`user/`, `dev/`, `contracts/`); that is the current
+state after Phase 6. Every other current
 root document is covered by a `MOVE`/`SPLIT` row above, so no root page is left
 unassigned; this inventory itself relocated to
 `docs/dev/workflow/documentation-migration.md` in Phase 3A. `docs/index.md`
@@ -422,7 +434,10 @@ remains global navigation, not part of the shared documentation layer.
   topology, instrumentation, presentation). **Done in Phase 5A:** the parts are
   `docs/dev/research/dexpi/plant-pid-semantic-boundary.md`,
   `…/plant-pid-instrumentation.md`, and `…/plant-pid-presentation.md`.
-- `docs/standards.md` — split into policy, registry, and licence evidence.
+- `docs/standards.md` — split by authority into policy
+  (`docs/dev/workflow/standards.md`), registry
+  (`docs/dev/reference/standards-registry.md`), and licence/provenance evidence
+  (`docs/dev/research/standards-licensing-evidence.md`). **Done in Phase 6.**
 
 ## Migration sequence
 
@@ -477,10 +492,18 @@ later slice may reorder these steps if repository evidence supports it.
        no evidence/prototype document remains at the root
    Phase 5 — COMPLETE
 
-6. Standards split
-   workflow policy; developer reference registry; licensing evidence
+6. Standards authority split — DONE
+   docs/standards.md
+       → SPLIT into:
+         docs/dev/workflow/standards.md                    (governance policy)
+         docs/dev/reference/standards-registry.md          (reference)
+         docs/dev/research/standards-licensing-evidence.md (evidence)
+   Phase 6 — COMPLETE
 
-7. Optional documentation renderer/search integration
+   Phases 1–6 — COMPLETE
+   Documentation Architecture v2.1 structural migration: COMPLETE
+
+7. Optional documentation renderer/search integration — OPTIONAL / NOT SCHEDULED
    only if a real need appears
 ```
 
@@ -491,16 +514,17 @@ itself), planning, decisions, research, and history `MOVE` rows; step 4 created
 every user-owned page planned for the Phase 4 foundation; step 5 covers every
 root research/prototype `MOVE` — phase 5A delivered the `MOVE` / `MOVE + SPLIT`
 DEXPI cluster and phase 5B delivered the five remaining root documents, so step 5
-is complete; and step 6
-covers the `standards.md` `SPLIT`. Each move/split slice
-reconciles its affected inbound links, navigation, metadata, and agent routing
-in the same pass.
+is complete; and step 6 delivered the `standards.md` `SPLIT`, so the
+Documentation Architecture v2.1 structural migration is complete. Each move/split
+slice reconciled its affected inbound links, navigation, metadata, and agent
+routing in the same pass.
 
 Step 2 established the contract/reference homes before developer or user pages
 link to them. Step 3 preceded step 4 so the audience layers were already
 separated before user content was added. Step 5 followed step 4 so evidence moves
-reuse links already reconciled once. Steps 1, 2, 3 (3A, 3B, 3C), 4, and 5
-(5A and 5B) are complete; step 6 (the `standards.md` split) is next.
+reuse links already reconciled once. Steps 1, 2, 3 (3A, 3B, 3C), 4, 5 (5A and
+5B), and 6 are complete. Documentation Architecture v2.1 structural migration is
+complete; step 7 (renderer/search integration) remains optional and unscheduled.
 
 ## Agent context consequences
 
@@ -561,6 +585,14 @@ them:
 - the generic `docs/**` route is deliberately unchanged and names no user guide,
   so ordinary documentation and implementation work does not eagerly load the
   user layer.
+
+Phase 6 split the standards document but added no broad documentation route.
+Standards-sensitive symbol-asset work is the only pattern that needs the new
+authority files, so the existing narrow `src/deepplant/assets/symbols/**` route
+now also resolves to the current policy (`docs/dev/workflow/standards.md`) and the
+registry (`docs/dev/reference/standards-registry.md`). The licensing evidence is
+deliberately **not** routed — it is loaded only when a task actually investigates
+a source or licence — and no `docs/dev/**` catch-all route was introduced.
 
 Every migrated path — both the pattern key and the routed context files — is now
 named at its v2.1 location rather than its historical root path, and `AGENTS.md`

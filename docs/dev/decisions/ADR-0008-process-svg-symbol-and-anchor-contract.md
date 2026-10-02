@@ -126,6 +126,6 @@ introduced.
   supersedes only this ADR's `ProcessStep.type` → symbol-role coupling.
 - [ADR-0003-separate-semantic-and-presentation-models.md](ADR-0003-separate-semantic-and-presentation-models.md)
 - [ADR-0007-standards-and-symbol-provenance.md](ADR-0007-standards-and-symbol-provenance.md)
-- [docs/standards.md](../../standards.md) — provenance policy and verification
-  vocabulary.
+- [docs/dev/workflow/standards.md](../workflow/standards.md) — provenance policy
+  and verification vocabulary.
 - [docs/dev/planning/roadmap.md](../planning/roadmap.md) — slice sequence and current next tasks.
