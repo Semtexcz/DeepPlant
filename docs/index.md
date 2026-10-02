@@ -47,8 +47,8 @@ despite their locations. `docs/index.md` is global navigation, not shared
 documentation. Developer/agent material is canonical *and* developer-owned, so it
 lives under `dev/`; architecture, workflow/governance, planning, decisions,
 evidence, and history have moved there, and the Phase 5 evidence/prototype
-relocation is complete. The current → target
-mapping is in
+relocation and the Phase 6 standards authority split are complete. The current →
+target mapping is in
 [documentation-migration.md](dev/workflow/documentation-migration.md).
 
 ## Audience entry points
@@ -65,12 +65,10 @@ Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
 [contracts/](contracts/index.md); developer-only canonical contracts/reference
 live under `dev/reference/`; architecture, workflow/governance, planning,
-decisions, evidence, and history are now canonical under `dev/`; the Phase 5
-evidence/prototype relocation is complete, so every evidence/prototype document
-except `docs/standards.md` now lives under `dev/research/`, and
-`docs/standards.md` awaits its Phase 6 split (see
-[documentation-migration.md](dev/workflow/documentation-migration.md) for the
-target owners).
+decisions, evidence, and history are canonical under `dev/`. The documentation
+migration is complete: every root document has a canonical v2.1 home, including
+the Phase 6 split of the standards document into policy, registry, and evidence
+(see [documentation-migration.md](dev/workflow/documentation-migration.md)).
 
 - **Current** — what exists and what must hold now.
 - **Contract** — current model / API / format obligations.
@@ -90,7 +88,9 @@ target owners).
 | Why a choice was made | [decisions/index.md](dev/decisions/index.md) |
 | Evidence, research, or a prototype | [research/index.md](dev/research/index.md) |
 | What shipped, in order | [history/implementation-slices.md](dev/history/implementation-slices.md) |
-| Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](dev/planning/index.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](standards.md) |
+| Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](dev/planning/index.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](dev/workflow/standards.md) |
+| Current standards reference set (identifiers, roles, editions) | [standards-registry.md](dev/reference/standards-registry.md) |
+| Standards / symbol licensing investigation | [standards-licensing-evidence.md](dev/research/standards-licensing-evidence.md) |
 | Agent instructions | [AGENTS.md](../AGENTS.md) |
 
 The planned split/relocation of documents lives in

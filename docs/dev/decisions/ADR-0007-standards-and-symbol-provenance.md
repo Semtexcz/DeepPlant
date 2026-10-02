@@ -26,8 +26,12 @@ official DEXPI announcement of 2025-10-10 and in the official GitLab
 specification repository). It is an open semantic/interchange and
 information-model specification — not a drawing or symbol-style standard.
 
-Detailed research and the standards registry live in
-[docs/standards.md](../../standards.md); this ADR records only the stable decision.
+The active policy lives in [workflow/standards.md](../workflow/standards.md), the
+current reference set in
+[reference/standards-registry.md](../reference/standards-registry.md), and the
+licensing/source research in
+[research/standards-licensing-evidence.md](../research/standards-licensing-evidence.md);
+this ADR records only the stable decision.
 
 ## Decision
 
@@ -45,7 +49,7 @@ Detailed research and the standards registry live in
 - Standards correspondence and asset copyright are separate concerns. Visual
   similarity is not compliance; alignment claims use the conservative states
   `reference` / `candidate-alignment` / `human-verified` defined in
-  `docs/standards.md`.
+  [workflow/standards.md](../workflow/standards.md).
 - DEXPI may be directly used where its CC BY 4.0 licence permits, with the
   required attribution. DEXPI is an open interoperability/semantic reference,
   not the DeepPlant drawing standard, and its graphics model does not dictate
@@ -83,7 +87,8 @@ Detailed research and the standards registry live in
 
 - The SVG symbol library itself, the symbol/anchor contract, and any renderer.
 - A machine-readable provenance manifest and any asset-management framework
-  (see the illustrative example in `docs/standards.md`; not implemented).
+  (see the illustrative example in
+  [workflow/standards.md](../workflow/standards.md); not implemented).
 - Import decisions for specific third-party packs (ISPF `ispf-pid-v1` remains
   blocked on upstream licence clarification; draw.io P&ID shapes remain
   candidates pending per-file licence confirmation).
@@ -100,8 +105,12 @@ human verification (this ADR assumes that never happens).
 
 ## Related
 
-- [docs/standards.md](../../standards.md) — standards registry, research evidence,
-  provenance policy, seven-symbol assessment.
+- [workflow/standards.md](../workflow/standards.md) — current standards usage and
+  symbol-provenance policy (including the verification vocabulary).
+- [reference/standards-registry.md](../reference/standards-registry.md) — current
+  standard/specification reference set.
+- [research/standards-licensing-evidence.md](../research/standards-licensing-evidence.md)
+  — licensing, source, and provenance research, and the seven-symbol assessment.
 - [ADR-0003-separate-semantic-and-presentation-models.md](ADR-0003-separate-semantic-and-presentation-models.md)
 - [ADR-0002-semantic-model-is-the-core.md](ADR-0002-semantic-model-is-the-core.md)
 - [AGENTS.md](../../../AGENTS.md) — Licensed Standards instruction for agents.

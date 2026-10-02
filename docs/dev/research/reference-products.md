@@ -276,13 +276,14 @@ separate:
 
 | Aspect | Status | DeepPlant consequence |
 |---|---|---|
-| Code that may legally be reused | Not established. The repository URL recorded in [standards.md](../../standards.md#ipd-studio-historicalcurrent-symbol-assets) was **not reachable at the 2026-09-30 re-check**, so neither the current licence nor the historical version boundary could be re-confirmed from upstream at that time. | Treat as **needs review**. Do not incorporate code. |
-| Code that must not be incorporated | Any release whose terms are source-available/non-commercial or otherwise incompatible with DeepPlant's public AGPL-3.0-only repository and commercial-use requirements. The earlier assessment recorded in [standards.md](../../standards.md) placed current releases (`v0.13.0+`) under a non-commercial source-available licence. | Not a reuse candidate; re-verify terms before any future claim. |
+| Code that may legally be reused | Not established. The repository URL recorded in [standards-licensing-evidence.md](standards-licensing-evidence.md#ipd-studio-historicalcurrent-symbol-assets) was **not reachable at the 2026-09-30 re-check**, so neither the current licence nor the historical version boundary could be re-confirmed from upstream at that time. | Treat as **needs review**. Do not incorporate code. |
+| Code that must not be incorporated | Any release whose terms are source-available/non-commercial or otherwise incompatible with DeepPlant's public AGPL-3.0-only repository and commercial-use requirements. The earlier assessment recorded in [standards-licensing-evidence.md](standards-licensing-evidence.md) placed current releases (`v0.13.0+`) under a non-commercial source-available licence. | Not a reuse candidate; re-verify terms before any future claim. |
 | UX and architectural concepts that may be studied | The product's interaction and workflow ideas are public product behaviour. | Study freely as **UX inspiration**. |
 
 Do not copy source code from IPD Studio. The already-recorded version-based
-assessment in [standards.md](../../standards.md) and
-[ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md) remains the
+assessment in [standards-licensing-evidence.md](standards-licensing-evidence.md)
+and [ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md), plus
+the current policy in [standards.md](../workflow/standards.md), remain the
 governing provenance policy; this document adds no new permission, and a future
 reuse proposal must pin an exact upstream revision and verify the licence text
 at that revision before anything else.
@@ -366,7 +367,7 @@ asset licensing is frequently the harder question:
 - third-party engineering symbol packs
 
 Asset decisions follow the provenance, restricted-standards, and
-human-verification rules already recorded in [standards.md](../../standards.md) and
+human-verification rules already recorded in [standards.md](../workflow/standards.md) and
 [ADR-0007](../decisions/ADR-0007-standards-and-symbol-provenance.md). This document
 deliberately does not restate or extend them; it only records that a reuse
 proposal must answer the code question and the asset question independently.
@@ -463,7 +464,7 @@ Licence and capability claims above were checked against upstream sources on
 - [FreeCAD/FreeCAD](https://github.com/FreeCAD/FreeCAD) — repository licence
   metadata (LGPL-2.1).
 - IPD Studio — the upstream repository URL recorded in
-  [standards.md](../../standards.md) returned HTTP 404 at the 2026-09-30 check, and
+  [standards-licensing-evidence.md](standards-licensing-evidence.md) returned HTTP 404 at the 2026-09-30 check, and
   the maintainer account no longer lists it publicly, although it is still
   advertised. **Unresolved.**
 - [bcakmakoglu/vue-flow](https://github.com/bcakmakoglu/vue-flow) — `LICENSE`
@@ -519,8 +520,11 @@ Nothing in this document authorizes:
 - [roadmap.md](../planning/roadmap.md) — Stage 3 (Engineering Views) and Stage 4
   (Interactive Editing) are the stages this landscape informs; the anti-roadmap
   still governs.
-- [standards.md](../../standards.md) — standards registry, symbol provenance policy,
-  and the existing IPD Studio asset assessment.
+- [standards.md](../workflow/standards.md) — standards usage and symbol
+  provenance policy; [standards-registry.md](../reference/standards-registry.md)
+  — the current standards reference set; and
+  [standards-licensing-evidence.md](standards-licensing-evidence.md) — the IPD
+  Studio and other candidate-asset assessments.
 - [contracts/rendering.md](../../contracts/rendering.md) — the implemented headless renderer and its
   explicit deferrals.
 - [dev/reference/svg-symbols.md](../reference/svg-symbols.md) — the symbol and anchor contract a future

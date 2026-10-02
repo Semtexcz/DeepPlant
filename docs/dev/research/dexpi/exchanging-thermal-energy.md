@@ -140,7 +140,7 @@ authoritative repository; the only XML files upstream under `V2.0.0` are
 and `src/documentation/_static/reference_pid.xml` (a Plant/P&ID instance). That
 limitation is inherited from the earlier spikes and is not resolved here.
 
-**Licence and provenance policy applied (ADR-0007, [standards.md](../../../standards.md)).**
+**Licence and provenance policy applied (ADR-0007, [standards.md](../../workflow/standards.md)).**
 DEXPI 2.0.0 is published under CC BY 4.0, which permits use with attribution, so
 the official model definitions may be inspected for this analysis. This document
 reproduces only class names, property names, multiplicities, type references,

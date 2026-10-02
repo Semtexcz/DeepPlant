@@ -154,6 +154,10 @@ validate-docs:
 	@test -f docs/dev/reference/dexpi-process-adapter.md
 	@test -f docs/dev/decisions/index.md
 	@test -f docs/dev/research/index.md
+	@test -f docs/dev/workflow/standards.md
+	@test -f docs/dev/reference/standards-registry.md
+	@test -f docs/dev/research/standards-licensing-evidence.md
+	@test ! -e docs/standards.md
 	@test -f docs/dev/history/implementation-slices.md
 	@test -f docs/contracts/rendering.md
 	@test -f docs/dev/reference/svg-symbols.md

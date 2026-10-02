@@ -69,7 +69,7 @@ boundaries, instrumentation/signals, and presentation/graphics.
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
 | [reference-products.md](reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../planning/direction.md) stages 3–4 (not authorized) |
-| [standards.md](../../standards.md) | Which standards may be referenced, what may be stored, and what provenance do distributed symbols need? | Policy plus registry plus source assessment (shared document; policy is the active part) | ADR-0007 |
+| [standards-licensing-evidence.md](standards-licensing-evidence.md) | What public/open sources, licences, provenance claims, and candidate graphical assets were inspected to justify DeepPlant's standards and symbol-provenance policy? | Source/licence/provenance findings with their inspection dates: ISPF not approved, draw.io `pid2` a candidate pending per-file confirmation, IPD Studio current rejected, DEXPI CC BY 4.0 confirmed; no asset imported | ADR-0007 + [workflow/standards.md](../workflow/standards.md) (policy); [reference/standards-registry.md](../reference/standards-registry.md) (registry) |
 
 Implementation history is maintained separately in
 [docs/dev/history/implementation-slices.md](../history/implementation-slices.md).

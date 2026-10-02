@@ -62,7 +62,8 @@ Never merge automatically.
 ## Licensed Standards
 
 DeepPlant references engineering standards by identifier and never redistributes
-their restricted normative content. See `docs/standards.md` and ADR-0007.
+their restricted normative content. See `docs/dev/workflow/standards.md` (policy)
+and ADR-0007.
 
 - Do not commit restricted standards content or standards PDFs unless the
   applicable licence explicitly permits redistribution.
@@ -80,7 +81,7 @@ their restricted normative content. See `docs/standards.md` and ADR-0007.
   sources. Standards conformance that depends on restricted normative content
   requires explicit human verification against an authorized copy.
 - Distributed symbol assets need explicit redistributable provenance before
-  they enter the repository (see `docs/standards.md`).
+  they enter the repository (see `docs/dev/workflow/standards.md`).
 
 ## Standard Commands
 

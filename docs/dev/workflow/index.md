@@ -88,6 +88,8 @@ context small:
 - `project/brief.md` for problem, users, outcome, constraints, and first slice
 - `docs/dev/architecture/index.md` for current technical shape
 - `docs/dev/decisions/` for ADRs when decisions become durable
+- `docs/dev/workflow/standards.md` for standards usage and symbol-provenance
+  rules, when work touches standards material or distributed symbol assets
 
 Ordinary reversible implementation work can proceed when it fits that context
 and `make check` passes.

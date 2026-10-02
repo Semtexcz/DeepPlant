@@ -66,6 +66,8 @@ change_patterns:
     - docs/dev/reference/svg-symbols.md
   "src/deepplant/assets/symbols/**":
     - docs/dev/reference/svg-symbols.md
+    - docs/dev/workflow/standards.md
+    - docs/dev/reference/standards-registry.md
   "src/deepplant/adapters/dexpi.py":
     - docs/dev/reference/dexpi-process-adapter.md
   "tests/test_dexpi_adapter.py":
