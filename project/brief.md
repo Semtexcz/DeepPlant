@@ -134,8 +134,9 @@ CLI, and receives a clear validation report for structural and reference errors
   progression lives in `docs/direction.md`; the actionable current/next state
   lives in `docs/roadmap.md`; strategic planning governance (vision → roadmap →
   GitHub Project → milestones → ready issues → PRs) lives in `docs/planning.md`;
-  documentation authority, metadata, and length conventions live in
-  `docs/conventions.md`. Directional material is product context, not
+  documentation authority, audience, atomicity, and metadata conventions live in
+  `docs/conventions.md`; the documentation migration inventory lives in
+  `docs/documentation-migration.md`. Directional material is product context, not
   implementation authorization: implement only the currently scoped vertical
   slice.
 

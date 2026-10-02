@@ -72,6 +72,10 @@ change_patterns:
   "project/**":
     - project/roadmap.md
     - project/brief.md
+  "docs/**":
+    - docs/index.md
+    - docs/conventions.md
+    - docs/documentation-migration.md
   ".agents/**":
     - .agents/README.md
   "**/Dockerfile":
@@ -89,6 +93,8 @@ checks:
   "artifacts/openapi.json":
     - make api-check
   "project/**":
+    - make validate-docs
+  "docs/**":
     - make validate-docs
   ".agents/**":
     - make validate-agent-skills

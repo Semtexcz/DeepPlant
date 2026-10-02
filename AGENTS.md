@@ -2,15 +2,26 @@
 
 ## Required Start
 
-Start by reading the durable project context:
+Build the smallest relevant documentation context from the task, the files you
+will change, and the selected skill — do not eagerly load the entire repository
+documentation. Start from the navigation maps:
+
+- [docs/index.md](docs/index.md) — audience/authority router;
+- [docs/dev/index.md](docs/dev/index.md) — developer/agent navigation and the
+  task → context routing table;
+- [.agents/context-map.yaml](.agents/context-map.yaml) — machine-readable
+  `always` / `task` / change-pattern context selection.
+
+Minimum durable context for nearly any change:
 
 ```bash
 sed -n '1,220p' project/brief.md
 sed -n '1,220p' docs/architecture.md
 sed -n '1,220p' docs/workflow.md
-sed -n '1,220p' docs/contracts/index.md
-sed -n '1,220p' docs/conventions.md
 ```
+
+Then add only the contract, ADR, or evidence the task needs, as
+[docs/dev/index.md](docs/dev/index.md) directs.
 
 
 This project uses lightweight governance. There is no mandatory task state
