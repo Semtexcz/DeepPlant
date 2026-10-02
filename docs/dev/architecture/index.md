@@ -11,10 +11,10 @@ depends_on:
   - docs/contracts/index.md
   - docs/dev/workflow/conventions.md
 decision:
-  - docs/decisions/ADR-0001-baseline.md
-  - docs/decisions/ADR-0002-semantic-model-is-the-core.md
-  - docs/decisions/ADR-0003-separate-semantic-and-presentation-models.md
-  - docs/decisions/ADR-0004-yaml-is-a-serialization-format.md
+  - docs/dev/decisions/ADR-0001-baseline.md
+  - docs/dev/decisions/ADR-0002-semantic-model-is-the-core.md
+  - docs/dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md
+  - docs/dev/decisions/ADR-0004-yaml-is-a-serialization-format.md
 evidence: []
 superseded_by: null
 ---
@@ -26,7 +26,7 @@ Project type: `script`. Runtime level: `shared`. Governance: `lightweight`.
 This document is a **boundary map**: what exists, where it lives, and which
 document owns each current detail. It is deliberately not a specification. Every
 obligation lives in a contract under [contracts/](../../contracts/index.md); reasons
-live in [decisions/](../../decisions/index.md); long-term direction lives in
+live in [decisions/](../decisions/index.md); long-term direction lives in
 [direction.md](../planning/direction.md).
 
 ## What exists
@@ -159,5 +159,5 @@ make build   # uv build
 - [roadmap.md](../planning/roadmap.md) — current state, next direction, evidence gaps.
 - [direction.md](../planning/direction.md) — capability progression (not authorization).
 - [product.md](../planning/product.md) — product thesis and long-term position.
-- [decisions/index.md](../../decisions/index.md) — decision records.
+- [decisions/index.md](../decisions/index.md) — decision records.
 - [conventions.md](../workflow/conventions.md) — document types and linking rules.

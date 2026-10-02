@@ -151,7 +151,7 @@ receive empty Milestones, and no arbitrary due dates are assigned.
 | What exists today, and what must hold now? | `docs/contracts/`, `docs/dev/architecture/index.md` |
 | What is the immediate next direction and evidence gap? | `docs/dev/planning/roadmap.md` |
 | What is the long-term capability progression? | `docs/dev/planning/direction.md` (product context, not authorization) |
-| What shipped already? | `docs/history/implementation-slices.md` |
+| What shipped already? | `docs/dev/history/implementation-slices.md` |
 | What is Now / Next / Later / Exploration? | GitHub Project Horizon field |
 | Which capabilities are active enough for Milestones? | current roadmap state + Milestone policy above |
 | Which concrete work is actually Ready? | bounded Issues created just in time |

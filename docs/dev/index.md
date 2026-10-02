@@ -14,8 +14,8 @@ depends_on:
   - docs/index.md
   - docs/dev/workflow/conventions.md
 decision:
-  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
-  - docs/decisions/ADR-0014-documentation-architecture-v2.md
+  - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
+  - docs/dev/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
 ---
@@ -24,9 +24,9 @@ superseded_by: null
 
 For contributors, maintainers, and agents **changing** DeepPlant. This is a
 navigation map, not a content dump. The structure is decided in
-[ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md)
+[ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md)
 (Documentation Architecture v2.1), refining
-[ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
+[ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md).
 
 This audience layer is the **physical owner** of developer/agent material:
 architecture, workflow/governance, planning, developer-only contracts/reference,
@@ -34,11 +34,11 @@ decisions, research/evidence, and history are canonical *and* developer-owned.
 The developer-only reference layer moved here first
 ([reference/](reference/svg-symbols.md)); the architecture and
 workflow/governance documents followed in Phase 3A
-([architecture/](architecture/index.md), [workflow/](workflow/index.md)), and
-planning followed in Phase 3B ([planning/](planning/index.md)). Decisions,
-research/evidence, and history are still reached from the `docs/` root until
-their own slices, and stay canonical after their move. The current → target
-mapping is in
+([architecture/](architecture/index.md), [workflow/](workflow/index.md));
+planning followed in Phase 3B ([planning/](planning/index.md)); and decisions,
+research/evidence, and history followed in Phase 3C
+([decisions/](decisions/index.md), [research/](research/index.md),
+[history/](history/implementation-slices.md)). The current → target mapping is in
 [documentation-migration.md](workflow/documentation-migration.md).
 
 ## Start here
@@ -69,8 +69,9 @@ table, not an orchestration engine.
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
 | Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
 | Change the DEXPI adapter | [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md) — the developer-only DEXPI Process adapter contract |
-| Decide or record an architecture boundary | [decisions/index.md](../decisions/index.md), [conventions.md](workflow/conventions.md) |
-| Add or change evidence | [research/index.md](../research/index.md) |
+| Decide or record an architecture boundary | [decisions/index.md](decisions/index.md), [conventions.md](workflow/conventions.md) |
+| Add or change evidence | [research/index.md](research/index.md) |
+| Review implementation history | [history/implementation-slices.md](history/implementation-slices.md) |
 | Change documentation | [conventions.md](workflow/conventions.md), [documentation-migration.md](workflow/documentation-migration.md) |
 
 Machine-readable agent context selection lives in
@@ -89,12 +90,12 @@ authoritative.
 - **Developer-only contract/reference** (developer-owned) —
   [reference/svg-symbols.md](reference/svg-symbols.md),
   [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md).
-- **Decision** (developer-owned) — [decisions/index.md](../decisions/index.md):
+- **Decision** (developer-owned) — [decisions/index.md](decisions/index.md):
   why a boundary exists.
-- **Evidence** (developer-owned) — [research/index.md](../research/index.md): what
+- **Evidence** (developer-owned) — [research/index.md](research/index.md): what
   was investigated.
 - **History** (developer-owned) —
-  [history/implementation-slices.md](../history/implementation-slices.md): what
+  [history/implementation-slices.md](history/implementation-slices.md): what
   shipped, in what order.
 - **Governance** (developer-owned) — [planning.md](planning/index.md),
   [standards.md](../standards.md), [quality.md](workflow/quality.md),

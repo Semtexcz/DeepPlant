@@ -12,7 +12,7 @@ reads:
   - docs/dev/architecture/index.md
   - docs/dev/workflow/index.md
   - docs/dev/workflow/quality.md
-  - docs/decisions/
+  - docs/dev/decisions/
 commands:
   - make validate-docs
 outputs:

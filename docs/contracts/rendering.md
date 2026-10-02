@@ -231,7 +231,7 @@ from semantic YAML, without reintroducing the conflation this boundary removes
 - [../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md) — the SVG + anchor contract consumed here.
 - [../dev/architecture/index.md](../dev/architecture/index.md) — current architecture.
 - [../dev/planning/roadmap.md](../dev/planning/roadmap.md) — slice sequence.
-- [ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-  [ADR-0008](../decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md),
-  [ADR-0009](../decisions/ADR-0009-separate-process-function-from-symbol-role.md).
+- [ADR-0003](../dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+  [ADR-0008](../dev/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md),
+  [ADR-0009](../dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md).
 

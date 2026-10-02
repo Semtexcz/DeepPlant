@@ -11,8 +11,8 @@ update_when:
 depends_on:
   - docs/dev/workflow/conventions.md
 decision:
-  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
-  - docs/decisions/ADR-0014-documentation-architecture-v2.md
+  - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
+  - docs/dev/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
 ---
@@ -35,9 +35,9 @@ document owns) are deliberately separate dimensions: audience determines
 navigation and, for audience-specific content, physical ownership, while authority
 still answers what must hold now. The rules live in [conventions.md](dev/workflow/conventions.md); the
 current structure is decided in
-[ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) (Documentation
+[ADR-0015](dev/decisions/ADR-0015-documentation-architecture-v2-1.md) (Documentation
 Architecture v2.1), refining
-[ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md).
+[ADR-0014](dev/decisions/ADR-0014-documentation-architecture-v2.md).
 
 The **shared documentation layer is narrow**: only genuinely cross-audience
 contracts live in [contracts/](contracts/index.md). Repository-role exceptions are
@@ -45,8 +45,9 @@ a separate category: `README.md` and `VISION.md` are broad public/repository ent
 documents, while `AGENTS.md` and `project/brief.md` remain developer/agent-oriented
 despite their locations. `docs/index.md` is global navigation, not shared
 documentation. Developer/agent material is canonical *and* developer-owned, so it
-lives under `dev/`; architecture, workflow/governance, and planning have moved and
-the remaining root documents follow in bounded slices. The current → target
+lives under `dev/`; architecture, workflow/governance, planning, decisions,
+evidence, and history have moved there, and the remaining root evidence/prototype
+documents follow in a later slice. The current → target
 mapping is in
 [documentation-migration.md](dev/workflow/documentation-migration.md).
 
@@ -62,9 +63,10 @@ mapping is in
 Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
 [contracts/](contracts/index.md); developer-only canonical contracts/reference
-live under `dev/reference/`; architecture, workflow/governance, and planning are now
-canonical under `dev/`; the rest is canonical for its authority type and still
-reaches from the `docs/` root until its own slice (see
+live under `dev/reference/`; architecture, workflow/governance, planning,
+decisions, evidence, and history are now canonical under `dev/`; the remaining
+root evidence/prototype documents are still canonical for their authority type and
+will move under `dev/research/` in a later slice (see
 [documentation-migration.md](dev/workflow/documentation-migration.md) for the
 target owners).
 
@@ -83,9 +85,9 @@ target owners).
 | Product thesis and non-goals | [product.md](dev/planning/product.md) |
 | Current state and next direction | [roadmap.md](dev/planning/roadmap.md) |
 | Long-term capability progression | [direction.md](dev/planning/direction.md) |
-| Why a choice was made | [decisions/index.md](decisions/index.md) |
-| Evidence, research, or a prototype | [research/index.md](research/index.md) |
-| What shipped, in order | [history/implementation-slices.md](history/implementation-slices.md) |
+| Why a choice was made | [decisions/index.md](dev/decisions/index.md) |
+| Evidence, research, or a prototype | [research/index.md](dev/research/index.md) |
+| What shipped, in order | [history/implementation-slices.md](dev/history/implementation-slices.md) |
 | Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](dev/planning/index.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](standards.md) |
 | Agent instructions | [AGENTS.md](../AGENTS.md) |
 

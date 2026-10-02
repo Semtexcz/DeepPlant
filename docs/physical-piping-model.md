@@ -44,7 +44,7 @@ superseded_by: docs/contracts/physical-piping.md
   connectivity, or a DEXPI semantics change).
 
 > Decision status: **the canonical boundary is decided and recorded in
-> [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md).**
+> [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md).**
 > This document is the specification/decision deliverable of Issue #24.
 >
 > Implementation status: **the first vertical slice of this shape is
@@ -1068,12 +1068,12 @@ cardinality, pipe-piece identity, and process ↔ physical realization.
 
 - [docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) — the DEXPI
   `V2.0.0` model + Reference P&ID evidence this specification builds on.
-- [ADR-0011](decisions/ADR-0011-canonical-physical-piping-realization.md) —
+- [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md) —
   the durable decision this document specifies.
-- [ADR-0010](decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) —
+- [ADR-0010](dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md) —
   `Port`/`Connection` boundary and the deferred piping/instrumentation layers.
-- [ADR-0005](decisions/ADR-0005-process-model-container.md),
-  [ADR-0006](decisions/ADR-0006-process-model-root-integration.md) — the
+- [ADR-0005](dev/decisions/ADR-0005-process-model-container.md),
+  [ADR-0006](dev/decisions/ADR-0006-process-model-root-integration.md) — the
   submodel-container precedent this layer follows.
 - [docs/process-topology.md](process-topology.md) — the duplication invariant
   that motivates referencing `Connection` instead of restating endpoints.

@@ -22,7 +22,7 @@ standards status: non-normative / unverified
 ```
 
 The SVG + anchor contract is defined in [docs/dev/reference/svg-symbols.md](../../../../../../docs/dev/reference/svg-symbols.md)
-and decided in [ADR-0008](../../../../../../docs/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
+and decided in [ADR-0008](../../../../../../docs/dev/decisions/ADR-0008-process-svg-symbol-and-anchor-contract.md).
 
 ## Role, pack, and asset
 
@@ -41,7 +41,7 @@ ISO/ISA/IEC figure was copied, traced, screenshot-reused, or AI-derived. No
 geometry from draw.io, IPD Studio, ISPF, or any other third-party pack was
 copied or adapted. This pack is governed by
 [docs/standards.md](../../../../../../docs/standards.md) and
-[ADR-0007](../../../../../../docs/decisions/ADR-0007-standards-and-symbol-provenance.md).
+[ADR-0007](../../../../../../docs/dev/decisions/ADR-0007-standards-and-symbol-provenance.md).
 
 | Role | File | Origin | Licence | Copyright holder | Modification state | Upstream revision | Standards status |
 |---|---|---|---|---|---|---|---|

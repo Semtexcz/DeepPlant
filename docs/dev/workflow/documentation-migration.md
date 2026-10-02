@@ -14,8 +14,8 @@ depends_on:
   - docs/dev/workflow/conventions.md
   - docs/index.md
 decision:
-  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
-  - docs/decisions/ADR-0014-documentation-architecture-v2.md
+  - docs/dev/decisions/ADR-0015-documentation-architecture-v2-1.md
+  - docs/dev/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
 ---
@@ -27,7 +27,7 @@ superseded_by: null
 > under Documentation Architecture v2.1, and in what order should it move?
 
 This is the evidence-backed inventory behind
-[ADR-0015](../../decisions/ADR-0015-documentation-architecture-v2-1.md) (v2.1) and the
+[ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md) (v2.1) and the
 operational rules in [conventions.md](conventions.md). It replaces the initial v2
 inventory, which defaulted most root paths to `KEEP` because they already existed.
 That is a migration-cost argument, not an ownership argument, and it is no longer
@@ -168,9 +168,11 @@ DEXPI adapter contracts are developer-only.
 ## Developer authority layer — architecture, governance, planning
 
 Canonical developer/agent content. It is authoritative without being shared; it
-moves out of the shared root into `docs/dev/**`. The Phase 3A slice relocated the
-architecture and workflow/governance rows and the Phase 3B slice relocated the
-planning rows; all of them are now `KEEP` at their v2.1 paths.
+moved out of the shared root into `docs/dev/**`. The Phase 3A slice relocated the
+architecture and workflow/governance rows, the Phase 3B slice relocated the
+planning rows, and the Phase 3C slice relocated the decision, evidence, and
+history rows (the two inventories below); all of them are now `KEEP` at their
+v2.1 paths.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
@@ -195,13 +197,22 @@ this correction does not create it.
 
 ## Developer authority layer — decisions, evidence, history
 
+The Phase 3C slice relocated the existing decision, research/evidence, and
+history authority directories into `docs/dev/**`. Their paths are now canonical
+and each is `KEEP`; the decision, evidence, and history responsibilities remain
+separate authority classes and are not merged.
+
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
-| `docs/decisions/**` | dev/agent | decision | MOVE | `docs/dev/decisions/**` | Canonical decision records; developer-owned | high |
-| `docs/decisions/index.md` | dev/agent | navigation | MOVE | `docs/dev/decisions/index.md` | Decision index | high |
-| `docs/research/**` | dev/agent | evidence | MOVE | `docs/dev/research/**` | Canonical evidence; developer-owned | medium |
-| `docs/research/index.md` | dev/agent | navigation | MOVE | `docs/dev/research/index.md` | Evidence index | medium |
-| `docs/history/implementation-slices.md` | dev/agent | history | MOVE | `docs/dev/history/implementation-slices.md` | Completion history; developer-owned | medium |
+| `docs/dev/decisions/**` | dev/agent | decision | KEEP | — | Canonical decision records; developer-owned (relocated in Phase 3C; was `docs/decisions/**`) | high |
+| `docs/dev/decisions/index.md` | dev/agent | navigation | KEEP | — | Decision index (relocated in Phase 3C; was `docs/decisions/index.md`) | high |
+| `docs/dev/research/**` | dev/agent | evidence | KEEP | — | Canonical evidence; developer-owned (relocated in Phase 3C; was `docs/research/**`) | medium |
+| `docs/dev/research/index.md` | dev/agent | navigation | KEEP | — | Evidence index (relocated in Phase 3C; was `docs/research/index.md`) | medium |
+| `docs/dev/history/implementation-slices.md` | dev/agent | history | KEEP | — | Completion history; developer-owned (relocated in Phase 3C; was `docs/history/implementation-slices.md`) | medium |
+
+Phase 3C moved only the documents that already lived under `docs/research/**`.
+The root-level evidence and prototype documents in the next section still sit in
+the `docs/` root; moving, grouping, and splitting them is Phase 5, not Phase 3C.
 
 ## Root evidence and prototypes → `docs/dev/research/`
 
@@ -305,13 +316,17 @@ planning governance, or historical spikes to be read.
 - `docs/dev/planning/product.md` (was `docs/product.md`) — internal
   product/planning thesis.
 
+**Developer-owned decisions, evidence, and history (relocated in Phase 3C):**
+
+- `docs/dev/decisions/**` (was `docs/decisions/**`) — canonical decision records.
+- `docs/dev/research/**` (was `docs/research/**`) — canonical evidence documents.
+- `docs/dev/history/implementation-slices.md` (was
+  `docs/history/implementation-slices.md`) — completion history.
+
 **Still to leave the `docs/` root (later slices):**
 
 - `docs/standards.md` → split into `docs/dev/workflow/`,
   `docs/dev/reference/`, and `docs/dev/research/`
-- `docs/decisions/**` → `docs/dev/decisions/**`
-- `docs/research/**` → `docs/dev/research/**`
-- `docs/history/**` → `docs/dev/history/**`
 - `docs/dexpi-process-spike.md`, `docs/dexpi-plant-pid-spike.md`,
   `docs/dexpi-exchanging-thermal-energy-evidence.md`,
   `docs/physical-piping-model.md`, `docs/process-topology.md`,
@@ -348,7 +363,7 @@ later slice may reorder these steps if repository evidence supports it.
    docs/svg-symbols.md → docs/dev/reference/svg-symbols.md
    reconciled inbound links, navigation, metadata, and agent routing
 
-3. Developer authority-layer migration — IN PROGRESS
+3. Developer authority-layer migration — DONE
    3A. developer architecture + workflow/governance — DONE
        docs/architecture.md → docs/dev/architecture/index.md
        docs/workflow.md → docs/dev/workflow/index.md
@@ -361,11 +376,13 @@ later slice may reorder these steps if repository evidence supports it.
        docs/roadmap.md → docs/dev/planning/roadmap.md
        docs/direction.md → docs/dev/planning/direction.md
        docs/product.md → docs/dev/planning/product.md
-   3C. developer authority archives — NEXT
-       decisions → docs/dev/decisions/; research → docs/dev/research/;
-       history → docs/dev/history/
+   3C. developer authority layer — DONE
+       docs/decisions/** → docs/dev/decisions/**
+       docs/research/** → docs/dev/research/**
+       docs/history/** → docs/dev/history/**
+   Phase 3 — COMPLETE
 
-4. User documentation foundation
+4. User documentation foundation — NEXT
    getting-started; what-is-deepplant; primary workflows (create, validate,
    render, diagnose); link to cross-audience contracts instead of duplicating them
 
@@ -391,8 +408,8 @@ links, navigation, metadata, and agent routing in the same pass.
 Step 2 established the contract/reference homes before developer or user pages
 link to them. Step 3 precedes step 4 so user pages can link into a stable developer
 tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
-reuse links already reconciled once. Steps 1, 2, 3A, and 3B are complete; step 3C
-(developer authority archives) is the next bounded slice.
+reuse links already reconciled once. Steps 1, 2, and 3 (3A, 3B, 3C) are complete;
+Phase 3 is COMPLETE and step 4 (user documentation foundation) is next.
 
 ## Agent context consequences
 
@@ -433,14 +450,21 @@ pattern key:
 Routing stays task-scoped: no pattern loads all four planning documents, so
 ordinary developer work does not eagerly read them.
 
-Later slices must keep doing this so that every migrated path — both the pattern
-key and the routed context files — is named at its v2.1 location rather than its
-historical root path:
+Phase 3C repointed the decision-route pattern key and its routed context files to
+the actual v2.1 paths, and updated the developer skills that read the decision
+index:
 
-- `docs/dev/decisions/**` will route to `docs/dev/architecture/index.md` and
-  `docs/dev/decisions/index.md`;
-- `AGENTS.md` continues to point agents at `docs/dev/index.md` for the
-  task → context table.
+- the decision pattern key is now `docs/dev/decisions/**`, routing to
+  `docs/dev/architecture/index.md` and `docs/dev/decisions/index.md`;
+- `create-adr`, `implement-change`, `orient-project`, `capture-learning`, and
+  `update-documentation` read `docs/dev/decisions/` rather than the old root path;
+- no pattern eagerly loads decision, evidence, or history documents: evidence and
+  history are reached from the developer navigation map, not from ordinary
+  implementation routing.
+
+Every migrated path — both the pattern key and the routed context files — is now
+named at its v2.1 location rather than its historical root path, and `AGENTS.md`
+continues to point agents at `docs/dev/index.md` for the task → context table.
 
 The goal is that `task + changed files + selected skill` resolves to a small
 audience-appropriate context set without requiring knowledge of historical root
@@ -449,11 +473,11 @@ paths change.
 
 ## Related
 
-- [decisions/ADR-0015-documentation-architecture-v2-1.md](../../decisions/ADR-0015-documentation-architecture-v2-1.md)
+- [dev/decisions/ADR-0015-documentation-architecture-v2-1.md](../decisions/ADR-0015-documentation-architecture-v2-1.md)
   — the v2.1 decision behind this inventory.
-- [decisions/ADR-0014-documentation-architecture-v2.md](../../decisions/ADR-0014-documentation-architecture-v2.md)
+- [dev/decisions/ADR-0014-documentation-architecture-v2.md](../decisions/ADR-0014-documentation-architecture-v2.md)
   — the preceding decision; its invariant is retained.
 - [conventions.md](conventions.md) — KEEP / MOVE / SPLIT rules and the move
   procedure.
 - [index.md](../../index.md) — the audience/authority router.
-- [research/index.md](../../research/index.md) — evidence index.
+- [research/index.md](../research/index.md) — evidence index.

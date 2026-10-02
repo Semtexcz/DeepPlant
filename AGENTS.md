@@ -117,7 +117,7 @@ General reusable skills are in `.agents/skills/`. Codex adapter notes are in
 
 
 Project-specific context is in `project/brief.md`, `docs/`, and ADRs under
-`docs/decisions/`. Keep changes small, run `make check`, and update the brief or
+`docs/dev/decisions/`. Keep changes small, run `make check`, and update the brief or
 ADRs when implementation teaches something durable.
 
 ## Roadmap Reconciliation

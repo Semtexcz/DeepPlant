@@ -96,7 +96,7 @@ change_patterns:
     - docs/dev/workflow/documentation-migration.md
   "docs/dev/architecture/index.md":
     - docs/contracts/index.md
-    - docs/decisions/index.md
+    - docs/dev/decisions/index.md
   "docs/dev/workflow/index.md":
     - docs/dev/workflow/quality.md
     - docs/dev/planning/index.md
@@ -106,9 +106,9 @@ change_patterns:
     - docs/dev/architecture/index.md
     - docs/dev/planning/index.md
     - docs/dev/planning/direction.md
-  "docs/decisions/**":
+  "docs/dev/decisions/**":
     - docs/dev/architecture/index.md
-    - docs/decisions/index.md
+    - docs/dev/decisions/index.md
   ".agents/**":
     - .agents/README.md
     - docs/dev/index.md
