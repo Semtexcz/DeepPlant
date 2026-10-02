@@ -2,128 +2,213 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo/deepplant-horizontal-dark.svg">
-  <img src="assets/brand/logo/deepplant-horizontal-master.svg" alt="DeepPlant logo" width="480">
+  <img src="assets/brand/logo/deepplant-horizontal-master.svg" alt="DeepPlant" width="480">
 </picture>
 
-DeepPlant is a Git-native semantic engineering platform for process plants and the
-first product implementing the idea of **Engineering as Code**: engineering intent
-is expressed as a semantic model that can be validated, versioned, diffed, and
-rendered.
+[![CI](https://github.com/Semtexcz/DeepPlant/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Semtexcz/DeepPlant/actions/workflows/ci.yml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-F11E1E.svg)](LICENSE)
+[![Python: 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB.svg)](pyproject.toml)
+[![Status: experimental](https://img.shields.io/badge/status-experimental-6B7280.svg)](docs/dev/planning/roadmap.md)
 
-This repository ships the project foundation plus executable semantic vertical
-slices: the physical/plant model (`PlantModel`/`Plant`/`Equipment`, `Port`,
-identified `Connection`), the physical piping-realization layer (`PipingModel`
-with line → segment → realization over identified connections; ADR-0011), the
-standalone process-domain model (`ProcessModel` with `ProcessStep`/`ProcessStream`),
-YAML load/save into typed Pydantic models with strict structural validation, a
-`deepplant validate` CLI, the SVG + anchor `basic` symbol-pack contract, a headless
-read-only process renderer (`render_process_svg()`), and a narrow DEXPI 2.0.0
-Process import/export adapter (`deepplant.adapters.dexpi`; supported subset,
-directions, and limits in
-[docs/dev/reference/dexpi-process-adapter.md](docs/dev/reference/dexpi-process-adapter.md)).
-Full DEXPI, other vendor adapters (COMOS, AVEVA), the interactive editor,
-engineering rules, and P&ID rendering are planned but not implemented.
+> **Engineering as Code for process plants.**
 
-Selected profile: `script-shared` (Python CLI package). Governance: `lightweight`.
-Workflow mode: `pr`.
+DeepPlant is an experimental, open-source, Git-native semantic engineering
+platform for process plants. It keeps DeepPlant-managed engineering intent in an
+explicit, machine-readable semantic model so that intent can be versioned,
+reviewed, validated, and used to derive engineering views and exchange
+representations — instead of leaving meaning implicit in drawings, documents, or
+tool-specific databases.
 
-## Where to Start
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/deepplant-overview-dark.svg">
+  <img src="docs/assets/readme/deepplant-overview.svg" alt="Engineering intent is loaded into a semantic engineering model, which is the product core. From it flow Git diff, review, and validation, and derived outputs such as validation, the process SVG renderer, and a DEXPI Process subset. Engineering rules, simulation, and richer views remain direction." width="1200">
+</picture>
 
-```text
-I want to use DeepPlant
-    → start here: docs/user/getting-started.md
-    → user documentation: docs/user/index.md
+## Engineering as Code
 
-I want to develop, extend, or understand DeepPlant internals
-    → developer documentation: docs/dev/index.md
+Engineering as Code applies software-engineering practice to engineering intent.
+Instead of encoding meaning only as graphics and documents, the intent is written
+explicitly in a **semantic model**:
+
+- engineering intent belongs in an explicit, machine-readable model;
+- the model has a plain-text YAML representation that can be versioned in Git;
+- changes can be diffed and reviewed like code;
+- structural and reference rules can be validated automatically;
+- drawings and documents are **views** derived from the model;
+- exchange formats are **adapters** around the model;
+- the semantic engineering model stays the core.
+
+It borrows software-engineering practices — version control, review, automated
+checks, and reproducibility — and applies them to engineering information
+itself.
+
+## Why DeepPlant?
+
+Process-engineering information is routinely fragmented across drawings,
+documents, spreadsheets, simulators, and specialist tools. The typical
+consequences are familiar:
+
+- the same intent is duplicated across artifacts and drifts apart;
+- changes are hard to review at the level of engineering meaning;
+- semantics are weak or absent in machine-readable form;
+- traceability between intent and its representations is limited;
+- interoperability between engineering tools loses context;
+- automated validation is hard to apply consistently;
+- drawing-centric workflows leave engineering intent implicit.
+
+DeepPlant is motivated by a single boundary: make the engineering semantics
+explicit first, then let workflows, views, checks, and integrations build on that
+shared meaning. It does not claim to replace existing engineering systems, and it
+does not yet solve every problem listed above — this is the problem space and the
+design motivation.
+
+## What works today
+
+DeepPlant currently ships a deliberately narrow, executable semantic foundation:
+
+- **Typed semantic models** for physical plant topology, the process graph, and
+  physical piping realization.
+- **YAML load/save** that validates authored documents into typed models.
+- **Validation** of structural and reference rules through the `deepplant` CLI.
+- A **basic headless process renderer** that turns a process model into a
+  standalone SVG diagram through the Python API.
+- A documented **`basic` SVG symbol-pack contract**.
+- A **narrow DEXPI 2.0.0 Process import/export adapter** with an explicit
+  supported subset.
+
+Exact behavior lives in the [current contracts](docs/contracts/index.md); the
+implemented boundaries are mapped in the
+[architecture](docs/dev/architecture/index.md), and the adapter's supported
+subset and limits are in the
+[DEXPI Process adapter reference](docs/dev/reference/dexpi-process-adapter.md).
+
+## A small semantic model
+
+The bundled [minimal process example](examples/minimal-process/plant.yaml) models
+a feed tank, a feed pump, and one explicit connection between their ports:
+
+```yaml
+plant:
+  id: demo
+  name: Minimal Process
+
+equipment:
+  - id: T-101
+    type: tank
+    ports:
+      - id: outlet
+  - id: P-101
+    type: pump
+    ports:
+      - id: suction
+
+connections:
+  - id: C-001
+    source: {component: T-101, port: outlet}
+    target: {component: P-101, port: suction}
 ```
 
-[docs/index.md](docs/index.md) routes by audience and by knowledge authority. The
-long-term thesis is in [VISION.md](VISION.md); the strategic capability map is the
-[DeepPlant Roadmap GitHub Project](https://github.com/users/Semtexcz/DeepPlant/projects/2).
+The YAML is a serialization format, not the domain model itself: DeepPlant loads
+it into typed semantic objects and checks that the referenced equipment and ports
+actually exist. A connection here is semantic topology — not yet a pipe, stream,
+or signal.
 
-## Product Principles
-
-- The semantic engineering model is the product core; CLI, GUI, renderers, and
-  adapters depend on it.
-- Presentation data (symbols, coordinates, routing) stays separate from
-  engineering semantics; a `ProcessStep` states its engineering `function`, never
-  its drawing role (ADR-0009).
-- YAML is a serialization format, not the domain model.
-- Connectivity follows `Component -> Ports -> Connections`; piping realization
-  references identified connections instead of restating endpoints (ADR-0011).
-
-## Quick Start
+### Validate it
 
 ```bash
-make setup
-make check
-make build
-```
-
-`make check` is validation-only. Use `make format` for formatting changes and
-edit durable project docs explicitly when project knowledge changes.
-
-Run the CLI:
-
-```bash
-make run
-uv run deepplant version
 uv run deepplant validate examples/minimal-process/plant.yaml
 ```
 
-New to DeepPlant? [docs/user/getting-started.md](docs/user/getting-started.md)
-takes you from a checkout to a first validated model using only the CLI and the
-bundled examples.
-
-## Workflow
-
-Reusable agent skills live under `.agents/skills/` (orientation, implementation,
-verification, review, documentation, ADRs, conventional commits, learning
-capture); `.codex/` holds thin adapters that delegate to them.
-
-Start from the smallest relevant context, not the whole repository — use the
-task-to-context table in [docs/dev/index.md](docs/dev/index.md) and
-[AGENTS.md](AGENTS.md):
-
-```bash
-make validate-agent-skills
-make check
+```text
+✓ valid DeepPlant model
+✓ plant: demo
+✓ equipment: 2
+✓ ports: 3
+✓ connections: 1
 ```
 
-Build the smallest useful vertical slice, learn from it, then refine the brief,
-architecture notes, ADRs, or the roadmap when the learning is durable.
+## Quick start
 
-## License
+From a repository checkout, with `uv` and `make` installed:
 
-DeepPlant is licensed under the GNU Affero General Public License, version 3
-only (`AGPL-3.0-only`). Commercial use under AGPL is permitted subject to its
-terms; AGPL is not a non-commercial licence. See [LICENSE](LICENSE) for the
-full license text.
+```bash
+make setup
+uv run deepplant validate examples/minimal-process/plant.yaml
+```
 
-Where the Project Owner has sufficient rights, alternative commercial
-licensing may be offered separately in the future. This does not change rights
-already granted under AGPL. Contributions are governed by
-[CONTRIBUTING.md](CONTRIBUTING.md) and [CLA.md](CLA.md); see
+`make setup` runs `uv sync` to create the environment, and the second command
+validates the bundled model and prints the summary shown above. For the full
+first-use workflow, see [Getting Started](docs/user/getting-started.md).
+
+## Design principles
+
+- **Semantic model first** — the CLI, renderer, and adapters depend on the
+  engineering model, never the reverse.
+- **Explicit typed data** — authored YAML is validated into typed objects;
+  unknown fields and unresolved references fail fast instead of being guessed.
+- **Git-native changes** — stable authored identifiers make semantic changes
+  easier to diff and review.
+- **Views stay separate from meaning** — symbols, coordinates, and layout belong
+  to presentation, not to engineering semantics.
+- **Interoperability through adapters** — external formats are translated around
+  the canonical model rather than shaping it.
+
+These principles are elaborated in the [Vision](VISION.md) and the
+[architecture](docs/dev/architecture/index.md).
+
+## Where DeepPlant is going
+
+The long-term direction includes richer PFD/P&ID views, interactive engineering,
+engineering rules as code, calculation and simulation integration, broader
+interoperability, safety-engineering traceability, multi-discipline engineering,
+an engineering IDE, and AI-assisted workflows over an explicit model.
+
+These are **directional capabilities**, not current features and not delivery
+commitments. The [Vision](VISION.md) records the thesis, the
+[current roadmap](docs/dev/planning/roadmap.md) records the immediate state and
+evidence gaps, and the
+[directional capability roadmap](docs/dev/planning/direction.md) records the
+long-term capability progression.
+
+## Documentation
+
+**Users**
+
+- [Getting Started](docs/user/getting-started.md)
+- [User documentation](docs/user/index.md)
+- [What is DeepPlant?](docs/user/concepts/what-is-deepplant.md)
+
+**Developers**
+
+- [Developer documentation](docs/dev/index.md)
+- [Architecture](docs/dev/architecture/index.md)
+- [Current contracts](docs/contracts/index.md)
+- [Architectural decisions](docs/dev/decisions/index.md)
+
+**Direction**
+
+- [Vision](VISION.md)
+- [Roadmap](docs/dev/planning/roadmap.md)
+- [Long-term direction](docs/dev/planning/direction.md)
+
+[docs/index.md](docs/index.md) routes documentation by audience and by knowledge
+authority.
+
+## Project status
+
+DeepPlant is **experimental** and early-stage. Its APIs and model shapes may
+change, the implemented subset is intentionally narrow, and major parts of the
+vision are not implemented. The repository deliberately separates current
+capabilities from future direction so that the two are not confused.
+
+## License, contributions, and project identity
+
+DeepPlant is licensed under the GNU Affero General Public License, version 3 only
+([`AGPL-3.0-only`](LICENSE)). Commercial use under AGPL is permitted subject to
+its terms; AGPL is not a non-commercial licence. See
 [COMMERCIAL-LICENSING.md](COMMERCIAL-LICENSING.md) for the concise policy.
-Provenance is indexed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and
-project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 
-## Navigation
-
-| Need | Open |
-|---|---|
-| Documentation router | [docs/index.md](docs/index.md) |
-| New user: first validated model | [docs/user/getting-started.md](docs/user/getting-started.md) |
-| User documentation | [docs/user/index.md](docs/user/index.md) |
-| Developer / agent documentation | [docs/dev/index.md](docs/dev/index.md) |
-| Current contracts (model, YAML, CLI, renderer, DEXPI) | [docs/contracts/index.md](docs/contracts/index.md) |
-| Current architecture (boundary map) | [docs/dev/architecture/index.md](docs/dev/architecture/index.md) |
-| Current state, next direction, evidence gaps | [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md) |
-| Long-term capability progression | [docs/dev/planning/direction.md](docs/dev/planning/direction.md) |
-| Decisions | [docs/dev/decisions/index.md](docs/dev/decisions/index.md) |
-| Evidence and research | [docs/dev/research/index.md](docs/dev/research/index.md) |
-| Implementation history | [docs/dev/history/implementation-slices.md](docs/dev/history/implementation-slices.md) |
-| Documentation conventions | [docs/dev/workflow/conventions.md](docs/dev/workflow/conventions.md) |
-| Project brief | [project/brief.md](project/brief.md) |
-| Agent instructions | [AGENTS.md](AGENTS.md) |
+Contributions are governed by [CONTRIBUTING.md](CONTRIBUTING.md) and
+[CLA.md](CLA.md). Third-party provenance is indexed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and project identity is
+addressed in [TRADEMARKS.md](TRADEMARKS.md).
