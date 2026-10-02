@@ -188,9 +188,9 @@ rejected shortcuts are in
 - [ADR-0009-separate-process-function-from-symbol-role.md](ADR-0009-separate-process-function-from-symbol-role.md)
 - [ADR-0010-dexpi-plant-pid-semantic-boundary.md](ADR-0010-dexpi-plant-pid-semantic-boundary.md)
 - [ADR-0011-canonical-physical-piping-realization.md](ADR-0011-canonical-physical-piping-realization.md)
-- [../process-step-classification.md](../../process-step-classification.md) — the
+- [../../process-step-classification.md](../../process-step-classification.md) — the
   full evidence and candidate analysis (Issue #31)
-- [../dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md),
-  [../dexpi-process-spike.md](../../dexpi-process-spike.md),
-  [../dev/architecture/index.md](../architecture/index.md), [../dev/planning/roadmap.md](../planning/roadmap.md)
+- [../../dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md),
+  [../../dexpi-process-spike.md](../../dexpi-process-spike.md),
+  [../architecture/index.md](../architecture/index.md), [../planning/roadmap.md](../planning/roadmap.md)
 

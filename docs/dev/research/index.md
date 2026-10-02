@@ -18,7 +18,7 @@ evidence: []
 superseded_by: null
 ---
 
-# Research, Evidence, and History
+# Research and Evidence
 
 This index lists every investigation document, its authority status, the
 current contract or decision that operationalizes its outcome, and where it
@@ -65,16 +65,13 @@ investigated, with dates, sources, and outcomes. Current obligations live in
 | [reference-products.md](../../reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../planning/direction.md) stages 3–4 (not authorized) |
 | [standards.md](../../standards.md) | Which standards may be referenced, what may be stored, and what provenance do distributed symbols need? | Policy plus registry plus source assessment (shared document; policy is the active part) | ADR-0007 |
 
-## History
-
-| Document | Contents |
-|---|---|
-| [history/implementation-slices.md](../history/implementation-slices.md) | The roadmap state narrative and the completed-slice record, moved verbatim out of the roadmap |
+Implementation history is maintained separately in
+[docs/dev/history/implementation-slices.md](../history/implementation-slices.md).
 
 ## Outcome-card convention
 
 Every document listed above is being brought to the conventions in
-[../dev/workflow/conventions.md](../workflow/conventions.md): front matter, an outcome card at the top,
+[../workflow/conventions.md](../workflow/conventions.md): front matter, an outcome card at the top,
 and an explicit statement of the current contract that operationalizes its
 outcome. Where an older document still mixes a proposed or historical shape with
 current rules, the current rule lives in the linked contract.

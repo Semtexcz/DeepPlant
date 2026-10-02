@@ -53,9 +53,11 @@ recorded in [documentation-migration.md](documentation-migration.md):
 The target column is **v2.1 ownership**
 ([ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
 *should* own each type, deliberately replacing the earlier assumption that all
-canonical content lives in a shared root. Every authority type has now migrated to
-its v2.1 home; the migration inventory, including the full current → target
-mapping, is kept in [documentation-migration.md](documentation-migration.md).
+canonical content lives in a shared root. All authority classes now have their
+canonical v2.1 homes established; some legacy root-level evidence/prototype
+documents still await Phase 5 relocation into `docs/dev/research/`. The migration
+inventory, including the full current → target mapping, is kept in
+[documentation-migration.md](documentation-migration.md).
 
 ## Audience model
 

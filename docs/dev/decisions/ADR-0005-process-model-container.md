@@ -96,4 +96,4 @@ cannot work with the process submodel independently.
 - [ADR-0002-semantic-model-is-the-core.md](ADR-0002-semantic-model-is-the-core.md)
 - [ADR-0003-separate-semantic-and-presentation-models.md](ADR-0003-separate-semantic-and-presentation-models.md)
 - [ADR-0004-yaml-is-a-serialization-format.md](ADR-0004-yaml-is-a-serialization-format.md)
-- [../process-fragment-prototype.md](../../process-fragment-prototype.md)
+- [../../process-fragment-prototype.md](../../process-fragment-prototype.md)
