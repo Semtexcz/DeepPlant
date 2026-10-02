@@ -229,9 +229,11 @@ decision-makers read them.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
-| `docs/dexpi-process-spike.md` | dev/agent | evidence | MOVE (Phase 5A done) | `docs/dev/research/dexpi/process-adapter-spike.md` | DEXPI Process interoperability evidence | medium (16) |
-| `docs/dexpi-plant-pid-spike.md` | dev/agent | evidence | MOVE + SPLIT (Phase 5A done) | `docs/dev/research/dexpi/plant-pid-semantic-boundary.md`, `…/plant-pid-instrumentation.md`, `…/plant-pid-presentation.md` | Evidence; also mixes physical-topology, instrumentation, and presentation questions | medium (11) |
-| `docs/dexpi-exchanging-thermal-energy-evidence.md` | dev/agent | evidence | MOVE (Phase 5A done) | `docs/dev/research/dexpi/exchanging-thermal-energy.md` | `ExchangingThermalEnergy` mapping evidence | medium (14) |
+| `docs/dev/research/dexpi/process-adapter-spike.md` | dev/agent | evidence | KEEP | — | DEXPI Process interoperability evidence; relocated in Phase 5A; was `docs/dexpi-process-spike.md` | medium (16) |
+| `docs/dev/research/dexpi/exchanging-thermal-energy.md` | dev/agent | evidence | KEEP | — | `ExchangingThermalEnergy` mapping evidence; relocated in Phase 5A; was `docs/dexpi-exchanging-thermal-energy-evidence.md` | medium (14) |
+| `docs/dev/research/dexpi/plant-pid-semantic-boundary.md` | dev/agent | evidence | KEEP | — | Physical topology / piping boundary evidence; from the Phase 5A split of `docs/dexpi-plant-pid-spike.md` | medium |
+| `docs/dev/research/dexpi/plant-pid-instrumentation.md` | dev/agent | evidence | KEEP | — | Instrumentation / signal evidence; from the Phase 5A split of `docs/dexpi-plant-pid-spike.md` | medium |
+| `docs/dev/research/dexpi/plant-pid-presentation.md` | dev/agent | evidence | KEEP | — | Presentation / graphics evidence; from the Phase 5A split of `docs/dexpi-plant-pid-spike.md` | medium |
 | `docs/dev/research/physical-piping-model.md` | dev/agent | evidence | KEEP | — | Design evidence behind a contract (relocated in Phase 5B; was `docs/physical-piping-model.md`) | low (8) |
 | `docs/dev/research/process-topology.md` | dev/agent | evidence | KEEP | — | Process-topology evidence behind a contract (relocated in Phase 5B; was `docs/process-topology.md`) | low (8) |
 | `docs/dev/research/process-fragment-prototype.md` | dev/agent | evidence | KEEP | — | Prototype modelling evidence (relocated in Phase 5B; was `docs/process-fragment-prototype.md`) | low (5) |
