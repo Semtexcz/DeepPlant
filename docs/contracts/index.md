@@ -40,11 +40,11 @@ of restating the facts.
 | Headless process renderer | [../rendering.md](../rendering.md) | What is the public renderer API and its deterministic behaviour? |
 | SVG symbol pack | [../svg-symbols.md](../svg-symbols.md) | What is the SVG asset and anchor contract a symbol pack must satisfy? |
 
-Two canonical contracts currently live at the `docs/` root
-([rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md)) because
-their existing inbound links are stable. Moving them under `docs/contracts/` is
-deferred relocation work, not a change of authority: they are already the
-canonical homes of their facts.
+Two canonical contracts remain at the `docs/` root
+([rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md)). Their
+stable canonical paths outweigh cosmetic co-location under `docs/contracts/`; they
+are already the canonical homes of their facts, so the action is **KEEP**
+(ADR-0014).
 
 ## How contracts relate to the other document types
 

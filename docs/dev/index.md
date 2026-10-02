@@ -36,8 +36,12 @@ navigation map, not a content dump. The structure is decided in
 
 ## Smallest relevant context for a task
 
-Pick the row that matches the work and read those documents, not the whole
-repository. This is a lightweight routing table, not an orchestration engine.
+The `always` set in [.agents/context-map.yaml](../../.agents/context-map.yaml) is
+only the universal bootstrap ([AGENTS.md](../../AGENTS.md)); everything else is
+selected from the task, the changed files, and the selected skill. Pick the row
+that matches the work, then add the matching task and changed-file context from
+that map rather than reading the whole repository. This is a lightweight routing
+table, not an orchestration engine.
 
 | Task / change | Read |
 |---|---|

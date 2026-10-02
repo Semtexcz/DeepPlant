@@ -67,18 +67,24 @@ pass (see the move procedure in [conventions.md](conventions.md)).
 | `docs/contracts/process-model.md` | Process graph model | contract | dev, agent | medium | KEEP | — | Canonical, stable |
 | `docs/contracts/physical-piping.md` | Piping realization | contract | dev, agent | medium | KEEP | — | Canonical, stable |
 | `docs/contracts/dexpi-process-adapter.md` | DEXPI Process adapter | contract | dev, agent | medium | KEEP | — | Canonical, stable |
-| `docs/rendering.md` | Headless renderer contract | contract | dev, agent | medium | KEEP in place | `docs/contracts/rendering.md` | Canonical in place; co-location deferred, not an authority change |
-| `docs/svg-symbols.md` | SVG symbol/anchor contract | contract | dev, agent | medium | KEEP in place | `docs/contracts/svg-symbols.md` | Same as `rendering.md` |
+| `docs/rendering.md` | Headless renderer contract | contract | dev, agent | medium | KEEP | — | Canonical in place; co-location under `docs/contracts/` was considered but does not outweigh link and migration cost |
+| `docs/svg-symbols.md` | SVG symbol/anchor contract | contract | dev, agent | medium | KEEP | — | Canonical in place; same assessment as `rendering.md` |
+
+Co-location of `docs/rendering.md` and `docs/svg-symbols.md` under
+`docs/contracts/` was evaluated and rejected. The stable canonical path outweighs a
+tidier taxonomy, and moving them would break inbound links for a cosmetic gain
+(ADR-0014: stable canonical path over cleaner taxonomy). The action is **KEEP**
+for both and no relocation is scheduled.
 
 ## Canonical current and governance documents (shared)
 
 | Current path | Responsibility | Authority | Audiences | Link stability | Action | Candidate target | Reason |
 |---|---|---|---|---|---|---|---|
-| `docs/architecture.md` | Boundary map | current | dev, agent | high | KEEP | — | Widely linked; in `AGENTS.md` and `context-map.yaml` |
-| `docs/workflow.md` | Change loop | governance | dev, agent | high | KEEP | — | Context-map `always` |
-| `docs/quality.md` | Quality gates | governance | dev, agent | medium | KEEP | — | Context-map `always` |
+| `docs/architecture.md` | Boundary map | current | dev, agent | high | KEEP | — | Widely linked; routed for relevant technical and architecture work |
+| `docs/workflow.md` | Change loop | governance | dev, agent | high | KEEP | — | Routed for workflow, quality, and implementation work |
+| `docs/quality.md` | Quality gates | governance | dev, agent | medium | KEEP | — | Routed for implementation, test, and review work |
 | `docs/planning.md` | Planning governance | governance | dev, agent | medium | KEEP | — | Stable |
-| `docs/roadmap.md` | Current state and next direction | current | dev, agent | high | KEEP | — | Context-map `always` |
+| `docs/roadmap.md` | Current state and next direction | current | dev, agent | high | KEEP | — | Routed for project, planning, and roadmap work |
 | `docs/direction.md` | Capability progression | current | dev | medium | KEEP | — | Stable |
 | `docs/product.md` | Product thesis and non-goals | current | user, dev | medium | KEEP | — | Cross-audience canonical |
 | `docs/conventions.md` | Documentation conventions | governance | dev, agent | medium | KEEP | — | Canonical governance; Makefile-validated path |

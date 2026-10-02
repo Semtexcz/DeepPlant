@@ -4,29 +4,21 @@
 
 Build the smallest relevant documentation context from the task, the files you
 will change, and the selected skill — do not eagerly load the entire repository
-documentation. Start from the navigation maps:
+documentation.
 
-- [docs/index.md](docs/index.md) — audience/authority router;
-- [docs/dev/index.md](docs/dev/index.md) — developer/agent navigation and the
-  task → context routing table;
-- [.agents/context-map.yaml](.agents/context-map.yaml) — machine-readable
-  `always` / `task` / change-pattern context selection.
-
-Minimum durable context for nearly any change:
-
-```bash
-sed -n '1,220p' project/brief.md
-sed -n '1,220p' docs/architecture.md
-sed -n '1,220p' docs/workflow.md
-```
-
-Then add only the contract, ADR, or evidence the task needs, as
-[docs/dev/index.md](docs/dev/index.md) directs.
+The machine-readable bootstrap context is the `always` list in
+[.agents/context-map.yaml](.agents/context-map.yaml). Then select task files,
+project-type paths, and change-pattern context from that map, and add only the
+contract, ADR, evidence, or navigation page the task needs. For documentation
+work, use [docs/index.md](docs/index.md) and
+[docs/dev/index.md](docs/dev/index.md) as the routing maps; `docs/dev/index.md`
+contains the task → context table.
 
 
 This project uses lightweight governance. There is no mandatory task state
-machine for ordinary implementation work. Use the brief, architecture, workflow,
-quality gates, and any relevant ADRs as the durable context.
+machine for ordinary implementation work. Load the brief, architecture, workflow,
+quality gates, roadmap, and relevant ADRs only when the selected task, changed
+files, or skill makes them relevant.
 
 
 ## Architecture Rules

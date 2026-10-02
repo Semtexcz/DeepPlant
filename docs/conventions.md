@@ -35,7 +35,9 @@ different question with a different lifecycle moves to its own document; a
 coherent, single-question document stays whole however long it is. Length alone
 is never a reason to split (see [Size as a review signal](#size-as-a-review-signal)).
 
-Four authority types are never mixed in one file:
+Documents should not mix independent authority types. This is the target
+architectural rule; known legacy exceptions awaiting bounded migration are
+recorded in [documentation-migration.md](documentation-migration.md):
 
 | Type | Answers | Lives in |
 |---|---|---|
@@ -54,7 +56,7 @@ expressed by three mechanisms, with deliberately chosen responsibilities:
 | Mechanism | Role in expressing audience |
 |---|---|
 | Physical location | Only for content that is genuinely audience-specific: `docs/user/`, `docs/dev/`. A canonical document that serves more than one audience stays in the shared canonical layer and must **not** be forced under an audience directory. |
-| Navigation / indexes | The primary audience signal. `docs/index.md` routes by audience; `docs/user/index.md` and `docs/dev/index.md` are the audience maps; `read_when` intents carry the signal for agents. |
+| Navigation / indexes | The primary audience signal. `docs/index.md` routes by audience; `docs/user/index.md` and `docs/dev/index.md` are the audience maps; `read_when` contexts/tasks carry the signal for agents. |
 | Metadata | Not used for audience. There is deliberately **no `audience:` front-matter field**; audience is a navigation concern, not a document-authority field. |
 
 Rules:
@@ -81,8 +83,8 @@ type: architecture | governance | contract | roadmap | direction | project-brief
 status: active | historical | superseded | proposed
 canonical_for:   # the stable question or contract key this document owns
   - example-key
-read_when:       # reader intents, not maintenance activities
-  - example-intent
+read_when:       # contexts/tasks in which this document should be read
+  - example-context-or-task
 depends_on:      # repository-root-relative paths of prerequisites
   - docs/contracts/index.md
 decision:        # ADRs that constrain this document
@@ -101,7 +103,7 @@ ownership, authority/lifecycle, navigation, or agent-context routing:
 | `type` | yes | ownership / classification |
 | `status` | yes | authority / lifecycle |
 | `canonical_for` | yes | ownership — the one question the document owns |
-| `read_when` | yes | agent-context routing / navigation |
+| `read_when` | yes | contexts/tasks in which to read the document; agent-context routing / navigation |
 | `update_when` | no | maintenance trigger for a document with a lifecycle |
 | `depends_on` | no | prerequisites / navigation |
 | `decision` | no | traceability to the ADRs that constrain it |
@@ -111,17 +113,22 @@ ownership, authority/lifecycle, navigation, or agent-context routing:
 Rules:
 
 1. `type`, `status`, `canonical_for`, and `read_when` are required.
-2. `canonical_for` names the question or contract key this document owns. An
+2. `read_when` lists the contexts or tasks in which the document should be loaded
+   or read. Values may express a reader intent (for example,
+   `authoring-plant-yaml`) or a change trigger (for example, `implement-change`
+   or `architecture-change`); `update_when` remains the separate maintenance
+   trigger.
+3. `canonical_for` names the question or contract key this document owns. An
    evidence document names its *evidence question*, never a current contract.
-3. Paths in `depends_on`, `decision`, and `evidence` are repository-root-relative
+4. Paths in `depends_on`, `decision`, and `evidence` are repository-root-relative
    and unambiguous.
-4. `superseded_by` is required when `status` is `historical` or `superseded` and
+5. `superseded_by` is required when `status` is `historical` or `superseded` and
    a replacement exists; use `null` only when no replacement is appropriate.
-5. ADRs keep their in-body header (`> Status: …`, `> Date: …`), which is the
+6. ADRs keep their in-body header (`> Status: …`, `> Date: …`), which is the
    ADR metadata form; supersession is stated in that status line.
-6. Do **not** add an `audience:` field (see [Audience model](#audience-model)).
+7. Do **not** add an `audience:` field (see [Audience model](#audience-model)).
    Do not extend the vocabulary without a demonstrated need.
-7. Future tooling should validate front matter, allowed types, required fields,
+8. Future tooling should validate front matter, allowed types, required fields,
    relative links, heading anchors, and size signals. This convention does not
    require a documentation-linter framework today.
 
@@ -278,14 +285,12 @@ The evidence-backed inventory and ordering for the remaining work live in
 [documentation-migration.md](documentation-migration.md); each item there is a
 small, independently reviewable change, not a pre-approved backlog:
 
-1. Relocate the two in-place canonical contracts (`rendering.md`,
-   `svg-symbols.md`) under `docs/contracts/` and update their inbound links.
-2. Split `standards.md` into an active policy document, a standards registry, and
+1. Split `standards.md` into an active policy document, a standards registry, and
    source/asset-licence evidence.
-3. Split the DEXPI Plant/P&ID spike by research question (physical topology,
+2. Split the DEXPI Plant/P&ID spike by research question (physical topology,
    instrumentation, presentation) and split the physical-piping design evidence
    from its contract, each with an outcome card.
-4. Relocate the historical prototype/evidence documents into `docs/research/`
+3. Relocate the historical prototype/evidence documents into `docs/research/`
    subdirectories once their inbound links can be updated in one pass.
 
 ## Related
