@@ -13,6 +13,7 @@ depends_on:
   - docs/index.md
   - docs/conventions.md
 decision:
+  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
@@ -20,9 +21,12 @@ superseded_by: null
 
 # User Documentation
 
-For people who **use** DeepPlant rather than change its internals. The facts stay
-in the shared canonical layer and are linked here; this page only routes. The
-structure is decided in
+For people who **use** DeepPlant rather than change its internals. This layer will
+eventually own the how-to-use guidance. Today it routes to existing pages;
+canonical **contracts** stay shared in [contracts/](../contracts/index.md), while
+architecture, decisions, planning, and evidence are developer-owned and are not
+required reading for users. The structure is decided in
+[ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md), refining
 [ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
 
 ## Start here
@@ -52,10 +56,17 @@ structure is decided in
 
 - **Current** — [product.md](../product.md): product thesis and long-term
   non-goals.
-- **Current** — [architecture.md](../architecture.md): what exists today.
+- **Current** — [architecture.md](../architecture.md): what exists today. This is
+  developer-oriented; read it only if you want the internal boundary map.
+
+A user should not need architecture research, ADRs, planning governance, or
+historical spikes to use DeepPlant. The pages above link to contracts, which are
+the shared authoritative reference.
 
 ## Developer or agent?
 
 If you are changing DeepPlant rather than using it, start from
-[../dev/index.md](../dev/index.md). Both audiences share the canonical documents
-above; the audience layer only changes where you begin.
+[../dev/index.md](../dev/index.md). Only the **contracts** above are shared
+between audiences; developer/agent material (architecture, decisions, evidence,
+planning, history) is canonical but developer-owned, and the audience layer
+changes both where you begin and what you should read.

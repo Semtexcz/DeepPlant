@@ -24,9 +24,14 @@ superseded_by: null
 > (restricted-standards rules, symbol provenance policy, verification
 > vocabulary) with **evidence** (source and licence assessments, candidate asset
 > inventories). The policy sections govern current work; the assessments are
-> research findings with their own inspection dates. Splitting this file into
-> policy, registry, and evidence documents is tracked in
-> [conventions.md](conventions.md) as outstanding migration work.
+> research findings with their own inspection dates. Under
+> [ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) this material
+> is developer/agent-owned and is a planned **SPLIT** into a policy document
+> (`docs/dev/workflow/`), a registry (`docs/dev/reference/`), and licence
+> evidence (`docs/dev/research/`); the split, with the current → target mapping,
+> is recorded in
+> [documentation-migration.md](documentation-migration.md) and is not performed
+> in this slice.
 
 Governance/research slice behind
 [ADR-0007](decisions/ADR-0007-standards-and-symbol-provenance.md). Recorded

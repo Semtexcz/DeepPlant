@@ -1,7 +1,22 @@
 # ADR-0014: Documentation Architecture v2 — Audience Navigation over a Shared Canonical Authority Layer
 
-> Status: Accepted
+> Status: Accepted; its physical-ownership interpretation is superseded by
+> [ADR-0015](ADR-0015-documentation-architecture-v2-1.md). The
+> `audience != knowledge authority` invariant, the authority taxonomy, atomicity,
+> the metadata vocabulary, and the KEEP/MOVE/SPLIT safety rules recorded here
+> remain in force.
 > Date: 2026-10-02
+
+> **Supersession note (2026-10-02).** This ADR's decision text is retained
+> unmodified as the historical record. Its **physical-ownership
+> interpretation** — that the shared canonical layer is broad and that
+> developer/agent material (root current/governance documents, `decisions/`,
+> `research/`, `history/`) stays in a shared root — was too broad.
+> [ADR-0015](ADR-0015-documentation-architecture-v2-1.md) refines it: the shared
+> layer is narrow (`docs/contracts/**` only), and canonical content may be
+> audience-owned (`docs/dev/**`, `docs/user/**`). Read this ADR for the accepted
+> invariant and its reasoning; read ADR-0015 for the current target tree and
+> ownership boundary.
 
 ## Context
 

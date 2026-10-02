@@ -11,7 +11,8 @@ read_when:
 depends_on:
   - docs/architecture.md
   - docs/conventions.md
-decision: []
+decision:
+  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
 evidence: []
 superseded_by: null
 ---
@@ -40,11 +41,13 @@ of restating the facts.
 | Headless process renderer | [../rendering.md](../rendering.md) | What is the public renderer API and its deterministic behaviour? |
 | SVG symbol pack | [../svg-symbols.md](../svg-symbols.md) | What is the SVG asset and anchor contract a symbol pack must satisfy? |
 
-Two canonical contracts remain at the `docs/` root
-([rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md)). Their
-stable canonical paths outweigh cosmetic co-location under `docs/contracts/`; they
-are already the canonical homes of their facts, so the action is **KEEP**
-(ADR-0014).
+Two contracts still live at the `docs/` root
+([rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md)). Under
+[ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md) they are
+contracts, and `docs/contracts/` is the shared contract layer, so they are
+scheduled to **MOVE** here. The earlier "stable path wins" assessment was a
+link-cost argument, not an ownership decision. The move is a later bounded slice;
+see [documentation-migration.md](../documentation-migration.md).
 
 ## How contracts relate to the other document types
 
