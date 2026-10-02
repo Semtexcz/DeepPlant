@@ -94,8 +94,14 @@ docs/
 │   ├── index.md
 │   ├── getting-started.md
 │   ├── concepts/
+│   │   └── what-is-deepplant.md
 │   ├── how-to/
+│   │   ├── author-plant-yaml.md
+│   │   ├── validate-a-model.md
+│   │   ├── diagnose-validation-errors.md
+│   │   └── render-process-svg.md
 │   └── reference/
+│       └── index.md
 ├── dev/
 │   ├── index.md
 │   ├── architecture/
@@ -131,7 +137,7 @@ navigation between audiences, not shared documentation.
 | `project/brief.md` | dev/agent | current (project) | KEEP | — | `project/` role; project brief | medium |
 | `docs/index.md` | shared | navigation | KEEP | — | Global navigation between audiences; not part of the shared documentation layer | high |
 | `docs/dev/index.md` | dev/agent | navigation | KEEP | — | Developer map; task → context routing | medium |
-| `docs/user/index.md` | user | navigation | KEEP | — | User map; must grow into a real home | low |
+| `docs/user/index.md` | user | navigation | KEEP | — | User map; now a real task router over the user pages | low |
 | `.agents/context-map.yaml` | dev/agent | navigation | KEEP | — | Machine-readable agent routing | medium |
 
 ## Shared documentation layer — cross-audience `docs/contracts/`
@@ -258,23 +264,30 @@ lands, the policy sections are the active part and the assessments are evidence
 with their own dates. `docs/dev/reference/` is reserved for internal reference
 material that is neither workflow governance nor investigation evidence.
 
-## User layer — what is missing
+## User layer — the Phase 4 foundation
 
-`docs/user/**` answers how to use DeepPlant. Most of it does not exist yet; this
-decision defines ownership only and creates no user content.
+`docs/user/**` answers how to use DeepPlant. Phase 4 created a bounded foundation;
+later capabilities add pages to it as they ship.
 
-| Target | Authority | Action | Reason |
+| Path | Authority | Action | Reason |
 |---|---|---|---|
-| `docs/user/index.md` | navigation | KEEP + grow | The user map; must route to real pages, not to the developer root |
-| `docs/user/getting-started.md` | guidance | ADD (later) | Install, build, first validation run |
-| `docs/user/concepts/what-is-deepplant.md` | guidance | ADD (later) | User-facing explanation of what DeepPlant is; replaces the transitional `product.md` link |
-| `docs/user/concepts/` | guidance | ADD (later) | Other concepts a user must understand (model, plant, process, piping) |
-| `docs/user/how-to/` | guidance | ADD (later) | Write YAML, validate, render, diagnose errors |
-| `docs/user/reference/` | navigation | ADD (later) | Pointer layer to the canonical `docs/contracts/` documents |
+| `docs/user/index.md` | navigation | DONE | User map; now routes to real user pages instead of the developer root |
+| `docs/user/getting-started.md` | guidance | DONE | Checkout through first successful validation run |
+| `docs/user/concepts/what-is-deepplant.md` | guidance | DONE | User-facing explanation of what DeepPlant is; replaced the transitional `product.md` link |
+| `docs/user/how-to/author-plant-yaml.md` | guidance | DONE | Author a model as YAML |
+| `docs/user/how-to/validate-a-model.md` | guidance | DONE | Run and read `deepplant validate` |
+| `docs/user/how-to/diagnose-validation-errors.md` | guidance | DONE | Read and fix loader/model errors |
+| `docs/user/how-to/render-process-svg.md` | guidance | DONE | Render a `ProcessModel` to SVG through the Python API |
+| `docs/user/reference/index.md` | navigation | DONE | Thin router to the canonical `docs/contracts/` documents |
 
-User pages may link to `docs/contracts/**` as authoritative reference; they must
-not duplicate contract facts, and they must not require architecture, ADRs,
-planning governance, or historical spikes to be read.
+The **foundation** is complete; the user layer as a whole is not finished. Future
+capabilities will require new user pages, so "Phase 4 done" means this bounded
+slice exists and is wired into navigation and validation — not that no user
+documentation will ever be added again.
+
+User pages link to `docs/contracts/**` as the authoritative reference; they do not
+duplicate contract facts, and they must not require architecture, ADRs, planning
+governance, or historical spikes to be read.
 
 ## Current → target summary
 
@@ -322,6 +335,16 @@ planning governance, or historical spikes to be read.
 - `docs/dev/research/**` (was `docs/research/**`) — canonical evidence documents.
 - `docs/dev/history/implementation-slices.md` (was
   `docs/history/implementation-slices.md`) — completion history.
+
+**User-owned foundation (created in Phase 4):**
+
+- `docs/user/index.md` (rebuilt as a task router), `docs/user/getting-started.md`,
+  `docs/user/concepts/what-is-deepplant.md`,
+  `docs/user/how-to/author-plant-yaml.md`,
+  `docs/user/how-to/validate-a-model.md`,
+  `docs/user/how-to/diagnose-validation-errors.md`,
+  `docs/user/how-to/render-process-svg.md`, and
+  `docs/user/reference/index.md` — new user-owned pages, not relocations.
 
 **Still to leave the `docs/` root (later slices):**
 
@@ -382,11 +405,13 @@ later slice may reorder these steps if repository evidence supports it.
        docs/history/** → docs/dev/history/**
    Phase 3 — COMPLETE
 
-4. User documentation foundation — NEXT
-   getting-started; what-is-deepplant; primary workflows (create, validate,
-   render, diagnose); link to cross-audience contracts instead of duplicating them
+4. User documentation foundation — DONE
+   docs/user/index.md rebuilt as a task router; getting-started; concepts/
+   what-is-deepplant; how-to (author YAML, validate, diagnose, render SVG);
+   reference/index; user pages link to cross-audience contracts instead of
+   duplicating them
 
-5. Evidence and prototype cleanup
+5. Evidence and prototype cleanup — NEXT
    root evidence → docs/dev/research/; dexpi/ grouping; atomic spike splits
 
 6. Standards split
@@ -398,18 +423,19 @@ later slice may reorder these steps if repository evidence supports it.
 
 This sequence covers every inventory action that changes or adds a document home:
 step 2 covered the three contract/reference `MOVE` rows; step 3 (decomposed into
-3A, 3B, and 3C) covers the architecture, workflow (including this inventory
-itself), planning, decisions, research, and history `MOVE` rows; step 4 covers
-every user `ADD (later)` row; step 5 covers every root research/prototype `MOVE`,
-including the `MOVE + SPLIT` DEXPI plant/P&ID spike; and step 6 covers the
-`standards.md` `SPLIT`. Each move/split slice reconciles its affected inbound
-links, navigation, metadata, and agent routing in the same pass.
+3A, 3B, and 3C) covered the architecture, workflow (including this inventory
+itself), planning, decisions, research, and history `MOVE` rows; step 4 created
+every user-owned page planned for the Phase 4 foundation; step 5 will cover every
+root research/prototype `MOVE`, including the `MOVE + SPLIT` DEXPI plant/P&ID
+spike; and step 6 covers the `standards.md` `SPLIT`. Each move/split slice
+reconciles its affected inbound links, navigation, metadata, and agent routing
+in the same pass.
 
 Step 2 established the contract/reference homes before developer or user pages
-link to them. Step 3 precedes step 4 so user pages can link into a stable developer
-tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
-reuse links already reconciled once. Steps 1, 2, and 3 (3A, 3B, 3C) are complete;
-Phase 3 is COMPLETE and step 4 (user documentation foundation) is next.
+link to them. Step 3 preceded step 4 so the audience layers were already
+separated before user content was added. Step 5 follows step 4 so evidence moves
+reuse links already reconciled once. Steps 1, 2, 3 (3A, 3B, 3C), and 4 are
+complete; Phase 4 is COMPLETE and step 5 (evidence and prototype cleanup) is next.
 
 ## Agent context consequences
 
@@ -461,6 +487,15 @@ index:
 - no pattern eagerly loads decision, evidence, or history documents: evidence and
   history are reached from the developer navigation map, not from ordinary
   implementation routing.
+
+Phase 4 created the user-owned guidance pages and added one narrow route for
+them:
+
+- `docs/user/**` routes to `docs/user/index.md`,
+  `docs/dev/workflow/conventions.md`, and `docs/contracts/index.md`;
+- the generic `docs/**` route is deliberately unchanged and names no user guide,
+  so ordinary documentation and implementation work does not eagerly load the
+  user layer.
 
 Every migrated path — both the pattern key and the routed context files — is now
 named at its v2.1 location rather than its historical root path, and `AGENTS.md`

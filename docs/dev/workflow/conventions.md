@@ -49,6 +49,7 @@ recorded in [documentation-migration.md](documentation-migration.md):
 | evidence | what was investigated, and what came out of it? | `docs/dev/research/**` |
 | history | what shipped, in what order? | `docs/dev/history/` |
 | developer reference | implementation-facing canonical reference not covered above | `docs/dev/reference/` — developer-only contracts/reference, not a dumping ground |
+| guidance | how do I use what exists now? | `docs/user/**` — user-owned task/workflow guidance that links to contracts instead of restating them |
 
 The target column is **v2.1 ownership**
 ([ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
@@ -106,6 +107,7 @@ them directly.
 ---
 type: architecture | governance | contract | roadmap | direction | project-brief
       | navigation | product | history | evidence | prototype | design-evidence
+      | guidance
 status: active | historical | superseded | proposed
 canonical_for:   # the stable question or contract key this document owns
   - example-key

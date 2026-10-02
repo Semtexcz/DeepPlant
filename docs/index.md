@@ -54,7 +54,8 @@ mapping is in
 ## Audience entry points
 
 - **User** — [user/index.md](user/index.md): using the CLI, authoring YAML,
-  reading current model contracts.
+  reading current model contracts. New users start at
+  [user/getting-started.md](user/getting-started.md).
 - **Developer / agent** — [dev/index.md](dev/index.md): architecture, contracts,
   decisions, evidence, workflow, and task-to-context routing.
 

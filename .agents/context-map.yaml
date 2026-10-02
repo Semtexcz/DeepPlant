@@ -89,6 +89,10 @@ change_patterns:
     - project/brief.md
     - docs/dev/planning/roadmap.md
     - docs/dev/planning/index.md
+  "docs/user/**":
+    - docs/user/index.md
+    - docs/dev/workflow/conventions.md
+    - docs/contracts/index.md
   "docs/**":
     - docs/index.md
     - docs/dev/index.md

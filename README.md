@@ -26,6 +26,7 @@ Workflow mode: `pr`.
 
 ```text
 I want to use DeepPlant
+    → start here: docs/user/getting-started.md
     → user documentation: docs/user/index.md
 
 I want to develop, extend, or understand DeepPlant internals
@@ -66,6 +67,10 @@ uv run deepplant version
 uv run deepplant validate examples/minimal-process/plant.yaml
 ```
 
+New to DeepPlant? [docs/user/getting-started.md](docs/user/getting-started.md)
+takes you from a checkout to a first validated model using only the CLI and the
+bundled examples.
+
 ## Workflow
 
 Reusable agent skills live under `.agents/skills/` (orientation, implementation,
@@ -104,6 +109,7 @@ project identity is addressed in [TRADEMARKS.md](TRADEMARKS.md).
 | Need | Open |
 |---|---|
 | Documentation router | [docs/index.md](docs/index.md) |
+| New user: first validated model | [docs/user/getting-started.md](docs/user/getting-started.md) |
 | User documentation | [docs/user/index.md](docs/user/index.md) |
 | Developer / agent documentation | [docs/dev/index.md](docs/dev/index.md) |
 | Current contracts (model, YAML, CLI, renderer, DEXPI) | [docs/contracts/index.md](docs/contracts/index.md) |
