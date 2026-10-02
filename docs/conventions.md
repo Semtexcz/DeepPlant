@@ -43,11 +43,12 @@ recorded in [documentation-migration.md](documentation-migration.md):
 
 | Type | Answers | Target home |
 |---|---|---|
-| contract | what must hold now? | `docs/contracts/` — the only shared layer |
+| contract | what must hold now? | `docs/contracts/` when genuinely cross-audience; otherwise `docs/dev/reference/` or the owning audience layer |
 | current / policy / governance | what exists now, and how is work governed? | `docs/dev/**` — canonical, developer/agent-owned |
 | decision | why does this boundary exist? | `docs/dev/decisions/` |
 | evidence | what was investigated, and what came out of it? | `docs/dev/research/**` |
 | history | what shipped, in what order? | `docs/dev/history/` |
+| developer reference | implementation-facing canonical reference not covered above | `docs/dev/reference/` — developer-only contracts/reference, not a dumping ground |
 
 The target column is **v2.1 ownership**
 ([ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
@@ -67,23 +68,30 @@ expressed by three mechanisms, with deliberately chosen responsibilities:
 
 | Mechanism | Role in expressing audience |
 |---|---|
-| Physical location | For content that is genuinely audience-specific: `docs/user/` and `docs/dev/`. Contracts needed by more than one audience live in `docs/contracts/`; developer/agent-owned canonical content lives under `docs/dev/` rather than in a shared root. Shared truth and shared audience are different questions — **`canonical != shared-directory`**. |
+| Physical location | For content that is genuinely audience-specific: `docs/user/` and `docs/dev/`. Only contracts genuinely needed by more than one audience live in `docs/contracts/`; developer-only contracts/reference live under `docs/dev/reference/`. Repository-role exceptions may remain outside these trees without becoming shared. Shared truth and shared audience are different questions — **`canonical != shared-directory`**. |
 | Navigation / indexes | The primary audience signal. `docs/index.md` routes by audience; `docs/user/index.md` and `docs/dev/index.md` are the audience maps; `read_when` contexts/tasks carry the signal for agents. |
 | Metadata | Not used for audience. There is deliberately **no `audience:` front-matter field**; audience is a navigation concern, not a document-authority field. |
 
 Rules:
 
-1. A document canonical for more than one audience lives in the shared
+1. Authority decides what kind of truth a document owns; audience decides who
+   primarily needs it. Authority does **not** decide shared ownership: a document
+   with `contract` authority is not automatically cross-audience.
+2. A document genuinely needed by more than one audience lives in the shared
    `docs/contracts/` layer; both audience indexes link to it. Keep one canonical
    copy — never duplicate a fact to give it an audience home.
-2. A document canonical for *one* audience lives under that audience: developer/
-   agent material under `docs/dev/`, user guidance under `docs/user/`. Being
-   canonical does not require being shared.
-3. Add `docs/user/` or `docs/dev/` material only when it is genuinely
+3. A document canonical for *one* audience lives under that audience: developer/
+   agent material under `docs/dev/` — including developer-only contracts and
+   reference under `docs/dev/reference/` — and user guidance under `docs/user/`.
+   Being canonical does not require being shared.
+4. Repository-role exceptions (`README.md`, `VISION.md`, `AGENTS.md`,
+   `project/brief.md`) keep their required location without becoming shared;
+   `docs/index.md` is global navigation, not shared documentation.
+5. Add `docs/user/` or `docs/dev/` material only when it is genuinely
    audience-specific. Do not create empty audience trees to match a taxonomy.
-4. Filesystem location is never the only audience signal; a reader or agent must
+6. Filesystem location is never the only audience signal; a reader or agent must
    also be able to tell the audience from the navigation.
-5. Path stability is a migration cost to weigh, not evidence of shared ownership.
+7. Path stability is a migration cost to weigh, not evidence of shared ownership.
    A heavily linked document does not stay in the shared root for that reason
    alone.
 
@@ -293,10 +301,14 @@ physical-ownership boundary. Current state:
   [user/index.md](user/index.md) and [dev/index.md](dev/index.md) are the audience
   navigation maps. No canonical document has moved yet; the audience directories
   are still navigation over the `docs/` root.
-- **Shared layer (narrow)**: `docs/contracts/*` (plant model, process model,
-  physical piping, YAML format, CLI, DEXPI Process adapter).
-  [rendering.md](rendering.md) and [svg-symbols.md](svg-symbols.md) are contracts
-  that belong in `docs/contracts/` and are scheduled to move there.
+- **Shared documentation layer (narrow)**: cross-audience `docs/contracts/*`
+  (plant model, process model, physical piping, YAML format, CLI).
+  [rendering.md](rendering.md) is a public renderer contract scheduled to move to
+  `docs/contracts/`.
+- **Developer-only canonical reference (target `docs/dev/reference/`)**:
+  [contracts/dexpi-process-adapter.md](contracts/dexpi-process-adapter.md) and
+  [svg-symbols.md](svg-symbols.md) retain contract authority but are scheduled to
+  move to developer-owned reference, not the shared layer.
 - **Developer-owned canonical content (target `docs/dev/`)**:
   [architecture.md](architecture.md), [workflow.md](workflow.md),
   [quality.md](quality.md), [conventions.md](conventions.md),
@@ -308,8 +320,11 @@ physical-ownership boundary. Current state:
   [history/implementation-slices.md](history/implementation-slices.md), and the
   root-level evidence/prototype documents listed in
   [research/index.md](research/index.md).
-- **Repository-root documents kept for repository/project role**: `README.md`,
-  `VISION.md`, `AGENTS.md`, `project/brief.md`, and `docs/index.md`.
+- **Repository-role exceptions and global navigation**: `README.md` and
+  `VISION.md` remain broad public/repository entry documents; `AGENTS.md` and
+  `project/brief.md` remain developer/agent-oriented despite their root or
+  `project/` location. `docs/index.md` remains global navigation. None is shared
+  solely because of location.
 
 The evidence-backed inventory, current → target mapping, and the incremental
 ordering for the remaining work live in

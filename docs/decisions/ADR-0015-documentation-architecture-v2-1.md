@@ -56,10 +56,11 @@ ownership means physical location for audience-specific content.
   physically unimplemented, and the inventory keeps using "the path already
   exists" as a reason to keep it.
 - **B — narrow shared layer with audience-owned canonical content (v2.1).**
-  `docs/contracts/**` is the shared layer; `docs/dev/**` owns developer/agent
-  canonical content (architecture, governance, decisions, research/evidence,
-  history, planning); `docs/user/**` owns user guidance. Authority stays
-  independent of the physical owner.
+  `docs/contracts/**` holds only genuinely cross-audience contracts; `docs/dev/**`
+  owns developer/agent canonical content, including developer-only contracts and
+  reference, architecture, governance, decisions, research/evidence, history, and
+  planning; `docs/user/**` owns user guidance. Authority stays independent of the
+  physical owner.
 - **C — fully audience-first (ADR-0014 option A).** Every document, including a
   cross-audience contract, is owned by one audience. Rejected for the same reason
   ADR-0014 rejected it: a contract canonical for both users and developers must
@@ -74,9 +75,10 @@ the shared layer changes.
 
 ### 1. Invariant retained
 
-`audience != knowledge authority` remains the governing principle. Audience
-determines navigation and may determine physical ownership. Authority
-independently answers:
+`audience != knowledge authority` remains the governing principle. Authority
+decides what kind of truth a document owns; audience decides who primarily needs
+it; physical location follows audience ownership unless the content is genuinely
+cross-audience. Authority independently answers:
 
 ```text
 current / contract = what must hold now
@@ -87,16 +89,18 @@ history            = what happened earlier
 
 ### 2. The shared layer is narrow
 
-The shared layer contains only documents whose canonical content genuinely serves
-multiple audiences and would be misrepresented by ownership under a single
-audience. Today that is:
+The shared documentation layer contains only canonical documents whose content is
+genuinely needed across audiences and would be misrepresented by ownership under a
+single audience. Today, cross-audience contracts are expected to live under:
 
 ```text
 docs/contracts/**
 ```
 
-Contracts such as the CLI surface, the authored YAML format, and the model
-contracts are authoritative for users and developers alike.
+The CLI surface, the authored YAML format, the model contracts, and the public
+renderer API are authoritative for users and developers alike. Contract authority,
+however, does not by itself make a document shared: developer-only contracts and
+reference remain developer-owned under `docs/dev/reference/`.
 
 ### 3. Canonical does not mean shared directory
 
@@ -111,6 +115,7 @@ docs/dev/history/**        canonical for completion history
 docs/dev/planning/**       canonical for planning and direction
 docs/dev/workflow/**       canonical for the change loop, quality, and
                            documentation governance
+docs/dev/reference/**      canonical for developer-only contracts/reference
 ```
 
 These are canonical without being shared. Users normally do not read them; that
@@ -119,7 +124,8 @@ does not make them second-class or non-authoritative.
 ### 4. Audience physical ownership
 
 ```text
-shared  = canonical contracts/reference genuinely needed across audiences
+shared  = canonical documents genuinely needed across audiences;
+          today, cross-audience contracts under docs/contracts/**
 user    = how to use DeepPlant
 dev     = how DeepPlant works, why it works that way, how to change it,
           evidence, planning, and development history
@@ -132,8 +138,8 @@ reference. A user should not need architecture research, ADRs, planning
 governance, or historical spikes to learn how to use DeepPlant.
 
 `docs/dev/**` owns architecture, workflow/governance, planning/direction,
-decisions, research/evidence, history, prototypes/spikes, and internal
-standards/provenance governance.
+decisions, research/evidence, history, prototypes/spikes, internal
+standards/provenance governance, and developer-only contracts/reference.
 
 ### 5. Target tree (directional)
 
@@ -151,6 +157,7 @@ docs/
 │   ├── architecture/
 │   ├── workflow/
 │   ├── planning/
+│   ├── reference/                 developer-only canonical contracts/reference
 │   ├── decisions/
 │   ├── research/
 │   └── history/
@@ -161,20 +168,24 @@ docs/
     ├── physical-piping.md
     ├── yaml-format.md
     ├── cli.md
-    ├── rendering.md
-    ├── svg-symbols.md
-    └── dexpi-process-adapter.md
+    └── rendering.md
 ```
 
 This tree is the target, not permission to create empty directories. A folder
 appears only when a real document moves into it.
 
-### 6. Repository-root and `project/` documents keep their repository role
+### 6. Repository-role exceptions and global navigation remain distinct
 
-`README.md` (GitHub/product front door), `VISION.md` (durable product vision),
-`AGENTS.md` (agent bootstrap), and `project/brief.md` (project brief) are not
-moved into `docs/`. They remain where their repository or project role requires
-them, and authority still answers what each one owns.
+`README.md` (GitHub/product front door), `VISION.md` (durable public-facing
+product thesis), `AGENTS.md` (agent bootstrap), and `project/brief.md` (project
+brief) are not moved into `docs/`: their locations follow repository or tooling
+role, not shared-audience ownership. `README.md` and `VISION.md` serve a broad
+public/repository audience; `AGENTS.md` and `project/brief.md` remain
+developer/agent-oriented despite their root or `project/` locations.
+
+`docs/index.md` is global navigation: it routes between audiences but is not part
+of the shared documentation layer. Root placement does not imply shared audience
+ownership.
 
 ### 7. Explicitly retained from ADR-0014
 
@@ -226,7 +237,8 @@ are in [docs/documentation-migration.md](../documentation-migration.md).
 
 ## Revisit When
 
-- A document in `docs/contracts/` turns out to serve only one audience.
+- A document in `docs/contracts/` turns out to serve only one audience, or a
+  developer-only contract becomes genuinely cross-audience.
 - A developer-owned canonical document becomes user-facing enough to justify a
   user-owned counterpart.
 - Migrations complete and the inventory can be retired from routine maintenance.

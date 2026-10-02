@@ -36,7 +36,8 @@ how an action is chosen.
 ## The v2.1 ownership boundary
 
 ```text
-shared  = canonical contracts/reference genuinely needed across audiences
+shared  = canonical documents genuinely needed across audiences;
+          today, cross-audience contracts under docs/contracts/**
 user    = how to use DeepPlant
 dev     = how DeepPlant works, why it works that way, how to change it,
           evidence, planning, and development history
@@ -48,14 +49,17 @@ Two rules decide ownership:
    single authoritative home for its knowledge type. Canonical content may be
    developer-owned (`docs/dev/**`) or user-owned (`docs/user/**`). Only content
    genuinely needed by more than one audience belongs in the shared layer.
-2. **`audience != knowledge authority`.** Audience determines navigation and may
-   determine physical ownership; authority independently decides what the
-   document owns (current / contract / decision / evidence / history / governance
-   / navigation).
+2. **`audience != knowledge authority`.** Authority decides what kind of truth
+   the document owns (current / contract / decision / evidence / history /
+   governance / navigation); audience decides who primarily needs it. Physical
+   location follows audience ownership unless the content is genuinely
+   cross-audience.
 
-The shared layer is therefore deliberately narrow. Today it is `docs/contracts/**`
-only. A document does **not** stay in the shared root merely because it has many
-links; path stability is a migration cost to weigh, not proof of shared ownership.
+The shared documentation layer is therefore deliberately narrow. Today,
+`docs/contracts/**` is reserved for genuinely cross-audience contracts. A document
+does **not** enter that directory merely because its authority is `contract`, and
+does not stay at the root merely because it has many links; path stability is a
+migration cost to weigh, not proof of shared ownership.
 
 ## How to read this inventory
 
@@ -108,15 +112,16 @@ docs/
     ├── physical-piping.md
     ├── yaml-format.md
     ├── cli.md
-    ├── rendering.md
-    ├── svg-symbols.md
-    └── dexpi-process-adapter.md
+    └── rendering.md
 ```
 
-## Entry points and repository-root documents
+## Repository-role exceptions and global navigation
 
-These keep their current location because their **repository or project role**
-requires it, not because the shared layer is broad.
+These paths keep their current location because of their **repository or tooling**
+role, not because root placement makes them shared. `README.md` and `VISION.md`
+serve a broad public/repository audience; `AGENTS.md` and `project/brief.md` are
+developer/agent-oriented repository-role exceptions. `docs/index.md` is global
+navigation between audiences, not shared documentation.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
@@ -124,15 +129,16 @@ requires it, not because the shared layer is broad.
 | `VISION.md` | shared | governance (vision) | KEEP | — | Durable product vision; anchor of the planning hierarchy | high |
 | `AGENTS.md` | dev/agent | navigation | KEEP | — | Root agent bootstrap and invariants | high |
 | `project/brief.md` | dev/agent | current (project) | KEEP | — | `project/` role; project brief | medium |
-| `docs/index.md` | shared | navigation | KEEP | — | The single documents router | high |
+| `docs/index.md` | shared | navigation | KEEP | — | Global navigation between audiences; not part of the shared documentation layer | high |
 | `docs/dev/index.md` | dev/agent | navigation | KEEP | — | Developer map; task → context routing | medium |
 | `docs/user/index.md` | user | navigation | KEEP | — | User map; must grow into a real home | low |
 | `.agents/context-map.yaml` | dev/agent | navigation | KEEP | — | Machine-readable agent routing | medium |
 
-## Shared layer — `docs/contracts/`
+## Shared documentation layer — cross-audience `docs/contracts/`
 
-The only genuinely shared layer. Each entry is canonical for more than one
-audience, or is a **contract** whose authority is cross-audience by nature.
+The only genuinely shared documentation layer. Each entry is independently
+justified as needed by more than one audience; contract authority alone is not
+sufficient for placement here.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
@@ -142,14 +148,22 @@ audience, or is a **contract** whose authority is cross-audience by nature.
 | `docs/contracts/plant-model.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
 | `docs/contracts/process-model.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
 | `docs/contracts/physical-piping.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
-| `docs/contracts/dexpi-process-adapter.md` | dev/agent | contract | KEEP | — | Adapter contract; contract authority keeps it in the shared layer | medium |
-| `docs/rendering.md` | shared | contract | MOVE | `docs/contracts/rendering.md` | Contract-authority document; users render, developers consume the API | medium (17) |
-| `docs/svg-symbols.md` | dev/agent | contract | MOVE | `docs/contracts/svg-symbols.md` | Contract that belongs with the renderer it operationalizes | medium (20) |
+| `docs/rendering.md` | shared | contract | MOVE | `docs/contracts/rendering.md` | Public renderer API and output behaviour are needed by callers/users and implementers | medium (17) |
 
-`rendering.md` and `svg-symbols.md` were `KEEP`-in-place under v2. v2.1 reverses
-that: they are contracts, and contracts are the shared layer. The earlier
-"stable canonical path outweighs co-location" argument is a link-cost argument,
-and it does not establish that the root is their correct owner.
+## Developer reference layer — `docs/dev/reference/`
+
+Developer-only canonical reference belongs here when it is neither workflow or
+governance, an ADR, research/evidence, history, nor a genuinely cross-audience
+contract. It is a narrow ownership category, not a generic dumping ground.
+
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `docs/contracts/dexpi-process-adapter.md` | dev/agent | contract | MOVE | `docs/dev/reference/dexpi-process-adapter.md` | Adapter implementers/integrators need its supported-subset and fail-closed contract; users do not need it to use DeepPlant | medium |
+| `docs/svg-symbols.md` | dev/agent | contract | MOVE | `docs/dev/reference/svg-symbols.md` | Renderer/symbol developers need the packaged asset and anchor contract; it is not user-facing reference | medium (20) |
+
+`rendering.md`, `svg-symbols.md`, and `dexpi-process-adapter.md` are classified
+independently. The public renderer API is cross-audience; the SVG asset/anchor and
+DEXPI adapter contracts are developer-only.
 
 ## Developer authority layer — architecture, governance, planning
 
@@ -165,12 +179,16 @@ moves out of the shared root into `docs/dev/**`.
 | `docs/planning.md` | dev/agent | governance | MOVE | `docs/dev/planning/index.md` | Planning governance | medium (12) |
 | `docs/roadmap.md` | dev/agent | current | MOVE | `docs/dev/planning/roadmap.md` | Current execution state and next direction | high (34) |
 | `docs/direction.md` | dev/agent | current | MOVE | `docs/dev/planning/direction.md` | Long-term capability progression | medium (18) |
-| `docs/product.md` | dev/agent | current | MOVE | `docs/dev/planning/product.md` | Product/planning thesis; users may be linked to it but it is not user guidance | medium (11) |
+| `docs/product.md` | dev/agent | current | MOVE | `docs/dev/planning/product.md` | Internal product/planning thesis; its current user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
 | `docs/standards.md` | dev/agent | governance + evidence | SPLIT | see below | Mixes policy, registry, and licence evidence | medium (17) |
 
-`product.md` and `VISION.md` need a deliberate distinction: `VISION.md` stays at
-the repository root as the durable identity document, while `product.md` is the
-planning-level view and belongs with the rest of planning.
+`product.md` and `VISION.md` need a deliberate distinction: `README.md` remains
+the concise product/repository front door; `VISION.md` remains the durable
+public-facing long-term thesis; `product.md` is internal product/planning reasoning
+and belongs with planning. Until user concepts exist, `docs/user/index.md` labels
+its link to `product.md` as transitional. A future
+`docs/user/concepts/what-is-deepplant.md` will own the user-facing explanation;
+this correction does not create it.
 
 ## Developer authority layer — decisions, evidence, history
 
@@ -235,7 +253,8 @@ decision defines ownership only and creates no user content.
 |---|---|---|---|
 | `docs/user/index.md` | navigation | KEEP + grow | The user map; must route to real pages, not to the developer root |
 | `docs/user/getting-started.md` | guidance | ADD (later) | Install, build, first validation run |
-| `docs/user/concepts/` | guidance | ADD (later) | The concepts a user must understand (model, plant, process, piping) |
+| `docs/user/concepts/what-is-deepplant.md` | guidance | ADD (later) | User-facing explanation of what DeepPlant is; replaces the transitional `product.md` link |
+| `docs/user/concepts/` | guidance | ADD (later) | Other concepts a user must understand (model, plant, process, piping) |
 | `docs/user/how-to/` | guidance | ADD (later) | Write YAML, validate, render, diagnose errors |
 | `docs/user/reference/` | navigation | ADD (later) | Pointer layer to the canonical `docs/contracts/` documents |
 
@@ -247,12 +266,23 @@ planning governance, or historical spikes to be read.
 
 **Stays genuinely shared (unchanged or co-located):**
 
-- `docs/contracts/**` — the entire contract set, including `rendering.md` and
-  `svg-symbols.md` once relocated.
-- Repository-root documents kept for repository/project role: `README.md`,
-  `VISION.md`, `AGENTS.md`, `project/brief.md`.
-- The two navigation layers: `docs/index.md`, `docs/dev/index.md`,
-  `docs/user/index.md`.
+- Cross-audience contracts: `docs/contracts/plant-model.md`, `process-model.md`,
+  `physical-piping.md`, `yaml-format.md`, `cli.md`, and, once relocated,
+  `rendering.md`.
+
+**Repository-role exceptions and navigation (not shared ownership):**
+
+- `README.md` and `VISION.md` remain broad public/repository entry documents;
+  `AGENTS.md` and `project/brief.md` remain developer/agent-oriented despite root
+  or `project/` placement.
+- `docs/index.md` remains global navigation; `docs/dev/index.md` and
+  `docs/user/index.md` remain audience navigation.
+
+**Developer-only canonical reference:**
+
+- `docs/contracts/dexpi-process-adapter.md` →
+  `docs/dev/reference/dexpi-process-adapter.md`.
+- `docs/svg-symbols.md` → `docs/dev/reference/svg-symbols.md`.
 
 **Eventually leaves the `docs/` root (nothing moves in this slice):**
 
@@ -269,7 +299,7 @@ planning governance, or historical spikes to be read.
 - `docs/decisions/**` → `docs/dev/decisions/**`
 - `docs/research/**` → `docs/dev/research/**`
 - `docs/history/**` → `docs/dev/history/**`
-- `docs/rendering.md`, `docs/svg-symbols.md` → `docs/contracts/`
+- `docs/rendering.md` → `docs/contracts/rendering.md`
 - `docs/dexpi-process-spike.md`, `docs/dexpi-plant-pid-spike.md`,
   `docs/dexpi-exchanging-thermal-energy-evidence.md`,
   `docs/physical-piping-model.md`, `docs/process-topology.md`,
@@ -277,7 +307,8 @@ planning governance, or historical spikes to be read.
   `docs/reference-products.md` → `docs/dev/research/`
 
 After full migration the `docs/` root holds only `index.md` plus the three
-audience/authority trees (`user/`, `dev/`, `contracts/`).
+audience/authority trees (`user/`, `dev/`, `contracts/`). `docs/index.md` remains
+global navigation, not part of the shared documentation layer.
 
 **Splits:**
 

@@ -54,8 +54,10 @@ required reading for users. The structure is decided in
 
 ## Understand what DeepPlant is
 
-- **Current** — [product.md](../product.md): product thesis and long-term
-  non-goals.
+- **Transitional current link** — [product.md](../product.md): internal
+  product/planning thesis and long-term non-goals. After migration, the user-facing
+  explanation will be `docs/user/concepts/what-is-deepplant.md`; that page is a
+  planned target and is not created by this PR.
 - **Current** — [architecture.md](../architecture.md): what exists today. This is
   developer-oriented; read it only if you want the internal boundary map.
 

@@ -29,10 +29,11 @@ navigation map, not a content dump. The structure is decided in
 [ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
 
 This audience layer is the eventual **physical owner** of developer/agent
-material: architecture, workflow/governance, planning, decisions, research/
-evidence, and history are canonical *and* developer-owned, and will move from the
-`docs/` root into this tree. They remain canonical after the move. Until then the
-links below still resolve from the root; the current → target mapping is in
+material: architecture, workflow/governance, planning, developer-only
+contracts/reference, decisions, research/evidence, and history are canonical *and*
+developer-owned, and will move from the `docs/` root into this tree. They remain
+canonical after the move. Until then the links below still resolve from the root;
+the current → target mapping is in
 [documentation-migration.md](../documentation-migration.md).
 
 ## Start here
@@ -59,8 +60,8 @@ table, not an orchestration engine.
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
-| Change the renderer or symbols | [rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md) |
-| Change the DEXPI adapter | [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md) |
+| Change the renderer or symbols | [rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md) — target: shared renderer contract; developer-only symbol reference |
+| Change the DEXPI adapter | [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md) — target: `docs/dev/reference/` |
 | Decide or record an architecture boundary | [decisions/index.md](../decisions/index.md), [conventions.md](../conventions.md) |
 | Add or change evidence | [research/index.md](../research/index.md) |
 | Change documentation | [conventions.md](../conventions.md), [documentation-migration.md](../documentation-migration.md) |
@@ -71,12 +72,16 @@ is the agent bootstrap entry point.
 
 ## Authority layers
 
-These are canonical for their authority type. Only the **contract** layer is
-shared with users; decisions, evidence, history, and governance are
-developer/agent-owned even though they are authoritative.
+These are canonical for their authority type. A contract is shared only when
+users and developers both need it; decisions, evidence, history, governance, and
+developer-only contracts/reference are developer/agent-owned even though they are
+authoritative.
 
-- **Contract** (shared) — [contracts/index.md](../contracts/index.md): what must
-  hold now.
+- **Cross-audience contract** (shared) — [contracts/index.md](../contracts/index.md):
+  what users and developers must both rely on.
+- **Developer-only contract/reference** (developer-owned) —
+  [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md),
+  [svg-symbols.md](../svg-symbols.md): target `docs/dev/reference/`.
 - **Decision** (developer-owned) — [decisions/index.md](../decisions/index.md):
   why a boundary exists.
 - **Evidence** (developer-owned) — [research/index.md](../research/index.md): what

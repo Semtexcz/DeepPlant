@@ -39,10 +39,13 @@ current structure is decided in
 Architecture v2.1), refining
 [ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md).
 
-The **shared layer is narrow**: only [contracts/](contracts/index.md) and the
-repository-root documents kept for repository/project role are shared.
-Developer/agent material is canonical *and* developer-owned, so it will
-eventually live under `dev/`; the current → target mapping is in
+The **shared documentation layer is narrow**: only genuinely cross-audience
+contracts live in [contracts/](contracts/index.md). Repository-role exceptions are
+a separate category: `README.md` and `VISION.md` are broad public/repository entry
+documents, while `AGENTS.md` and `project/brief.md` remain developer/agent-oriented
+despite their locations. `docs/index.md` is global navigation, not shared
+documentation. Developer/agent material is canonical *and* developer-owned, so it
+will eventually live under `dev/`; the current → target mapping is in
 [documentation-migration.md](documentation-migration.md).
 
 ## Audience entry points
@@ -55,8 +58,9 @@ eventually live under `dev/`; the current → target mapping is in
 ## Where current truth lives (authority)
 
 Every entry is labelled by authority, so a current rule is never confused with a
-decision, an investigation, or history. Shared content lives in
-[contracts/](contracts/index.md); the rest is canonical for its authority type and
+decision, an investigation, or history. Cross-audience content lives in
+[contracts/](contracts/index.md); developer-only canonical contracts/reference will
+live under `dev/reference/`; the rest is canonical for its authority type and
 currently still reaches from the `docs/` root (see
 [documentation-migration.md](documentation-migration.md) for the target owners).
 
