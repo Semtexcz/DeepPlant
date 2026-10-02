@@ -14,6 +14,7 @@ depends_on:
   - docs/conventions.md
   - docs/index.md
 decision:
+  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
@@ -21,144 +22,386 @@ superseded_by: null
 
 # Documentation Migration Inventory
 
-> **Question this document answers:** which existing documents stay where they
-> are, which should move, and which mix independent responsibilities and should be
-> split — and in what order?
+> **Question this document answers:** for every existing document, what audience
+> does it serve, what authority does it own, where should it physically live
+> under Documentation Architecture v2.1, and in what order should it move?
 
 This is the evidence-backed inventory behind
-[ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md) and the
-operational rules in [conventions.md](conventions.md). It is planning evidence
-about **current** paths; it does not move anything itself. Update it as
-migrations land, and keep exactly one canonical copy of every document.
+[ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) (v2.1) and the
+operational rules in [conventions.md](conventions.md). It replaces the initial v2
+inventory, which defaulted most root paths to `KEEP` because they already existed.
+That is a migration-cost argument, not an ownership argument, and it is no longer
+how an action is chosen.
 
-## How to read this
+## The v2.1 ownership boundary
 
-- **Authority** — the knowledge kind the document owns (contract / decision /
-  evidence / history / current / governance / navigation).
-- **Audiences** — who reads it (`user`, `dev`, `agent`); **shared** means it is
-  canonical for more than one audience and therefore stays in the shared layer.
-- **Link stability** — how costly it is to break inbound links (`high` / `medium`
-  / `low`).
-- **Action** — `KEEP` (stay, in place), `MOVE` (relocate later), `SPLIT` (divide
-  by responsibility later), or `ADD` (new in this slice).
+```text
+shared  = canonical documents genuinely needed across audiences;
+          today, cross-audience contracts under docs/contracts/**
+user    = how to use DeepPlant
+dev     = how DeepPlant works, why it works that way, how to change it,
+          evidence, planning, and development history
+```
 
-`KEEP` is the default. A document moves only when the migration cost is
-outweighed by a durable benefit and its inbound links can be reconciled in one
-pass (see the move procedure in [conventions.md](conventions.md)).
+Two rules decide ownership:
 
-## Entry points
+1. **`canonical != shared-directory`.** A document is canonical when it is the
+   single authoritative home for its knowledge type. Canonical content may be
+   developer-owned (`docs/dev/**`) or user-owned (`docs/user/**`). Only content
+   genuinely needed by more than one audience belongs in the shared layer.
+2. **`audience != knowledge authority`.** Authority decides what kind of truth
+   the document owns (current / contract / decision / evidence / history /
+   governance / navigation); audience decides who primarily needs it. Physical
+   location follows audience ownership unless the content is genuinely
+   cross-audience.
 
-| Current path | Responsibility | Authority | Audiences | Link stability | Action | Candidate target | Reason |
-|---|---|---|---|---|---|---|---|
-| `README.md` | Repository/product front door | navigation | user, dev | high | KEEP | — | External and internal inbound links; canonical GitHub entry point |
-| `docs/index.md` | Top-level audience/authority router | navigation | user, dev, agent | high | KEEP | — | The single starting router |
-| `docs/user/index.md` | User navigation map | navigation | user | n/a | ADD | — | Proves the audience layer exists |
-| `docs/dev/index.md` | Developer/agent navigation and task routing | navigation | dev, agent | n/a | ADD | — | Proves the audience layer exists |
-| `AGENTS.md` | Agent bootstrap and invariants | navigation | agent | high | KEEP | — | Root agent entry point |
-| `.agents/context-map.yaml` | Machine-readable agent context routing | navigation | agent | medium | KEEP | — | Existing routing mechanism |
+The shared documentation layer is therefore deliberately narrow. Today,
+`docs/contracts/**` is reserved for genuinely cross-audience contracts. A document
+does **not** enter that directory merely because its authority is `contract`, and
+does not stay at the root merely because it has many links; path stability is a
+migration cost to weigh, not proof of shared ownership.
 
-## Canonical contracts (shared)
+## How to read this inventory
 
-| Current path | Responsibility | Authority | Audiences | Link stability | Action | Candidate target | Reason |
-|---|---|---|---|---|---|---|---|
-| `docs/contracts/cli.md` | CLI surface | contract | user, dev | medium | KEEP | — | Cross-audience canonical |
-| `docs/contracts/yaml-format.md` | Authored YAML shape and load/save | contract | user, dev | medium | KEEP | — | Cross-audience canonical |
-| `docs/contracts/plant-model.md` | Physical/plant model | contract | dev, agent | medium | KEEP | — | Canonical, stable |
-| `docs/contracts/process-model.md` | Process graph model | contract | dev, agent | medium | KEEP | — | Canonical, stable |
-| `docs/contracts/physical-piping.md` | Piping realization | contract | dev, agent | medium | KEEP | — | Canonical, stable |
-| `docs/contracts/dexpi-process-adapter.md` | DEXPI Process adapter | contract | dev, agent | medium | KEEP | — | Canonical, stable |
-| `docs/rendering.md` | Headless renderer contract | contract | dev, agent | medium | KEEP | — | Canonical in place; co-location under `docs/contracts/` was considered but does not outweigh link and migration cost |
-| `docs/svg-symbols.md` | SVG symbol/anchor contract | contract | dev, agent | medium | KEEP | — | Canonical in place; same assessment as `rendering.md` |
+- **Audience** — the primary reader: `user`, `dev`/`agent`, or `shared` for the
+  genuinely cross-audience contract layer.
+- **Authority** — the knowledge kind the document owns.
+- **Action** — `KEEP` (path and owner are already right), `MOVE` (relocate under
+  its audience layer), `SPLIT` (divide by responsibility, then move the parts),
+  or `ADD` (new, owned by this architecture but not created by this decision).
+- **Link cost** — measured inbound references across the repository (files
+  referencing the document), a proxy for migration effort. `high` ≥ 30, `medium`
+  10–29, `low` < 10.
 
-Co-location of `docs/rendering.md` and `docs/svg-symbols.md` under
-`docs/contracts/` was evaluated and rejected. The stable canonical path outweighs a
-tidier taxonomy, and moving them would break inbound links for a cosmetic gain
-(ADR-0014: stable canonical path over cleaner taxonomy). The action is **KEEP**
-for both and no relocation is scheduled.
+```text
+KEEP does not mean "the path already exists".
+MOVE does not mean "a cleaner taxonomy is prettier".
+```
 
-## Canonical current and governance documents (shared)
+Each `MOVE`/`SPLIT` is a separate bounded change that reconciles inbound links
+in one pass (see the move procedure in [conventions.md](conventions.md)).
 
-| Current path | Responsibility | Authority | Audiences | Link stability | Action | Candidate target | Reason |
-|---|---|---|---|---|---|---|---|
-| `docs/architecture.md` | Boundary map | current | dev, agent | high | KEEP | — | Widely linked; routed for relevant technical and architecture work |
-| `docs/workflow.md` | Change loop | governance | dev, agent | high | KEEP | — | Routed for workflow, quality, and implementation work |
-| `docs/quality.md` | Quality gates | governance | dev, agent | medium | KEEP | — | Routed for implementation, test, and review work |
-| `docs/planning.md` | Planning governance | governance | dev, agent | medium | KEEP | — | Stable |
-| `docs/roadmap.md` | Current state and next direction | current | dev, agent | high | KEEP | — | Routed for project, planning, and roadmap work |
-| `docs/direction.md` | Capability progression | current | dev | medium | KEEP | — | Stable |
-| `docs/product.md` | Product thesis and non-goals | current | user, dev | medium | KEEP | — | Cross-audience canonical |
-| `docs/conventions.md` | Documentation conventions | governance | dev, agent | medium | KEEP | — | Canonical governance; Makefile-validated path |
-| `docs/standards.md` | Standards policy + registry + licensing evidence | governance (mixed) | dev, agent | medium | SPLIT (future) | `standards.md` (policy) + registry + evidence doc | Mixes three independently maintained responsibilities |
-| `docs/documentation-migration.md` | This migration inventory | governance | dev, agent | low | ADD | — | The inventory itself |
+## Target tree
 
-## Authority layers
+Directional target for v2.1. It is not permission to create empty directories: a
+folder appears only when a real document moves into it. Exact basenames inside a
+folder may be finalized in that folder's migration slice.
 
-| Current path | Responsibility | Authority | Audiences | Link stability | Action | Candidate target | Reason |
-|---|---|---|---|---|---|---|---|
-| `docs/decisions/` | Decision records | decision | user, dev, agent | medium | KEEP | — | Authority layer; stable URLs |
-| `docs/research/` | Evidence index and evidence documents | evidence | dev, agent | medium | KEEP | — | Authority layer |
-| `docs/history/` | Completion history | history | dev, agent | low | KEEP | — | Authority layer |
+```text
+docs/
+├── index.md
+├── user/
+│   ├── index.md
+│   ├── getting-started.md
+│   ├── concepts/
+│   ├── how-to/
+│   └── reference/
+├── dev/
+│   ├── index.md
+│   ├── architecture/
+│   ├── workflow/
+│   ├── planning/
+│   ├── reference/
+│   ├── decisions/
+│   ├── research/
+│   └── history/
+└── contracts/
+    ├── index.md
+    ├── plant-model.md
+    ├── process-model.md
+    ├── physical-piping.md
+    ├── yaml-format.md
+    ├── cli.md
+    └── rendering.md
+```
 
-## Root-level evidence and prototype documents (migration candidates)
+## Repository-role exceptions and global navigation
 
-These are canonical evidence today but sit at the `docs/` root, mixing evidence
-with the current-document layer. They are `MOVE` candidates into `docs/research/`
-once their inbound links can be reconciled in one pass.
+These paths keep their current location because of their **repository or tooling**
+role, not because root placement makes them shared. `README.md` and `VISION.md`
+serve a broad public/repository audience; `AGENTS.md` and `project/brief.md` are
+developer/agent-oriented repository-role exceptions. `docs/index.md` is global
+navigation between audiences, not shared documentation.
 
-| Current path | Responsibility | Authority | Audiences | Link stability | Action | Candidate target | Reason |
-|---|---|---|---|---|---|---|---|
-| `docs/dexpi-process-spike.md` | DEXPI Process interoperability evidence | evidence | dev, agent | medium | MOVE (future) | `docs/research/dexpi/` | Evidence, not current truth |
-| `docs/dexpi-plant-pid-spike.md` | DEXPI Plant/P&ID boundary evidence | evidence | dev, agent | medium | MOVE + SPLIT (future) | `docs/research/dexpi/` | Evidence; also mixes several research questions |
-| `docs/dexpi-exchanging-thermal-energy-evidence.md` | `ExchangingThermalEnergy` evidence | evidence | dev, agent | medium | MOVE (future) | `docs/research/dexpi/` | Evidence, not current truth |
-| `docs/physical-piping-model.md` | Piping design evidence | evidence | dev, agent | medium | MOVE (future) | `docs/research/` | Evidence behind a contract |
-| `docs/process-topology.md` | Process-topology evidence | evidence | dev, agent | medium | MOVE (future) | `docs/research/` | Evidence behind a contract |
-| `docs/process-fragment-prototype.md` | Prototype modelling evidence | evidence | dev, agent | medium | MOVE (future) | `docs/research/` | Prototype evidence |
-| `docs/process-step-classification.md` | Step-classification evidence | evidence | dev, agent | medium | MOVE (future) | `docs/research/` | Evidence behind ADR-0012 |
-| `docs/reference-products.md` | Reuse/reference landscape | evidence | dev, agent | low | MOVE (future) | `docs/research/` | Reference research |
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `README.md` | shared | navigation | KEEP | — | GitHub/product front door; external inbound links | high |
+| `VISION.md` | shared | governance (vision) | KEEP | — | Durable product vision; anchor of the planning hierarchy | high |
+| `AGENTS.md` | dev/agent | navigation | KEEP | — | Root agent bootstrap and invariants | high |
+| `project/brief.md` | dev/agent | current (project) | KEEP | — | `project/` role; project brief | medium |
+| `docs/index.md` | shared | navigation | KEEP | — | Global navigation between audiences; not part of the shared documentation layer | high |
+| `docs/dev/index.md` | dev/agent | navigation | KEEP | — | Developer map; task → context routing | medium |
+| `docs/user/index.md` | user | navigation | KEEP | — | User map; must grow into a real home | low |
+| `.agents/context-map.yaml` | dev/agent | navigation | KEEP | — | Machine-readable agent routing | medium |
 
-The `MOVE` targets are directional. A move happens only after its inbound links
-(including `docs/research/index.md`, contract front matter, and ADR links) are
-updated in the same change.
+## Shared documentation layer — cross-audience `docs/contracts/`
+
+The only genuinely shared documentation layer. Each entry is independently
+justified as needed by more than one audience; contract authority alone is not
+sufficient for placement here.
+
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `docs/contracts/index.md` | shared | navigation | KEEP | — | Contract index; cross-audience | medium |
+| `docs/contracts/cli.md` | shared | contract | KEEP | — | Users run the CLI; developers implement it | medium |
+| `docs/contracts/yaml-format.md` | shared | contract | KEEP | — | Users author YAML; developers load/save it | medium |
+| `docs/contracts/plant-model.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
+| `docs/contracts/process-model.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
+| `docs/contracts/physical-piping.md` | shared | contract | KEEP | — | Canonical model semantics for both audiences | medium |
+| `docs/rendering.md` | shared | contract | MOVE | `docs/contracts/rendering.md` | Public renderer API and output behaviour are needed by callers/users and implementers | medium (17) |
+
+## Developer reference layer — `docs/dev/reference/`
+
+Developer-only canonical reference belongs here when it is neither workflow or
+governance, an ADR, research/evidence, history, nor a genuinely cross-audience
+contract. It is a narrow ownership category, not a generic dumping ground.
+
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `docs/contracts/dexpi-process-adapter.md` | dev/agent | contract | MOVE | `docs/dev/reference/dexpi-process-adapter.md` | Adapter implementers/integrators need its supported-subset and fail-closed contract; users do not need it to use DeepPlant | medium |
+| `docs/svg-symbols.md` | dev/agent | contract | MOVE | `docs/dev/reference/svg-symbols.md` | Renderer/symbol developers need the packaged asset and anchor contract; it is not user-facing reference | medium (20) |
+
+`rendering.md`, `svg-symbols.md`, and `dexpi-process-adapter.md` are classified
+independently. The public renderer API is cross-audience; the SVG asset/anchor and
+DEXPI adapter contracts are developer-only.
+
+## Developer authority layer — architecture, governance, planning
+
+Canonical developer/agent content. It is authoritative without being shared; it
+moves out of the shared root into `docs/dev/**`.
+
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `docs/architecture.md` | dev/agent | current | MOVE | `docs/dev/architecture/index.md` | Boundary map; developer/agent-only reading | high (41) |
+| `docs/workflow.md` | dev/agent | governance | MOVE | `docs/dev/workflow/index.md` | Change loop; developer/agent process | medium (16) |
+| `docs/quality.md` | dev/agent | governance | MOVE | `docs/dev/workflow/quality.md` | Quality gates; developer/agent process | medium (15) |
+| `docs/conventions.md` | dev/agent | governance | MOVE | `docs/dev/workflow/conventions.md` | Documentation governance; a change-process rule | medium (16) |
+| `docs/documentation-migration.md` | dev/agent | governance | MOVE | `docs/dev/workflow/documentation-migration.md` | Documentation governance; it currently sits in the root it empties, so it must move for the target tree to hold | medium (10) |
+| `docs/planning.md` | dev/agent | governance | MOVE | `docs/dev/planning/index.md` | Planning governance | medium (12) |
+| `docs/roadmap.md` | dev/agent | current | MOVE | `docs/dev/planning/roadmap.md` | Current execution state and next direction | high (34) |
+| `docs/direction.md` | dev/agent | current | MOVE | `docs/dev/planning/direction.md` | Long-term capability progression | medium (18) |
+| `docs/product.md` | dev/agent | current | MOVE | `docs/dev/planning/product.md` | Internal product/planning thesis; its current user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
+| `docs/standards.md` | dev/agent | governance + evidence | SPLIT | see below | Mixes policy, registry, and licence evidence | medium (17) |
+
+`product.md` and `VISION.md` need a deliberate distinction: `README.md` remains
+the concise product/repository front door; `VISION.md` remains the durable
+public-facing long-term thesis; `product.md` is internal product/planning reasoning
+and belongs with planning. Until user concepts exist, `docs/user/index.md` labels
+its link to `product.md` as transitional. A future
+`docs/user/concepts/what-is-deepplant.md` will own the user-facing explanation;
+this correction does not create it.
+
+## Developer authority layer — decisions, evidence, history
+
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `docs/decisions/**` | dev/agent | decision | MOVE | `docs/dev/decisions/**` | Canonical decision records; developer-owned | high |
+| `docs/decisions/index.md` | dev/agent | navigation | MOVE | `docs/dev/decisions/index.md` | Decision index | high |
+| `docs/research/**` | dev/agent | evidence | MOVE | `docs/dev/research/**` | Canonical evidence; developer-owned | medium |
+| `docs/research/index.md` | dev/agent | navigation | MOVE | `docs/dev/research/index.md` | Evidence index | medium |
+| `docs/history/implementation-slices.md` | dev/agent | history | MOVE | `docs/dev/history/implementation-slices.md` | Completion history; developer-owned | medium |
+
+## Root evidence and prototypes → `docs/dev/research/`
+
+Evidence and prototype documents that currently sit in the `docs/` root. They
+are not shared: only developers, agents, and decision-makers read them.
+
+| Current path | Audience | Authority | Action | Target | Reason | Link cost |
+|---|---|---|---|---|---|---|
+| `docs/dexpi-process-spike.md` | dev/agent | evidence | MOVE | `docs/dev/research/dexpi/process-adapter-spike.md` | DEXPI Process interoperability evidence | medium (16) |
+| `docs/dexpi-plant-pid-spike.md` | dev/agent | evidence | MOVE + SPLIT | `docs/dev/research/dexpi/plant-pid-semantic-boundary.md` (+ split parts) | Evidence; also mixes physical-topology, instrumentation, and presentation questions | medium (11) |
+| `docs/dexpi-exchanging-thermal-energy-evidence.md` | dev/agent | evidence | MOVE | `docs/dev/research/dexpi/exchanging-thermal-energy.md` | `ExchangingThermalEnergy` mapping evidence | medium (14) |
+| `docs/physical-piping-model.md` | dev/agent | evidence | MOVE | `docs/dev/research/physical-piping-model.md` | Design evidence behind a contract | low (8) |
+| `docs/process-topology.md` | dev/agent | evidence | MOVE | `docs/dev/research/process-topology.md` | Process-topology evidence behind a contract | low (8) |
+| `docs/process-fragment-prototype.md` | dev/agent | evidence | MOVE | `docs/dev/research/process-fragment-prototype.md` | Prototype modelling evidence | low (5) |
+| `docs/process-step-classification.md` | dev/agent | evidence | MOVE | `docs/dev/research/process-step-classification.md` | Evidence behind ADR-0012 | low (8) |
+| `docs/reference-products.md` | dev/agent | evidence | MOVE | `docs/dev/research/reference-products.md` | Reference/reuse landscape research | low (4) |
+
+The DEXPI cluster gains a `dexpi/` subfolder once more than one DEXPI evidence
+document moves there; it is not created in advance.
 
 ## `standards.md` — explicit split assessment
 
 `docs/standards.md` mixes three independently maintained responsibilities with
-different lifecycles:
+different lifecycles. Under v2.1 all three are developer/agent-owned, so the
+split moves them into the developer layer rather than leaving them shared:
 
 ```text
-active policy               restricted-standards rules, symbol-provenance
-                            policy, verification vocabulary        -> current
-registry / reference        the standards registry and DEXPI entry  -> current
-evidence                    source and licensing assessments, with
-                            inspection dates                       -> evidence
+active policy        restricted-standards rules, symbol-provenance
+                     policy, verification vocabulary
+                     -> docs/dev/workflow/standards.md          (governance)
+
+registry / reference the standards registry and the DEXPI entry
+                     -> docs/dev/reference/standards-registry.md (reference)
+
+evidence             source and licensing assessments, with
+                     inspection dates
+                     -> docs/dev/research/standards-licensing-evidence.md
+                                                                (evidence)
 ```
 
-The document itself records this (its authority note points here as outstanding
-migration work). Split is recorded as a **future** action, not performed in this
-slice: a policy document, a registry/reference inventory, and a source/licence
-evidence document. Until then, the policy sections are the active part and the
-assessments are evidence with their own dates.
+The split itself is a later bounded slice, not part of this correction. Until it
+lands, the policy sections are the active part and the assessments are evidence
+with their own dates. `docs/dev/reference/` is reserved for internal reference
+material that is neither workflow governance nor investigation evidence.
 
-## Proposed incremental sequence
+## User layer — what is missing
 
-Directional, not a pre-approved backlog. Each step is its own bounded,
-independently reviewable change; no Issues are created in advance.
+`docs/user/**` answers how to use DeepPlant. Most of it does not exist yet; this
+decision defines ownership only and creates no user content.
+
+| Target | Authority | Action | Reason |
+|---|---|---|---|
+| `docs/user/index.md` | navigation | KEEP + grow | The user map; must route to real pages, not to the developer root |
+| `docs/user/getting-started.md` | guidance | ADD (later) | Install, build, first validation run |
+| `docs/user/concepts/what-is-deepplant.md` | guidance | ADD (later) | User-facing explanation of what DeepPlant is; replaces the transitional `product.md` link |
+| `docs/user/concepts/` | guidance | ADD (later) | Other concepts a user must understand (model, plant, process, piping) |
+| `docs/user/how-to/` | guidance | ADD (later) | Write YAML, validate, render, diagnose errors |
+| `docs/user/reference/` | navigation | ADD (later) | Pointer layer to the canonical `docs/contracts/` documents |
+
+User pages may link to `docs/contracts/**` as authoritative reference; they must
+not duplicate contract facts, and they must not require architecture, ADRs,
+planning governance, or historical spikes to be read.
+
+## Current → target summary
+
+**Stays genuinely shared (unchanged or co-located):**
+
+- Cross-audience contracts: `docs/contracts/plant-model.md`, `process-model.md`,
+  `physical-piping.md`, `yaml-format.md`, `cli.md`, and, once relocated,
+  `rendering.md`.
+
+**Repository-role exceptions and navigation (not shared ownership):**
+
+- `README.md` and `VISION.md` remain broad public/repository entry documents;
+  `AGENTS.md` and `project/brief.md` remain developer/agent-oriented despite root
+  or `project/` placement.
+- `docs/index.md` remains global navigation; `docs/dev/index.md` and
+  `docs/user/index.md` remain audience navigation.
+
+**Developer-only canonical reference:**
+
+- `docs/contracts/dexpi-process-adapter.md` →
+  `docs/dev/reference/dexpi-process-adapter.md`.
+- `docs/svg-symbols.md` → `docs/dev/reference/svg-symbols.md`.
+
+**Eventually leaves the `docs/` root (nothing moves in this slice):**
+
+- `docs/architecture.md` → `docs/dev/architecture/index.md`
+- `docs/workflow.md` → `docs/dev/workflow/index.md`
+- `docs/quality.md` → `docs/dev/workflow/quality.md`
+- `docs/conventions.md` → `docs/dev/workflow/conventions.md`
+- `docs/documentation-migration.md` → `docs/dev/workflow/documentation-migration.md`
+- `docs/planning.md` → `docs/dev/planning/index.md`
+- `docs/roadmap.md` → `docs/dev/planning/roadmap.md`
+- `docs/direction.md` → `docs/dev/planning/direction.md`
+- `docs/product.md` → `docs/dev/planning/product.md`
+- `docs/standards.md` → split into `docs/dev/workflow/`,
+  `docs/dev/reference/`, and `docs/dev/research/`
+- `docs/decisions/**` → `docs/dev/decisions/**`
+- `docs/research/**` → `docs/dev/research/**`
+- `docs/history/**` → `docs/dev/history/**`
+- `docs/rendering.md` → `docs/contracts/rendering.md`
+- `docs/dexpi-process-spike.md`, `docs/dexpi-plant-pid-spike.md`,
+  `docs/dexpi-exchanging-thermal-energy-evidence.md`,
+  `docs/physical-piping-model.md`, `docs/process-topology.md`,
+  `docs/process-fragment-prototype.md`, `docs/process-step-classification.md`,
+  `docs/reference-products.md` → `docs/dev/research/`
+
+After full migration the `docs/` root holds only `index.md` plus the three
+audience/authority trees (`user/`, `dev/`, `contracts/`). Every other current
+root document is covered by a `MOVE`/`SPLIT` row above, including this inventory
+itself (`docs/documentation-migration.md` →
+`docs/dev/workflow/documentation-migration.md`), so no root page is left
+unassigned. `docs/index.md` remains global navigation, not part of the shared
+documentation layer.
+
+**Splits:**
+
+- `docs/dexpi-plant-pid-spike.md` — split by research question (physical
+  topology, instrumentation, presentation).
+- `docs/standards.md` — split into policy, registry, and licence evidence.
+
+## Migration sequence
+
+Directional and incremental. Each step is its own bounded, independently
+reviewable change; no follow-up Issues are created by this slice, and a later
+slice may reorder these steps if repository evidence supports it.
 
 ```text
-1. Documentation Architecture v2        (this slice — ADR-0014 + this inventory)
-2. User documentation migration         (populate docs/user/ where genuinely needed)
-3. Developer documentation migration    (populate docs/dev/ where genuinely needed)
-4. Atomicity / duplication cleanup      (standards.md split; root-evidence moves;
-                                         spike splits — no cosmetic reformatting)
-5. Optional renderer/search integration (only if a real need appears)
+1. Documentation Architecture v2.1 target-tree correction
+   (this slice — ADR-0015 + this inventory + navigation/convention updates)
+
+2. Contract / reference ownership migration
+   docs/rendering.md → docs/contracts/rendering.md
+   docs/contracts/dexpi-process-adapter.md
+       → docs/dev/reference/dexpi-process-adapter.md
+   docs/svg-symbols.md → docs/dev/reference/svg-symbols.md
+   reconcile affected inbound links, navigation, metadata, and agent routing
+
+3. Developer authority-layer migration
+   architecture; workflow / quality / conventions / documentation-migration;
+   planning / roadmap / direction / product; decisions; research; history
+
+4. User documentation foundation
+   getting-started; what-is-deepplant; primary workflows (create, validate,
+   render, diagnose); link to cross-audience contracts instead of duplicating them
+
+5. Evidence and prototype cleanup
+   root evidence → docs/dev/research/; dexpi/ grouping; atomic spike splits
+
+6. Standards split
+   workflow policy; developer reference registry; licensing evidence
+
+7. Optional documentation renderer/search integration
+   only if a real need appears
 ```
+
+This sequence covers every inventory action that changes or adds a document home:
+step 2 covers the three contract/reference `MOVE` rows; step 3 covers the
+architecture, workflow (including this inventory itself), planning, decisions,
+research, and history `MOVE` rows;
+step 4 covers every user `ADD (later)` row; step 5 covers every root
+research/prototype `MOVE`, including the `MOVE + SPLIT` DEXPI plant/P&ID spike;
+and step 6 covers the `standards.md` `SPLIT`. Each move/split slice reconciles its
+affected inbound links, navigation, metadata, and agent routing in the same pass.
+
+Step 2 establishes the contract/reference homes before developer or user pages
+link to them. Step 3 precedes step 4 so user pages can link into a stable developer
+tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
+reuse links already reconciled once.
+
+## Agent context consequences
+
+This slice records the routing consequences; it does not build a routing engine.
+After the migration (not in this slice),
+[.agents/context-map.yaml](../.agents/context-map.yaml) `change_patterns` must
+be updated so that every migrated path — both the pattern key and the routed
+context files — is named at its v2.1 target location rather than its current root
+path:
+
+- `docs/**` routes to `docs/index.md`, `docs/dev/index.md`,
+  `docs/dev/workflow/conventions.md`, and
+  `docs/dev/workflow/documentation-migration.md`;
+- `docs/dev/decisions/**` routes to `docs/dev/architecture/index.md` and
+  `docs/dev/decisions/index.md`;
+- `docs/dev/planning/roadmap.md` routes to `docs/dev/planning/roadmap.md` and
+  `docs/dev/architecture/index.md`;
+- `AGENTS.md` continues to point agents at `docs/dev/index.md` for the
+  task → context table.
+
+The goal is that `task + changed files + selected skill` resolves to a small
+audience-appropriate context set without requiring knowledge of historical root
+paths. The current routing already selects rather than eagerly loads; only the
+paths change.
 
 ## Related
 
+- [decisions/ADR-0015-documentation-architecture-v2-1.md](decisions/ADR-0015-documentation-architecture-v2-1.md)
+  — the v2.1 decision behind this inventory.
 - [decisions/ADR-0014-documentation-architecture-v2.md](decisions/ADR-0014-documentation-architecture-v2.md)
-  — the decision behind this inventory.
+  — the preceding decision; its invariant is retained.
 - [conventions.md](conventions.md) — KEEP / MOVE / SPLIT rules and the move
   procedure.
 - [index.md](index.md) — the audience/authority router.
 - [research/index.md](research/index.md) — evidence index.
-

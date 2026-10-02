@@ -14,6 +14,7 @@ depends_on:
   - docs/index.md
   - docs/conventions.md
 decision:
+  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
@@ -23,7 +24,17 @@ superseded_by: null
 
 For contributors, maintainers, and agents **changing** DeepPlant. This is a
 navigation map, not a content dump. The structure is decided in
+[ADR-0015](../decisions/ADR-0015-documentation-architecture-v2-1.md)
+(Documentation Architecture v2.1), refining
 [ADR-0014](../decisions/ADR-0014-documentation-architecture-v2.md).
+
+This audience layer is the eventual **physical owner** of developer/agent
+material: architecture, workflow/governance, planning, developer-only
+contracts/reference, decisions, research/evidence, and history are canonical *and*
+developer-owned, and will move from the `docs/` root into this tree. They remain
+canonical after the move. Until then the links below still resolve from the root;
+the current → target mapping is in
+[documentation-migration.md](../documentation-migration.md).
 
 ## Start here
 
@@ -49,8 +60,8 @@ table, not an orchestration engine.
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
-| Change the renderer or symbols | [rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md) |
-| Change the DEXPI adapter | [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md) |
+| Change the renderer or symbols | [rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md) — target: shared renderer contract; developer-only symbol reference |
+| Change the DEXPI adapter | [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md) — target: `docs/dev/reference/` |
 | Decide or record an architecture boundary | [decisions/index.md](../decisions/index.md), [conventions.md](../conventions.md) |
 | Add or change evidence | [research/index.md](../research/index.md) |
 | Change documentation | [conventions.md](../conventions.md), [documentation-migration.md](../documentation-migration.md) |
@@ -61,18 +72,32 @@ is the agent bootstrap entry point.
 
 ## Authority layers
 
-- **Contract** — [contracts/index.md](../contracts/index.md): what must hold now.
-- **Decision** — [decisions/index.md](../decisions/index.md): why a boundary
-  exists.
-- **Evidence** — [research/index.md](../research/index.md): what was investigated.
-- **History** — [history/implementation-slices.md](../history/implementation-slices.md):
-  what shipped, in what order.
-- **Governance** — [planning.md](../planning.md), [standards.md](../standards.md),
-  [quality.md](../quality.md), [workflow.md](../workflow.md),
-  [conventions.md](../conventions.md).
-- **Direction** — [direction.md](../direction.md), [product.md](../product.md).
+These are canonical for their authority type. A contract is shared only when
+users and developers both need it; decisions, evidence, history, governance, and
+developer-only contracts/reference are developer/agent-owned even though they are
+authoritative.
+
+- **Cross-audience contract** (shared) — [contracts/index.md](../contracts/index.md):
+  what users and developers must both rely on.
+- **Developer-only contract/reference** (developer-owned) —
+  [contracts/dexpi-process-adapter.md](../contracts/dexpi-process-adapter.md),
+  [svg-symbols.md](../svg-symbols.md): target `docs/dev/reference/`.
+- **Decision** (developer-owned) — [decisions/index.md](../decisions/index.md):
+  why a boundary exists.
+- **Evidence** (developer-owned) — [research/index.md](../research/index.md): what
+  was investigated.
+- **History** (developer-owned) —
+  [history/implementation-slices.md](../history/implementation-slices.md): what
+  shipped, in what order.
+- **Governance** (developer-owned) — [planning.md](../planning.md),
+  [standards.md](../standards.md), [quality.md](../quality.md),
+  [workflow.md](../workflow.md), [conventions.md](../conventions.md).
+- **Direction** (developer-owned) — [direction.md](../direction.md),
+  [product.md](../product.md).
 
 ## User-facing material
 
 [../user/index.md](../user/index.md) routes the user audience. Use it to see what
-users are told, but keep canonical facts in the shared layer above.
+users are told. Do not move canonical *developer* facts into the user layer, and
+do not treat the shared `contracts/` layer as the only place authoritative content
+may live: canonical does not mean shared directory.

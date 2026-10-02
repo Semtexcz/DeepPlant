@@ -11,6 +11,7 @@ update_when:
 depends_on:
   - docs/conventions.md
 decision:
+  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
 evidence: []
 superseded_by: null
@@ -30,10 +31,22 @@ I want to develop, extend, or understand DeepPlant internals
 ```
 
 **Audience** (who is reading) and **knowledge authority** (what kind of truth a
-document owns) are deliberately separate dimensions; which document you read
-depends on both. The rules live in [conventions.md](conventions.md); the decision
-behind this structure is
+document owns) are deliberately separate dimensions: audience determines
+navigation and, for audience-specific content, physical ownership, while authority
+still answers what must hold now. The rules live in [conventions.md](conventions.md); the
+current structure is decided in
+[ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) (Documentation
+Architecture v2.1), refining
 [ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md).
+
+The **shared documentation layer is narrow**: only genuinely cross-audience
+contracts live in [contracts/](contracts/index.md). Repository-role exceptions are
+a separate category: `README.md` and `VISION.md` are broad public/repository entry
+documents, while `AGENTS.md` and `project/brief.md` remain developer/agent-oriented
+despite their locations. `docs/index.md` is global navigation, not shared
+documentation. Developer/agent material is canonical *and* developer-owned, so it
+will eventually live under `dev/`; the current → target mapping is in
+[documentation-migration.md](documentation-migration.md).
 
 ## Audience entry points
 
@@ -44,8 +57,12 @@ behind this structure is
 
 ## Where current truth lives (authority)
 
-Both audiences share this layer. Every entry is labelled by authority, so a
-current rule is never confused with a decision, an investigation, or history.
+Every entry is labelled by authority, so a current rule is never confused with a
+decision, an investigation, or history. Cross-audience content lives in
+[contracts/](contracts/index.md); developer-only canonical contracts/reference will
+live under `dev/reference/`; the rest is canonical for its authority type and
+currently still reaches from the `docs/` root (see
+[documentation-migration.md](documentation-migration.md) for the target owners).
 
 - **Current** — what exists and what must hold now.
 - **Contract** — current model / API / format obligations.

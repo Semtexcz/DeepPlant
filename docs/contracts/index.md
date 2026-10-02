@@ -11,7 +11,8 @@ read_when:
 depends_on:
   - docs/architecture.md
   - docs/conventions.md
-decision: []
+decision:
+  - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
 evidence: []
 superseded_by: null
 ---
@@ -36,15 +37,16 @@ of restating the facts.
 | Physical piping | [physical-piping.md](physical-piping.md) | How is physical piping realized over identified connections, and which rules (C1, P1–P5) apply? |
 | YAML format | [yaml-format.md](yaml-format.md) | What is the authored YAML document shape, and what does load/save guarantee? |
 | CLI surface | [cli.md](cli.md) | Which commands exist, what do they print, and what exit codes do they use? |
-| DEXPI Process adapter | [dexpi-process-adapter.md](dexpi-process-adapter.md) | Which DEXPI 2.0.0 Process concepts are supported, in which direction and under which constraints, and where does the adapter fail closed? |
 | Headless process renderer | [../rendering.md](../rendering.md) | What is the public renderer API and its deterministic behaviour? |
-| SVG symbol pack | [../svg-symbols.md](../svg-symbols.md) | What is the SVG asset and anchor contract a symbol pack must satisfy? |
 
-Two canonical contracts remain at the `docs/` root
-([rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md)). Their
-stable canonical paths outweigh cosmetic co-location under `docs/contracts/`; they
-are already the canonical homes of their facts, so the action is **KEEP**
-(ADR-0014).
+The public renderer contract still lives at the `docs/` root and is scheduled to
+**MOVE** to this shared layer. The DEXPI Process adapter
+([dexpi-process-adapter.md](dexpi-process-adapter.md)) and SVG symbol pack
+([../svg-symbols.md](../svg-symbols.md)) retain contract authority but are
+developer-only reference, so they are scheduled to move to `docs/dev/reference/`,
+not here. Contract authority does not by itself establish shared ownership. The
+move is a later bounded slice; see
+[documentation-migration.md](../documentation-migration.md).
 
 ## How contracts relate to the other document types
 
