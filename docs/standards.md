@@ -427,4 +427,4 @@ Related project documents:
 
 - [ADR-0007 — restrict standards content and require symbol provenance](decisions/ADR-0007-standards-and-symbol-provenance.md)
 - [Architecture](dev/architecture/index.md) and [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md) for the semantic/presentation boundary.
-- [Roadmap](roadmap.md) for the symbol-slice sequence.
+- [Roadmap](dev/planning/roadmap.md) for the symbol-slice sequence.

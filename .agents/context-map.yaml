@@ -87,8 +87,8 @@ change_patterns:
     - frontend/shared/api/
   "project/**":
     - project/brief.md
-    - docs/roadmap.md
-    - docs/planning.md
+    - docs/dev/planning/roadmap.md
+    - docs/dev/planning/index.md
   "docs/**":
     - docs/index.md
     - docs/dev/index.md
@@ -99,13 +99,13 @@ change_patterns:
     - docs/decisions/index.md
   "docs/dev/workflow/index.md":
     - docs/dev/workflow/quality.md
-    - docs/planning.md
+    - docs/dev/planning/index.md
   "docs/dev/workflow/quality.md":
     - docs/dev/workflow/index.md
-  "docs/roadmap.md":
+  "docs/dev/planning/roadmap.md":
     - docs/dev/architecture/index.md
-    - docs/planning.md
-    - docs/direction.md
+    - docs/dev/planning/index.md
+    - docs/dev/planning/direction.md
   "docs/decisions/**":
     - docs/dev/architecture/index.md
     - docs/decisions/index.md

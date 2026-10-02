@@ -156,4 +156,4 @@ unresolved.
   [dev/reference/dexpi-process-adapter.md](../dev/reference/dexpi-process-adapter.md),
   [contracts/process-model.md](../contracts/process-model.md),
   [contracts/physical-piping.md](../contracts/physical-piping.md),
-  [docs/roadmap.md](../roadmap.md).
+  [docs/dev/planning/roadmap.md](../dev/planning/roadmap.md).

@@ -27,7 +27,7 @@ This document is a **boundary map**: what exists, where it lives, and which
 document owns each current detail. It is deliberately not a specification. Every
 obligation lives in a contract under [contracts/](../../contracts/index.md); reasons
 live in [decisions/](../../decisions/index.md); long-term direction lives in
-[direction.md](../../direction.md).
+[direction.md](../planning/direction.md).
 
 ## What exists
 
@@ -106,7 +106,7 @@ views, never the canonical shape.
    anything outside its explicit subset (ADR-0009, ADR-0012).
 7. **No abstraction without a current requirement.** No database, queue, cache,
    service, container, GUI framework, plugin system, or generic entity hierarchy
-   exists (ADR-0001; see the anti-roadmap in [roadmap.md](../../roadmap.md)).
+   exists (ADR-0001; see the anti-roadmap in [roadmap.md](../planning/roadmap.md)).
 
 ## Layer summary
 
@@ -126,7 +126,7 @@ mapping exists (ADR-0011, ADR-0012).
 ## Not implemented (directional only)
 
 Recorded here for orientation; none of it is authorized by appearing here (see
-[direction.md](../../direction.md) for the capability progression and the anti-roadmap
+[direction.md](../planning/direction.md) for the capability progression and the anti-roadmap
 for the prohibition):
 
 - full DEXPI (energy/information flows, Plant/P&ID import and export, further
@@ -156,8 +156,8 @@ make build   # uv build
 ## Related
 
 - [contracts/index.md](../../contracts/index.md) — the current contract set.
-- [roadmap.md](../../roadmap.md) — current state, next direction, evidence gaps.
-- [direction.md](../../direction.md) — capability progression (not authorization).
-- [product.md](../../product.md) — product thesis and long-term position.
+- [roadmap.md](../planning/roadmap.md) — current state, next direction, evidence gaps.
+- [direction.md](../planning/direction.md) — capability progression (not authorization).
+- [product.md](../planning/product.md) — product thesis and long-term position.
 - [decisions/index.md](../../decisions/index.md) — decision records.
 - [conventions.md](../workflow/conventions.md) — document types and linking rules.

@@ -661,7 +661,7 @@ code, nominal diameter, and elementary pipe boundaries exist in the official
 reference P&ID and have no honest home in today's `Connection` or `Equipment`.
 **But no, that is not authorized or implemented now**: no DeepPlant requirement,
 example, or executable check currently consumes any of those facts, and the
-anti-roadmap rule in [roadmap.md](roadmap.md) forbids attaching pipe semantics to
+anti-roadmap rule in [roadmap.md](dev/planning/roadmap.md) forbids attaching pipe semantics to
 `Connection` or introducing the layer without a current vertical slice. The
 evidence is recorded here so a future slice starts from facts rather than
 guesses.
@@ -1143,7 +1143,7 @@ fixture, no dependency, and no network access at test time.
   Milestone 2 (prototype fragment and renderer) keeps its open P&ID-like
   coverage; this spike advances that at the *evidence* level only and does not
   complete it. No milestone is marked complete by this slice.
-- **Stale-wording sweep:** `docs/roadmap.md` backlog row 1 previously said to run
+- **Stale-wording sweep:** `docs/dev/planning/roadmap.md` backlog row 1 previously said to run
   the Plant/P&ID mapping spike "if Plant evidence is stronger then"; that
   conditional is now resolved and the roadmap/Next-Task text is updated
   accordingly. `docs/dev/architecture/index.md`'s statement that only a narrow DEXPI 2.0

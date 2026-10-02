@@ -25,7 +25,7 @@ changes, and the next step is deliberately reconsidered from the roadmap's
 current evidence. What exists today, and what each document owns, is recorded in
 [architecture.md](../architecture/index.md) (boundary map), the
 [contracts](../../contracts/index.md) (current obligations), and
-[roadmap.md](../../roadmap.md) (current state and next direction). Do not implement
+[roadmap.md](../planning/roadmap.md) (current state and next direction). Do not implement
 capabilities ahead of the slice that authorizes them.
 
 ## Change Loop

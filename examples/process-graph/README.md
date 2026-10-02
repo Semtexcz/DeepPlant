@@ -37,5 +37,5 @@ graph loads and validates but is not yet counted by the CLI):
 ✓ connections: 0
 ```
 
-See [docs/roadmap.md](../../docs/roadmap.md) and
+See [docs/dev/planning/roadmap.md](../../docs/dev/planning/roadmap.md) and
 [docs/dev/architecture/index.md](../../docs/dev/architecture/index.md).

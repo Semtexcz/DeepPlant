@@ -7,7 +7,7 @@ read_when:
   - planning-evidence-review
   - roadmap-history
 depends_on:
-  - docs/roadmap.md
+  - docs/dev/planning/roadmap.md
   - docs/contracts/index.md
 decision: []
 evidence:
@@ -23,7 +23,7 @@ superseded_by: null
   after Issue #20 (DEXPI 2.0.0 Process subset contract) and Issue #32
   (qualified-engineering-quantity boundary, ADR-0013) delivered?
 - **Status:** historical planning evidence recording the selection made after
-  Issue #32. Current execution state is owned by [roadmap.md](../roadmap.md).
+  Issue #32. Current execution state is owned by [roadmap.md](../dev/planning/roadmap.md).
 - **Inspection scope and date:** `main` after merged PR #38
   (`684b9845e2cae7b6f6baec2ae4bad642b0140d7e`), the current contracts,
   architecture, direction, roadmap, ADR-0002/0009/0010/0011/0012/0013, the
@@ -37,7 +37,7 @@ superseded_by: null
      view/editor work, and rules/diff work remained deferred.
 - **Resulting ADRs:** none; Issue #39 may produce one.
 - **Current contracts operationalizing the result:** none; the current planning
-  state is maintained in [roadmap.md](../roadmap.md).
+  state is maintained in [roadmap.md](../dev/planning/roadmap.md).
 - **Conditions for revisiting:** Issue #39's evidence closes (then create a new
   re-evaluation record), or a deferred candidate gains a concrete
   DeepPlant-native consumer or a decisive upstream change.
@@ -135,14 +135,14 @@ layer, or no canonical mapping yet). It must not implement any candidate.
 - [#39 — Model: decide process ↔ physical realization boundary](https://github.com/Semtexcz/DeepPlant/issues/39)
   was open and had no milestone. Project V2 Horizon update could not be
   independently verified with the available repository tooling;
-  [roadmap.md](../roadmap.md) and Issue #39 are authoritative for this record.
+  [roadmap.md](../dev/planning/roadmap.md) and Issue #39 are authoritative for this record.
 
 ## Roadmap consequence at selection
 
 The operational sequence moved from `#32 → re-evaluate` to
 `#39 → re-evaluate from its evidence`, with Issue #39 as the sole explicit
 executable `Now` item. No successor task was preselected. Current execution state
-remains maintained in [roadmap.md](../roadmap.md), not in this historical record.
+remains maintained in [roadmap.md](../dev/planning/roadmap.md), not in this historical record.
 
 ## Revisit condition
 

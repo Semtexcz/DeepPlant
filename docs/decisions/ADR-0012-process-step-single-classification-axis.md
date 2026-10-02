@@ -192,5 +192,5 @@ rejected shortcuts are in
   full evidence and candidate analysis (Issue #31)
 - [../dexpi-exchanging-thermal-energy-evidence.md](../dexpi-exchanging-thermal-energy-evidence.md),
   [../dexpi-process-spike.md](../dexpi-process-spike.md),
-  [../dev/architecture/index.md](../dev/architecture/index.md), [../roadmap.md](../roadmap.md)
+  [../dev/architecture/index.md](../dev/architecture/index.md), [../dev/planning/roadmap.md](../dev/planning/roadmap.md)
 

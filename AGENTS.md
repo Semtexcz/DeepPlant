@@ -47,7 +47,8 @@ The semantic engineering model is the product core.
 
 Long-term capability state lives in the GitHub Project and horizons (`Now` /
 `Next` / `Later` / `Exploration`); sequencing reasoning lives in
-`docs/roadmap.md`; planning governance is in `docs/planning.md`.
+`docs/dev/planning/roadmap.md`; planning governance is in
+`docs/dev/planning/index.md`.
 
 Before implementing substantial work:
 
@@ -127,7 +128,7 @@ of Done.
 
 Before opening or finalizing the PR:
 
-1. Re-read `docs/roadmap.md` against the actual repository state after the
+1. Re-read `docs/dev/planning/roadmap.md` against the actual repository state after the
    change.
 2. Mark an item complete only if the PR actually delivers it.
 3. Re-evaluate the next task from:
@@ -148,7 +149,7 @@ Before opening or finalizing the PR:
    - Next Task
    - Scope Discipline
    - the Directional Capability Roadmap pointer (the long-term capability
-     progression itself lives in `docs/direction.md`)
+     progression itself lives in `docs/dev/planning/direction.md`)
 7. Search touched documentation for stale statements such as:
    `next task`, `not yet implemented`, `deferred`, `open decision`,
    `prerequisite`, and similar status wording.

@@ -169,8 +169,8 @@ DEXPI adapter contracts are developer-only.
 
 Canonical developer/agent content. It is authoritative without being shared; it
 moves out of the shared root into `docs/dev/**`. The Phase 3A slice relocated the
-architecture and workflow/governance rows (now `KEEP` at their v2.1 paths); the
-planning rows move in Phase 3B.
+architecture and workflow/governance rows and the Phase 3B slice relocated the
+planning rows; all of them are now `KEEP` at their v2.1 paths.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
@@ -179,10 +179,10 @@ planning rows move in Phase 3B.
 | `docs/dev/workflow/quality.md` | dev/agent | governance | KEEP | — | Quality gates; developer/agent process (relocated in Phase 3A) | medium (15) |
 | `docs/dev/workflow/conventions.md` | dev/agent | governance | KEEP | — | Documentation governance; a change-process rule (relocated in Phase 3A) | medium (16) |
 | `docs/dev/workflow/documentation-migration.md` | dev/agent | governance | KEEP | — | This inventory; relocated in Phase 3A | medium (10) |
-| `docs/planning.md` | dev/agent | governance | MOVE | `docs/dev/planning/index.md` | Planning governance | medium (12) |
-| `docs/roadmap.md` | dev/agent | current | MOVE | `docs/dev/planning/roadmap.md` | Current execution state and next direction | high (34) |
-| `docs/direction.md` | dev/agent | current | MOVE | `docs/dev/planning/direction.md` | Long-term capability progression | medium (18) |
-| `docs/product.md` | dev/agent | current | MOVE | `docs/dev/planning/product.md` | Internal product/planning thesis; its current user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
+| `docs/dev/planning/index.md` | dev/agent | governance | KEEP | — | Planning governance; relocated in Phase 3B (was `docs/planning.md`) | medium (12) |
+| `docs/dev/planning/roadmap.md` | dev/agent | current | KEEP | — | Current execution state and next direction; relocated in Phase 3B (was `docs/roadmap.md`) | high (34) |
+| `docs/dev/planning/direction.md` | dev/agent | current | KEEP | — | Long-term capability progression; relocated in Phase 3B (was `docs/direction.md`) | medium (18) |
+| `docs/dev/planning/product.md` | dev/agent | current | KEEP | — | Internal product/planning thesis; relocated in Phase 3B (was `docs/product.md`); its user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
 | `docs/standards.md` | dev/agent | governance + evidence | SPLIT | see below | Mixes policy, registry, and licence evidence | medium (17) |
 
 `product.md` and `VISION.md` need a deliberate distinction: `README.md` remains
@@ -295,12 +295,18 @@ planning governance, or historical spikes to be read.
 - `docs/dev/workflow/documentation-migration.md` (was
   `docs/documentation-migration.md`; this inventory moved with the slice).
 
+**Developer-owned planning (relocated in Phase 3B):**
+
+- `docs/dev/planning/index.md` (was `docs/planning.md`) — planning governance.
+- `docs/dev/planning/roadmap.md` (was `docs/roadmap.md`) — current operational
+  state.
+- `docs/dev/planning/direction.md` (was `docs/direction.md`) — long-term
+  capability progression.
+- `docs/dev/planning/product.md` (was `docs/product.md`) — internal
+  product/planning thesis.
+
 **Still to leave the `docs/` root (later slices):**
 
-- `docs/planning.md` → `docs/dev/planning/index.md`
-- `docs/roadmap.md` → `docs/dev/planning/roadmap.md`
-- `docs/direction.md` → `docs/dev/planning/direction.md`
-- `docs/product.md` → `docs/dev/planning/product.md`
 - `docs/standards.md` → split into `docs/dev/workflow/`,
   `docs/dev/reference/`, and `docs/dev/research/`
 - `docs/decisions/**` → `docs/dev/decisions/**`
@@ -343,16 +349,19 @@ later slice may reorder these steps if repository evidence supports it.
    reconciled inbound links, navigation, metadata, and agent routing
 
 3. Developer authority-layer migration — IN PROGRESS
-   3A. developer architecture + workflow/governance — DONE (this slice)
+   3A. developer architecture + workflow/governance — DONE
        docs/architecture.md → docs/dev/architecture/index.md
        docs/workflow.md → docs/dev/workflow/index.md
        docs/quality.md → docs/dev/workflow/quality.md
        docs/conventions.md → docs/dev/workflow/conventions.md
        docs/documentation-migration.md
            → docs/dev/workflow/documentation-migration.md
-   3B. developer planning — NEXT
-       planning / roadmap / direction / product → docs/dev/planning/
-   3C. developer authority archives — LATER
+   3B. developer planning — DONE
+       docs/planning.md → docs/dev/planning/index.md
+       docs/roadmap.md → docs/dev/planning/roadmap.md
+       docs/direction.md → docs/dev/planning/direction.md
+       docs/product.md → docs/dev/planning/product.md
+   3C. developer authority archives — NEXT
        decisions → docs/dev/decisions/; research → docs/dev/research/;
        history → docs/dev/history/
 
@@ -382,8 +391,8 @@ links, navigation, metadata, and agent routing in the same pass.
 Step 2 established the contract/reference homes before developer or user pages
 link to them. Step 3 precedes step 4 so user pages can link into a stable developer
 tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
-reuse links already reconciled once. Steps 1 and 2 are complete; step 3A is
-complete, and step 3B is the next bounded slice.
+reuse links already reconciled once. Steps 1, 2, 3A, and 3B are complete; step 3C
+(developer authority archives) is the next bounded slice.
 
 ## Agent context consequences
 
@@ -410,14 +419,26 @@ v2.1 paths, including the pattern keys:
   `docs/dev/workflow/conventions.md`, and
   `docs/dev/workflow/documentation-migration.md`.
 
+Phase 3B repointed the planning routes to the actual v2.1 paths, including the
+pattern key:
+
+- the planning pattern key is now `docs/dev/planning/roadmap.md`, which routes to
+  `docs/dev/architecture/index.md`, `docs/dev/planning/index.md`, and
+  `docs/dev/planning/direction.md`;
+- `project/**` routes to `project/brief.md`, `docs/dev/planning/roadmap.md`, and
+  `docs/dev/planning/index.md`;
+- the `docs/dev/workflow/index.md` pattern routes to
+  `docs/dev/planning/index.md` for planning governance.
+
+Routing stays task-scoped: no pattern loads all four planning documents, so
+ordinary developer work does not eagerly read them.
+
 Later slices must keep doing this so that every migrated path — both the pattern
 key and the routed context files — is named at its v2.1 location rather than its
 historical root path:
 
 - `docs/dev/decisions/**` will route to `docs/dev/architecture/index.md` and
   `docs/dev/decisions/index.md`;
-- `docs/dev/planning/roadmap.md` will route to `docs/dev/planning/roadmap.md` and
-  `docs/dev/architecture/index.md`;
 - `AGENTS.md` continues to point agents at `docs/dev/index.md` for the
   task → context table.
 

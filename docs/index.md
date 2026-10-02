@@ -45,7 +45,7 @@ a separate category: `README.md` and `VISION.md` are broad public/repository ent
 documents, while `AGENTS.md` and `project/brief.md` remain developer/agent-oriented
 despite their locations. `docs/index.md` is global navigation, not shared
 documentation. Developer/agent material is canonical *and* developer-owned, so it
-lives under `dev/`; architecture and workflow/governance have already moved and
+lives under `dev/`; architecture, workflow/governance, and planning have moved and
 the remaining root documents follow in bounded slices. The current → target
 mapping is in
 [documentation-migration.md](dev/workflow/documentation-migration.md).
@@ -62,7 +62,7 @@ mapping is in
 Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
 [contracts/](contracts/index.md); developer-only canonical contracts/reference
-live under `dev/reference/`; architecture and workflow/governance are now
+live under `dev/reference/`; architecture, workflow/governance, and planning are now
 canonical under `dev/`; the rest is canonical for its authority type and still
 reaches from the `docs/` root until its own slice (see
 [documentation-migration.md](dev/workflow/documentation-migration.md) for the
@@ -80,13 +80,13 @@ target owners).
 | Current contract (model, YAML, CLI, renderer, DEXPI) | [contracts/index.md](contracts/index.md) |
 | Current boundary map of what exists | [architecture.md](dev/architecture/index.md) |
 | Project purpose, users, scope | [project brief](../project/brief.md) |
-| Product thesis and non-goals | [product.md](product.md) |
-| Current state and next direction | [roadmap.md](roadmap.md) |
-| Long-term capability progression | [direction.md](direction.md) |
+| Product thesis and non-goals | [product.md](dev/planning/product.md) |
+| Current state and next direction | [roadmap.md](dev/planning/roadmap.md) |
+| Long-term capability progression | [direction.md](dev/planning/direction.md) |
 | Why a choice was made | [decisions/index.md](decisions/index.md) |
 | Evidence, research, or a prototype | [research/index.md](research/index.md) |
 | What shipped, in order | [history/implementation-slices.md](history/implementation-slices.md) |
-| Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](planning.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](standards.md) |
+| Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](dev/planning/index.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](standards.md) |
 | Agent instructions | [AGENTS.md](../AGENTS.md) |
 
 The planned split/relocation of documents lives in

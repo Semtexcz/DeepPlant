@@ -315,7 +315,7 @@ Assessment:
 ## Rejected variant D — widen `Connection` with piping properties
 
 Put `line`, `nominal_diameter`, `piping_class`, and `fluid_code` directly on
-`Connection`. Rejected by the anti-roadmap in [roadmap.md](roadmap.md) and by
+`Connection`. Rejected by the anti-roadmap in [roadmap.md](dev/planning/roadmap.md) and by
 ADR-0010: it makes the topology primitive a physical engineering object,
 collapses "one connection = one property set" onto an adjacency that can share
 a property set with many adjacencies, and gives every connection a copy of
@@ -1077,5 +1077,5 @@ cardinality, pipe-piece identity, and process ↔ physical realization.
   submodel-container precedent this layer follows.
 - [docs/process-topology.md](process-topology.md) — the duplication invariant
   that motivates referencing `Connection` instead of restating endpoints.
-- [docs/dev/architecture/index.md](dev/architecture/index.md), [docs/roadmap.md](roadmap.md),
+- [docs/dev/architecture/index.md](dev/architecture/index.md), [docs/dev/planning/roadmap.md](dev/planning/roadmap.md),
   [docs/contracts/rendering.md](contracts/rendering.md).

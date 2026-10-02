@@ -40,13 +40,13 @@ Each layer has one job:
 
 | Layer | Job |
 |---|---|
-| [VISION.md](../VISION.md) | Long-term destination / thesis — where DeepPlant is going |
-| [docs/product.md](product.md) | Product thesis, users, and durable non-goals |
-| [docs/direction.md](direction.md) | Long-term capability progression — product context, not authorization |
-| [docs/dev/architecture/index.md](dev/architecture/index.md) | Boundary map — what exists and its module boundaries |
-| [docs/contracts/index.md](contracts/index.md) | Current model, format, CLI, renderer, and adapter obligations |
-| [docs/roadmap.md](roadmap.md) | Current state, immediate direction, and unresolved evidence gaps |
-| [docs/dev/workflow/conventions.md](dev/workflow/conventions.md) | Documentation authority, audience, metadata, atomicity, and linking rules |
+| [VISION.md](../../../VISION.md) | Long-term destination / thesis — where DeepPlant is going |
+| [docs/dev/planning/product.md](product.md) | Product thesis, users, and durable non-goals |
+| [docs/dev/planning/direction.md](direction.md) | Long-term capability progression — product context, not authorization |
+| [docs/dev/architecture/index.md](../architecture/index.md) | Boundary map — what exists and its module boundaries |
+| [docs/contracts/index.md](../../contracts/index.md) | Current model, format, CLI, renderer, and adapter obligations |
+| [docs/dev/planning/roadmap.md](roadmap.md) | Current state, immediate direction, and unresolved evidence gaps |
+| [docs/dev/workflow/conventions.md](../workflow/conventions.md) | Documentation authority, audience, metadata, atomicity, and linking rules |
 | GitHub Project | Strategic capability map + operational horizon — visible portfolio state |
 | GitHub Milestones | Active or near-active capability goals containing concrete work |
 | GitHub Issues | Concrete bounded work that is Ready to execute |
@@ -149,8 +149,8 @@ receive empty Milestones, and no arbitrary due dates are assigned.
 | Where is DeepPlant going? | `VISION.md` |
 | What major capabilities are part of the vision? | `VISION.md` capability map + GitHub Project |
 | What exists today, and what must hold now? | `docs/contracts/`, `docs/dev/architecture/index.md` |
-| What is the immediate next direction and evidence gap? | `docs/roadmap.md` |
-| What is the long-term capability progression? | `docs/direction.md` (product context, not authorization) |
+| What is the immediate next direction and evidence gap? | `docs/dev/planning/roadmap.md` |
+| What is the long-term capability progression? | `docs/dev/planning/direction.md` (product context, not authorization) |
 | What shipped already? | `docs/history/implementation-slices.md` |
 | What is Now / Next / Later / Exploration? | GitHub Project Horizon field |
 | Which capabilities are active enough for Milestones? | current roadmap state + Milestone policy above |
