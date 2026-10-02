@@ -176,6 +176,7 @@ moves out of the shared root into `docs/dev/**`.
 | `docs/workflow.md` | dev/agent | governance | MOVE | `docs/dev/workflow/index.md` | Change loop; developer/agent process | medium (16) |
 | `docs/quality.md` | dev/agent | governance | MOVE | `docs/dev/workflow/quality.md` | Quality gates; developer/agent process | medium (15) |
 | `docs/conventions.md` | dev/agent | governance | MOVE | `docs/dev/workflow/conventions.md` | Documentation governance; a change-process rule | medium (16) |
+| `docs/documentation-migration.md` | dev/agent | governance | MOVE | `docs/dev/workflow/documentation-migration.md` | Documentation governance; it currently sits in the root it empties, so it must move for the target tree to hold | medium (10) |
 | `docs/planning.md` | dev/agent | governance | MOVE | `docs/dev/planning/index.md` | Planning governance | medium (12) |
 | `docs/roadmap.md` | dev/agent | current | MOVE | `docs/dev/planning/roadmap.md` | Current execution state and next direction | high (34) |
 | `docs/direction.md` | dev/agent | current | MOVE | `docs/dev/planning/direction.md` | Long-term capability progression | medium (18) |
@@ -290,6 +291,7 @@ planning governance, or historical spikes to be read.
 - `docs/workflow.md` → `docs/dev/workflow/index.md`
 - `docs/quality.md` → `docs/dev/workflow/quality.md`
 - `docs/conventions.md` → `docs/dev/workflow/conventions.md`
+- `docs/documentation-migration.md` → `docs/dev/workflow/documentation-migration.md`
 - `docs/planning.md` → `docs/dev/planning/index.md`
 - `docs/roadmap.md` → `docs/dev/planning/roadmap.md`
 - `docs/direction.md` → `docs/dev/planning/direction.md`
@@ -307,8 +309,12 @@ planning governance, or historical spikes to be read.
   `docs/reference-products.md` → `docs/dev/research/`
 
 After full migration the `docs/` root holds only `index.md` plus the three
-audience/authority trees (`user/`, `dev/`, `contracts/`). `docs/index.md` remains
-global navigation, not part of the shared documentation layer.
+audience/authority trees (`user/`, `dev/`, `contracts/`). Every other current
+root document is covered by a `MOVE`/`SPLIT` row above, including this inventory
+itself (`docs/documentation-migration.md` →
+`docs/dev/workflow/documentation-migration.md`), so no root page is left
+unassigned. `docs/index.md` remains global navigation, not part of the shared
+documentation layer.
 
 **Splits:**
 
@@ -334,8 +340,8 @@ slice may reorder these steps if repository evidence supports it.
    reconcile affected inbound links, navigation, metadata, and agent routing
 
 3. Developer authority-layer migration
-   architecture; workflow / quality / conventions; planning / roadmap /
-   direction / product; decisions; research; history
+   architecture; workflow / quality / conventions / documentation-migration;
+   planning / roadmap / direction / product; decisions; research; history
 
 4. User documentation foundation
    getting-started; what-is-deepplant; primary workflows (create, validate,
@@ -353,7 +359,8 @@ slice may reorder these steps if repository evidence supports it.
 
 This sequence covers every inventory action that changes or adds a document home:
 step 2 covers the three contract/reference `MOVE` rows; step 3 covers the
-architecture, workflow, planning, decisions, research, and history `MOVE` rows;
+architecture, workflow (including this inventory itself), planning, decisions,
+research, and history `MOVE` rows;
 step 4 covers every user `ADD (later)` row; step 5 covers every root
 research/prototype `MOVE`, including the `MOVE + SPLIT` DEXPI plant/P&ID spike;
 and step 6 covers the `standards.md` `SPLIT`. Each move/split slice reconciles its
@@ -367,14 +374,18 @@ reuse links already reconciled once.
 ## Agent context consequences
 
 This slice records the routing consequences; it does not build a routing engine.
-After the migration, [.agents/context-map.yaml](../.agents/context-map.yaml)
-`change_patterns` must be updated so that:
+After the migration (not in this slice),
+[.agents/context-map.yaml](../.agents/context-map.yaml) `change_patterns` must
+be updated so that every migrated path — both the pattern key and the routed
+context files — is named at its v2.1 target location rather than its current root
+path:
 
 - `docs/**` routes to `docs/index.md`, `docs/dev/index.md`,
-  `docs/dev/workflow/conventions.md`, and `docs/documentation-migration.md`;
-- `docs/decisions/**` routes to `docs/dev/architecture/index.md` and
+  `docs/dev/workflow/conventions.md`, and
+  `docs/dev/workflow/documentation-migration.md`;
+- `docs/dev/decisions/**` routes to `docs/dev/architecture/index.md` and
   `docs/dev/decisions/index.md`;
-- `docs/roadmap.md` routes to `docs/dev/planning/roadmap.md` and
+- `docs/dev/planning/roadmap.md` routes to `docs/dev/planning/roadmap.md` and
   `docs/dev/architecture/index.md`;
 - `AGENTS.md` continues to point agents at `docs/dev/index.md` for the
   task → context table.
