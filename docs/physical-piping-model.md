@@ -69,7 +69,7 @@ known directed adjacency* (`Equipment` with owned `Port`s, property-free
 `Connection`s) but it had no canonical piping-line identity, no property
 boundary, and no elementary piping realization. ADR-0011 specified the missing
 layer, and Issue #26 implements its first executable slice. The DEXPI Plant/P&ID
-spike ([dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md), ADR-0010) showed
+spike ([dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md), ADR-0010) showed
 that gap is real engineering semantics present in the official DEXPI Reference
 P&ID and that **none of it can be closed by changing `Port` or `Connection`**.
 
@@ -168,7 +168,7 @@ shape exists; they are not a wish list.
 ## Evidence from DEXPI / ADR-0010
 
 This section reuses the evidence already established in
-[dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) §7–§8 and ADR-0010 and does
+[dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md) §7–§8 and ADR-0010 and does
 not repeat that investigation. The DEXPI pin is unchanged: official stable
 `V2.0.0` (tag `V2.0.0`, commit `260c81c5`, 2025-10-10, CC BY 4.0), plus the
 official Reference P&ID instance.
@@ -1066,7 +1066,7 @@ cardinality, pipe-piece identity, and process ↔ physical realization.
 
 ## Related
 
-- [docs/dexpi-plant-pid-spike.md](dexpi-plant-pid-spike.md) — the DEXPI
+- [docs/dev/research/dexpi/plant-pid-semantic-boundary.md](dev/research/dexpi/plant-pid-semantic-boundary.md) — the DEXPI
   `V2.0.0` model + Reference P&ID evidence this specification builds on.
 - [ADR-0011](dev/decisions/ADR-0011-canonical-physical-piping-realization.md) —
   the durable decision this document specifies.

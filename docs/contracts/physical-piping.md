@@ -16,7 +16,7 @@ decision:
   - docs/dev/decisions/ADR-0011-canonical-physical-piping-realization.md
 evidence:
   - docs/physical-piping-model.md
-  - docs/dexpi-plant-pid-spike.md
+  - docs/dev/research/dexpi/plant-pid-semantic-boundary.md
 superseded_by: null
 ---
 
@@ -224,5 +224,5 @@ authorized by its absence here.
 - [../physical-piping-model.md](../physical-piping-model.md) — the design
   evidence: requirement analysis, candidate B selection, worked fragment, Git
   diff behaviour, and rule/adapter/rendering implications.
-- [../dexpi-plant-pid-spike.md](../dexpi-plant-pid-spike.md) — the official
+- [../dev/research/dexpi/plant-pid-semantic-boundary.md](../dev/research/dexpi/plant-pid-semantic-boundary.md) — the official
   DEXPI `V2.0.0` model and Reference P&ID evidence behind the shape.

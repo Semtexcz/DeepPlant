@@ -10,6 +10,6 @@ dictate canonical model fields, and adapter concerns never leak into
 ``deepplant.model``.
 
 Currently only the narrow DEXPI 2.0.0 Process adapter exists:
-``deepplant.adapters.dexpi`` (see ``docs/dexpi-process-spike.md``). No generic
+``deepplant.adapters.dexpi`` (see ``docs/dev/research/dexpi/process-adapter-spike.md``). No generic
 adapter framework is introduced yet.
 """

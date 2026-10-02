@@ -6,7 +6,7 @@
 ## Context
 
 The DEXPI Plant/P&ID semantic-mapping spike
-([docs/dexpi-plant-pid-spike.md](../../dexpi-plant-pid-spike.md)) investigated the
+([docs/dev/research/dexpi/plant-pid-semantic-boundary.md](../research/dexpi/plant-pid-semantic-boundary.md)) investigated the
 official DEXPI `V2.0.0` model definitions and the official DEXPI Reference P&ID
 instance (`src/documentation/_static/reference_pid.xml`) to answer where the
 boundary runs between DEXPI Plant/P&ID semantics and the canonical DeepPlant
@@ -166,9 +166,13 @@ Issue. This ADR authorizes no implementation by itself, and the anti-roadmap in
 
 ## Related
 
-- [docs/dexpi-plant-pid-spike.md](../../dexpi-plant-pid-spike.md) — the evidence
-  (version pin, model facts, instance facts, findings, gaps, next slice).
-- [docs/dexpi-process-spike.md](../../dexpi-process-spike.md) and
+- [docs/dev/research/dexpi/plant-pid-semantic-boundary.md](../research/dexpi/plant-pid-semantic-boundary.md) — the physical-topology evidence
+  (version pin, model facts, instance facts, findings, gaps, next slice); the
+  instrumentation/signal and presentation/graphics findings from the same
+  spike are in
+  [plant-pid-instrumentation.md](../research/dexpi/plant-pid-instrumentation.md)
+  and [plant-pid-presentation.md](../research/dexpi/plant-pid-presentation.md).
+- [docs/dev/research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md) and
   [ADR-0009](ADR-0009-separate-process-function-from-symbol-role.md) — the
   process-layer precedent for evidence-before-model.
 - [ADR-0002](ADR-0002-semantic-model-is-the-core.md),

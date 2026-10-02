@@ -9,7 +9,7 @@ Issue #22 established a recurring model-level blocker and reported that it was
 not class-local: DEXPI `ProcessStep` subclasses may carry a **required,
 non-derivable** `Method` property, and `ProcessStep.function` alone cannot
 preserve it
-([docs/dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md)).
+([docs/dev/research/dexpi/exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md)).
 Issue #31 was created to decide — before any new canonical field was designed —
 whether those `Method` properties expose one reusable canonical engineering
 concept beside `ProcessStep.function`:
@@ -190,7 +190,7 @@ rejected shortcuts are in
 - [ADR-0011-canonical-physical-piping-realization.md](ADR-0011-canonical-physical-piping-realization.md)
 - [../../process-step-classification.md](../../process-step-classification.md) — the
   full evidence and candidate analysis (Issue #31)
-- [../../dexpi-exchanging-thermal-energy-evidence.md](../../dexpi-exchanging-thermal-energy-evidence.md),
-  [../../dexpi-process-spike.md](../../dexpi-process-spike.md),
+- [../research/dexpi/exchanging-thermal-energy.md](../research/dexpi/exchanging-thermal-energy.md),
+  [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md),
   [../architecture/index.md](../architecture/index.md), [../planning/roadmap.md](../planning/roadmap.md)
 

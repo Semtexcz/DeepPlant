@@ -15,7 +15,7 @@ ADR-0003). DEXPI is an external representation::
     deepplant.model.ProcessModel
 
 Only the DEXPI **Process** model slice is implemented and only for an explicit
-material subset (see ``docs/dexpi-process-spike.md``):
+material subset (see ``docs/dev/research/dexpi/process-adapter-spike.md``):
 
 - DEXPI ``Source`` / ``Sink`` / ``Mixing`` / ``SplittingMaterial`` /
   ``Pumping`` ProcessStep classes with **material ports only**;
@@ -40,7 +40,7 @@ Declared ``Port.ConnectorReference`` values are validated when present; the
 exporter covers the deliberately symmetric canonical subset (including reverse
 ``pumping -> Pumping`` for material-port-only pumping steps, decided by
 ADR-0009 once canonical ``ProcessStep.function`` separated engineering
-semantics from presentation roles). See ``docs/dexpi-process-spike.md`` for the
+semantics from presentation roles). See ``docs/dev/research/dexpi/process-adapter-spike.md`` for the
 release research, the mapping matrix, identity semantics, fixture provenance,
 and export-feasibility assessment.
 """
@@ -140,7 +140,7 @@ _STEP_TYPE_MAP: dict[str, str] = {
 # material-port-only pumping steps (the energy-port / driver, ``Head``,
 # ``Method``, and ``VolumeFlow`` semantics DEXPI Pumping may carry are not owned
 # by DeepPlant and would be rejected explicitly if present). ``heat_exchange``
-# stays canonical-only (see docs/dexpi-exchanging-thermal-energy-evidence.md,
+# stays canonical-only (see docs/dev/research/dexpi/exchanging-thermal-energy.md,
 # Issue #22): DEXPI ``ExchangingThermalEnergy`` couples two or more material
 # flows through one step and requires a mandatory ``Method: HeatExchangeMethod``.
 # If an explicit thermal-energy / utility connection is modelled, DEXPI represents
@@ -821,7 +821,8 @@ def export_dexpi_process(
 ) -> str:
     """Serialize a ``ProcessModel`` to deterministic DEXPI-native XML.
 
-    Only the supported subset is exported (see ``docs/dexpi-process-spike.md``);
+    Only the supported subset is exported
+    (see ``docs/dev/research/dexpi/process-adapter-spike.md``);
     ``ProcessStep.function`` values outside the explicit reverse mapping table
     raise :class:`DexpiExportError` instead of producing XML that invents
     engineering meaning. ``model_name`` / ``model_uri`` are the exchange-file
@@ -911,7 +912,7 @@ def _deterministic_object_ids(
     ``("port", step_id, port_id)`` and ``("stream", stream_id)``. Generated
     ids only need to be stable, unique and valid DEXPI ``name``/``ID`` tokens;
     they are explicitly excluded from semantic round-trip comparison (see
-    ``docs/dexpi-process-spike.md``).
+    ``docs/dev/research/dexpi/process-adapter-spike.md``).
     """
     assigned: dict[_ObjectIdKey, str] = {}
     used: set[str] = set()

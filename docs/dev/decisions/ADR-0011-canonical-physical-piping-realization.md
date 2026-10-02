@@ -6,7 +6,7 @@
 ## Context
 
 The DEXPI Plant/P&ID semantic-mapping spike
-([docs/dexpi-plant-pid-spike.md](../../dexpi-plant-pid-spike.md)) and
+([docs/dev/research/dexpi/plant-pid-semantic-boundary.md](../research/dexpi/plant-pid-semantic-boundary.md)) and
 [ADR-0010](ADR-0010-dexpi-plant-pid-semantic-boundary.md) established that
 DeepPlant's current physical primitives (`Equipment` with owned `Port`s and a
 directed, property-free `Connection`) are sufficient for the *topology*
@@ -222,7 +222,7 @@ neither depends on the other, and no cross-layer cardinality is claimed.
 - [docs/physical-piping-model.md](../../physical-piping-model.md) — the
   specification this ADR decides (requirements, candidates, worked fragment,
   diffs, rule/adapter/rendering implications).
-- [docs/dexpi-plant-pid-spike.md](../../dexpi-plant-pid-spike.md) — the DEXPI
+- [docs/dev/research/dexpi/plant-pid-semantic-boundary.md](../research/dexpi/plant-pid-semantic-boundary.md) — the DEXPI
   `V2.0.0` evidence base.
 - [ADR-0010](ADR-0010-dexpi-plant-pid-semantic-boundary.md) — the `Port` /
   `Connection` boundary and the deferral this ADR now resolves for the physical
