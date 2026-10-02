@@ -77,7 +77,7 @@ Evidence for the choice: existing contracts already declare cross-audience
 reader intents (`docs/contracts/cli.md` lists `user-documentation`;
 `docs/contracts/yaml-format.md` lists `authoring-plant-yaml`), and
 [docs/contracts/index.md](../contracts/index.md) already treats the in-place root
-contracts ([rendering.md](../rendering.md), [svg-symbols.md](../svg-symbols.md))
+contracts ([rendering.md](../contracts/rendering.md), [svg-symbols.md](../dev/reference/svg-symbols.md))
 as canonical *where they are*. Canonical truth is cross-audience, not
 audience-owned.
 

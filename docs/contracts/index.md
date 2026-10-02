@@ -24,9 +24,9 @@ callers do now?* Contracts describe the implemented state. They do not record
 why a choice was made (ADRs), what was investigated (evidence), or what
 happened in which slice (history).
 
-Every current implementation fact has exactly one canonical home here (or in
-the contract document listed below). Other documents link to that home instead
-of restating the facts.
+Every cross-audience contract listed here has one canonical home.
+Developer-only canonical contracts/reference live under `docs/dev/reference/`.
+Other documents link to that home instead of restating the facts.
 
 ## Contract documents
 
