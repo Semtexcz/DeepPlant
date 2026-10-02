@@ -31,16 +31,16 @@ Instead of encoding meaning only as graphics and documents, the intent is writte
 explicitly in a **semantic model**:
 
 - engineering intent belongs in an explicit, machine-readable model;
-- that model is plain text, so it can be versioned in Git;
+- the model has a plain-text YAML representation that can be versioned in Git;
 - changes can be diffed and reviewed like code;
 - structural and reference rules can be validated automatically;
 - drawings and documents are **views** derived from the model;
 - exchange formats are **adapters** around the model;
 - the semantic engineering model stays the core.
 
-This is the same idea that made software engineering reliable — version control,
-review, automated checks, reproducibility — applied to the engineering
-information itself rather than only to the files that display it.
+It borrows software-engineering practices — version control, review, automated
+checks, and reproducibility — and applies them to engineering information
+itself.
 
 ## Why DeepPlant?
 
@@ -146,8 +146,8 @@ first-use workflow, see [Getting Started](docs/user/getting-started.md).
   engineering model, never the reverse.
 - **Explicit typed data** — authored YAML is validated into typed objects;
   unknown fields and unresolved references fail fast instead of being guessed.
-- **Git-native changes** — identifiers are authored and stable, so text diffs
-  stay small and reviewable.
+- **Git-native changes** — stable authored identifiers make semantic changes
+  easier to diff and review.
 - **Views stay separate from meaning** — symbols, coordinates, and layout belong
   to presentation, not to engineering semantics.
 - **Interoperability through adapters** — external formats are translated around

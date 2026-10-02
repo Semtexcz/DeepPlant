@@ -44,7 +44,7 @@
   <text class="tag-current" x="600" y="346" text-anchor="middle">PRODUCT CORE</text>
   <text class="label" x="600" y="384" text-anchor="middle">Semantic engineering model</text>
   <text class="body" x="600" y="412" text-anchor="middle">typed, machine-readable engineering semantics</text>
-  <text class="body" x="600" y="436" text-anchor="middle">the single source of engineering meaning</text>
+  <text class="body" x="600" y="436" text-anchor="middle">authoritative core for DeepPlant-managed engineering intent</text>
 
   <path class="arrow" d="M 600 456 V 508" marker-end="url(#arrow-head)" />
 
