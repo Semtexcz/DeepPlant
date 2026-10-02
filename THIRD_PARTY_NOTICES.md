@@ -23,6 +23,10 @@ non-normative fallback assets in
 That record is the per-asset provenance source and does not claim standards
 compliance.
 
+The brand logos in [`assets/brand/logo/`](assets/brand/logo/) are also
+DeepPlant-original assets. Their [asset record](assets/brand/logo/README.md)
+states their intended variants, provenance, and distribution terms.
+
 ## Standards, vendors, and unresolved boundaries
 
 The repository contains project-authored standards summaries and references;
