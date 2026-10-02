@@ -22,8 +22,8 @@ superseded_by: null
 > bounded, linked, and reviewed so readers can tell current rules from evidence
 > and history, and so users, developers, and agents can find the right starting
 > point? Two independent dimensions apply: **audience** and **knowledge
-> authority** ([ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md),
-> refining [ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md)).
+> authority** ([ADR-0015](../../decisions/ADR-0015-documentation-architecture-v2-1.md),
+> refining [ADR-0014](../../decisions/ADR-0014-documentation-architecture-v2.md)).
 
 ## One document, one durable responsibility (atomicity)
 
@@ -51,7 +51,7 @@ recorded in [documentation-migration.md](documentation-migration.md):
 | developer reference | implementation-facing canonical reference not covered above | `docs/dev/reference/` — developer-only contracts/reference, not a dumping ground |
 
 The target column is **v2.1 ownership**
-([ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
+([ADR-0015](../../decisions/ADR-0015-documentation-architecture-v2-1.md)). It states who
 *should* own each type, deliberately replacing the earlier assumption that all
 canonical content lives in a shared root. Legacy paths that have not migrated yet
 (root-level governance, evidence, decisions, research, and history under `docs/`)
@@ -63,7 +63,7 @@ its current path is authoritative.
 
 Knowledge **authority** (contract / decision / evidence / history) and **audience**
 (user / developer / agent) are independent dimensions
-([ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md)). Audience is
+([ADR-0015](../../decisions/ADR-0015-documentation-architecture-v2-1.md)). Audience is
 expressed by three mechanisms, with deliberately chosen responsibilities:
 
 | Mechanism | Role in expressing audience |
@@ -164,7 +164,7 @@ Document size is a **review signal, not an architectural validity rule**. There
 are no numeric hard limits: a coherent research report that answers one auditable
 question may legitimately run to many hundreds of lines, and reformatting a
 document to satisfy a line count is not a real change
-([ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md)).
+([ADR-0014](../../decisions/ADR-0014-documentation-architecture-v2.md)).
 
 When a document grows large, ask the atomicity question first: does it still own
 one durable concept, workflow, task, or question? Split only when it does not.
@@ -292,34 +292,40 @@ pointer only, never a second copy of the content.
 ## Migration status
 
 The repository adopted the conventions above in stages.
-[ADR-0014](decisions/ADR-0014-documentation-architecture-v2.md) added the audience
+[ADR-0014](../../decisions/ADR-0014-documentation-architecture-v2.md) added the audience
 navigation layer, and
-[ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) corrects its
+[ADR-0015](../../decisions/ADR-0015-documentation-architecture-v2-1.md) corrects its
 physical-ownership boundary. Current state:
 
-- **Audience layer**: [index.md](index.md) routes by audience;
-  [user/index.md](user/index.md) and [dev/index.md](dev/index.md) are the audience
-  navigation maps. The contract/reference moves below are the first canonical
-  documents to leave the `docs/` root; the remaining root documents are still
-  reached from the root until their own slices.
+- **Audience layer**: [index.md](../../index.md) routes by audience;
+  [user/index.md](../../user/index.md) and [dev/index.md](../index.md) are the audience
+  navigation maps. The contract/reference moves were the first canonical
+  documents to leave the `docs/` root; the Phase 3A architecture and
+  workflow/governance moves followed. Remaining root documents are still reached
+  from the root until their own slices.
 - **Shared documentation layer (narrow)**: cross-audience `docs/contracts/*`
   (plant model, process model, physical piping, YAML format, CLI, and the public
-  renderer contract [contracts/rendering.md](contracts/rendering.md)).
+  renderer contract [contracts/rendering.md](../../contracts/rendering.md)).
 - **Developer-only canonical reference (`docs/dev/reference/`)**:
-  [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md)
-  and [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) retain contract
+  [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md)
+  and [dev/reference/svg-symbols.md](../reference/svg-symbols.md) retain contract
   authority under developer ownership, not in the shared layer.
-- **Developer-owned canonical content (target `docs/dev/`)**:
-  [architecture.md](architecture.md), [workflow.md](workflow.md),
-  [quality.md](quality.md), [conventions.md](conventions.md),
-  [planning.md](planning.md), [roadmap.md](roadmap.md),
-  [direction.md](direction.md), [product.md](product.md),
-  [standards.md](standards.md), and [documentation-migration.md](documentation-migration.md).
-- **Decision, evidence, and history (target `docs/dev/`)**: [decisions/](decisions/index.md),
-  [research/](research/index.md),
-  [history/implementation-slices.md](history/implementation-slices.md), and the
+- **Developer-owned canonical architecture and workflow/governance (relocated
+  in Phase 3A)**: [architecture.md](../architecture/index.md),
+  [workflow.md](index.md), [quality.md](quality.md),
+  [conventions.md](conventions.md), and
+  [documentation-migration.md](documentation-migration.md) now live under
+  `docs/dev/`; their inbound links, navigations, metadata, and agent routing
+  were reconciled in the same slice.
+- **Developer-owned canonical content (still target `docs/dev/`)**:
+  [planning.md](../../planning.md), [roadmap.md](../../roadmap.md),
+  [direction.md](../../direction.md), [product.md](../../product.md), and
+  [standards.md](../../standards.md).
+- **Decision, evidence, and history (target `docs/dev/`)**: [decisions/](../../decisions/index.md),
+  [research/](../../research/index.md),
+  [history/implementation-slices.md](../../history/implementation-slices.md), and the
   root-level evidence/prototype documents listed in
-  [research/index.md](research/index.md).
+  [research/index.md](../../research/index.md).
 - **Repository-role exceptions and global navigation**: `README.md` and
   `VISION.md` remain broad public/repository entry documents; `AGENTS.md` and
   `project/brief.md` remain developer/agent-oriented despite their root or
@@ -334,15 +340,15 @@ Issues are created in advance.
 
 ## Related
 
-- [index.md](index.md) — the audience/authority router.
-- [user/index.md](user/index.md), [dev/index.md](dev/index.md) — audience
+- [index.md](../../index.md) — the audience/authority router.
+- [user/index.md](../../user/index.md), [dev/index.md](../index.md) — audience
   navigation maps.
-- [contracts/index.md](contracts/index.md) — the current contract set.
-- [decisions/index.md](decisions/index.md) — decision records.
-- [research/index.md](research/index.md) — evidence and prototype index.
+- [contracts/index.md](../../contracts/index.md) — the current contract set.
+- [decisions/index.md](../../decisions/index.md) — decision records.
+- [research/index.md](../../research/index.md) — evidence and prototype index.
 - [documentation-migration.md](documentation-migration.md) — migration inventory
   and sequence.
-- [decisions/ADR-0015-documentation-architecture-v2-1.md](decisions/ADR-0015-documentation-architecture-v2-1.md)
+- [decisions/ADR-0015-documentation-architecture-v2-1.md](../../decisions/ADR-0015-documentation-architecture-v2-1.md)
   — the current documentation architecture decision.
-- [decisions/ADR-0014-documentation-architecture-v2.md](decisions/ADR-0014-documentation-architecture-v2.md)
+- [decisions/ADR-0014-documentation-architecture-v2.md](../../decisions/ADR-0014-documentation-architecture-v2.md)
   — the preceding decision whose invariant is retained.

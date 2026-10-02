@@ -10,7 +10,7 @@ read_when:
 depends_on:
   - docs/contracts/plant-model.md
   - docs/contracts/yaml-format.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
 decision:
   - docs/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md
   - docs/decisions/ADR-0011-canonical-physical-piping-realization.md

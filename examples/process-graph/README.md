@@ -38,4 +38,4 @@ graph loads and validates but is not yet counted by the CLI):
 ```
 
 See [docs/roadmap.md](../../docs/roadmap.md) and
-[docs/architecture.md](../../docs/architecture.md).
+[docs/dev/architecture/index.md](../../docs/dev/architecture/index.md).

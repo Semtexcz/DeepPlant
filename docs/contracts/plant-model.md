@@ -9,7 +9,7 @@ read_when:
   - validation-change
 depends_on:
   - docs/contracts/yaml-format.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
 decision:
   - docs/decisions/ADR-0002-semantic-model-is-the-core.md
   - docs/decisions/ADR-0003-separate-semantic-and-presentation-models.md
@@ -145,7 +145,7 @@ here.
 
 ## Related
 
-- [architecture.md](../architecture.md) — boundary map and module layout.
+- [architecture.md](../dev/architecture/index.md) — boundary map and module layout.
 - [process-model.md](process-model.md), [physical-piping.md](physical-piping.md),
   [yaml-format.md](yaml-format.md) — the sibling canonical contracts.
 - [ADR-0010](../decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md),

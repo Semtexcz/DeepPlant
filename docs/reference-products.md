@@ -525,7 +525,7 @@ Nothing in this document authorizes:
   explicit deferrals.
 - [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) — the symbol and anchor contract a future
   editor would consume.
-- [architecture.md](architecture.md) — current architecture and durable
+- [architecture.md](dev/architecture/index.md) — current architecture and durable
   boundaries.
 - [ADR-0002](decisions/ADR-0002-semantic-model-is-the-core.md),
   [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md),

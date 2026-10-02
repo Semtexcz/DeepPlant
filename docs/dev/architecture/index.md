@@ -9,7 +9,7 @@ read_when:
   - start-work
 depends_on:
   - docs/contracts/index.md
-  - docs/conventions.md
+  - docs/dev/workflow/conventions.md
 decision:
   - docs/decisions/ADR-0001-baseline.md
   - docs/decisions/ADR-0002-semantic-model-is-the-core.md
@@ -25,9 +25,9 @@ Project type: `script`. Runtime level: `shared`. Governance: `lightweight`.
 
 This document is a **boundary map**: what exists, where it lives, and which
 document owns each current detail. It is deliberately not a specification. Every
-obligation lives in a contract under [contracts/](contracts/index.md); reasons
-live in [decisions/](decisions/index.md); long-term direction lives in
-[direction.md](direction.md).
+obligation lives in a contract under [contracts/](../../contracts/index.md); reasons
+live in [decisions/](../../decisions/index.md); long-term direction lives in
+[direction.md](../../direction.md).
 
 ## What exists
 
@@ -47,14 +47,14 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 
 | Component | Location | Contract |
 |---|---|---|
-| Physical/plant model, validation | `src/deepplant/model.py` | [contracts/plant-model.md](contracts/plant-model.md) |
-| Process graph model, S1–S4 | `src/deepplant/model.py` | [contracts/process-model.md](contracts/process-model.md) |
-| Piping realization, C1 + P1–P5 | `src/deepplant/model.py` | [contracts/physical-piping.md](contracts/physical-piping.md) |
-| YAML load/save boundary | `src/deepplant/io.py` | [contracts/yaml-format.md](contracts/yaml-format.md) |
-| CLI (`--help`, `version`, `validate`) | `src/deepplant/__main__.py` | [contracts/cli.md](contracts/cli.md) |
-| Headless process renderer | `src/deepplant/render.py` | [contracts/rendering.md](contracts/rendering.md) |
-| `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [dev/reference/svg-symbols.md](dev/reference/svg-symbols.md) |
-| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [dev/reference/dexpi-process-adapter.md](dev/reference/dexpi-process-adapter.md) |
+| Physical/plant model, validation | `src/deepplant/model.py` | [contracts/plant-model.md](../../contracts/plant-model.md) |
+| Process graph model, S1–S4 | `src/deepplant/model.py` | [contracts/process-model.md](../../contracts/process-model.md) |
+| Piping realization, C1 + P1–P5 | `src/deepplant/model.py` | [contracts/physical-piping.md](../../contracts/physical-piping.md) |
+| YAML load/save boundary | `src/deepplant/io.py` | [contracts/yaml-format.md](../../contracts/yaml-format.md) |
+| CLI (`--help`, `version`, `validate`) | `src/deepplant/__main__.py` | [contracts/cli.md](../../contracts/cli.md) |
+| Headless process renderer | `src/deepplant/render.py` | [contracts/rendering.md](../../contracts/rendering.md) |
+| `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [dev/reference/svg-symbols.md](../reference/svg-symbols.md) |
+| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 
 Runtime and toolchain:
@@ -106,7 +106,7 @@ views, never the canonical shape.
    anything outside its explicit subset (ADR-0009, ADR-0012).
 7. **No abstraction without a current requirement.** No database, queue, cache,
    service, container, GUI framework, plugin system, or generic entity hierarchy
-   exists (ADR-0001; see the anti-roadmap in [roadmap.md](roadmap.md)).
+   exists (ADR-0001; see the anti-roadmap in [roadmap.md](../../roadmap.md)).
 
 ## Layer summary
 
@@ -126,7 +126,7 @@ mapping exists (ADR-0011, ADR-0012).
 ## Not implemented (directional only)
 
 Recorded here for orientation; none of it is authorized by appearing here (see
-[direction.md](direction.md) for the capability progression and the anti-roadmap
+[direction.md](../../direction.md) for the capability progression and the anti-roadmap
 for the prohibition):
 
 - full DEXPI (energy/information flows, Plant/P&ID import and export, further
@@ -151,13 +151,13 @@ make check   # ruff format --check, ruff check, pyright, pytest
 make build   # uv build
 ```
 
-[quality.md](quality.md) owns what these gates are expected to prove.
+[quality.md](../workflow/quality.md) owns what these gates are expected to prove.
 
 ## Related
 
-- [contracts/index.md](contracts/index.md) — the current contract set.
-- [roadmap.md](roadmap.md) — current state, next direction, evidence gaps.
-- [direction.md](direction.md) — capability progression (not authorization).
-- [product.md](product.md) — product thesis and long-term position.
-- [decisions/index.md](decisions/index.md) — decision records.
-- [conventions.md](conventions.md) — document types and linking rules.
+- [contracts/index.md](../../contracts/index.md) — the current contract set.
+- [roadmap.md](../../roadmap.md) — current state, next direction, evidence gaps.
+- [direction.md](../../direction.md) — capability progression (not authorization).
+- [product.md](../../product.md) — product thesis and long-term position.
+- [decisions/index.md](../../decisions/index.md) — decision records.
+- [conventions.md](../workflow/conventions.md) — document types and linking rules.

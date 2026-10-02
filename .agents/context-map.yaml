@@ -52,15 +52,15 @@ change_patterns:
   "src/**/*.py":
     - pyproject.toml
     - tests/
-    - docs/architecture.md
+    - docs/dev/architecture/index.md
     - docs/contracts/index.md
-    - docs/quality.md
+    - docs/dev/workflow/quality.md
   "tests/**/*.py":
     - pyproject.toml
     - src/
-    - docs/architecture.md
+    - docs/dev/architecture/index.md
     - docs/contracts/index.md
-    - docs/quality.md
+    - docs/dev/workflow/quality.md
   "src/deepplant/render.py":
     - docs/contracts/rendering.md
     - docs/dev/reference/svg-symbols.md
@@ -76,11 +76,11 @@ change_patterns:
     - docs/contracts/rendering.md
     - docs/dev/reference/svg-symbols.md
   "backend/**/*.py":
-    - docs/architecture.md
-    - docs/quality.md
+    - docs/dev/architecture/index.md
+    - docs/dev/workflow/quality.md
     - backend/tests/
   "frontend/**/*":
-    - docs/quality.md
+    - docs/dev/workflow/quality.md
     - frontend/tests/
   "artifacts/openapi.json":
     - backend/src/app/main.py
@@ -92,22 +92,22 @@ change_patterns:
   "docs/**":
     - docs/index.md
     - docs/dev/index.md
-    - docs/conventions.md
-    - docs/documentation-migration.md
-  "docs/architecture.md":
+    - docs/dev/workflow/conventions.md
+    - docs/dev/workflow/documentation-migration.md
+  "docs/dev/architecture/index.md":
     - docs/contracts/index.md
     - docs/decisions/index.md
-  "docs/workflow.md":
-    - docs/quality.md
+  "docs/dev/workflow/index.md":
+    - docs/dev/workflow/quality.md
     - docs/planning.md
-  "docs/quality.md":
-    - docs/workflow.md
+  "docs/dev/workflow/quality.md":
+    - docs/dev/workflow/index.md
   "docs/roadmap.md":
-    - docs/architecture.md
+    - docs/dev/architecture/index.md
     - docs/planning.md
     - docs/direction.md
   "docs/decisions/**":
-    - docs/architecture.md
+    - docs/dev/architecture/index.md
     - docs/decisions/index.md
   ".agents/**":
     - .agents/README.md
@@ -116,7 +116,7 @@ change_patterns:
     - .agents/context-map.yaml
     - docs/dev/index.md
   "**/Dockerfile":
-    - docs/architecture.md
+    - docs/dev/architecture/index.md
 
 checks:
   "src/**/*.py":

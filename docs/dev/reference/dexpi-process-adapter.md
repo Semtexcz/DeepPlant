@@ -14,7 +14,7 @@ update_when:
   - dexpi-model-change
 depends_on:
   - docs/contracts/process-model.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
 decision:
   - docs/decisions/ADR-0002-semantic-model-is-the-core.md
   - docs/decisions/ADR-0009-separate-process-function-from-symbol-role.md

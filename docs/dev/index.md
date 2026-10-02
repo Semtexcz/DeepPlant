@@ -12,7 +12,7 @@ update_when:
   - developer-documentation-change
 depends_on:
   - docs/index.md
-  - docs/conventions.md
+  - docs/dev/workflow/conventions.md
 decision:
   - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
@@ -31,19 +31,23 @@ navigation map, not a content dump. The structure is decided in
 This audience layer is the **physical owner** of developer/agent material:
 architecture, workflow/governance, planning, developer-only contracts/reference,
 decisions, research/evidence, and history are canonical *and* developer-owned.
-The developer-only reference layer has already moved here
-([reference/](reference/svg-symbols.md)); the remaining root documents move in
-later slices and stay canonical after their move. The current → target mapping is
-in [documentation-migration.md](../documentation-migration.md).
+The developer-only reference layer moved here first
+([reference/](reference/svg-symbols.md)); the architecture and
+workflow/governance documents followed in Phase 3A
+([architecture/](architecture/index.md), [workflow/](workflow/index.md)).
+Planning, decisions, research/evidence, and history are still reached from the
+`docs/` root until their own slices, and stay canonical after their move. The
+current → target mapping is in
+[documentation-migration.md](workflow/documentation-migration.md).
 
 ## Start here
 
-- **Current** — [architecture.md](../architecture.md): boundary map, module
+- **Current** — [architecture.md](architecture/index.md): boundary map, module
   boundaries, durable invariants.
-- **Governance** — [workflow.md](../workflow.md): the change loop.
-- **Governance** — [quality.md](../quality.md): checks and test expectations.
+- **Governance** — [workflow.md](workflow/index.md): the change loop.
+- **Governance** — [quality.md](workflow/quality.md): checks and test expectations.
 - **Current** — [roadmap.md](../roadmap.md): current state and next direction.
-- **Governance** — [conventions.md](../conventions.md): documentation rules.
+- **Governance** — [conventions.md](workflow/conventions.md): documentation rules.
 
 ## Smallest relevant context for a task
 
@@ -56,16 +60,16 @@ table, not an orchestration engine.
 
 | Task / change | Read |
 |---|---|
-| Orient in the repository | [architecture.md](../architecture.md), [roadmap.md](../roadmap.md) |
+| Orient in the repository | [architecture.md](architecture/index.md), [roadmap.md](../roadmap.md) |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
 | Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
 | Change the DEXPI adapter | [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md) — the developer-only DEXPI Process adapter contract |
-| Decide or record an architecture boundary | [decisions/index.md](../decisions/index.md), [conventions.md](../conventions.md) |
+| Decide or record an architecture boundary | [decisions/index.md](../decisions/index.md), [conventions.md](workflow/conventions.md) |
 | Add or change evidence | [research/index.md](../research/index.md) |
-| Change documentation | [conventions.md](../conventions.md), [documentation-migration.md](../documentation-migration.md) |
+| Change documentation | [conventions.md](workflow/conventions.md), [documentation-migration.md](workflow/documentation-migration.md) |
 
 Machine-readable agent context selection lives in
 [.agents/context-map.yaml](../../.agents/context-map.yaml); [AGENTS.md](../../AGENTS.md)
@@ -91,8 +95,8 @@ authoritative.
   [history/implementation-slices.md](../history/implementation-slices.md): what
   shipped, in what order.
 - **Governance** (developer-owned) — [planning.md](../planning.md),
-  [standards.md](../standards.md), [quality.md](../quality.md),
-  [workflow.md](../workflow.md), [conventions.md](../conventions.md).
+  [standards.md](../standards.md), [quality.md](workflow/quality.md),
+  [workflow.md](workflow/index.md), [conventions.md](workflow/conventions.md).
 - **Direction** (developer-owned) — [direction.md](../direction.md),
   [product.md](../product.md).
 

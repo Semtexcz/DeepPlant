@@ -11,7 +11,7 @@ update_when:
   - document-split
   - documentation-architecture-change
 depends_on:
-  - docs/conventions.md
+  - docs/dev/workflow/conventions.md
   - docs/index.md
 decision:
   - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
@@ -27,7 +27,7 @@ superseded_by: null
 > under Documentation Architecture v2.1, and in what order should it move?
 
 This is the evidence-backed inventory behind
-[ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) (v2.1) and the
+[ADR-0015](../../decisions/ADR-0015-documentation-architecture-v2-1.md) (v2.1) and the
 operational rules in [conventions.md](conventions.md). It replaces the initial v2
 inventory, which defaulted most root paths to `KEEP` because they already existed.
 That is a migration-cost argument, not an ownership argument, and it is no longer
@@ -168,15 +168,17 @@ DEXPI adapter contracts are developer-only.
 ## Developer authority layer — architecture, governance, planning
 
 Canonical developer/agent content. It is authoritative without being shared; it
-moves out of the shared root into `docs/dev/**`.
+moves out of the shared root into `docs/dev/**`. The Phase 3A slice relocated the
+architecture and workflow/governance rows (now `KEEP` at their v2.1 paths); the
+planning rows move in Phase 3B.
 
 | Current path | Audience | Authority | Action | Target | Reason | Link cost |
 |---|---|---|---|---|---|---|
-| `docs/architecture.md` | dev/agent | current | MOVE | `docs/dev/architecture/index.md` | Boundary map; developer/agent-only reading | high (41) |
-| `docs/workflow.md` | dev/agent | governance | MOVE | `docs/dev/workflow/index.md` | Change loop; developer/agent process | medium (16) |
-| `docs/quality.md` | dev/agent | governance | MOVE | `docs/dev/workflow/quality.md` | Quality gates; developer/agent process | medium (15) |
-| `docs/conventions.md` | dev/agent | governance | MOVE | `docs/dev/workflow/conventions.md` | Documentation governance; a change-process rule | medium (16) |
-| `docs/documentation-migration.md` | dev/agent | governance | MOVE | `docs/dev/workflow/documentation-migration.md` | Documentation governance; it currently sits in the root it empties, so it must move for the target tree to hold | medium (10) |
+| `docs/dev/architecture/index.md` | dev/agent | current | KEEP | — | Boundary map; developer/agent-only reading (relocated in Phase 3A) | high (41) |
+| `docs/dev/workflow/index.md` | dev/agent | governance | KEEP | — | Change loop; developer/agent process (relocated in Phase 3A) | medium (16) |
+| `docs/dev/workflow/quality.md` | dev/agent | governance | KEEP | — | Quality gates; developer/agent process (relocated in Phase 3A) | medium (15) |
+| `docs/dev/workflow/conventions.md` | dev/agent | governance | KEEP | — | Documentation governance; a change-process rule (relocated in Phase 3A) | medium (16) |
+| `docs/dev/workflow/documentation-migration.md` | dev/agent | governance | KEEP | — | This inventory; relocated in Phase 3A | medium (10) |
 | `docs/planning.md` | dev/agent | governance | MOVE | `docs/dev/planning/index.md` | Planning governance | medium (12) |
 | `docs/roadmap.md` | dev/agent | current | MOVE | `docs/dev/planning/roadmap.md` | Current execution state and next direction | high (34) |
 | `docs/direction.md` | dev/agent | current | MOVE | `docs/dev/planning/direction.md` | Long-term capability progression | medium (18) |
@@ -284,13 +286,17 @@ planning governance, or historical spikes to be read.
   (was `docs/contracts/dexpi-process-adapter.md`).
 - `docs/dev/reference/svg-symbols.md` (was `docs/svg-symbols.md`).
 
+**Developer-owned architecture and workflow/governance (relocated in Phase 3A):**
+
+- `docs/dev/architecture/index.md` (was `docs/architecture.md`).
+- `docs/dev/workflow/index.md` (was `docs/workflow.md`).
+- `docs/dev/workflow/quality.md` (was `docs/quality.md`).
+- `docs/dev/workflow/conventions.md` (was `docs/conventions.md`).
+- `docs/dev/workflow/documentation-migration.md` (was
+  `docs/documentation-migration.md`; this inventory moved with the slice).
+
 **Still to leave the `docs/` root (later slices):**
 
-- `docs/architecture.md` → `docs/dev/architecture/index.md`
-- `docs/workflow.md` → `docs/dev/workflow/index.md`
-- `docs/quality.md` → `docs/dev/workflow/quality.md`
-- `docs/conventions.md` → `docs/dev/workflow/conventions.md`
-- `docs/documentation-migration.md` → `docs/dev/workflow/documentation-migration.md`
 - `docs/planning.md` → `docs/dev/planning/index.md`
 - `docs/roadmap.md` → `docs/dev/planning/roadmap.md`
 - `docs/direction.md` → `docs/dev/planning/direction.md`
@@ -308,11 +314,10 @@ planning governance, or historical spikes to be read.
 
 After full migration the `docs/` root holds only `index.md` plus the three
 audience/authority trees (`user/`, `dev/`, `contracts/`). Every other current
-root document is covered by a `MOVE`/`SPLIT` row above, including this inventory
-itself (`docs/documentation-migration.md` →
-`docs/dev/workflow/documentation-migration.md`), so no root page is left
-unassigned. `docs/index.md` remains global navigation, not part of the shared
-documentation layer.
+root document is covered by a `MOVE`/`SPLIT` row above, so no root page is left
+unassigned; this inventory itself relocated to
+`docs/dev/workflow/documentation-migration.md` in Phase 3A. `docs/index.md`
+remains global navigation, not part of the shared documentation layer.
 
 **Splits:**
 
@@ -337,9 +342,19 @@ later slice may reorder these steps if repository evidence supports it.
    docs/svg-symbols.md → docs/dev/reference/svg-symbols.md
    reconciled inbound links, navigation, metadata, and agent routing
 
-3. Developer authority-layer migration — NEXT
-   architecture; workflow / quality / conventions / documentation-migration;
-   planning / roadmap / direction / product; decisions; research; history
+3. Developer authority-layer migration — IN PROGRESS
+   3A. developer architecture + workflow/governance — DONE (this slice)
+       docs/architecture.md → docs/dev/architecture/index.md
+       docs/workflow.md → docs/dev/workflow/index.md
+       docs/quality.md → docs/dev/workflow/quality.md
+       docs/conventions.md → docs/dev/workflow/conventions.md
+       docs/documentation-migration.md
+           → docs/dev/workflow/documentation-migration.md
+   3B. developer planning — NEXT
+       planning / roadmap / direction / product → docs/dev/planning/
+   3C. developer authority archives — LATER
+       decisions → docs/dev/decisions/; research → docs/dev/research/;
+       history → docs/dev/history/
 
 4. User documentation foundation
    getting-started; what-is-deepplant; primary workflows (create, validate,
@@ -356,25 +371,25 @@ later slice may reorder these steps if repository evidence supports it.
 ```
 
 This sequence covers every inventory action that changes or adds a document home:
-step 2 covers the three contract/reference `MOVE` rows; step 3 covers the
-architecture, workflow (including this inventory itself), planning, decisions,
-research, and history `MOVE` rows;
-step 4 covers every user `ADD (later)` row; step 5 covers every root
-research/prototype `MOVE`, including the `MOVE + SPLIT` DEXPI plant/P&ID spike;
-and step 6 covers the `standards.md` `SPLIT`. Each move/split slice reconciles its
-affected inbound links, navigation, metadata, and agent routing in the same pass.
+step 2 covered the three contract/reference `MOVE` rows; step 3 (decomposed into
+3A, 3B, and 3C) covers the architecture, workflow (including this inventory
+itself), planning, decisions, research, and history `MOVE` rows; step 4 covers
+every user `ADD (later)` row; step 5 covers every root research/prototype `MOVE`,
+including the `MOVE + SPLIT` DEXPI plant/P&ID spike; and step 6 covers the
+`standards.md` `SPLIT`. Each move/split slice reconciles its affected inbound
+links, navigation, metadata, and agent routing in the same pass.
 
-Step 2 establishes the contract/reference homes before developer or user pages
+Step 2 established the contract/reference homes before developer or user pages
 link to them. Step 3 precedes step 4 so user pages can link into a stable developer
 tree rather than the pre-migration root. Step 5 follows step 3 so evidence moves
-reuse links already reconciled once. Steps 1 and 2 are complete; step 3 is the
-next bounded slice.
+reuse links already reconciled once. Steps 1 and 2 are complete; step 3A is
+complete, and step 3B is the next bounded slice.
 
 ## Agent context consequences
 
 Agent routing is updated with each migration slice; this is routing
 configuration, not a routing engine. Phase 2 updated
-[.agents/context-map.yaml](../.agents/context-map.yaml) `change_patterns` so
+[.agents/context-map.yaml](../../../.agents/context-map.yaml) `change_patterns` so
 developer-reference work resolves to the new v2.1 locations:
 
 - renderer changes route to `docs/contracts/rendering.md` and
@@ -382,16 +397,26 @@ developer-reference work resolves to the new v2.1 locations:
 - symbol-pack changes route to `docs/dev/reference/svg-symbols.md`;
 - DEXPI adapter changes route to `docs/dev/reference/dexpi-process-adapter.md`.
 
+Phase 3A repointed the architecture and workflow/governance routes to the actual
+v2.1 paths, including the pattern keys:
+
+- the architecture pattern key is now `docs/dev/architecture/index.md`, and the
+  generic `src/**/*.py`, `tests/**/*.py`, `backend/**`, `frontend/**`, and
+  `**/Dockerfile` patterns route to `docs/dev/architecture/index.md` and
+  `docs/dev/workflow/quality.md`;
+- the workflow and quality pattern keys are now `docs/dev/workflow/index.md` and
+  `docs/dev/workflow/quality.md`;
+- `docs/**` routes to `docs/index.md`, `docs/dev/index.md`,
+  `docs/dev/workflow/conventions.md`, and
+  `docs/dev/workflow/documentation-migration.md`.
+
 Later slices must keep doing this so that every migrated path — both the pattern
 key and the routed context files — is named at its v2.1 location rather than its
 historical root path:
 
-- `docs/**` routes to `docs/index.md`, `docs/dev/index.md`,
-  `docs/dev/workflow/conventions.md`, and
-  `docs/dev/workflow/documentation-migration.md`;
-- `docs/dev/decisions/**` routes to `docs/dev/architecture/index.md` and
+- `docs/dev/decisions/**` will route to `docs/dev/architecture/index.md` and
   `docs/dev/decisions/index.md`;
-- `docs/dev/planning/roadmap.md` routes to `docs/dev/planning/roadmap.md` and
+- `docs/dev/planning/roadmap.md` will route to `docs/dev/planning/roadmap.md` and
   `docs/dev/architecture/index.md`;
 - `AGENTS.md` continues to point agents at `docs/dev/index.md` for the
   task → context table.
@@ -403,11 +428,11 @@ paths change.
 
 ## Related
 
-- [decisions/ADR-0015-documentation-architecture-v2-1.md](decisions/ADR-0015-documentation-architecture-v2-1.md)
+- [decisions/ADR-0015-documentation-architecture-v2-1.md](../../decisions/ADR-0015-documentation-architecture-v2-1.md)
   — the v2.1 decision behind this inventory.
-- [decisions/ADR-0014-documentation-architecture-v2.md](decisions/ADR-0014-documentation-architecture-v2.md)
+- [decisions/ADR-0014-documentation-architecture-v2.md](../../decisions/ADR-0014-documentation-architecture-v2.md)
   — the preceding decision; its invariant is retained.
 - [conventions.md](conventions.md) — KEEP / MOVE / SPLIT rules and the move
   procedure.
-- [index.md](index.md) — the audience/authority router.
-- [research/index.md](research/index.md) — evidence index.
+- [index.md](../../index.md) — the audience/authority router.
+- [research/index.md](../../research/index.md) — evidence index.

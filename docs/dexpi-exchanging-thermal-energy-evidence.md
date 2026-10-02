@@ -539,7 +539,7 @@ is strictly better than an invented mapping and requires nothing.
 
 ## 8. Executable guardrails shipped with this slice
 
-Per [workflow.md](workflow.md), an executable guardrail outranks a textual rule, so
+Per [workflow.md](dev/workflow/index.md), an executable guardrail outranks a textual rule, so
 this decision is pinned by tests rather than by prose alone:
 
 - `tests/fixtures/dexpi/2.0.0/exchanging_thermal_energy.xml` — a DeepPlant-authored

@@ -30,7 +30,7 @@ superseded_by: null
 > (`docs/dev/workflow/`), a registry (`docs/dev/reference/`), and licence
 > evidence (`docs/dev/research/`); the split, with the current → target mapping,
 > is recorded in
-> [documentation-migration.md](documentation-migration.md) and is not performed
+> [documentation-migration.md](dev/workflow/documentation-migration.md) and is not performed
 > in this slice.
 
 Governance/research slice behind
@@ -426,5 +426,5 @@ Official/public sources consulted on 2026-09-08:
 Related project documents:
 
 - [ADR-0007 — restrict standards content and require symbol provenance](decisions/ADR-0007-standards-and-symbol-provenance.md)
-- [Architecture](architecture.md) and [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md) for the semantic/presentation boundary.
+- [Architecture](dev/architecture/index.md) and [ADR-0003](decisions/ADR-0003-separate-semantic-and-presentation-models.md) for the semantic/presentation boundary.
 - [Roadmap](roadmap.md) for the symbol-slice sequence.

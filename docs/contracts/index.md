@@ -9,8 +9,8 @@ read_when:
   - adapter-change
   - renderer-change
 depends_on:
-  - docs/architecture.md
-  - docs/conventions.md
+  - docs/dev/architecture/index.md
+  - docs/dev/workflow/conventions.md
 decision:
   - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
 evidence: []
@@ -45,7 +45,7 @@ and SVG symbol pack ([../dev/reference/svg-symbols.md](../dev/reference/svg-symb
 retain contract authority but are developer-only reference, so they live under
 `docs/dev/reference/`, not here. Contract authority does not by itself establish
 shared ownership. See
-[documentation-migration.md](../documentation-migration.md).
+[documentation-migration.md](../dev/workflow/documentation-migration.md).
 
 ## How contracts relate to the other document types
 
@@ -70,4 +70,4 @@ governance/          how work, planning, quality, and standards are governed
 3. Keep the terminology of this repository: `Port` is a physical connection
    point owned by `Equipment`; `ProcessPort` belongs to a `ProcessStep`; piping
    realization references `Connection` ids; symbol roles are presentation data
-   (see [architecture.md](../architecture.md)).
+   (see [architecture.md](../dev/architecture/index.md)).

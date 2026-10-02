@@ -147,7 +147,7 @@ is assumed by this document.
 ## Where DeepPlant Is Now
 
 Current implementation facts are not repeated here. The boundary map is
-[architecture.md](architecture.md); the current obligations are the
+[architecture.md](dev/architecture/index.md); the current obligations are the
 [contracts](contracts/index.md) (plant model, process model, physical piping,
 YAML format, CLI, renderer, symbol pack, DEXPI Process adapter); the actionable
 current and next state is [roadmap.md](roadmap.md).
@@ -207,13 +207,13 @@ still governs, and the actionable current/next state lives in
 
 ## Related
 
-- [architecture.md](architecture.md) — boundary map of what exists, and the
+- [architecture.md](dev/architecture/index.md) — boundary map of what exists, and the
   durable invariants.
 - [contracts/index.md](contracts/index.md) — current model, format, CLI,
   renderer, and adapter obligations.
 - [direction.md](direction.md) — long-term capability progression (product
   context, not authorization).
 - [roadmap.md](roadmap.md) — current state, next direction, anti-roadmap.
-- [workflow.md](workflow.md) — the daily change loop.
+- [workflow.md](dev/workflow/index.md) — the daily change loop.
 - [decisions/index.md](decisions/index.md) — architectural decisions.
 - [VISION.md](../VISION.md) — the durable long-term thesis and capability map.

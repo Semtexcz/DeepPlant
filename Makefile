@@ -135,14 +135,15 @@ validate-docs:
 	@test -f VISION.md
 	@test -f README.md
 	@test -f AGENTS.md
-	@test -f docs/architecture.md
+	@test -f docs/dev/architecture/index.md
 	@test -f docs/product.md
 	@test -f docs/roadmap.md
 	@test -f docs/planning.md
-	@test -f docs/workflow.md
-	@test -f docs/quality.md
+	@test -f docs/dev/workflow/index.md
+	@test -f docs/dev/workflow/quality.md
 	@test -f docs/index.md
-	@test -f docs/conventions.md
+	@test -f docs/dev/workflow/conventions.md
+	@test -f docs/dev/workflow/documentation-migration.md
 	@test -f docs/direction.md
 	@test -f docs/contracts/index.md
 	@test -f docs/contracts/plant-model.md

@@ -11,7 +11,7 @@ depends_on:
   - docs/contracts/plant-model.md
   - docs/contracts/process-model.md
   - docs/contracts/physical-piping.md
-  - docs/architecture.md
+  - docs/dev/architecture/index.md
 decision:
   - docs/decisions/ADR-0004-yaml-is-a-serialization-format.md
   - docs/decisions/ADR-0006-process-model-root-integration.md
@@ -135,5 +135,5 @@ auto-repair. Each needs its own evidence and Issue.
 ## Related
 
 - [cli.md](cli.md) — how errors surface to users.
-- [architecture.md](../architecture.md) — module boundary (`io.py` owns YAML).
+- [architecture.md](../dev/architecture/index.md) — module boundary (`io.py` owns YAML).
 - [ADR-0004](../decisions/ADR-0004-yaml-is-a-serialization-format.md).

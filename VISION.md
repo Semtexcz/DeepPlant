@@ -266,7 +266,7 @@ adapters, and agents over the semantic model — not the model itself.
 
 DeepPlant is an experimental repository (AGPL-3.0-only) in its early
 evidence-driven phase. What exists and what it must conform to is recorded in
-[docs/architecture.md](docs/architecture.md) and
+[docs/dev/architecture/index.md](docs/dev/architecture/index.md) and
 [docs/contracts/index.md](docs/contracts/index.md); the current state,
 unresolved questions, and next evidence candidates are recorded in
 [docs/roadmap.md](docs/roadmap.md); the long-term capability progression is in

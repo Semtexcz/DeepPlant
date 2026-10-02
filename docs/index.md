@@ -9,7 +9,7 @@ read_when:
 update_when:
   - documentation-structure-change
 depends_on:
-  - docs/conventions.md
+  - docs/dev/workflow/conventions.md
 decision:
   - docs/decisions/ADR-0015-documentation-architecture-v2-1.md
   - docs/decisions/ADR-0014-documentation-architecture-v2.md
@@ -33,7 +33,7 @@ I want to develop, extend, or understand DeepPlant internals
 **Audience** (who is reading) and **knowledge authority** (what kind of truth a
 document owns) are deliberately separate dimensions: audience determines
 navigation and, for audience-specific content, physical ownership, while authority
-still answers what must hold now. The rules live in [conventions.md](conventions.md); the
+still answers what must hold now. The rules live in [conventions.md](dev/workflow/conventions.md); the
 current structure is decided in
 [ADR-0015](decisions/ADR-0015-documentation-architecture-v2-1.md) (Documentation
 Architecture v2.1), refining
@@ -45,8 +45,10 @@ a separate category: `README.md` and `VISION.md` are broad public/repository ent
 documents, while `AGENTS.md` and `project/brief.md` remain developer/agent-oriented
 despite their locations. `docs/index.md` is global navigation, not shared
 documentation. Developer/agent material is canonical *and* developer-owned, so it
-will eventually live under `dev/`; the current → target mapping is in
-[documentation-migration.md](documentation-migration.md).
+lives under `dev/`; architecture and workflow/governance have already moved and
+the remaining root documents follow in bounded slices. The current → target
+mapping is in
+[documentation-migration.md](dev/workflow/documentation-migration.md).
 
 ## Audience entry points
 
@@ -60,9 +62,11 @@ will eventually live under `dev/`; the current → target mapping is in
 Every entry is labelled by authority, so a current rule is never confused with a
 decision, an investigation, or history. Cross-audience content lives in
 [contracts/](contracts/index.md); developer-only canonical contracts/reference
-live under `dev/reference/`; the rest is canonical for its authority type and
-currently still reaches from the `docs/` root (see
-[documentation-migration.md](documentation-migration.md) for the target owners).
+live under `dev/reference/`; architecture and workflow/governance are now
+canonical under `dev/`; the rest is canonical for its authority type and still
+reaches from the `docs/` root until its own slice (see
+[documentation-migration.md](dev/workflow/documentation-migration.md) for the
+target owners).
 
 - **Current** — what exists and what must hold now.
 - **Contract** — current model / API / format obligations.
@@ -74,7 +78,7 @@ currently still reaches from the `docs/` root (see
 | Need | Open |
 |---|---|
 | Current contract (model, YAML, CLI, renderer, DEXPI) | [contracts/index.md](contracts/index.md) |
-| Current boundary map of what exists | [architecture.md](architecture.md) |
+| Current boundary map of what exists | [architecture.md](dev/architecture/index.md) |
 | Project purpose, users, scope | [project brief](../project/brief.md) |
 | Product thesis and non-goals | [product.md](product.md) |
 | Current state and next direction | [roadmap.md](roadmap.md) |
@@ -82,8 +86,8 @@ currently still reaches from the `docs/` root (see
 | Why a choice was made | [decisions/index.md](decisions/index.md) |
 | Evidence, research, or a prototype | [research/index.md](research/index.md) |
 | What shipped, in order | [history/implementation-slices.md](history/implementation-slices.md) |
-| Governance (workflow, planning, quality, docs, standards) | [workflow.md](workflow.md), [planning.md](planning.md), [quality.md](quality.md), [conventions.md](conventions.md), [standards.md](standards.md) |
+| Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](planning.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](standards.md) |
 | Agent instructions | [AGENTS.md](../AGENTS.md) |
 
 The planned split/relocation of documents lives in
-[documentation-migration.md](documentation-migration.md).
+[documentation-migration.md](dev/workflow/documentation-migration.md).
