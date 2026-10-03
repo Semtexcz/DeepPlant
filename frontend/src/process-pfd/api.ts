@@ -191,7 +191,10 @@ export function parseProjectionEnvelope(raw: unknown): ProjectionEnvelope {
   return {
     validation,
     error: errorValue === undefined ? null : asString(record, 'error', 'projection response'),
-    projection: projectionValue === undefined ? null : parseProjection(projectionValue),
+    projection:
+      projectionValue === null || projectionValue === undefined
+        ? null
+        : parseProjection(projectionValue),
   }
 }
 

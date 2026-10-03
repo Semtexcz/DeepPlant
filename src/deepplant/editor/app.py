@@ -99,11 +99,10 @@ class EditorApplication:
     def projection_payload(self) -> tuple[int, dict[str, object]]:
         """Return ``(http_status, json_ready_payload)`` for the Process/PFD view.
 
-        Validation truth comes from the Python DeepPlant boundary. The model was
-        already validated by the loader, so a projectable model reports valid; a
-        model that cannot be projected into this view (for example a plant with
-        no ``process`` section) reports invalid with the honest DeepPlant
-        message rather than a fabricated frontend-only status.
+        Semantic validation truth comes from :func:`load_plant`: this application
+        only exists after that loader returned a valid ``PlantModel``. A Process/PFD
+        projection or rendering error is therefore reported separately as a
+        limitation of this view, never as an invalid semantic model.
         """
         try:
             projection = project_process_pfd(
@@ -112,10 +111,10 @@ class EditorApplication:
                 symbol_role_overrides=self.symbol_role_overrides,
             )
         except (ProcessPfdProjectionError, ProcessRenderError) as exc:
-            message = str(exc)
             return 422, {
-                "validation": {"valid": False, "message": message},
-                "error": message,
+                "validation": {"valid": True, "message": "Valid"},
+                "projection": None,
+                "error": str(exc),
             }
         return 200, {
             "validation": {

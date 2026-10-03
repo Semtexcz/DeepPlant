@@ -147,8 +147,9 @@ first-use workflow, see [Getting Started](docs/user/getting-started.md).
 ### Open the read-only Process/PFD editor
 
 The first executable GUI slice loads a project through the ordinary DeepPlant
-loader and shows its Process/PFD view in a local browser page. Build the frontend
-once, then launch it:
+loader and shows its Process/PFD view in a local browser page. The editor frontend
+requires Node.js 22 and the pnpm version pinned in `frontend/package.json`
+(Corepack can provide it). Build the frontend, then launch it:
 
 ```bash
 make frontend-build
@@ -160,8 +161,9 @@ Then open the printed `http://127.0.0.1:8765/` URL and use *Fit view* to frame t
 diagram. `--symbol-role` is a transient **presentation** override: the realistic
 fragment's `PS-vessel` is honestly `function: unspecified`, so the drawing needs
 an explicit role and the model is never modified. The server binds to loopback
-only, is read-only, and reports the project's current validation status from the
-Python core. See the [CLI contract](docs/contracts/cli.md#deepplant-ui-path) for
+only, is read-only, and reports semantic validation from the Python loader;
+Process/PFD projection errors are shown separately when this view cannot render a
+valid model. See the [CLI contract](docs/contracts/cli.md#deepplant-ui-path) for
 the full option list and failure behavior.
 
 ## Design principles

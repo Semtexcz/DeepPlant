@@ -179,8 +179,25 @@ def test_projection_route_reports_an_honest_failure_without_a_process(
     assert status == 422
     payload = _json(body)
     validation = _validation_of(payload)
-    assert validation["valid"] is False
-    assert "no process model to project" in str(validation["message"])
+    assert validation == {"valid": True, "message": "Valid"}
+    assert payload["projection"] is None
+    assert "no process model to project" in str(payload["error"])
+
+
+def test_projection_route_keeps_a_valid_model_valid_when_its_role_is_unrenderable(
+    assets_dir: Path,
+) -> None:
+    application = load_editor_application(REALISTIC_EXAMPLE, assets_dir=assets_dir)
+
+    with _served(application) as port:
+        status, _, body = _request(port, "/api/projection")
+
+    assert status == 422
+    payload = _json(body)
+    validation = _validation_of(payload)
+    assert validation == {"valid": True, "message": "Valid"}
+    assert payload["projection"] is None
+    assert "PS-vessel" in str(payload["error"])
 
 
 def test_load_editor_application_reports_a_missing_project(assets_dir: Path) -> None:

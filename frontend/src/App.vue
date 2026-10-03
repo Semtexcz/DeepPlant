@@ -40,13 +40,13 @@ const view = computed(() =>
 const inspector = computed(() => inspectorForSelection(selection.value))
 
 const statusText = computed(() => {
-  if (loadError.value !== null) {
-    return loadError.value
+  // The strip reports semantic validation only. A view/projection error (for
+  // example a valid model this Process/PFD view cannot render) is shown in the
+  // canvas notice, never as an invalid model.
+  if (validation.value !== null) {
+    return validation.value.valid ? 'Valid' : `Invalid: ${validation.value.message}`
   }
-  if (validation.value === null) {
-    return 'Loading validation status…'
-  }
-  return validation.value.valid ? 'Valid' : `Invalid: ${validation.value.message}`
+  return loadError.value ?? 'Loading validation status…'
 })
 
 const statusIsValid = computed(() => validation.value !== null && validation.value.valid)

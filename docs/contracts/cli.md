@@ -98,8 +98,11 @@ Behavior:
   concise message and no traceback.
 - Project path, YAML, and model errors reuse the `PlantLoadError` text from
   [yaml-format.md](yaml-format.md) and exit 1.
-- A valid model without a `process` section starts the editor, and the
-  projection route reports the honest DeepPlant message as an invalid status.
+- Semantic validation comes from `load_plant`. A valid model without a
+  `process` section, or one whose current Process/PFD presentation role cannot be
+  resolved, still starts the editor; `/api/projection` returns HTTP 422 with
+  `validation.valid: true`, `projection: null`, and a separate projection error.
+  Load, YAML, and semantic-reference failures remain `PlantLoadError` failures.
 
 ## Deliberately not provided
 

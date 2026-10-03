@@ -20,14 +20,15 @@ describe('DeepPlant boundary payload parsing', () => {
     expect(envelope.projection?.streams[0]?.id).toBe('S-004')
   })
 
-  it('accepts an honest failure payload with no projection', () => {
+  it('accepts a projection failure without changing semantic validation', () => {
     const envelope = parseProjectionEnvelope({
-      validation: { valid: false, message: 'no process model to project' },
+      validation: { valid: true, message: 'Valid' },
+      projection: null,
       error: 'no process model to project',
     })
 
     expect(envelope.projection).toBeNull()
-    expect(envelope.validation.valid).toBe(false)
+    expect(envelope.validation).toEqual({ valid: true, message: 'Valid' })
     expect(envelope.error).toBe('no process model to project')
   })
 

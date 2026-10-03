@@ -78,7 +78,7 @@ evidence-heavy slices, in the linked spike/decision documents.
 ### Now
 
 - [#75 — Engineering Editor: first interactive Process/PFD vertical slice](https://github.com/Semtexcz/DeepPlant/issues/75)
-  is **delivered by the current pull request**.
+  is **delivered**.
 
   What shipped is exactly the smallest runnable browser-based Process/PFD viewer
   over the existing DeepPlant Python semantic core and the realistic process
@@ -130,7 +130,7 @@ delivered.
 
 Outcome:
 [#75 — Engineering Editor: first interactive Process/PFD vertical slice](https://github.com/Semtexcz/DeepPlant/issues/75)
-was selected as the smallest executable slice, and is delivered by the current PR.
+was selected as the smallest executable slice and is delivered.
 
 Process/PFD had the strongest complete executable substrate:
 

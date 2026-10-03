@@ -173,9 +173,12 @@ YAML → load_plant → PlantModel → ProcessModel
   the boundary replaceable, since only `EditorApplication`,
   `load_editor_application`, and `serve_editor` are used by the CLI. It binds to
   loopback only and makes no production or server-security claim.
-- **Launch.** `deepplant ui <path>` loads the project through the ordinary
-  DeepPlant loader and serves the built frontend from `frontend/dist`
-  (or `--assets-dir`).
+- **Launch and failures.** `deepplant ui <path>` loads the project through the
+  ordinary DeepPlant loader and serves the built frontend from `frontend/dist`
+  (or `--assets-dir`). A successful `load_plant` is the semantic validation
+  boundary. If the Process/PFD projection or its presentation role resolution
+  fails, the local JSON route returns a separate view error (currently HTTP 422)
+  with no projection; it does not recast the loaded semantic model as invalid.
 - **Frontend.** `frontend/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA. The
   adapter (`process-pfd/vue-flow-adapter.ts`) is the only place Vue Flow shapes
   appear. Selection is transient UI state, translated back to DeepPlant identity

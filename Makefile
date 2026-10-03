@@ -66,22 +66,22 @@ frontend-install:
 	$(FRONTEND_PNPM) install --frozen-lockfile $(PNPM_INSTALL_FLAGS)
 
 
-frontend-typecheck:
+frontend-typecheck: frontend-install
 
 	$(FRONTEND_PNPM) run typecheck
 
 
-frontend-test:
+frontend-test: frontend-install
 
 	$(FRONTEND_PNPM) run test
 
 
-frontend-build:
+frontend-build: frontend-install
 
 	$(FRONTEND_PNPM) run build
 
 
-frontend-check: frontend-install frontend-typecheck frontend-test frontend-build
+frontend-check: frontend-typecheck frontend-test frontend-build
 
 
 api-schema:
