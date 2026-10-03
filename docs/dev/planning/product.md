@@ -78,8 +78,95 @@ high-value engineering views over a deeper semantic model:
           higher abstraction   more detail
 ```
 
-If an interactive editor is ever built, it edits the same semantic model through
-either view. Detailed view-projection rules are deliberately not decided here.
+The next product target is **DeepPlant Engineering Editor MVP v0.1**: a
+local-first, standalone, browser-based editor initially launched locally. It
+edits the same semantic model through a deliberately bounded subset of PFD and
+P&ID; the drawing is not the source of truth. The initial implementation
+direction is Vue 3 + TypeScript + Vite, subject to the focused UI/UX and
+reuse-first architecture decisions in Issues #69 and #70. Detailed
+view-projection rules and GUI-library selection are deliberately not decided
+here.
+
+## Engineering Editor MVP v0.1
+
+The MVP is the first usable product vertical slice, not a replacement for the
+semantic-model-first thesis. It is intended to be:
+
+- local-first, standalone, file-based, and Git-native;
+- a browser-based SPA launched locally rather than a hosted service;
+- an interactive editor, not a read-only viewer;
+- limited to a deliberately bounded PFD and P&ID subset;
+- explicit about three separate state concerns: semantic engineering state,
+  presentation/layout state, and frontend-framework state.
+
+### Bounded engineering scope
+
+The MVP PFD subset is limited to a useful small process fragment: create, delete,
+connect, select, move, and edit basic properties of supported process steps and
+streams; validate; save; and reload. Initial supported process functions are
+limited to source, sink, pumping, heat exchange, mixing, splitting, and basic
+vessel/storage representation where the canonical model supports them.
+
+The MVP P&ID subset is intentionally narrower than a production P&ID system:
+basic pump, vessel, and heat-exchanger equipment; their basic physical
+connection points/ports; basic piping realization; and at most one basic valve
+concept when supported by the selected semantic slice. It excludes full
+instrumentation and detailed piping semantics.
+
+PFD and P&ID are not independent drawing documents. They are views over distinct
+but related semantic layers: `ProcessModel` for the PFD, and the physical plant
+and piping model for the P&ID. `ProcessStep` is not `Equipment`,
+`ProcessStream` is not physical piping realization, and `ProcessPort` is not a
+physical `Port`/`Nozzle`. Issue #39 owns the evidence-first decision about how
+those layers are explicitly related; it must precede a stable PFD ↔ P&ID
+realization workflow but does not block a pure Process/PFD UI slice.
+
+### Source-of-truth interaction direction
+
+The editor must send user actions through an application command that mutates
+and validates the semantic model, then updates the view:
+
+```text
+user interaction
+      ↓
+application command
+      ↓
+semantic model mutation
+      ↓
+validation
+      ↓
+view update
+```
+
+It must not treat SVG/canvas mutation as the authoritative state and infer
+engineering semantics afterward.
+
+Its target user journey is:
+
+```text
+open project
+    ↓
+open/create PFD
+    ↓
+graphically create/edit process semantics
+    ↓
+realize part of the process physically
+    ↓
+open/create P&ID
+    ↓
+graphically edit basic equipment/piping
+    ↓
+validate
+    ↓
+save semantic + presentation state
+    ↓
+reload without loss
+```
+
+The MVP does not require cloud hosting, authentication, databases,
+collaboration, complete instrumentation, simulation, 3D, complete DEXPI,
+HAZOP/SIS workflows, or all EPC disciplines. A future Copilot/multimodal agent
+is a first-class UX direction, but is a placeholder rather than MVP scope.
 
 ## Semantic Model as the Authoritative Record of Managed Intent
 
@@ -160,8 +247,8 @@ Current working hypotheses, not validated facts:
   the near-term target is a real fragment of roughly 20–50 engineering objects.
 - A semantic-model-first representation, kept free of presentation data,
   supports PFD/P&ID rendering and DEXPI exchange without redesign.
-- Engineers accept YAML-authored models when validation and review are fast and
-  actionable.
+- Engineers can use a local graphical editor while semantic data remains
+  file-based, reviewable, and independent of presentation/framework state.
 - The audiences and the complement-not-replace position under "Users" describe a
   real market need.
 
@@ -195,8 +282,12 @@ still governs, and the actionable current/next state lives in
 
 ## Long-Term Non-Goals
 
-- Do not add databases, ORMs, web backends, or containers before a concrete
-  requirement justifies them.
+- Do not add hosted/cloud backends, authentication, databases, ORMs,
+  collaboration services, containers, or production server infrastructure before
+  a concrete requirement justifies them. A minimal local
+  application/transport/API boundary may be introduced only when an authorized
+  standalone SPA vertical slice requires it; this product document selects no
+  framework.
 - Do not embed drawing coordinates or SVG concepts into core engineering
   objects.
 - The directional roadmap is product context, not implementation authorization;

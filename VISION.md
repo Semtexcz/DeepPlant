@@ -196,11 +196,14 @@ Only a subset exists today, in executable, evidence-producing vertical slices:
 - a narrow DEXPI 2.0 Process import/export adapter spike
   ([docs/dev/research/dexpi/process-adapter-spike.md](docs/dev/research/dexpi/process-adapter-spike.md)).
 
-Everything else in the capability map is direction: the long-term capability
-progression is recorded in [docs/dev/planning/direction.md](docs/dev/planning/direction.md), the current
-state and next evidence-producing steps in [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md),
-and the strategic horizon state in the GitHub Project. Current obligations live
-in [docs/contracts/index.md](docs/contracts/index.md).
+Everything else in the capability map is direction: the product target is
+recorded in [docs/dev/planning/product.md](docs/dev/planning/product.md), the
+long-term capability progression in
+[docs/dev/planning/direction.md](docs/dev/planning/direction.md), and the
+canonical current priority and horizons in
+[docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md). GitHub Project is
+a non-canonical visual projection of repository planning and Issue state.
+Current obligations live in [docs/contracts/index.md](docs/contracts/index.md).
 
 ## North-Star Workflow
 
@@ -270,8 +273,8 @@ evidence-driven phase. What exists and what it must conform to is recorded in
 [docs/contracts/index.md](docs/contracts/index.md); the current state,
 unresolved questions, and next evidence candidates are recorded in
 [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md); the long-term capability progression is in
-[docs/dev/planning/direction.md](docs/dev/planning/direction.md). The strategic capability state is
-visualized in the GitHub Project.
+[docs/dev/planning/direction.md](docs/dev/planning/direction.md). GitHub Project may
+visualize a derived, non-canonical projection of that repository-led planning state.
 
 Nothing in this vision document authorizes implementation. The current scoped
 vertical slice does; this document describes the destination, not a delivery

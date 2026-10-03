@@ -108,10 +108,14 @@ change_patterns:
     - docs/dev/planning/index.md
   "docs/dev/workflow/quality.md":
     - docs/dev/workflow/index.md
-  "docs/dev/planning/roadmap.md":
-    - docs/dev/architecture/index.md
+  "docs/dev/planning/**":
+    - VISION.md
+    - project/brief.md
     - docs/dev/planning/index.md
+    - docs/dev/planning/product.md
     - docs/dev/planning/direction.md
+    - docs/dev/planning/roadmap.md
+    - docs/dev/architecture/index.md
   "docs/dev/decisions/**":
     - docs/dev/architecture/index.md
     - docs/dev/decisions/index.md
