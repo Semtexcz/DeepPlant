@@ -1509,7 +1509,7 @@ Recorded deliberately rather than resolved by invention:
    to a physical boundary; ADR-0016 leaves this unresolved.
 4. **Related-object navigation with no realization layer** — how much cross-view
    navigation is honest before the ADR-0016 layer exists.
-5. **Exact keyboard shortcuts** — deferred to the first GUI slice (Issue #70),
+5. **Exact keyboard shortcuts** — deferred to the first executable GUI slice,
    subject to the "never keyboard-only" rule.
 6. **Command palette scope** — whether it also performs object creation inline or
    only opens the Add surface.
