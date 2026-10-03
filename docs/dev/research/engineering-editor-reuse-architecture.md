@@ -84,9 +84,12 @@ superseded_by: null
   4. Presentation state must remain **DeepPlant-owned**; no selected library may
      hold project truth, and the framework graph must be reconstructable from
      semantic + presentation state.
-  5. The existing DeepPlant SVG symbol/anchor contract and headless renderer are
-     **reused, not duplicated**; the interactive canvas is another consumer of the
-     same DeepPlant-owned symbol contract.
+  5. The existing DeepPlant **Process/PFD** SVG symbol/anchor contract and headless
+     renderer are **reused, not duplicated**; the interactive canvas is another
+     consumer of that DeepPlant-owned **Process/PFD** presentation contract. The
+     current contract is Process/PFD-specific, and no physical/P&ID symbol contract
+     exists today (see [Existing renderer and SVG symbol
+     reuse](#existing-renderer-and-svg-symbol-reuse)).
 - **Resulting ADRs:** none. The durable invariants this document relies on are
   already owned by [ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
   [ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
