@@ -5,12 +5,18 @@
 
 ## Context
 
-DeepPlant has three independently valid model layers today: the process graph
-(`ProcessModel`), the physical topology (`Equipment` / `Port` / `Connection`), and
-the physical piping-realization submodel (`PipingModel` → `PipingLine` →
-`PipingSegment` → `PipingRealization`). No layer references another across the
-process/physical boundary, and no process object needs a physical object to
-validate (or vice versa).
+DeepPlant currently has two deliberately separate semantic domains:
+
+1. the independently valid process graph (`ProcessModel`);
+2. the physical side, consisting of physical topology (`Equipment` / `Port` /
+   `Connection`) plus the dependent piping-realization submodel (`PipingModel` →
+   `PipingLine` → `PipingSegment` → `PipingRealization`).
+
+`PipingModel` is structurally valid for its local rules, but its
+`PipingRealization.connection` references resolve against `PlantModel.connections`.
+There is currently no process ↔ physical reference in either direction:
+`ProcessModel` does not require the physical side, and physical topology plus its
+dependent `PipingModel` do not require `ProcessModel`.
 
 The realistic fragment proves the graphs genuinely differ in granularity rather
 than being two views of one graph:
@@ -21,8 +27,8 @@ than being two views of one graph:
   abstraction);
 - one process intent `S-004` spans two physical adjacencies (`C-001`, `C-002`) and
   two `PipingRealization`s inside one line/segment;
-- four other process streams have no authored physical route at all, and that
-  absence is valid.
+- six other process streams (`S-001`, `S-002`, `S-003`, and `S-005`–`S-007`)
+  have no authored physical route at all, and that absence is valid.
 
 The full evidence, candidate analysis, cardinality matrix, and target comparison
 are in
@@ -39,7 +45,8 @@ needed now.
   `PipingRealization.realizes_process_stream`, and similar fields on physical
   objects.
 - **C — a separate cross-layer realization layer.** Realization relationships live
-  where the two independently valid layers meet, not on either endpoint.
+  where the independently authored process and physical domains meet, not on either
+  endpoint.
 - **D — no canonical ownership decision yet.** Keep the boundary explicitly
   unresolved.
 
@@ -51,10 +58,11 @@ needed now.
    cross-layer realization layer, not on `ProcessStep`, `ProcessStream`,
    `ProcessPort`, `Equipment`, `Port`, `Connection`, `PipingRealization`,
    `PipingSegment`, or `PipingLine`.**
-2. **The endpoint models remain independently valid.** The process model neither
-   requires physical realization nor becomes invalid when it is absent; physical
-   topology and piping neither require process references nor become invalid when
-   they are absent.
+2. **The process and physical domains remain independently valid with respect to
+   the realization relationship.** `ProcessModel` does not require a process ↔
+   physical realization mapping. Physical topology and its dependent `PipingModel`
+   do not require process references or a process ↔ physical realization mapping.
+   The existing `PipingModel` → `Connection` dependency remains unchanged.
 3. **The architecture must permit zero relationship participation in both endpoint
    directions.** The fragment proves zero equipment for valid process steps and zero
    process steps for physical equipment. It must also not preclude future `1:N`,
@@ -82,7 +90,8 @@ invariant**. It deliberately does not decide:
 architectural decision (this ADR)     implementation shape (a later slice)
 ----------------------------------    -------------------------------------
 ownership lives in a separate layer   class names, fields, YAML section
-endpoint models stay independent      local rules, cardinality limits
+process and physical domains stay     local rules, cardinality limits
+  independent
 route, not single object, is the      route representation, ordering, continuity
   semantic stream target
 zero participation must be valid      optionality/requiredness encoding
@@ -109,8 +118,8 @@ this ADR authorizes none of it.
   diffs, review, merge behaviour, and renames without mirrored endpoint lists.
 - Process intent stays distinct from physical topology and from physical
   piping properties and groupings.
-- The architecture accommodates incomplete model maturity honestly: neither layer
-  becomes invalid while the other is incomplete.
+- The architecture accommodates incomplete model maturity honestly: neither
+  process nor physical domain becomes invalid while the other is incomplete.
 - The durable question ("who owns the relationship?") is answered without
   prematurely freezing a schema.
 
@@ -144,8 +153,8 @@ this ADR authorizes none of it.
 
 - [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
   — the evidence, cardinality analysis, target comparison, and candidates.
-- [ADR-0011](ADR-0011-canonical-physical-piping-realization.md) — physical piping
-  realization; remains independent and does not decide this relationship.
+- [ADR-0011](ADR-0011-canonical-physical-piping-realization.md) — dependent
+  physical piping realization; does not decide this relationship.
 - [ADR-0010](ADR-0010-dexpi-plant-pid-semantic-boundary.md) — the `Port` /
   `Connection` boundary and the collapsed `Nozzle`/`PipingNode` abstraction.
 - [ADR-0012](ADR-0012-process-step-single-classification-axis.md) and

@@ -136,10 +136,13 @@ seven streams, including recycle, mixing, and splitting).
 ## Deliberately not modelled
 
 Process ↔ physical realization (`ProcessStep` ↔ `Equipment`,
-`ProcessStream` ↔ physical route, `ProcessPort` ↔ `Port`) has no implemented
+`ProcessStream` ↔ physical route, `ProcessPort` ↔ physical
+connection-point/boundary with the exact target unresolved) has no implemented
 field. [ADR-0016](../dev/decisions/ADR-0016-process-physical-realization-boundary.md)
 decides that any future relationship is owned in a separate cross-layer
-realization layer; it does not define its schema. Qualified engineering quantities
+realization layer; it does not define its schema. `ProcessPort` remains distinct
+from physical `Port`; ADR-0016 does not make `Port` its canonical universal target.
+Qualified engineering quantities
 (value + unit), material or energy stream data, a second step-classification axis,
 a step hierarchy, and a process-stream numbering standard are all unimplemented.
 Each requires its own evidence and Issue; ADR-0009, ADR-0011, ADR-0012, and

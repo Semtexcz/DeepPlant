@@ -39,9 +39,11 @@ superseded_by: null
   and the prior evidence listed in the front matter, inspected 2026-10-03 on
   `main` at `68196a745d9fb6da63e07fc7e24a215b54089b31`.
 - **Conclusions:**
-  1. `ProcessModel`, physical topology, and `PipingModel` stay independently valid.
-     A realization relationship is a cross-layer engineering statement, not an
-     intrinsic field of either endpoint.
+  1. `ProcessModel` stays independently valid. Physical topology and its dependent
+     `PipingModel` form the separate physical side: `PipingModel` is structurally
+     valid for local rules, but resolves `Connection` references against
+     `PlantModel`. A realization relationship is a cross-layer engineering
+     statement, not an intrinsic field of either domain.
   2. A future `ProcessStep` ↔ `Equipment` relationship must permit **zero**
      equipment for a step and **zero** process steps for equipment. The fragment
      proves both; the apparent 1:1 pairs prove no universal cardinality.
@@ -56,8 +58,9 @@ superseded_by: null
   5. No independent relationship identity or metadata is currently evidenced.
      Anonymous relationship membership suffices if a later concrete slice
      implements the boundary; identity/status/provenance need their own evidence.
-  6. `ProcessPort` ↔ physical `Port` is constrained by the same layer boundary but
-     remains unresolved: equipment-adjacent ports can correspond naturally,
+  6. `ProcessPort` ↔ a physical connection-point/boundary is constrained by the
+     same layer boundary, but its exact target remains unresolved:
+     equipment-adjacent ports can correspond naturally to current physical `Port`s,
      whereas junction ports need a physical boundary the current model does not
      represent honestly.
 - **Resulting ADR:** [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md).
@@ -249,7 +252,7 @@ this is a semantic statement rather than a new class.
 |---|---|---|---|---|
 | **A — process-owned forward references** | puts a cross-layer fact on process objects; validation needs `PlantModel` | empty lists valid, but process diffs mix intent with realization | convenient beside intent, yet physical routing changes edit process records | Reject: wrong authoritative owner; asymmetric with physical detail |
 | **B — physical-owned reverse references** | puts PFD abstraction on physical objects; validation still spans models | physical refinement forces process-facing edits | physical changes carry process references; duplicate inverse references invite drift | Reject: wrong owner for a route; poor abstraction fit |
-| **C — separate realization mapping layer** | relation owned where both independently valid layers meet; full reference validation belongs at `PlantModel`/future relation submodel | relation may be absent while both graphs stay valid; endpoints evolve independently | one authored relationship fact in one place; focused add/remove/rename diff | **Accept as architectural boundary** |
+| **C — separate realization mapping layer** | relation owned where the separately authored process and physical domains meet; full reference validation belongs at `PlantModel`/future relation submodel | relation may be absent while both domains stay valid with respect to the relationship; endpoints evolve independently | one authored relationship fact in one place; focused add/remove/rename diff | **Accept as architectural boundary** |
 | **D — no canonical mapping yet** | preserves independence, leaves ownership unresolved | safe, but repeats a boundary question already foreclosing on evidence | avoids premature schema but gives no durable location | Reject as final outcome: ownership is durable even though schema is not |
 
 ## Relation identity / metadata analysis
@@ -277,8 +280,8 @@ scope to `PipingModel`, but distinct in semantic role:
 
 ```text
 local structural rules        -> narrowest future relation container
-cross-layer id resolution,    -> PlantModel context, because it holds both
-route eligibility/continuity     independently valid layers
+cross-layer id resolution,    -> PlantModel context, because it holds the process
+route eligibility/continuity        and physical domains
 inverse consistency
 ```
 
