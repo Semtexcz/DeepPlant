@@ -72,31 +72,36 @@ evidence-heavy slices, in the linked spike/decision documents.
   evidence and durable ownership decision —
   [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
   and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md) —
-  and no process ↔ physical mapping is implemented. The candidate set is
-  re-evaluated from that evidence at the gate below before another executable slice
-  is chosen; no successor task is preselected.
+  and no process ↔ physical mapping is implemented. Issue #69 has since delivered
+  its UI/UX interaction architecture
+  ([engineering-editor-ux.md](../research/engineering-editor-ux.md)); it authorizes
+  no GUI implementation. The candidate set is re-evaluated from this evidence at
+  the gate below before another executable slice is chosen; no successor task is
+  preselected.
 
 ### Next
 
-- **#69 — Define minimalist UI/UX architecture for the DeepPlant Engineering
-  Editor.**
-- **#70 — Evaluate and define reuse-first GUI architecture for DeepPlant.**
+- **#70 — Evaluate and define reuse-first GUI architecture for DeepPlant.** It
+  selects/evaluates the GUI technology that must supply the capabilities defined
+  by #69; it does not authorize frontend implementation, dependencies, or
+  directories, and no executable slice is selected until the gate below.
 
-No implementation sequence is preselected between #69 and #70. They define and
-evaluate the minimal UI/UX and reuse-first architecture needed for the MVP;
-they do not authorize frontend implementation, dependencies, or directories.
+Issues #39 and #69 are delivered; #70 remains. Defining the minimal UI/UX
+interaction architecture (#69) and evaluating the reuse-first architecture (#70)
+are prerequisites for selecting the MVP's first executable GUI slice; neither
+authorizes frontend implementation, dependencies, or directories.
 
 ### Re-evaluation Gate
 
-After #39 (delivered) and #69 / #70 provide their evidence and decisions,
-re-evaluate the roadmap to select the smallest executable slice. Do not create
-speculative implementation Issues before that re-evaluation, and do not
-mechanically promote an existing backlog row. Select from the actual repository
-state, those Issues' conclusions, accepted ADRs, unresolved evidence gaps, a
-realistic executable example, and a concrete DeepPlant-native consumer. This
-re-evaluation is the following planning step, not part of Issue #39; quantity
-implementation, DEXPI 2.0.1, port kinds, PFD/P&ID GUI, rules, and semantic diff
-remain unpromoted.
+After #39 and #69 (both delivered) and #70 provide their evidence and decisions,
+re-evaluate the roadmap to select the smallest executable slice. This gate is
+**still blocked on #70**. Do not create speculative implementation Issues before
+that re-evaluation, and do not mechanically promote an existing backlog row.
+Select from the actual repository state, those Issues' conclusions, accepted ADRs,
+unresolved evidence gaps, a realistic executable example, and a concrete
+DeepPlant-native consumer. This re-evaluation is the following planning step, not
+part of Issue #39; quantity implementation, DEXPI 2.0.1, port kinds, PFD/P&ID GUI,
+rules, and semantic diff remain unpromoted.
 
 ### Completed Context
 
@@ -104,6 +109,14 @@ remain unpromoted.
   [product.md](product.md), including the PFD/P&ID subsets, semantic
   source-of-truth interaction direction, user journey, non-goals, and Issue
   #39 relationship. It authorizes no GUI implementation.
+- **Issue #69 delivered design/evidence:** the minimalist Engineering Editor
+  UI/UX interaction architecture is recorded in
+  [research/engineering-editor-ux.md](../research/engineering-editor-ux.md)
+  (canvas-dominant minimum permanent chrome, one command direction, four
+  separated state kinds, engineering-concept explorer, PFD/P&ID editor views,
+  cardinality-neutral related-object navigation, shared command surface, and the
+  MVP/later/not-now UX matrix). It creates no ADR and authorizes no GUI
+  implementation, dependency, or `frontend/` directory.
 - **Issue #39 delivered decision/evidence:** the process ↔ physical realization
   ownership boundary is decided by
   [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
