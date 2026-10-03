@@ -148,7 +148,7 @@ first-use workflow, see [Getting Started](docs/user/getting-started.md).
 
 The first executable GUI slice loads a project through the ordinary DeepPlant
 loader and shows its Process/PFD view in a local browser page. The editor frontend
-requires Node.js 22 and the pnpm version pinned in `frontend/package.json`
+requires Node.js >= 22.12 and the pnpm version pinned in `frontend/package.json`
 (Corepack can provide it). Build the frontend, then launch it:
 
 ```bash
