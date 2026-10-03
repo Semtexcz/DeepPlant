@@ -75,6 +75,10 @@ DeepPlant currently ships a deliberately narrow, executable semantic foundation:
 - A documented **`basic` SVG symbol-pack contract**.
 - A **narrow DEXPI 2.0.0 Process import/export adapter** with an explicit
   supported subset.
+- A **first interactive Process/PFD editor slice**: a local, read-only browser
+  view of the process graph (pan, zoom, fit view, selection, semantic Inspector,
+  validation status), launched with `deepplant ui <path>`. It is deliberately
+  read-only and Process/PFD-only: no semantic editing, no P&ID, no persistence.
 
 Exact behavior lives in the [current contracts](docs/contracts/index.md); the
 implemented boundaries are mapped in the
@@ -139,6 +143,26 @@ uv run deepplant validate examples/minimal-process/plant.yaml
 `make setup` runs `uv sync` to create the environment, and the second command
 validates the bundled model and prints the summary shown above. For the full
 first-use workflow, see [Getting Started](docs/user/getting-started.md).
+
+### Open the read-only Process/PFD editor
+
+The first executable GUI slice loads a project through the ordinary DeepPlant
+loader and shows its Process/PFD view in a local browser page. Build the frontend
+once, then launch it:
+
+```bash
+make frontend-build
+uv run deepplant ui examples/realistic-process-fragment/plant.yaml \
+  --symbol-role PS-vessel=vessel
+```
+
+Then open the printed `http://127.0.0.1:8765/` URL and use *Fit view* to frame the
+diagram. `--symbol-role` is a transient **presentation** override: the realistic
+fragment's `PS-vessel` is honestly `function: unspecified`, so the drawing needs
+an explicit role and the model is never modified. The server binds to loopback
+only, is read-only, and reports the project's current validation status from the
+Python core. See the [CLI contract](docs/contracts/cli.md#deepplant-ui-path) for
+the full option list and failure behavior.
 
 ## Design principles
 

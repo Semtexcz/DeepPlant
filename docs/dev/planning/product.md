@@ -85,8 +85,11 @@ P&ID; the drawing is not the source of truth. The initial implementation
 direction is Vue 3 + TypeScript + Vite. The interaction architecture is decided by
 Issue #69 ([engineering-editor-ux.md](../research/engineering-editor-ux.md)) and the
 reuse-first frontend architecture by Issue #70
-([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md));
-no GUI is implemented, and the first executable GUI slice is selected at the
+([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)).
+The first executable slice (**Issue #75**) is delivered: a local, read-only
+Process/PFD editor over the existing Python semantic core, using exactly that
+stack. No semantic editing, presentation persistence, or P&ID authoring is
+implemented, and the next slice is decided at the
 [re-evaluation gate](roadmap.md#re-evaluation-gate). Detailed view-projection rules
 remain deliberately undecided here.
 

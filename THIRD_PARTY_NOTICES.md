@@ -30,6 +30,29 @@ Inter is distributed under the SIL Open Font License 1.1. The [asset
 record](assets/brand/logo/README.md) links the Inter project and licence and
 states the variants and distribution terms.
 
+## Engineering Editor frontend dependencies (Issue #75)
+
+The local editor SPA under [`frontend/`](frontend/) is built with the following
+direct dependencies. They are build/dev-time dependencies of the SPA; the Python
+wheel does not bundle or redistribute any JavaScript, and the built
+`frontend/dist` output is not committed.
+
+| Dependency | Declared range | Licence | Why it is needed now |
+|---|---|---|---|
+| `vue` | `^3.5.43` | MIT | SPA foundation selected by the reuse-first frontend architecture (Issue #70). |
+| `@vue-flow/core` | `^1.48.2` | MIT | Interactive canvas candidate selected by Issue #70; used only behind the DeepPlant projection/adapter boundary. |
+| `vite` | `^8.3.2` | MIT | Frontend dev server and production bundler. |
+| `typescript` | `~5.9.3` | Apache-2.0 | Strict TypeScript checking. Pinned to the 5.x line because `vue-tsc` does not support the TypeScript 7 package layout yet. |
+| `vue-tsc` | `^3.3.12` | MIT | Type checking of `.vue` single-file components. |
+| `vitest` | `^5.0.3` | MIT | Frontend unit tests for the adapter and the selection → Inspector mapping. |
+| `@vitejs/plugin-vue` | `^6.0.9` | MIT | Vue SFC support for Vite. |
+| `pnpm` | pinned `10.20.0` in `frontend/package.json` | MIT | Package manager; a build-time tool, not distributed or linked. |
+
+Deliberately **not** added: Reka UI, Dockview, Monaco, ELK/elkjs, Pinia,
+shadcn-vue, Tailwind, jsdom, a browser E2E framework, or any third-party
+engineering symbol asset. The engineering symbols remain the DeepPlant-original
+`basic` pack (see above), served from the Python package.
+
 ## Standards, vendors, and unresolved boundaries
 
 The repository contains project-authored standards summaries and references;

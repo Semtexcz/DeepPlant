@@ -83,7 +83,7 @@ change_patterns:
     - backend/tests/
   "frontend/**/*":
     - docs/dev/workflow/quality.md
-    - frontend/tests/
+    - frontend/src/
   "artifacts/openapi.json":
     - backend/src/app/main.py
     - frontend/shared/api/
@@ -136,7 +136,7 @@ checks:
   "backend/**/*.py":
     - make test
   "frontend/**/*":
-    - make test
+    - make frontend-check
   "artifacts/openapi.json":
     - make api-check
   "project/**":

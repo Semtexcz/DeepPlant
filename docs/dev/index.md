@@ -73,6 +73,7 @@ table, not an orchestration engine.
 | Plan or pick the next slice | [planning/roadmap.md](planning/roadmap.md), [planning/index.md](planning/index.md) |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
+| Change the editor frontend or the local application boundary | [architecture.md](architecture/index.md), [contracts/rendering.md](../contracts/rendering.md), [workflow/quality.md](workflow/quality.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
 | Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
