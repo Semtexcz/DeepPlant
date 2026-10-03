@@ -51,6 +51,7 @@ boundaries, instrumentation/signals, and presentation/graphics.
 | [qualified-engineering-quantities.md](qualified-engineering-quantities.md) | What semantic boundary should DeepPlant use for numerical engineering values with units? | A reusable canonical quantity value (stored scalar magnitude + represented unit semantics) owned by explicit domain properties is justified; units are semantic, not presentation; generic property bags and per-property quantity classes rejected; not implemented | ADR-0013 (no contract yet — no quantity implemented) |
 | [physical-piping-model.md](physical-piping-model.md) | What is the physical piping graph, and which minimal canonical shape represents it? | Candidate B selected (line → segment → realization over identified connections); the contract now owns the rules it defines | [contracts/physical-piping.md](../../contracts/physical-piping.md), ADR-0011 |
 | [process-topology.md](process-topology.md) | How should process topology relate to physical topology without duplicating connectivity? | Duplicate-endpoint `ProcessStream` rejected; separate process graph required | [contracts/process-model.md](../../contracts/process-model.md), ADR-0005 |
+| [process-physical-realization-boundary.md](process-physical-realization-boundary.md) | Where should future process ↔ physical realization relationships be owned, and what target/cardinality boundary must they permit? | Separate cross-layer realization layer decided; independently valid endpoint models; no mapping schema, identity, or metadata introduced | ADR-0016 (unimplemented) |
 
 ## Prototypes and historical modelling work
 
@@ -62,7 +63,7 @@ boundaries, instrumentation/signals, and presentation/graphics.
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39); quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../planning/roadmap.md) (sole `Now` item) |
+| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39), since delivered; quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../planning/roadmap.md) (Issue #39 delivered; successor re-evaluated there) |
 
 ## Reuse, standards, and asset evidence
 

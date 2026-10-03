@@ -208,8 +208,9 @@ realizations, revision status, canonical `Pipe` or pipe-piece identity,
 refinement, line-level property inheritance or defaults, typed quantities with
 units, insulation/heat tracing/slope/pressure-test-circuit/flow-direction data,
 off-page or continuation connectors, instrumentation and signals, DEXPI
-Plant/P&ID import or export, P&ID rendering, and any process ↔ physical
-realization mapping.
+Plant/P&ID import or export, P&ID rendering, and any implemented process ↔
+physical realization mapping (its ownership boundary is decided by ADR-0016, but
+no mapping is implemented).
 
 Each item has a stated trigger in ADR-0011's *Revisit When* list; none is
 authorized by its absence here.
@@ -220,7 +221,8 @@ authorized by its absence here.
 - [yaml-format.md](yaml-format.md) — load/save mechanics.
 - [ADR-0011](../dev/decisions/ADR-0011-canonical-physical-piping-realization.md) —
   the decision; [ADR-0010](../dev/decisions/ADR-0010-dexpi-plant-pid-semantic-boundary.md)
-  — the `Port`/`Connection` boundary.
+  — the `Port`/`Connection` boundary; [ADR-0016](../dev/decisions/ADR-0016-process-physical-realization-boundary.md)
+  — future process ↔ physical realization ownership (unimplemented).
 - [../dev/research/physical-piping-model.md](../dev/research/physical-piping-model.md) — the design
   evidence: requirement analysis, candidate B selection, worked fragment, Git
   diff behaviour, and rule/adapter/rendering implications.

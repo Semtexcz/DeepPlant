@@ -121,7 +121,8 @@ PlantModel                     root aggregate (one plant)
 
 `ProcessModel` is independently valid; `PipingModel` is a dependent, cross-layer
 validated submodel; neither depends on the other, and no process ↔ physical
-mapping exists (ADR-0011, ADR-0012).
+mapping is implemented. ADR-0016 decides that any future relationship is owned in
+a separate cross-layer realization layer.
 
 ## Not implemented (directional only)
 
@@ -136,7 +137,8 @@ for the prohibition):
 - P&ID rendering, standards-aligned or company symbol packs, and any interactive
   editor;
 - typed engineering quantities, a canonical `Pipe` or `Nozzle`, and the
-  process ↔ physical realization mapping;
+  process ↔ physical realization mapping implementation (its ownership boundary is
+  decided by ADR-0016);
 - persistence, services, containers, and deployment.
 
 Do not create packages for speculative concerns until real code needs them.

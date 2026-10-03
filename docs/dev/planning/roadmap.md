@@ -68,13 +68,13 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- **#39 — Model: decide process ↔ physical realization boundary.** Decide the
-  `ProcessStep` ↔ equipment and `ProcessStream` ↔ piping-realization boundary,
-  including the mapping shape and cardinality, as evidence and a durable decision
-  where justified.
-
-Issue #39 is especially important before the PFD ↔ P&ID realization workflow
-becomes stable, but it does not block a pure Process/PFD UI slice.
+- **No executable implementation slice is selected.** Issue #39 delivered its
+  evidence and durable ownership decision —
+  [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
+  and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md) —
+  and no process ↔ physical mapping is implemented. The candidate set is
+  re-evaluated from that evidence at the gate below before another executable slice
+  is chosen; no successor task is preselected.
 
 ### Next
 
@@ -86,13 +86,17 @@ No implementation sequence is preselected between #69 and #70. They define and
 evaluate the minimal UI/UX and reuse-first architecture needed for the MVP;
 they do not authorize frontend implementation, dependencies, or directories.
 
-### Afterwards — Re-evaluate from Evidence
+### Re-evaluation Gate
 
-After #39, #69, and #70 provide their evidence and decisions, re-evaluate the
-roadmap to select the smallest executable GUI vertical slice. Do not create
-speculative implementation Issues before that re-evaluation. Select from the
-actual repository state, those Issues' conclusions, accepted ADRs, and a
-realistic executable example—not by mechanically promoting a backlog row.
+After #39 (delivered) and #69 / #70 provide their evidence and decisions,
+re-evaluate the roadmap to select the smallest executable slice. Do not create
+speculative implementation Issues before that re-evaluation, and do not
+mechanically promote an existing backlog row. Select from the actual repository
+state, those Issues' conclusions, accepted ADRs, unresolved evidence gaps, a
+realistic executable example, and a concrete DeepPlant-native consumer. This
+re-evaluation is the following planning step, not part of Issue #39; quantity
+implementation, DEXPI 2.0.1, port kinds, PFD/P&ID GUI, rules, and semantic diff
+remain unpromoted.
 
 ### Completed Context
 
@@ -100,6 +104,11 @@ realistic executable example—not by mechanically promoting a backlog row.
   [product.md](product.md), including the PFD/P&ID subsets, semantic
   source-of-truth interaction direction, user journey, non-goals, and Issue
   #39 relationship. It authorizes no GUI implementation.
+- **Issue #39 delivered decision/evidence:** the process ↔ physical realization
+  ownership boundary is decided by
+  [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
+  and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md);
+  no implementation slice or successor is selected.
 - **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
   semantic round-trip contract is published in
   [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md).
