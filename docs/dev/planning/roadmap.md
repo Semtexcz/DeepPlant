@@ -126,8 +126,8 @@ symbol contract, so the first GUI slice remains Process/PFD-only.
 The process ↔ physical realization boundary evidence that preceded this gate is
 [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
 and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md).
-Quantity implementation, DEXPI 2.0.1, port kinds, PFD/P&ID GUI, rules, and
-semantic diff remain unpromoted. No successor is preselected; selection follows
+Quantity implementation, DEXPI 2.0.1, port kinds, physical/P&ID GUI,
+rules, and semantic diff remain unpromoted. No successor is preselected; selection follows
 from the current repository state and the delivered evidence, not from a backlog
 row.
 
