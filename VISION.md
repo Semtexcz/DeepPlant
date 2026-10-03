@@ -273,8 +273,8 @@ evidence-driven phase. What exists and what it must conform to is recorded in
 [docs/contracts/index.md](docs/contracts/index.md); the current state,
 unresolved questions, and next evidence candidates are recorded in
 [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md); the long-term capability progression is in
-[docs/dev/planning/direction.md](docs/dev/planning/direction.md). The strategic capability state is
-visualized in the GitHub Project.
+[docs/dev/planning/direction.md](docs/dev/planning/direction.md). GitHub Project may
+visualize a derived, non-canonical projection of that repository-led planning state.
 
 Nothing in this vision document authorizes implementation. The current scoped
 vertical slice does; this document describes the destination, not a delivery

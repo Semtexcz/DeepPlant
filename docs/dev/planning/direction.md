@@ -140,10 +140,10 @@ GUI framework may dictate the domain model.
 **Engineering Editor MVP v0.1 intentionally takes a narrow vertical slice across
 Stages 3 and 4.** It does not require all engineering-view capability to be
 completed before interactive editing begins: the MVP is limited to a local-first
-interactive subset of PFD and P&ID. Its product and UI/UX definition is current
-roadmap work, not authorization to prebuild GUI architecture; the selected
-smallest executable slice follows only after Issues #39, #68, #69, and #70 have
-produced their evidence and decisions.
+interactive subset of PFD and P&ID. Issue #68 completed its product boundary;
+Issue #69 now owns the UI/UX definition, and neither authorizes prebuilding GUI
+architecture. The selected smallest executable slice follows only after Issues
+#39, #69, and #70 have produced their evidence and decisions.
 
 ### Stage 5 — Git-native Engineering Workflow
 

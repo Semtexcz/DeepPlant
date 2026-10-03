@@ -52,9 +52,12 @@ GitHub Issue. Read `VISION.md` and `docs/dev/planning/product.md` for the
 upstream thesis and product target; planning governance is in
 `docs/dev/planning/index.md`.
 
-GitHub Project access is not required to determine priority. It is a
-non-canonical visual/convenience projection; if it disagrees with repository
-planning documents, the repository documents are authoritative.
+GitHub Project access is not required to determine priority. `roadmap.md` is
+canonical for current operational priority and sequencing (`Now`, `Next`, and
+explicit re-evaluation gates), while `direction.md` is canonical for long-term
+capability progression. GitHub Project may visualize derived horizons but is a
+non-canonical convenience projection; it must not contain unique direction
+required by agents.
 
 Before implementing substantial work:
 
@@ -140,20 +143,20 @@ Before opening or finalizing the PR:
 2. Mark an item complete only if the PR actually delivers it.
 3. Re-evaluate the next task from:
    - current implemented capabilities,
-   - milestone goals,
+   - current roadmap horizon goals,
    - unresolved evidence gaps,
    - existing realistic examples/prototypes,
    - accepted ADRs.
 4. Do not mechanically promote the next existing backlog row.
-5. Prefer the smallest evidence-producing next slice. In particular, prefer
-   testing the semantic model against a realistic executable example before
-   introducing new abstractions or presentation architecture.
+5. Prefer the smallest evidence-producing vertical slice justified by the
+   current roadmap and Issue scope. Do not introduce broader abstractions,
+   dependencies, or presentation architecture than that slice requires.
 6. Ensure these roadmap sections are mutually consistent:
    - Current State
    - Completed
-   - Backlog (Suggested Order)
-   - Milestones
-   - Next Task
+   - Operational Roadmap, including `Now`, `Next`, and explicit
+     re-evaluation/evidence gates
+   - Completed Context
    - Scope Discipline
    - the Directional Capability Roadmap pointer (the long-term capability
      progression itself lives in `docs/dev/planning/direction.md`)
@@ -166,6 +169,6 @@ Before opening or finalizing the PR:
 The final task report must include a short `Roadmap check` stating:
 
 - what became complete,
-- what is now the next task,
-- why that next task follows from the current repository state.
+- what is now in `Now` and `Next`, including any explicit re-evaluation gate,
+- why that operational sequence follows from the current repository state.
 

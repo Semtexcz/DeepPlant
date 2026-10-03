@@ -99,6 +99,48 @@ semantic-model-first thesis. It is intended to be:
 - explicit about three separate state concerns: semantic engineering state,
   presentation/layout state, and frontend-framework state.
 
+### Bounded engineering scope
+
+The MVP PFD subset is limited to a useful small process fragment: create, delete,
+connect, select, move, and edit basic properties of supported process steps and
+streams; validate; save; and reload. Initial supported process functions are
+limited to source, sink, pumping, heat exchange, mixing, splitting, and basic
+vessel/storage representation where the canonical model supports them.
+
+The MVP P&ID subset is intentionally narrower than a production P&ID system:
+basic pump, vessel, and heat-exchanger equipment; their basic physical
+connection points/ports; basic piping realization; and at most one basic valve
+concept when supported by the selected semantic slice. It excludes full
+instrumentation and detailed piping semantics.
+
+PFD and P&ID are not independent drawing documents. They are views over distinct
+but related semantic layers: `ProcessModel` for the PFD, and the physical plant
+and piping model for the P&ID. `ProcessStep` is not `Equipment`,
+`ProcessStream` is not physical piping realization, and `ProcessPort` is not a
+physical `Port`/`Nozzle`. Issue #39 owns the evidence-first decision about how
+those layers are explicitly related; it must precede a stable PFD ↔ P&ID
+realization workflow but does not block a pure Process/PFD UI slice.
+
+### Source-of-truth interaction direction
+
+The editor must send user actions through an application command that mutates
+and validates the semantic model, then updates the view:
+
+```text
+user interaction
+      ↓
+application command
+      ↓
+semantic model mutation
+      ↓
+validation
+      ↓
+view update
+```
+
+It must not treat SVG/canvas mutation as the authoritative state and infer
+engineering semantics afterward.
+
 Its target user journey is:
 
 ```text
@@ -240,9 +282,12 @@ still governs, and the actionable current/next state lives in
 
 ## Long-Term Non-Goals
 
-- Do not add cloud hosting, authentication, databases, ORMs, web backends,
-  collaboration services, or containers before a concrete requirement justifies
-  them.
+- Do not add hosted/cloud backends, authentication, databases, ORMs,
+  collaboration services, containers, or production server infrastructure before
+  a concrete requirement justifies them. A minimal local
+  application/transport/API boundary may be introduced only when an authorized
+  standalone SPA vertical slice requires it; this product document selects no
+  framework.
 - Do not embed drawing coordinates or SVG concepts into core engineering
   objects.
 - The directional roadmap is product context, not implementation authorization;

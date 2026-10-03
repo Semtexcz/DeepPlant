@@ -68,19 +68,13 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- **#68 — Define DeepPlant Engineering Editor MVP v0.1.** Reconcile the product
-  and planning documents around the first usable product vertical slice: a
-  local-first, standalone, browser-based interactive editor launched locally,
-  using a bounded PFD/P&ID subset while preserving semantic-model-first,
-  file-based, Git-native engineering.
 - **#39 — Model: decide process ↔ physical realization boundary.** Decide the
   `ProcessStep` ↔ equipment and `ProcessStream` ↔ piping-realization boundary,
   including the mapping shape and cardinality, as evidence and a durable decision
   where justified.
 
-These items may proceed independently and in parallel. Issue #39 is especially
-important before the PFD ↔ P&ID realization workflow becomes stable, but it
-must not block the MVP product or UX definition.
+Issue #39 is especially important before the PFD ↔ P&ID realization workflow
+becomes stable, but it does not block a pure Process/PFD UI slice.
 
 ### Next
 
@@ -94,14 +88,18 @@ they do not authorize frontend implementation, dependencies, or directories.
 
 ### Afterwards — Re-evaluate from Evidence
 
-After #39, #68, #69, and #70 provide their evidence and decisions, re-evaluate
-the roadmap to select the smallest executable GUI vertical slice. Do not create
+After #39, #69, and #70 provide their evidence and decisions, re-evaluate the
+roadmap to select the smallest executable GUI vertical slice. Do not create
 speculative implementation Issues before that re-evaluation. Select from the
-actual repository state, the four Issues' conclusions, accepted ADRs, and a
+actual repository state, those Issues' conclusions, accepted ADRs, and a
 realistic executable example—not by mechanically promoting a backlog row.
 
 ### Completed Context
 
+- **Issue #68 is delivered:** the Engineering Editor MVP v0.1 is bounded in
+  [product.md](product.md), including the PFD/P&ID subsets, semantic
+  source-of-truth interaction direction, user journey, non-goals, and Issue
+  #39 relationship. It authorizes no GUI implementation.
 - **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
   semantic round-trip contract is published in
   [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md).
@@ -114,8 +112,12 @@ realistic executable example—not by mechanically promoting a backlog row.
 
 ### Scope Discipline
 
-- No cloud hosting, authentication, database, ORM, web backend, collaboration
-  service, containers, or external service.
+- No hosted/cloud backend, authentication, database, ORM, collaboration
+  service, containers, or production server infrastructure before a concrete
+  requirement justifies them.
+- A minimal local application/transport/API boundary required by the selected
+  standalone SPA vertical slice may be introduced when that executable slice
+  authorizes it; no framework is selected here.
 - No empty architecture trees, frontend directories, or GUI dependencies before
   a current executable slice requires them.
 - No full instrumentation, simulation, 3D, complete DEXPI, HAZOP/SIS, or all

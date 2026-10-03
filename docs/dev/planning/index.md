@@ -57,13 +57,19 @@ Each layer has one job:
 The roadmap is not a large backlog. The GitHub Project is useful for visual
 planning but does not create or prioritize work by itself.
 
-## Horizons
+## Operational Horizons and Direction
 
-`Now`, `Next`, `Later`, and `Exploration` are planning horizons, not
-delivery-date commitments. The canonical current horizon state and its
-sequencing live in [roadmap.md](roadmap.md); it changes when evidence changes—
-after a spike, an ADR, a completed slice, or a discovered dependency—never on a
-schedule. A GitHub Project may visualize these horizons as a derived projection.
+[roadmap.md](roadmap.md) is canonical for current operational priority and
+sequencing: `Now`, `Next`, and explicit re-evaluation or evidence gates. It
+changes when evidence changes—after a spike, an ADR, a completed slice, or a
+discovered dependency—never on a schedule.
+
+[direction.md](direction.md) is canonical for long-term capability progression
+and unresolved future capability context. The roadmap is not a large
+`Later`/`Exploration` backlog. A GitHub Project may visualize additional derived
+groupings such as `Later` or `Exploration`, but those fields are not planning
+authority and must not contain unique direction required by agents or
+contributors.
 
 ## Issue Creation Rule
 
@@ -140,6 +146,7 @@ receive empty Milestones, and no arbitrary due dates are assigned.
 | What exists today, and what must hold now? | `docs/contracts/`, `docs/dev/architecture/index.md` |
 | What is the canonical current priority, horizon, sequencing, and evidence gap? | `docs/dev/planning/roadmap.md` |
 | What shipped already? | `docs/dev/history/implementation-slices.md` |
-| What is Now / Next / Later / Exploration? | `docs/dev/planning/roadmap.md`; GitHub Project may visualize it |
+| What is current operational priority and sequencing? | `docs/dev/planning/roadmap.md` — `Now`, `Next`, and explicit re-evaluation gates |
+| What is long-term or immature capability context? | `docs/dev/planning/direction.md`; GitHub Project may visualize derived groupings but is non-canonical |
 | Which concrete work is actually Ready and what is its detailed scope? | the relevant bounded GitHub Issue |
 | What is the visual convenience projection? | GitHub Project (non-canonical) |

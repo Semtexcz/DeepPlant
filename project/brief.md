@@ -25,16 +25,16 @@ Code** for process plants. It will grow into a Git-native semantic engineering
 platform in which a process plant is represented by a machine-readable semantic
 model that can be validated, versioned, diffed, reviewed, and rendered.
 
-This repository currently ships the project foundation plus semantic vertical
-slices: the physical/plant model (equipment-owned ports, identified directed
+### Implemented baseline
+
+DeepPlant currently ships the project foundation plus semantic vertical slices:
+the physical/plant model (equipment-owned ports, identified directed
 connections, reference validation), the physical piping-realization layer
 (ADR-0011), the standalone process-domain model with canonical
 `ProcessStep.function` semantics (ADR-0009), YAML load/save into typed Pydantic
 models, the `deepplant validate` command, the `basic` process symbol-pack
 contract, a headless read-only process renderer, and a narrow DEXPI 2.0.0 Process
-adapter. The interactive editor, full DEXPI and other vendor adapters,
-instrumentation semantics, engineering rules, and P&ID rendering do **not** exist
-yet.
+adapter. The GUI does not exist yet.
 
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:
@@ -43,8 +43,25 @@ boundary map, not by this brief:
   boundaries;
 - [docs/contracts/index.md](../docs/contracts/index.md) — current model, format,
   CLI, renderer, and adapter obligations;
-- [docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) — current state, next direction, and
-  unresolved evidence gaps.
+- [docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) — current state, operational priority,
+  and unresolved evidence gates.
+
+### Current initiative
+
+**Engineering Editor MVP v0.1** is the current product initiative: a local-first,
+standalone browser SPA launched locally that lets process and piping engineers
+interactively author a bounded PFD and P&ID subset while the semantic model
+remains authoritative. The exact UI/UX and reuse-first GUI architecture are the
+focused work of Issues #69 and #70; this does not mean a GUI is implemented.
+
+### Deferred / out-of-scope capabilities
+
+The MVP excludes full instrumentation and signal semantics, broader piping detail
+(property breaks, pipe-piece identity, components, nozzles/nodes, detailed
+numbering, qualified quantities, insulation, tracing, slope, and test circuits),
+simulation, 3D, complete DEXPI and other vendor adapters, HAZOP/SIS, cloud or
+collaboration services, and all EPC disciplines. These are capability context or
+future evidence questions, not current implementation authorization.
 
 ## Problem
 
@@ -90,40 +107,41 @@ reloading without loss. The GUI for this target does not exist yet.
 
 ## Scope
 
-- In scope (done): clean, tested project foundation; durable DeepPlant
-  documentation; ADRs for the core architecture principles; minimal CLI package.
-- In scope (second semantic vertical slice): equipment-owned `Port` objects;
-  top-level `Connection` objects over structured `PortRef(component, port)`
-  endpoints; reference validation (endpoint components and ports must exist);
-  strict unknown-field rejection extended to the new models; CLI reports
-  equipment, port, and connection counts; runnable
-  `examples/minimal-process/plant.yaml`.
-- In scope (physical piping-realization slice, ADR-0011): required non-empty
+### Implemented baseline
+
+- Clean, tested project foundation; durable DeepPlant documentation; ADRs for the
+  core architecture principles; minimal CLI package.
+- Equipment-owned `Port` objects; top-level `Connection` objects over structured
+  `PortRef(component, port)` endpoints; reference validation; strict unknown-field
+  rejection; CLI counts; and runnable `examples/minimal-process/plant.yaml`.
+- The ADR-0011 physical piping-realization slice: required non-empty
   plant-unique `Connection.id`; optional `PlantModel.piping` owning
-  `PipingLine` → `PipingSegment` → `PipingRealization`; closed
-  `kind: pipe | direct` vocabulary defaulting to `pipe`; structural rules C1 and
-  P1–P5; YAML load/save semantic round-trip; the realistic fragment's evidenced
-  `P-101 → FV-101 → E-101` run realized as a pipe-realized line; focused
-  synthetic coverage for `kind: direct`.
-- Next product-definition scope: Engineering Editor MVP v0.1 — local-first,
-  standalone, browser-based SPA launched locally; semantic-model-first,
-  file-based, Git-native interactive editing over a deliberately bounded PFD and
-  P&ID subset. Semantic, presentation/layout, and frontend-framework state must
-  remain separate. The exact UI/UX and reuse-first GUI architecture remain the
-  focused work of Issues #69 and #70; no GUI implementation exists yet.
-- Out of scope for the MVP: cloud hosting, authentication, databases,
-  collaboration, full instrumentation, simulation, 3D, complete DEXPI,
-  HAZOP/SIS, and all EPC disciplines.
-- Deferred semantic scope: mid-connection property breaks (`PropertyBreak`),
-  a canonical `Pipe`/pipe-piece identity, `PipingComponent`, `Nozzle`/
-  `PipingNode`, line/segment numbering standards, typed engineering quantities
-  for DN/pressure/temperature, insulation/tracing/slope/test-circuit data,
-  process ↔ physical realization, instrumentation and signal semantics, and
-  `Pipeline`/`Instrument` as further concepts; rendering, DEXPI Plant
-  import/export, interactive editor, simulators, databases, ORMs, network
-  services, and container runtimes.
+  `PipingLine` → `PipingSegment` → `PipingRealization`; closed `kind: pipe |
+  direct` vocabulary; structural rules C1 and P1–P5; YAML semantic round-trip;
+  and focused examples/tests.
+
+### Current initiative
+
+Engineering Editor MVP v0.1 is a local-first, standalone browser SPA launched
+locally for semantic-model-first, file-based, Git-native interactive authoring of
+a deliberately bounded PFD and P&ID subset. Semantic, presentation/layout, and
+frontend-framework state must remain separate. The MVP must not assume manual
+YAML editing for its core workflow, and no GUI implementation exists yet.
+
+### Deferred / out-of-scope capabilities
+
+- Full instrumentation, control loops, and signal semantics.
+- Broader physical piping detail, including mid-connection property breaks,
+  canonical pipe/pipe-piece identity, piping components, nozzles/nodes, detailed
+  numbering, qualified quantities, insulation, tracing, slope, and test circuits.
+- Simulation, 3D, complete DEXPI and other vendor adapters, HAZOP/SIS, cloud
+  hosting, authentication, databases, collaboration, and all EPC disciplines.
+- A stable process ↔ physical realization mapping: Issue #39 remains the
+  evidence-first decision for that boundary.
 
 ## Success Criteria
+
+### Implemented baseline / existing success criteria
 
 - `deepplant --help` and `deepplant version` work from the installed entry point.
 - `deepplant validate examples/minimal-process/plant.yaml` succeeds with concise
@@ -134,6 +152,17 @@ reloading without loss. The GUI for this target does not exist yet.
 - `make check` and `make build` pass.
 - The documentation states the semantic-model-first architecture and the ADRs
   record the core decisions.
+
+### Current initiative success criteria
+
+- A local-first interactive editor supports the bounded MVP PFD and P&ID
+  authoring workflow without requiring manual YAML editing for the core path.
+- The semantic model remains authoritative while PFD and P&ID stay bounded views
+  over their distinct semantic layers.
+- Validation is available from the editor workflow.
+- Semantic and presentation state persist separately and save/reload without loss
+  of semantic intent or presentation state.
+- The MVP remains file-based and Git-native without requiring hosted services.
 
 ## Constraints and Assumptions
 
@@ -146,8 +175,10 @@ reloading without loss. The GUI for this target does not exist yet.
 - Planning authority is repository-led: `VISION.md` →
   `docs/dev/planning/product.md` → `docs/dev/planning/direction.md` →
   `docs/dev/planning/roadmap.md` → GitHub Issues → Pull Requests. The roadmap
-  owns current priority/horizons and sequencing; the relevant GitHub Issue owns
-  concrete executable scope; GitHub Project is a non-canonical visual projection.
+  owns current operational priority and sequencing (`Now`, `Next`, and explicit
+  re-evaluation gates); `direction.md` owns long-term capability progression; the
+  relevant GitHub Issue owns concrete executable scope. GitHub Project may
+  visualize derived horizons but is a non-canonical projection.
   Documentation authority, audience, atomicity, and metadata conventions live in
   `docs/dev/workflow/conventions.md`; the documentation migration inventory
   lives in `docs/dev/workflow/documentation-migration.md`. Directional material
