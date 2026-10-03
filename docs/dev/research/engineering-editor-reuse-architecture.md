@@ -494,11 +494,16 @@ layout output is presentation-only.
 
 ### Existing renderer layout reuse
 
-The headless renderer already contains reusable presentation behaviour that must
-not be needlessly duplicated: layered placement, ordered anchor assignment, forward
-vs feedback routing, and a deterministic grid. For the first slice, deriving initial
-canvas positions from existing DeepPlant layout policy is preferred over adding a
-new layout engine.
+The current headless renderer is **Process/PFD-only**. Its deterministic layered
+placement, ordered `ProcessPort` anchor assignment, `ProcessStream` routing, label
+placement, and grid are reusable evidence and a baseline for Process/PFD
+presentation; they must not be described as an established P&ID layout/routing
+policy.
+
+The first interactive Process/PFD projection should reuse or learn from that
+behaviour where practical rather than needlessly duplicating it or adding a new
+layout engine. Physical/P&ID layout and routing may have materially different
+requirements and must not be assumed to inherit the same policy without evidence.
 
 ## State-management evaluation
 
@@ -567,14 +572,17 @@ format here.
 
 ## Existing renderer and SVG symbol reuse
 
-The interactive canvas is a **new consumer of an existing DeepPlant contract**, not
-a replacement for it.
+The interactive canvas is a **new consumer of DeepPlant-owned presentation
+contracts**, not their replacement. The currently implemented contract has a
+strictly Process/PFD scope:
 
 ```text
-shared DeepPlant symbol contract (ADR-0008 + dev/reference/svg-symbols.md)
-        ↓                    ↓                      ↓
-headless renderer      interactive editor      future exporters
-(src/deepplant/render.py)
+existing DeepPlant Process/PFD SVG symbol + anchor contract
+(ADR-0008 + dev/reference/svg-symbols.md)
+        ↓                                  ↓
+headless PFD renderer              interactive PFD projection
+(src/deepplant/render.py)                  ↓
+                                  future Process/PFD consumers
 ```
 
 - The `basic` symbol pack
@@ -582,14 +590,20 @@ headless renderer      interactive editor      future exporters
   `deepplant-anchors` contract are DeepPlant-owned assets with DeepPlant provenance
   under AGPL-3.0-only. The symbol **role**, not the file, is the presentation
   concept; the SVG asset is one realization.
-- The engineering function → symbol role → pack → SVG geometry + ordered anchors
-  chain ([svg-symbols.md](../reference/svg-symbols.md)) is precisely the projection
-  the canvas needs. The interactive editor should reuse this chain rather than
-  invent a frontend-specific symbol library.
-- **Do not duplicate the `basic` pack** into a frontend-canonical symbol library.
-  One shared symbol contract with multiple consumers is preferred over "Python
-  symbols + separate frontend symbols" unless evidence later proves duplication
-  unavoidable.
+- For Process/PFD rendering, the interactive editor should reuse the existing
+  `ProcessStep` function → symbol role → process symbol pack → SVG geometry and
+  ordered-anchor contract ([svg-symbols.md](../reference/svg-symbols.md)). It must
+  not invent a frontend-specific canonical symbol library for that view.
+- **Do not duplicate the `basic` Process/PFD pack** into a frontend-specific
+  canonical symbol library. DeepPlant owns engineering presentation contracts and
+  assets; frontend frameworks consume DeepPlant-owned presentation projections and
+  do not become the owner of engineering symbols.
+- The current contract is **Process/PFD-specific**. **No physical/P&ID symbol
+  contract exists today** for `Equipment`, physical `Port`, `Connection`, `Nozzle`,
+  `PipingLine`, `Valve`, instrumentation, or related physical presentation concepts.
+  A future physical/P&ID presentation slice may define an analogous or extended
+  DeepPlant-owned symbol/anchor contract from evidence. **Issue #70 does not design
+  that contract.**
 - **Integration question recorded (not implemented):** delivering the packaged SVG
   assets (and their anchor metadata) to a browser consumer requires a mechanism
   (embedding, a fetch endpoint, or a build-time copy). Recording this is Issue #70's
@@ -799,13 +813,22 @@ Generic libraries provide interaction primitives; they must not own these meanin
 For each selected frontend library, the intended isolation boundary:
 
 ```text
-DeepPlant semantic state (Python core)
+DeepPlant semantic state
         ↓
-DeepPlant projection / UI adapter        ← DeepPlant-owned DTOs and presentation state
+DeepPlant view projection
+
+Process/PFD:
+    existing Process/PFD symbol contract where applicable
+
+Physical/P&ID:
+    future DeepPlant-owned presentation contract, not yet defined
+
         ↓
-canvas-library DTO/state (Vue Flow nodes/edges/handles)
+DeepPlant UI adapter / presentation DTOs
         ↓
-canvas library (Vue Flow)
+Vue Flow node/edge/handle state
+        ↓
+Vue Flow
 ```
 
 Event direction:
