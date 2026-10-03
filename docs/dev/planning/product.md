@@ -82,10 +82,13 @@ The next product target is **DeepPlant Engineering Editor MVP v0.1**: a
 local-first, standalone, browser-based editor initially launched locally. It
 edits the same semantic model through a deliberately bounded subset of PFD and
 P&ID; the drawing is not the source of truth. The initial implementation
-direction is Vue 3 + TypeScript + Vite, subject to the focused UI/UX and
-reuse-first architecture decisions in Issues #69 and #70. Detailed
-view-projection rules and GUI-library selection are deliberately not decided
-here.
+direction is Vue 3 + TypeScript + Vite. The interaction architecture is decided by
+Issue #69 ([engineering-editor-ux.md](../research/engineering-editor-ux.md)) and the
+reuse-first frontend architecture by Issue #70
+([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md));
+no GUI is implemented, and the first executable GUI slice is selected at the
+[re-evaluation gate](roadmap.md#re-evaluation-gate). Detailed view-projection rules
+remain deliberately undecided here.
 
 ## Engineering Editor MVP v0.1
 

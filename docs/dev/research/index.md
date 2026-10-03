@@ -69,7 +69,13 @@ boundaries, instrumentation/signals, and presentation/graphics.
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [engineering-editor-ux.md](engineering-editor-ux.md) | How should an engineer interact with the DeepPlant Engineering Editor MVP v0.1, so the first GUI slice does not invent fundamental UX behaviour while the semantic model stays authoritative? | Interaction architecture: canvas-dominant minimum permanent chrome; one command direction; four separated state kinds; engineering-concept explorer; PFD/P&ID as editor views; cardinality-neutral related-object navigation; shared command surface for direct manipulation/palette/Copilot; Copilot placeholder deferred; MVP/later/not-now UX matrix; #70 keeps library selection | none yet (no GUI implemented); informs [roadmap.md](../planning/roadmap.md) and Issue #70 |
+| [engineering-editor-ux.md](engineering-editor-ux.md) | How should an engineer interact with the DeepPlant Engineering Editor MVP v0.1, so the first GUI slice does not invent fundamental UX behaviour while the semantic model stays authoritative? | Interaction architecture: canvas-dominant minimum permanent chrome; one command direction; four separated state kinds; engineering-concept explorer; PFD/P&ID as editor views; cardinality-neutral related-object navigation; shared command surface for direct manipulation/palette/Copilot; Copilot placeholder deferred; MVP/later/not-now UX matrix; #70 keeps library selection | [engineering-editor-reuse-architecture.md](engineering-editor-reuse-architecture.md) (Issue #70 technology/boundary layer); [roadmap.md](../planning/roadmap.md) |
+
+## Engineering editor reuse architecture evidence
+
+| Document | Question investigated | Outcome | Operationalized by |
+|---|---|---|---|
+| [engineering-editor-reuse-architecture.md](engineering-editor-reuse-architecture.md) | Which reusable GUI technologies should underpin the DeepPlant Engineering Editor, and where are their boundaries? | Selects a small reuse-first stack — Vue 3 + TypeScript + Vite (foundation), Vue Flow (canvas, behind a DeepPlant projection/adapter), Reka UI (primitives) — and defers/rejects Dockview, Monaco, ELK/elkjs, Pinia, VueUse, shadcn-vue, X6, and Cytoscape.js, each with an adoption trigger; keeps semantic/presentation/framework state separated, undo/redo at the application-command boundary, and the existing renderer/symbol contract reused; no new ADR and no dependency added | none yet (no GUI implemented); informs [roadmap.md](../planning/roadmap.md) and the [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate) |
 
 ## Reuse, standards, and asset evidence
 
