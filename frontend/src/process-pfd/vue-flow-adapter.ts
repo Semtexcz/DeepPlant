@@ -1,0 +1,106 @@
+import type { Edge, Node } from '@vue-flow/core'
+
+import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from './dto'
+
+/**
+ * Frontend adapter between the DeepPlant projection DTOs and Vue Flow.
+ *
+ * This is the only place where the framework's object shapes appear. Vue Flow
+ * stays replaceable: `Node`/`Edge` never leak into the Python transport DTOs,
+ * and every framework object carries the explicit DeepPlant identity (kind +
+ * semantic id) in its `data`. Framework ids, positions, handles, dimensions,
+ * and selection remain framework state and never become engineering truth.
+ */
+
+export const DEEPLANT_STEP_NODE_TYPE = 'deeplantProcessStep'
+
+export type AnchorDirection = 'in' | 'out'
+
+export interface DeepPlantNodeData {
+  readonly kind: 'process-step'
+  /** Explicit DeepPlant semantic identity; never the framework id. */
+  readonly deeplantId: string
+  readonly symbolSize: number
+  readonly step: ProcessStepDto
+}
+
+export interface DeepPlantEdgeData {
+  readonly kind: 'process-stream'
+  /** Explicit DeepPlant semantic identity; never the framework id. */
+  readonly deeplantId: string
+  readonly stream: ProcessStreamDto
+}
+
+/**
+ * A DeepPlant node inside the Vue Flow view: a framework node that always
+ * carries its DeepPlant projection data. `Node` is a framework type; the
+ * DeepPlant identity stays in `data.deeplantId`.
+ */
+export type DeepPlantNode = Node<DeepPlantNodeData> & { data: DeepPlantNodeData }
+
+/** A DeepPlant edge inside the Vue Flow view, always carrying its projection. */
+export type DeepPlantEdge = Edge<DeepPlantEdgeData> & { data: DeepPlantEdgeData }
+
+export interface ProcessPfdView {
+  readonly nodes: DeepPlantNode[]
+  readonly edges: DeepPlantEdge[]
+  readonly symbolSize: number
+}
+
+/** Id of the Vue Flow handle that carries one DeepPlant presentation anchor. */
+export function stepHandleId(direction: AnchorDirection, anchorIndex: number): string {
+  return `deeplant-${direction}-anchor-${anchorIndex}`
+}
+
+/** Framework node id. Deliberately distinct from the semantic step id. */
+export function frameworkNodeId(stepId: string): string {
+  return `vue-flow-node:${stepId}`
+}
+
+/** Framework edge id. Deliberately distinct from the semantic stream id. */
+export function frameworkEdgeId(streamId: string): string {
+  return `vue-flow-edge:${streamId}`
+}
+
+export function toVueFlowNode(step: ProcessStepDto, symbolSize: number): DeepPlantNode {
+  return {
+    id: frameworkNodeId(step.id),
+    type: DEEPLANT_STEP_NODE_TYPE,
+    position: { x: step.x, y: step.y },
+    draggable: false,
+    connectable: false,
+    selectable: true,
+    data: {
+      kind: 'process-step',
+      deeplantId: step.id,
+      symbolSize,
+      step,
+    },
+  }
+}
+
+export function toVueFlowEdge(stream: ProcessStreamDto): DeepPlantEdge {
+  return {
+    id: frameworkEdgeId(stream.id),
+    source: frameworkNodeId(stream.source.step),
+    target: frameworkNodeId(stream.target.step),
+    sourceHandle: stepHandleId('out', stream.source.anchor),
+    targetHandle: stepHandleId('in', stream.target.anchor),
+    type: 'smoothstep',
+    selectable: true,
+    data: {
+      kind: 'process-stream',
+      deeplantId: stream.id,
+      stream,
+    },
+  }
+}
+
+/** Map the whole DeepPlant projection into Vue Flow nodes and edges. */
+export function toProcessPfdView(projection: ProcessPfdProjectionDto): ProcessPfdView {
+  return {
+    nodes: projection.steps.map((step) => toVueFlowNode(step, projection.symbol_size)),
+    edges: projection.streams.map((stream) => toVueFlowEdge(stream)),
+    symbolSize: projection.symbol_size,
+  }
+}

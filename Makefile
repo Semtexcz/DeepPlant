@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-typecheck frontend-test frontend-build frontend-check api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -12,9 +12,12 @@ PROD_FRONTEND_PORT ?= 3000
 BACKEND_IMAGE ?= $(PROJECT_SLUG)-backend:production
 FRONTEND_IMAGE ?= $(PROJECT_SLUG)-frontend:production
 COMPOSE ?= docker compose
-COREPACK_HOME ?= $(abspath .corepack)
-PNPM ?= corepack pnpm
-FRONTEND_PNPM = mkdir -p $(COREPACK_HOME) && cd frontend && COREPACK_HOME=$(COREPACK_HOME) $(PNPM)
+# The editor frontend pins its package manager in frontend/package.json
+# (`packageManager`). `pnpm` is used directly; `corepack enable` makes the pinned
+# version available when only Corepack is installed.
+PNPM ?= pnpm
+FRONTEND_DIR ?= frontend
+FRONTEND_PNPM = cd $(FRONTEND_DIR) && $(PNPM)
 PNPM_INSTALL_FLAGS ?=
 OPENAPI_SCHEMA ?= artifacts/openapi.json
 
@@ -58,6 +61,29 @@ typecheck:
 	uv run pyright
 
 
+frontend-install:
+
+	$(FRONTEND_PNPM) install --frozen-lockfile $(PNPM_INSTALL_FLAGS)
+
+
+frontend-typecheck: frontend-install
+
+	$(FRONTEND_PNPM) run typecheck
+
+
+frontend-test: frontend-install
+
+	$(FRONTEND_PNPM) run test
+
+
+frontend-build: frontend-install
+
+	$(FRONTEND_PNPM) run build
+
+
+frontend-check: frontend-typecheck frontend-test frontend-build
+
+
 api-schema:
 
 	@true
@@ -84,7 +110,7 @@ e2e-production:
 
 
 
-check: validate-docs validate-agent-skills format-check lint typecheck test
+check: validate-docs validate-agent-skills format-check lint typecheck test frontend-check
 
 
 build:

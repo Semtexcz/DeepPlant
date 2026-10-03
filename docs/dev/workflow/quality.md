@@ -23,7 +23,11 @@ superseded_by: null
 - Formatting and linting run through `make lint`.
 - Type checking runs through `make typecheck`.
 - Tests run through `make test`.
-- `make check` is the fast local/pre-review gate for DeepPlant.
+- Frontend checks run through `make frontend-check`: dependency install from the
+  committed lockfile, `vue-tsc` type checking, Vitest, and a production build.
+- `make check` is the fast local/pre-review gate for DeepPlant. It includes
+  `frontend-check`, so Node 22 and `pnpm` (pinned by `frontend/package.json`) are
+  prerequisites of `make check`.
 - The template repository has a separate full release-candidate gate across
   every generated profile and workflow.
 
@@ -46,6 +50,11 @@ superseded_by: null
 - Validation behavior is exercised through the public Python API and the CLI
   entry point once the domain model exists.
 - `make check` is the local gate before every commit and pull request.
+- The editor slice is tested at its architecture boundaries rather than by
+  screenshots: the projection and the local boundary have Python tests, and the
+  frontend has unit tests for the DeepPlant DTO → Vue Flow adapter and for the
+  selection → Inspector mapping. Frontend runtime data is narrowed to the
+  explicit DTO contract so a contract mismatch fails clearly.
 
 ## Security Baseline
 

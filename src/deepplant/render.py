@@ -54,7 +54,16 @@ from xml.etree.ElementTree import Element, ParseError
 
 from deepplant.model import ProcessModel, ProcessStep, ProcessStream
 
-__all__ = ["ProcessRenderError", "render_process_svg"]
+__all__ = [
+    "ProcessPfdAnchor",
+    "ProcessPfdLayout",
+    "ProcessPfdStepPlacement",
+    "ProcessPfdStreamPlacement",
+    "ProcessRenderError",
+    "compute_process_pfd_layout",
+    "read_process_symbol_svg",
+    "render_process_svg",
+]
 
 SVG_NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", SVG_NS)
@@ -141,6 +150,64 @@ class PlacedStep:
     symbol: SymbolVariant
     in_anchor_points: tuple[Point, ...]
     out_anchor_points: tuple[Point, ...]
+
+
+@dataclass(frozen=True)
+class ProcessPfdAnchor:
+    """One ordered pack anchor slot in symbol-local coordinates.
+
+    Coordinates live on the canonical ``0 0 100 100`` pack viewBox. An anchor is
+    a presentation slot (``anchor-in-N`` / ``anchor-out-N``), not a semantic
+    ``ProcessPort`` (ADR-0008): ``SVG anchor != ProcessPort``.
+    """
+
+    index: int
+    x: float
+    y: float
+
+
+@dataclass(frozen=True)
+class ProcessPfdStepPlacement:
+    """Transient presentation placement of one process step."""
+
+    step_id: str
+    symbol_role: str
+    layer: int
+    row: int
+    x: float
+    y: float
+    in_anchors: tuple[ProcessPfdAnchor, ...]
+    out_anchors: tuple[ProcessPfdAnchor, ...]
+
+
+@dataclass(frozen=True)
+class ProcessPfdStreamPlacement:
+    """Transient presentation placement of one process stream endpoint pair."""
+
+    stream_id: str
+    source_step: str
+    source_port: str
+    source_anchor: int
+    target_step: str
+    target_port: str
+    target_anchor: int
+    is_feedback: bool
+
+
+@dataclass(frozen=True)
+class ProcessPfdLayout:
+    """Presentation layout for a process/PFD view of one :class:`ProcessModel`.
+
+    This is presentation geometry derived from the semantic process graph and an
+    explicitly chosen symbol pack (ADR-0003, ADR-0008, ADR-0009). It carries no
+    semantic state, is never stored on the semantic model, and never touches
+    YAML or any view file.
+    """
+
+    symbol_pack: str
+    symbol_size: float
+    steps: tuple[ProcessPfdStepPlacement, ...]
+    streams: tuple[ProcessPfdStreamPlacement, ...]
 
 
 # ---------------------------------------------------------------------------
@@ -910,6 +977,135 @@ def _stream_label_point(points: list[Point]) -> Point:
             return Point(x, best[0] - STREAM_LABEL_OFFSET)
         return Point(x, best[0] + STREAM_LABEL_OFFSET + STREAM_FONT_SIZE)
     return Point((min(xs) + max(xs)) / 2.0, min(ys) - STREAM_LABEL_OFFSET)
+
+
+def read_process_symbol_svg(symbol_pack: str, symbol_role: str) -> str:
+    """Return the canonical SVG text for one presentation symbol role.
+
+    A presentation-facing accessor for the packaged symbol pack: it resolves the
+    built-in pack through ``importlib.resources`` (ADR-0008), so a non-SVG
+    consumer such as a local viewer reads the single canonical asset copy
+    instead of shipping a second one. ``symbol_role`` must be a plain,
+    filename-safe role present in the selected pack.
+
+    Raises:
+        ProcessRenderError: If the pack is unknown, the role is not a plain
+            filename-safe stem, or the pack has no asset for that role.
+    """
+    directory = _pack_directory(symbol_pack)
+    if not _is_plain_role(symbol_role):
+        raise ProcessRenderError(
+            f"cannot select a pack asset for non-filename-safe role {symbol_role!r}"
+        )
+    asset = directory.joinpath(f"{symbol_role}.svg")
+    try:
+        return asset.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise ProcessRenderError(
+            f"symbol pack {symbol_pack!r} has no SVG asset for role {symbol_role!r}"
+        ) from exc
+    except OSError as exc:
+        raise ProcessRenderError(
+            f"cannot read role {symbol_role!r} asset in symbol pack {symbol_pack!r}: {exc}"
+        ) from exc
+
+
+def compute_process_pfd_layout(
+    process: ProcessModel,
+    *,
+    symbol_pack: str = "basic",
+    symbol_role_overrides: Mapping[str, str] | None = None,
+) -> ProcessPfdLayout:
+    """Compute deterministic presentation placement for a process/PFD view.
+
+    This exposes the renderer's existing placement and symbol-role resolution as
+    reusable presentation geometry, so a non-SVG consumer (for example the local
+    Engineering Editor projection) does not reimplement layout or the
+    ``ProcessStep.function`` -> symbol-role presentation policy in another
+    language. The result is transient presentation data (ADR-0003, ADR-0009): it
+    is never stored on the semantic model, in YAML, or in any view file, and the
+    input ``process`` is never mutated.
+
+    Placement mirrors ``render_process_svg``: columns come from the layered
+    forward layout, rows from the deterministic incoming-topology ordering, and
+    each stream maps onto the pack's ordered ``anchor-in-N`` / ``anchor-out-N``
+    slots by ``ProcessStream`` incidence.
+
+    Raises:
+        ProcessRenderError: For the same presentation failures as
+            ``render_process_svg`` (unknown pack, unresolvable or invalid
+            symbol role, broken pack asset contract, or anchor-capacity
+            overflow).
+    """
+    pack_dir = _pack_directory(symbol_pack)
+    available_roles = _available_pack_roles(pack_dir)
+    role_by_step = _resolve_symbol_role_by_step(process, symbol_pack, symbol_role_overrides)
+    for step in process.steps:
+        role = role_by_step[step.id]
+        if role not in available_roles:
+            raise ProcessRenderError(
+                f"cannot render step '{step.id}' (engineering function "
+                f"'{step.function}', resolved symbol role '{role}') with symbol pack "
+                f"{symbol_pack!r}: the selected pack has no SVG asset for that "
+                "presentation symbol role"
+            )
+    roles = list(dict.fromkeys(role_by_step[step.id] for step in process.steps))
+    variant_by_role = {role: _parse_symbol_variant(pack_dir, role) for role in roles}
+
+    outgoing = {step.id: _ordered_outgoing(process.streams, step) for step in process.steps}
+    incoming = {step.id: _ordered_incoming(process.streams, step) for step in process.steps}
+    feedback_ids = set(_detect_feedback(process.steps, outgoing, incoming))
+    layers = _assign_layers(process.steps, process.streams, outgoing, feedback_ids)
+    placed, _placed_by_id, out_index, in_index = _place_steps_and_assign(
+        process,
+        symbol_pack,
+        variant_by_role,
+        role_by_step,
+        outgoing,
+        incoming,
+        layers,
+    )
+
+    steps = tuple(
+        ProcessPfdStepPlacement(
+            step_id=position.step.id,
+            symbol_role=position.symbol.role,
+            layer=position.layer,
+            row=position.row,
+            x=position.x,
+            y=position.y,
+            in_anchors=tuple(
+                ProcessPfdAnchor(index=index, x=anchor.x, y=anchor.y)
+                for index, anchor in enumerate(position.symbol.in_anchors)
+            ),
+            out_anchors=tuple(
+                ProcessPfdAnchor(index=index, x=anchor.x, y=anchor.y)
+                for index, anchor in enumerate(position.symbol.out_anchors)
+            ),
+        )
+        for position in placed
+    )
+
+    streams = tuple(
+        ProcessPfdStreamPlacement(
+            stream_id=stream.id,
+            source_step=stream.source.step,
+            source_port=stream.source.port,
+            source_anchor=out_index[stream.id],
+            target_step=stream.target.step,
+            target_port=stream.target.port,
+            target_anchor=in_index[stream.id],
+            is_feedback=stream.id in feedback_ids,
+        )
+        for stream in process.streams
+    )
+
+    return ProcessPfdLayout(
+        symbol_pack=symbol_pack,
+        symbol_size=SYMBOL_SIZE,
+        steps=steps,
+        streams=streams,
+    )
 
 
 def render_process_svg(

@@ -73,6 +73,43 @@ svg: str = render_process_svg(
   a step whose stream incidence exceeds the pack variant's anchor capacity.
 - No CLI command and no file-saving helper exist yet.
 
+### Presenter reuse API (read-only editor projection)
+
+The renderer also exposes its presentation policy and placement as reusable
+presentation geometry, so a non-SVG consumer does not reimplement layout or the
+`function` → symbol-role mapping in another language:
+
+```python
+from deepplant.render import (
+    ProcessPfdLayout,
+    compute_process_pfd_layout,
+    read_process_symbol_svg,
+)
+
+layout: ProcessPfdLayout = compute_process_pfd_layout(
+    model.process,
+    symbol_pack="basic",
+    symbol_role_overrides={"PS-vessel": "vessel"},  # optional, transient
+)
+svg_text: str = read_process_symbol_svg("basic", "pump")
+```
+
+- `compute_process_pfd_layout(process, *, symbol_pack="basic", symbol_role_overrides=None)`
+  returns `ProcessPfdLayout`: per-step `symbol_role`, layer/row, `x`/`y` placement
+  and the ordered `anchor-in-N` / `anchor-out-N` slots, plus per-stream endpoint
+  ports, anchor indices, and feedback classification. It mirrors
+  `render_process_svg` placement exactly and raises the same
+  `ProcessRenderError` failures. The result is transient presentation data
+  (ADR-0003, ADR-0009): it is never stored on the semantic model, in YAML, or in
+  any view file, and the input `ProcessModel` is never mutated.
+- `read_process_symbol_svg(symbol_pack, symbol_role)` returns the canonical
+  packaged asset text for one presentation symbol role, so a viewer reads the
+  single canonical copy instead of shipping a second symbol pack. Unknown packs,
+  non-filename-safe roles, and missing assets raise `ProcessRenderError`.
+
+`deepplant.editor.projection` is the first consumer (Issue #75, read-only
+Process/PFD editor slice).
+
 ## Symbol-role resolution (presentation policy)
 
 Symbol roles are presentation semantics, not canonical engineering data
@@ -215,11 +252,14 @@ the MVP readable; physical equipment tags are never invented.
 
 ## Explicitly deferred
 
-Frontend/interactive viewing, manual positioning, saved diagram coordinates,
-zoom/pan, multiple sheets, title blocks, physical/P&ID rendering, standards
-aligned or company packs, custom pack loading, DEXPI graphics, simulation,
-routing optimisation/crossing minimisation, automatic standards compliance,
-and any persistence of presentation data in the semantic model. **Persistent
+Semantic editing, manual positioning, saved diagram coordinates, multiple
+sheets, title blocks, physical/P&ID rendering, standards aligned or company
+packs, custom pack loading, DEXPI graphics, simulation, routing
+optimisation/crossing minimisation, automatic standards compliance, and any
+persistence of presentation data in the semantic model. **Interactive
+viewing exists only as the read-only Process/PFD editor slice**: it consumes this
+presenter reuse API and the same symbol pack, and zoom/pan/fit are the viewer's
+own framework state, not renderer state. **Persistent
 presentation configuration is deferred**: the renderer's per-call
 `symbol_role_overrides` establishes the presentation boundary as executable
 evidence; a future slice may persist per-step view configuration separately

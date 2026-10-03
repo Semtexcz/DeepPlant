@@ -33,8 +33,9 @@ connections, reference validation), the physical piping-realization layer
 (ADR-0011), the standalone process-domain model with canonical
 `ProcessStep.function` semantics (ADR-0009), YAML load/save into typed Pydantic
 models, the `deepplant validate` command, the `basic` process symbol-pack
-contract, a headless read-only process renderer, and a narrow DEXPI 2.0.0 Process
-adapter. The GUI does not exist yet.
+contract, a headless read-only process renderer, a narrow DEXPI 2.0.0 Process
+adapter, and the first runnable, read-only Process/PFD editor slice
+(`src/deepplant/editor/` + `frontend/`, launched with `deepplant ui <path>`).
 
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:
@@ -55,8 +56,11 @@ remains authoritative. The UI/UX interaction architecture (Issue #69,
 [docs/dev/research/engineering-editor-ux.md](../docs/dev/research/engineering-editor-ux.md))
 and the reuse-first frontend architecture (Issue #70,
 [docs/dev/research/engineering-editor-reuse-architecture.md](../docs/dev/research/engineering-editor-reuse-architecture.md))
-are delivered as evidence/design; the GUI is not implemented, and the first
-executable slice is selected at the roadmap re-evaluation gate.
+are delivered as evidence/design. The first executable slice (Issue #75) is
+delivered: a read-only Process/PFD editor over the existing Python semantic core,
+launched with `deepplant ui <path>`. Semantic editing, presentation persistence,
+and P&ID authoring remain unimplemented; the next slice is decided at the
+roadmap re-evaluation gate.
 
 ### Deferred / out-of-scope capabilities
 
@@ -130,7 +134,9 @@ Engineering Editor MVP v0.1 is a local-first, standalone browser SPA launched
 locally for semantic-model-first, file-based, Git-native interactive authoring of
 a deliberately bounded PFD and P&ID subset. Semantic, presentation/layout, and
 frontend-framework state must remain separate. The MVP must not assume manual
-YAML editing for its core workflow, and no GUI implementation exists yet.
+YAML editing for its core workflow. The first executable slice (Issue #75) is
+delivered as a **read-only** Process/PFD editor; semantic editing, presentation
+persistence, and P&ID authoring are still unimplemented.
 
 ### Deferred / out-of-scope capabilities
 

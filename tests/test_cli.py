@@ -6,6 +6,7 @@ from typer.testing import CliRunner
 
 from deepplant import __version__
 from deepplant.__main__ import app, main
+from deepplant.editor.app import EditorApplication
 
 runner = CliRunner()
 
@@ -137,3 +138,87 @@ def test_validate_returns_nonzero_for_unknown_field(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "not permitted" in result.output
+
+
+# --- ui: local read-only Engineering Editor launcher (Issue #75) -------------
+
+
+def _built_frontend(tmp_path: Path) -> Path:
+    directory = tmp_path / "dist"
+    directory.mkdir()
+    (directory / "index.html").write_text("<!doctype html>", encoding="utf-8")
+    return directory
+
+
+def test_help_lists_the_ui_command() -> None:
+    result = runner.invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    assert "ui" in result.stdout
+
+
+def test_ui_refuses_a_missing_project(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "ui",
+            str(tmp_path / "missing.yaml"),
+            "--assets-dir",
+            str(_built_frontend(tmp_path)),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "cannot read plant file" in result.output
+    assert "Traceback" not in result.output
+
+
+def test_ui_refuses_a_malformed_symbol_role_override() -> None:
+    result = runner.invoke(app, ["ui", str(REALISTIC_EXAMPLE), "--symbol-role", "PS-vessel"])
+
+    assert result.exit_code == 1
+    assert "expected the form STEP=ROLE" in result.output
+
+
+def test_ui_requires_built_frontend_assets(tmp_path: Path) -> None:
+    empty = tmp_path / "empty"
+    empty.mkdir()
+
+    result = runner.invoke(app, ["ui", str(REALISTIC_EXAMPLE), "--assets-dir", str(empty)])
+
+    assert result.exit_code == 1
+    assert "frontend assets were not found" in result.output
+
+
+def test_ui_loads_the_project_through_the_python_core(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_serve(application: object, *, port: int, echo: object) -> None:
+        captured["application"] = application
+        captured["port"] = port
+
+    monkeypatch.setattr("deepplant.__main__.serve_editor", fake_serve)
+
+    result = runner.invoke(
+        app,
+        [
+            "ui",
+            str(REALISTIC_EXAMPLE),
+            "--symbol-role",
+            "PS-vessel=vessel",
+            "--assets-dir",
+            str(_built_frontend(tmp_path)),
+            "--port",
+            "0",
+        ],
+    )
+
+    assert result.exit_code == 0
+    application = captured["application"]
+    assert isinstance(application, EditorApplication)
+    assert application.model.process is not None
+    assert len(application.model.process.steps) == 7
+    assert application.symbol_role_overrides == {"PS-vessel": "vessel"}
+    assert captured["port"] == 0

@@ -38,6 +38,7 @@ Running with no arguments prints help.
 | `deepplant --help` | Typer help text; command list |
 | `deepplant version` | `DeepPlant <version>` on stdout, exit code 0 |
 | `deepplant validate <path>` | validation summary on stdout, exit code 0 |
+| `deepplant ui <path>` | local editor launch message on stdout; the command then serves until interrupted |
 
 ### `deepplant validate <path>`
 
@@ -63,12 +64,52 @@ On success it prints exactly:
 The command validates structural and reference rules only. Engineering rules
 (DN continuity, line-number consistency, and similar) do not exist.
 
+### `deepplant ui <path>`
+
+Launches the local, read-only Engineering Editor (Issue #75). It loads the
+project through the same DeepPlant loader as `validate`, so the browser never
+parses YAML and the semantic model stays authoritative.
+
+```text
+DeepPlant Engineering Editor (read-only Process/PFD)
+  project: <path>
+  open:    http://127.0.0.1:<port>/
+  press Ctrl+C to stop
+```
+
+Options:
+
+| Option | Meaning |
+|---|---|
+| `--symbol-role STEP=ROLE` | Repeatable transient presentation override for one `ProcessStep` id. Presentation only: it is never written to the model or YAML. The realistic fragment needs `--symbol-role PS-vessel=vessel` because `PS-vessel.function` is honestly `unspecified` (ADR-0009). |
+| `--port <n>` | Local port; `0` picks a free port. Defaults to `8765`. |
+| `--assets-dir <dir>` | Directory containing the built editor assets. Defaults to `./frontend/dist`. |
+
+Behavior:
+
+- The server binds to **loopback only** (`127.0.0.1`); there is no option to
+  expose it on `0.0.0.0`. This is a local developer/product tool with no
+  authentication and no production or server-security claim.
+- It serves exactly three read routes: the Process/PFD projection JSON
+  (`/api/projection`), the canonical packaged symbol assets
+  (`/api/symbols/<role>.svg`), and the built frontend assets.
+- The built frontend must exist first: `make frontend-build` (or
+  `cd frontend && pnpm build`). If it is missing, the command exits 1 with a
+  concise message and no traceback.
+- Project path, YAML, and model errors reuse the `PlantLoadError` text from
+  [yaml-format.md](yaml-format.md) and exit 1.
+- Semantic validation comes from `load_plant`. A valid model without a
+  `process` section, or one whose current Process/PFD presentation role cannot be
+  resolved, still starts the editor; `/api/projection` returns HTTP 422 with
+  `validation.valid: true`, `projection: null`, and a separate projection error.
+  Load, YAML, and semantic-reference failures remain `PlantLoadError` failures.
+
 ## Deliberately not provided
 
 A render command, a save/format command, a symbol-pack selector, machine-readable
-(JSON) output, watch mode, and any configuration file or environment-variable
-surface. Each needs its own evidence and Issue; the renderer and loader are
-currently library/API-level only.
+(JSON) output, watch mode, browser auto-open, daemon/service management, and any
+configuration file or environment-variable surface. Each needs its own evidence
+and Issue; the renderer and loader are currently library/API-level only.
 
 ## Related
 
