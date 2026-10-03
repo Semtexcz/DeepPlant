@@ -74,10 +74,11 @@ superseded_by: null
      command → semantic mutation → validation → updated projection/view. Canvas
      or framework state is never serialized as project truth.
   3. Four state kinds stay explicitly separate: semantic, persistent
-     presentation, framework, and transient UI. Only the first is canonical
-     engineering truth today; persistent presentation is deliberately deferred,
-     and neither presentation nor framework state may appear as fields on
-     semantic objects.
+     presentation, framework, and transient UI. Semantic state alone remains
+     canonical engineering truth; the MVP requires enough separate presentation
+     state to survive save/reload without loss, while its exact persisted subset,
+     schema, and storage ownership remain unresolved. Neither presentation nor
+     framework state may appear as fields on semantic objects.
   4. PFD and P&ID are **editor views (tabs)**, never global application modes.
      The explorer exposes engineering concepts (not filesystem structure), the
      inspector is selection-driven, and Problems is non-modal.
@@ -123,7 +124,11 @@ It does **not** own:
   [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md);
 - GUI library, framework, docking, canvas, routing, or editor-technology
   selection — owned by Issue #70 and the [reference-product landscape](reference-products.md);
-- presentation-state **persistence design** — deliberately deferred
+- presentation-state **persistence design** — the MVP requirement to keep enough
+  separate presentation state for the authored views to survive save/reload
+  without loss is defined by [product.md](../planning/product.md); the exact
+  persisted subset, schema, storage location, ownership, and implementation are
+  deliberately not decided here
   (ADR-0009, [rendering.md](../../contracts/rendering.md)).
 
 ## Boundary with Issue #70
@@ -160,7 +165,7 @@ established by existing authority, so a new ADR would duplicate it:
 This document therefore **applies** those rules rather than re-deciding them. A
 new ADR would clear the threshold only if a future slice established a durable
 rule not already owned above (for example, a decided persistence shape for
-presentation state, which today is explicitly deferred).
+presentation state, which remains unresolved here).
 
 ## Core interaction principle
 
@@ -267,21 +272,25 @@ fields.
 
 ### Persistent presentation state
 
-State that describes **how** a semantic object is drawn in a view, saved
-separately from semantic YAML. Per ADR-0003 and [rendering.md](../../contracts/rendering.md),
-its persistence is **deliberately deferred**, so every candidate below is
-classified rather than assumed:
+State that describes **how** a semantic object is drawn in a view, kept
+separate from semantic YAML. The MVP requires a minimal persisted presentation
+subset sufficient to reproduce the authored engineering views after reload
+without loss ([product.md](../planning/product.md)). Which exact fields form that
+minimum, and where or how they are stored, remain unresolved; Issue #69 defines
+no presentation persistence schema.
 
-| Concern | Disposition | Why |
+| Candidate field | MVP persistence necessity | Current evidence |
 |---|---|---|
-| diagram object position (a symbol's x/y on a sheet) | **candidate for later** | Useful and edit-time meaningful, but no persistence format exists yet; may at first be recomputed by layout (as the current renderer does). |
-| view/sheet membership (which objects appear on PFD-001) | **candidate for later** | Needed once multiple sheets are real; the MVP may derive one bounded view per submodel. |
-| label placement | **transient only** for MVP | Current renderer computes label geometry; no authored placement exists. |
-| route hints / waypoints | **candidate for later** | Current renderer derives orthogonal routes; manual waypoints are a later routing tool. |
-| chosen presentation symbol role / variant per step | **transient only** today, candidate for later | Exists only at the render boundary as a per-call override (ADR-0009); persistence is explicitly deferred. |
+| diagram object position (a symbol's x/y on a sheet) | **likely** | A moved authored representation must be restorable when its position is not reproducibly derived; whether positions are always stored remains unresolved. |
+| view/sheet membership (which objects appear on PFD-001) | **unresolved** | It may be required to reproduce authored multi-view work, but a bounded view can sometimes be derived from a submodel. |
+| label placement | **unresolved** | The current renderer computes label geometry; authored placement would need persistence only if it is required to restore the view. |
+| route hints / waypoints | **not required by current MVP evidence** | The current renderer derives orthogonal routes; manual waypoints remain a later routing extension unless future MVP evidence proves them necessary. |
+| chosen presentation symbol role / variant per step | **unresolved** | A renderer-call override exists today (ADR-0009); whether an authored override belongs in the MVP minimum is not decided here. |
 
-The rule is unconditional regardless of disposition: **none of these is a field
-on a semantic object.**
+The rule is unconditional regardless of necessity: **none of these is a field
+on a semantic object.** Persisting presentation data does not make it semantic
+engineering truth, and framework state remains neither presentation state nor
+project truth.
 
 ### Framework state
 
@@ -643,7 +652,7 @@ Related
   Related realization
     No authored physical realization     (ADR-0016; cardinality-neutral)
 Presentation
-  (only if a persisted presentation state exists — today: none)
+  (when applicable; separate presentation state, not semantics)
 ```
 
 Note that `Function` is engineering semantics and is **not** the symbol role: the
@@ -779,7 +788,7 @@ semantic truth.
 | click select | transient UI | sets selection only |
 | Ctrl/Cmd click multi-select | transient UI | extends selection |
 | box selection | transient UI | selects the enclosed representations |
-| drag a semantic object's representation | **presentation** | moves the symbol, not the object; today no persisted position exists, so this is transient until presentation persistence is designed |
+| drag a semantic object's representation | **presentation** | moves the symbol, not the object; today no presentation persistence exists, but the completed MVP must persist whatever authored view information is needed to restore the view after reload |
 | pan | transient UI | viewport only |
 | zoom | transient UI | viewport only |
 | fit view | transient UI | viewport only |
@@ -800,10 +809,12 @@ pan viewport                   → transient UI state
 rename ProcessStep             → semantic mutation
 ```
 
-Note the current reality: persisted presentation state does not exist yet
-(ADR-0009, [rendering.md](../../contracts/rendering.md)), so "move a symbol" is
-**transient** until a later slice designs presentation persistence. It is never a
-semantic mutation in any case.
+Today, no presentation persistence exists (ADR-0009,
+[rendering.md](../../contracts/rendering.md)), so a moved symbol is not yet
+restored by save/reload. The completed MVP must persist any presentation
+information required to restore the authored view after reload
+([product.md](../planning/product.md)); the exact representation, storage, and
+minimum remain unresolved. In every case, **move symbol != semantic mutation**.
 
 ## Adding engineering objects
 
@@ -1182,14 +1193,22 @@ or proprietary UI resources are imported into the repository.
   grammar; multiple persistent palettes; the assumption that the schematic file is
   the source of truth (DeepPlant's semantic model is).
 
-### Figma — Layers panel and property editing help
+### Figma — selection and property editing help
 
-- **Source:** <https://help.figma.com/hc/en-us/articles/360039956914-View-and-navigate-layers-in-the-Layers-panel>
-  (inspected 2026-10-03).
-- **Patterns observed:** selection synchronizes between canvas and a
-  layers/objects list; a right-side properties panel whose content is driven by
-  the current selection; multi-selection producing a "mixed"/common view;
-  precise numeric property editing with scrub interactions.
+- **Sources (all inspected 2026-10-03):**
+  - <https://help.figma.com/hc/en-us/articles/360040449873-Select-layers-and-objects>
+    — selecting objects and layers on the canvas or in the Layers panel, and
+    multi-selection.
+  - <https://help.figma.com/hc/en-us/articles/360039832014-Design-prototype-and-explore-layer-properties-in-the-right-sidebar>
+    — the right sidebar properties panel driven by the current selection.
+  - <https://help.figma.com/hc/en-us/articles/360039956914-Adjust-alignment-rotation-position-and-dimensions>
+    — numeric position, dimension, and rotation editing, mixed values across a
+    multi-selection, and scrub interaction.
+- **Patterns observed:** selecting a layer on the canvas or in the Layers panel
+  refers to the same layer; the right-side properties panel responds to the
+  current selection; multi-selection supports shared property changes, including
+  mixed numeric values; position, dimension, and rotation fields accept precise
+  numeric entry and can be scrubbed.
 - **Relevant because:** it is the reference the Issue names for
   **context-sensitive interaction** — the inspector is exactly a
   selection-driven property surface.
@@ -1438,7 +1457,13 @@ basic command / search surface (palette + Add)
 PFD / P&ID editor tabs
 semantic create / edit / delete / connect commands
 non-modal validation after commands
+presentation save/reload requirement: enough authored view state is preserved
+  across reload; the exact persistence schema is not decided here
 ```
+
+The first executable GUI slice may still be narrower (for example,
+read/render/select/inspect) and does not have to implement presentation
+persistence; the completed MVP does.
 
 ### Later
 
@@ -1447,10 +1472,12 @@ split views (PFD + P&ID side by side, cross-highlighting)
 custom workspace layouts / saved docking
 Git diff UX
 full YAML editor surface
-advanced routing tools (manual waypoints)
+advanced routing tools (manual waypoints not needed by the MVP minimum)
+advanced saved workspace layouts / docking arrangements
+per-user workspace customization
+additional presentation metadata beyond the MVP minimum
 rich Copilot (proposed-operations preview → Apply/Reject)
 multi-sheet navigation
-persisted presentation state (positions, sheet membership, role overrides)
 ```
 
 ### Explicitly not now
@@ -1470,9 +1497,12 @@ framework- or library-specific UX commitments (#70 owns technology)
 
 Recorded deliberately rather than resolved by invention:
 
-1. **Persistent presentation state shape** — what is persisted (positions, sheet
-   membership, waypoints, per-step role overrides) and where it lives, if
-   evidence ever requires persistence (ADR-0009 defers this).
+1. **Persistent presentation state shape** — the MVP already requires enough
+   presentation state to survive save/reload without loss. Still unresolved:
+   the minimum persisted subset, canonical ownership/location, serialization
+   shape, whether positions are always stored or may sometimes be reproducibly
+   derived, and how semantic + presentation changes participate in save/undo
+   transactions (ADR-0009 preserves the semantic/presentation separation).
 2. **Mixed semantic/presentation undo** — whether one user action that changes
    both can be a single undo step under the chosen architecture (Issue #70).
 3. **`ProcessPort` physical boundary** — how a junction-adjacent process port maps
