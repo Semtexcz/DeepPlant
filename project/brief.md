@@ -54,9 +54,10 @@ lists, datasheets, and documents. Engineering intent is encoded as graphics
 it cannot be validated, diffed, or reused reliably. Drawings become the source
 of truth by accident.
 
-DeepPlant addresses the first step of this problem: represent a process plant as
-a semantic engineering model serialized as YAML, validate its structure, and
-later derive drawings and other views from the model.
+DeepPlant addresses this through an explicit semantic engineering model,
+serialized as YAML, that can be validated, versioned, and used to derive and
+interactively edit bounded engineering views without making drawings the source
+of truth.
 
 ## Target Users
 
@@ -65,8 +66,9 @@ later derive drawings and other views from the model.
 - Engineering organizations that want Git-native review, CI, and validation for
   engineering deliverables.
 
-Interactive GUI, simulation, and DEXPI consumers are future users, not bootstrap
-targets.
+The Engineering Editor MVP v0.1 makes process and piping engineers interactive
+editor users now; the GUI is a product target, not an implemented capability.
+Simulation and broader DEXPI consumers remain outside this MVP.
 
 ## Desired Outcome
 
@@ -80,9 +82,11 @@ equipment-owned `Port` objects.
 
 ## Main Use Case
 
-An engineer writes a small process fragment as YAML, loads it with the DeepPlant
-CLI, and receives a clear validation report for structural and reference errors
-(unknown components or ports in connections).
+The current implemented use case is YAML authoring and CLI validation. The next
+product use case is an engineer opening a local project, creating or editing a
+bounded PFD graphically, realizing part of it physically, editing basic P&ID
+equipment/piping, validating, saving semantic plus presentation state, and
+reloading without loss. The GUI for this target does not exist yet.
 
 ## Scope
 
@@ -101,7 +105,16 @@ CLI, and receives a clear validation report for structural and reference errors
   P1–P5; YAML load/save semantic round-trip; the realistic fragment's evidenced
   `P-101 → FV-101 → E-101` run realized as a pipe-realized line; focused
   synthetic coverage for `kind: direct`.
-- Out of scope (so far): mid-connection property breaks (`PropertyBreak`),
+- Next product-definition scope: Engineering Editor MVP v0.1 — local-first,
+  standalone, browser-based SPA launched locally; semantic-model-first,
+  file-based, Git-native interactive editing over a deliberately bounded PFD and
+  P&ID subset. Semantic, presentation/layout, and frontend-framework state must
+  remain separate. The exact UI/UX and reuse-first GUI architecture remain the
+  focused work of Issues #69 and #70; no GUI implementation exists yet.
+- Out of scope for the MVP: cloud hosting, authentication, databases,
+  collaboration, full instrumentation, simulation, 3D, complete DEXPI,
+  HAZOP/SIS, and all EPC disciplines.
+- Deferred semantic scope: mid-connection property breaks (`PropertyBreak`),
   a canonical `Pipe`/pipe-piece identity, `PipingComponent`, `Nozzle`/
   `PipingNode`, line/segment numbering standards, typed engineering quantities
   for DN/pressure/temperature, insulation/tracing/slope/test-circuit data,
@@ -130,11 +143,12 @@ CLI, and receives a clear validation report for structural and reference errors
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
 - Do not create empty architecture directories before real code exists.
-- Long-term vision lives in `VISION.md` and `docs/dev/planning/product.md`; capability
-  progression lives in `docs/dev/planning/direction.md`; the actionable current/next state
-  lives in `docs/dev/planning/roadmap.md`; strategic planning governance (vision → roadmap →
-  GitHub Project → milestones → ready issues → PRs) lives in `docs/dev/planning/index.md`;
-  documentation authority, audience, atomicity, and metadata conventions live in
+- Planning authority is repository-led: `VISION.md` →
+  `docs/dev/planning/product.md` → `docs/dev/planning/direction.md` →
+  `docs/dev/planning/roadmap.md` → GitHub Issues → Pull Requests. The roadmap
+  owns current priority/horizons and sequencing; the relevant GitHub Issue owns
+  concrete executable scope; GitHub Project is a non-canonical visual projection.
+  Documentation authority, audience, atomicity, and metadata conventions live in
   `docs/dev/workflow/conventions.md`; the documentation migration inventory
   lives in `docs/dev/workflow/documentation-migration.md`. Directional material
   is product context, not implementation authorization: implement only the

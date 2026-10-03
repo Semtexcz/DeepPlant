@@ -78,8 +78,53 @@ high-value engineering views over a deeper semantic model:
           higher abstraction   more detail
 ```
 
-If an interactive editor is ever built, it edits the same semantic model through
-either view. Detailed view-projection rules are deliberately not decided here.
+The next product target is **DeepPlant Engineering Editor MVP v0.1**: a
+local-first, standalone, browser-based editor initially launched locally. It
+edits the same semantic model through a deliberately bounded subset of PFD and
+P&ID; the drawing is not the source of truth. The initial implementation
+direction is Vue 3 + TypeScript + Vite, subject to the focused UI/UX and
+reuse-first architecture decisions in Issues #69 and #70. Detailed
+view-projection rules and GUI-library selection are deliberately not decided
+here.
+
+## Engineering Editor MVP v0.1
+
+The MVP is the first usable product vertical slice, not a replacement for the
+semantic-model-first thesis. It is intended to be:
+
+- local-first, standalone, file-based, and Git-native;
+- a browser-based SPA launched locally rather than a hosted service;
+- an interactive editor, not a read-only viewer;
+- limited to a deliberately bounded PFD and P&ID subset;
+- explicit about three separate state concerns: semantic engineering state,
+  presentation/layout state, and frontend-framework state.
+
+Its target user journey is:
+
+```text
+open project
+    ↓
+open/create PFD
+    ↓
+graphically create/edit process semantics
+    ↓
+realize part of the process physically
+    ↓
+open/create P&ID
+    ↓
+graphically edit basic equipment/piping
+    ↓
+validate
+    ↓
+save semantic + presentation state
+    ↓
+reload without loss
+```
+
+The MVP does not require cloud hosting, authentication, databases,
+collaboration, complete instrumentation, simulation, 3D, complete DEXPI,
+HAZOP/SIS workflows, or all EPC disciplines. A future Copilot/multimodal agent
+is a first-class UX direction, but is a placeholder rather than MVP scope.
 
 ## Semantic Model as the Authoritative Record of Managed Intent
 
@@ -160,8 +205,8 @@ Current working hypotheses, not validated facts:
   the near-term target is a real fragment of roughly 20–50 engineering objects.
 - A semantic-model-first representation, kept free of presentation data,
   supports PFD/P&ID rendering and DEXPI exchange without redesign.
-- Engineers accept YAML-authored models when validation and review are fast and
-  actionable.
+- Engineers can use a local graphical editor while semantic data remains
+  file-based, reviewable, and independent of presentation/framework state.
 - The audiences and the complement-not-replace position under "Users" describe a
   real market need.
 
@@ -195,8 +240,9 @@ still governs, and the actionable current/next state lives in
 
 ## Long-Term Non-Goals
 
-- Do not add databases, ORMs, web backends, or containers before a concrete
-  requirement justifies them.
+- Do not add cloud hosting, authentication, databases, ORMs, web backends,
+  collaboration services, or containers before a concrete requirement justifies
+  them.
 - Do not embed drawing coordinates or SVG concepts into core engineering
   objects.
 - The directional roadmap is product context, not implementation authorization;

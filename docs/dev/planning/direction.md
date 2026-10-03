@@ -23,7 +23,8 @@ superseded_by: null
 > dependencies; it is not a delivery calendar, a fixed build order, or an
 > implementation authorization. The
 > [anti-roadmap](roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
-> still governs, and the GitHub Project holds the current strategic horizons.
+> still governs; [roadmap.md](roadmap.md) is the canonical record of current
+> operational horizons.
 
 
 The stages below describe where DeepPlant may ultimately go. They are
@@ -131,11 +132,18 @@ implementation.
 
 Goal: let engineers modify the semantic model graphically without making the
 drawing the source of truth. Potential surfaces: PFD/P&ID editor, property
-editor, symbol placement, connection editing. Directional only; it does not
-justify web architecture now. Generic editor, workspace, and interaction
-technology must be compared against the
+editor, symbol placement, connection editing. Generic editor, workspace, and
+interaction technology must be compared against the
 [reference-product landscape](../research/reference-products.md) rather than assumed, and no
 GUI framework may dictate the domain model.
+
+**Engineering Editor MVP v0.1 intentionally takes a narrow vertical slice across
+Stages 3 and 4.** It does not require all engineering-view capability to be
+completed before interactive editing begins: the MVP is limited to a local-first
+interactive subset of PFD and P&ID. Its product and UI/UX definition is current
+roadmap work, not authorization to prebuild GUI architecture; the selected
+smallest executable slice follows only after Issues #39, #68, #69, and #70 have
+produced their evidence and decisions.
 
 ### Stage 5 — Git-native Engineering Workflow
 

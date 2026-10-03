@@ -45,17 +45,23 @@ The semantic engineering model is the product core.
 
 ## Strategic Planning
 
-Long-term capability state lives in the GitHub Project and horizons (`Now` /
-`Next` / `Later` / `Exploration`); sequencing reasoning lives in
-`docs/dev/planning/roadmap.md`; planning governance is in
+Repository planning is self-contained. Derive long-term direction from
+`docs/dev/planning/direction.md`, current priority/horizons and sequencing from
+`docs/dev/planning/roadmap.md`, and concrete executable scope from the relevant
+GitHub Issue. Read `VISION.md` and `docs/dev/planning/product.md` for the
+upstream thesis and product target; planning governance is in
 `docs/dev/planning/index.md`.
+
+GitHub Project access is not required to determine priority. It is a
+non-canonical visual/convenience projection; if it disagrees with repository
+planning documents, the repository documents are authoritative.
 
 Before implementing substantial work:
 
-1. read the relevant roadmap/architecture/ADR context;
+1. read the relevant product, roadmap, architecture, and ADR context;
 2. work from a concrete Ready Issue when one exists;
-3. do not decompose `Later` / `Exploration` Project items into speculative
-   Issues without evidence.
+3. do not create speculative Issues or mechanically promote directional work
+   without evidence.
 
 Never merge automatically.
 
