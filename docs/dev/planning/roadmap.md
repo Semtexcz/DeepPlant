@@ -68,43 +68,68 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- **No executable implementation slice is selected.** Issue #39 delivered its
-  evidence and durable ownership decision —
-  [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
-  and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md) —
-  and no process ↔ physical mapping is implemented. Issue #69 delivered its UI/UX
-  interaction architecture
-  ([engineering-editor-ux.md](../research/engineering-editor-ux.md)), and Issue #70
-  has since delivered the reuse-first frontend architecture
-  ([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)):
-  a small, replaceable stack — Vue 3 + TypeScript + Vite, Vue Flow for the canvas
-  behind a DeepPlant projection/adapter, and Reka UI primitives — with docking,
-  text editing, layout/routing, and state-management libraries deferred, each with
-  an adoption trigger. Issue #70 authorizes no GUI implementation, dependency, or
-  directory and selects no executable slice. The candidate set is re-evaluated from
-  this completed evidence at the gate below; no successor task is preselected.
+- [#75 — Engineering Editor: first interactive Process/PFD vertical slice](https://github.com/Semtexcz/DeepPlant/issues/75)
+
+  Implement the smallest runnable browser-based Process/PFD viewer over the
+  existing DeepPlant Python semantic core and realistic process fragment.
+
+  The slice proves:
+
+  ```text
+  ProcessModel
+      ↓
+  DeepPlant-owned Process/PFD projection
+      ↓
+  replaceable frontend adapter
+      ↓
+  Vue Flow interactive canvas
+  ```
+
+  Scope is intentionally read-only: pan / zoom / fit / selection / semantic
+  Inspector / current validation state. It does not authorize P&ID rendering,
+  semantic editing, presentation persistence, undo/redo, process ↔ physical
+  realization implementation, or broader frontend infrastructure.
 
 ### Next
 
-- **Re-evaluate the roadmap and select the smallest executable vertical slice.**
-  The evidence prerequisites (#39, #69, and #70) are complete. The next planning
-  action is to re-evaluate the current repository state and select the smallest
-  executable vertical slice. This is a planning step, not an implementation slice:
-  it preselects nothing, creates no Issue by itself, and adds no dependency or
-  directory.
+- Re-evaluate after #75 is delivered.
+
+  Do not mechanically promote semantic editing or another backlog item.
+
+  Use the implementation evidence from #75 to decide the next smallest slice,
+  especially whether the projection/view boundary is strong enough to authorize
+  the first semantic-editing slice.
 
 ### Re-evaluation Gate
 
-The evidence prerequisites for the re-evaluation gate are now complete (#39, #69,
-and #70 delivered). The next planning action is to re-evaluate the current
-repository state and select the smallest executable vertical slice. This gate is
-**ready**; the re-evaluation itself is not performed by Issue #70. Do not create
-speculative implementation Issues before that re-evaluation, and do not
-mechanically promote an existing backlog row. Select from the actual repository
-state, those Issues' conclusions, accepted ADRs, unresolved evidence gaps, a
-realistic executable example, and a concrete DeepPlant-native consumer. Quantity
-implementation, DEXPI 2.0.1, port kinds, PFD/P&ID GUI, rules, and semantic diff
-remain unpromoted.
+The re-evaluation gate was executed after #39, #69, and #70 were delivered.
+
+Outcome:
+[#75 — Engineering Editor: first interactive Process/PFD vertical slice](https://github.com/Semtexcz/DeepPlant/issues/75)
+was selected as the smallest executable slice.
+
+Process/PFD currently has the strongest complete executable substrate:
+
+- `ProcessModel`
+- structural validation
+- realistic process example
+- deterministic headless renderer
+- Process/PFD SVG symbol/anchor contract
+- completed UX architecture (Issue #69,
+  [engineering-editor-ux.md](../research/engineering-editor-ux.md))
+- completed reuse-first GUI architecture (Issue #70,
+  [engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md))
+
+The physical/P&ID side does not yet have an equivalent physical presentation /
+symbol contract, so the first GUI slice remains Process/PFD-only.
+
+The process ↔ physical realization boundary evidence that preceded this gate is
+[process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
+and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md).
+Quantity implementation, DEXPI 2.0.1, port kinds, physical/P&ID GUI,
+rules, and semantic diff remain unpromoted. No successor is preselected; selection follows
+from the current repository state and the delivered evidence, not from a backlog
+row.
 
 ### Completed Context
 
@@ -136,7 +161,8 @@ remain unpromoted.
   ownership boundary is decided by
   [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
   and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md);
-  no implementation slice or successor is selected.
+  no process ↔ physical realization implementation slice or successor is
+  selected.
 - **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
   semantic round-trip contract is published in
   [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md).
@@ -185,8 +211,9 @@ governs what may be built now.
 Concrete examples:
 
 - the simulation stage does not justify simulator interfaces now
-- the Engineering Editor MVP direction does not justify GUI implementation,
-  dependencies, or frontend structure before its scoped executable slice
+- GUI implementation, frontend structure, and dependencies are authorized only
+  within the explicit scope of Issue #75, the currently selected executable
+  slice; Issue #75 does not authorize broader Engineering Editor infrastructure
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
 - the physical-piping realization question and the separate process ↔ physical
