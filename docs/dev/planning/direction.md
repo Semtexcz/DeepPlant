@@ -83,8 +83,9 @@ stage: the **physical-piping realization** question — decided at the
 canonical-model level by ADR-0011 and now implemented by Issue #26 / PR #27 as
 `Connection.id` plus `PipingModel` → `PipingLine` → `PipingSegment` →
 `PipingRealization` with C1 and P1–P5 — and the **process ↔ physical
-realization** mapping (`ProcessStep` ↔ equipment, `ProcessStream` ↔ piping
-realization), whose shape and cardinality are still unresolved. The fragment
+realization** mapping (`ProcessStep` ↔ equipment, `ProcessStream` ↔ physical
+route), whose ownership boundary is decided by ADR-0016 while its implementation
+shape and cardinality rules remain unimplemented. The fragment
 exposed both but required neither — no new schema was needed to represent it,
 and the piping layer had not yet been implemented. Still unimplemented in that
 layer: mid-`Connection` property breaks, `1:N` realizations, canonical
@@ -112,8 +113,9 @@ distinct from `Connection`:
   realizations, canonical pipe/piece identity, `PipingComponent`,
   `Nozzle`/`PipingNode` refinement, instrumentation, and DEXPI Plant/P&ID
   import/export remain unimplemented
-- process ↔ physical realization: `ProcessStep` ↔ equipment and `ProcessStream`
-  ↔ piping realization, including the mapping's shape and cardinality
+- process ↔ physical realization implementation: `ProcessStep` ↔ equipment and
+  `ProcessStream` ↔ physical route; ADR-0016 decides the ownership boundary, while
+  the schema and cardinality rules remain unimplemented
 - equipment nozzles
 - instrumentation connectivity
 - utilities
@@ -142,8 +144,9 @@ Stages 3 and 4.** It does not require all engineering-view capability to be
 completed before interactive editing begins: the MVP is limited to a local-first
 interactive subset of PFD and P&ID. Issue #68 completed its product boundary;
 Issue #69 now owns the UI/UX definition, and neither authorizes prebuilding GUI
-architecture. The selected smallest executable slice follows only after Issues
-#39, #69, and #70 have produced their evidence and decisions.
+architecture. Issue #39 has since delivered its process ↔ physical realization
+boundary evidence and ADR-0016; the selected smallest executable slice follows
+only after that evidence, #69, and #70 have been re-evaluated.
 
 ### Stage 5 — Git-native Engineering Workflow
 

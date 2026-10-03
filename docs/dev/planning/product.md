@@ -117,9 +117,11 @@ PFD and P&ID are not independent drawing documents. They are views over distinct
 but related semantic layers: `ProcessModel` for the PFD, and the physical plant
 and piping model for the P&ID. `ProcessStep` is not `Equipment`,
 `ProcessStream` is not physical piping realization, and `ProcessPort` is not a
-physical `Port`/`Nozzle`. Issue #39 owns the evidence-first decision about how
-those layers are explicitly related; it must precede a stable PFD ↔ P&ID
-realization workflow but does not block a pure Process/PFD UI slice.
+physical `Port`/`Nozzle`. Issue #39 delivered the evidence-first decision about how
+those layers are related: ADR-0016 decides that any future relationship is owned
+in a separate cross-layer realization layer, but no mapping is implemented. That
+boundary must precede a stable PFD ↔ P&ID realization workflow while still not
+blocking a pure Process/PFD UI slice.
 
 ### Source-of-truth interaction direction
 

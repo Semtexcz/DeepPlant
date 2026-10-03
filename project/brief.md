@@ -136,8 +136,8 @@ YAML editing for its core workflow, and no GUI implementation exists yet.
   numbering, qualified quantities, insulation, tracing, slope, and test circuits.
 - Simulation, 3D, complete DEXPI and other vendor adapters, HAZOP/SIS, cloud
   hosting, authentication, databases, collaboration, and all EPC disciplines.
-- A stable process ↔ physical realization mapping: Issue #39 remains the
-  evidence-first decision for that boundary.
+- An implemented process ↔ physical realization mapping: ADR-0016 decides the
+  future cross-layer ownership boundary, but no schema or runtime mapping exists.
 
 ## Success Criteria
 

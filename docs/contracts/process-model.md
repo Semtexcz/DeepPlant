@@ -42,7 +42,7 @@ container, and the S1–S4 validation boundary. It does not own:
 - the physical/plant layer ([plant-model.md](plant-model.md));
 - piping realization ([physical-piping.md](physical-piping.md));
 - symbol roles, packs, layout, or any presentation concept (ADR-0009);
-- any process ↔ physical mapping (unresolved; see below).
+- any process ↔ physical mapping (ownership is decided by [ADR-0016](../dev/decisions/ADR-0016-process-physical-realization-boundary.md), but no mapping is implemented; see below).
 
 ## Objects
 
@@ -136,12 +136,14 @@ seven streams, including recycle, mixing, and splitting).
 ## Deliberately not modelled
 
 Process ↔ physical realization (`ProcessStep` ↔ `Equipment`,
-`ProcessStream` ↔ piping realization, `ProcessPort` ↔ `Port`) is unresolved and
-has no field. Qualified engineering quantities (value + unit), material or
-energy stream data, a second step-classification axis, a step hierarchy, and a
-process-stream numbering standard are all unimplemented. Each requires its own
-evidence and Issue; ADR-0009, ADR-0011, and ADR-0012 record the unanswered
-questions and their revisit conditions.
+`ProcessStream` ↔ physical route, `ProcessPort` ↔ `Port`) has no implemented
+field. [ADR-0016](../dev/decisions/ADR-0016-process-physical-realization-boundary.md)
+decides that any future relationship is owned in a separate cross-layer
+realization layer; it does not define its schema. Qualified engineering quantities
+(value + unit), material or energy stream data, a second step-classification axis,
+a step hierarchy, and a process-stream numbering standard are all unimplemented.
+Each requires its own evidence and Issue; ADR-0009, ADR-0011, ADR-0012, and
+ADR-0016 record the relevant boundaries and revisit conditions.
 
 ## Related
 
@@ -151,6 +153,7 @@ questions and their revisit conditions.
 - [ADR-0005](../dev/decisions/ADR-0005-process-model-container.md),
   [ADR-0006](../dev/decisions/ADR-0006-process-model-root-integration.md),
   [ADR-0009](../dev/decisions/ADR-0009-separate-process-function-from-symbol-role.md),
-  [ADR-0012](../dev/decisions/ADR-0012-process-step-single-classification-axis.md).
+  [ADR-0012](../dev/decisions/ADR-0012-process-step-single-classification-axis.md),
+  [ADR-0016](../dev/decisions/ADR-0016-process-physical-realization-boundary.md).
 - [process-fragment-prototype.md](../dev/research/process-fragment-prototype.md) — the
   evidence/prototype that validated these concepts.
