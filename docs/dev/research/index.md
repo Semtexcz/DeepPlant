@@ -65,6 +65,12 @@ boundaries, instrumentation/signals, and presentation/graphics.
 |---|---|---|---|
 | [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39), since delivered; quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../planning/roadmap.md) (Issue #39 delivered; successor re-evaluated there) |
 
+## Engineering editor UX evidence
+
+| Document | Question investigated | Outcome | Operationalized by |
+|---|---|---|---|
+| [engineering-editor-ux.md](engineering-editor-ux.md) | How should an engineer interact with the DeepPlant Engineering Editor MVP v0.1, so the first GUI slice does not invent fundamental UX behaviour while the semantic model stays authoritative? | Interaction architecture: canvas-dominant minimum permanent chrome; one command direction; four separated state kinds; engineering-concept explorer; PFD/P&ID as editor views; cardinality-neutral related-object navigation; shared command surface for direct manipulation/palette/Copilot; Copilot placeholder deferred; MVP/later/not-now UX matrix; #70 keeps library selection | none yet (no GUI implemented); informs [roadmap.md](../planning/roadmap.md) and Issue #70 |
+
 ## Reuse, standards, and asset evidence
 
 | Document | Question investigated | Outcome | Operationalized by |
