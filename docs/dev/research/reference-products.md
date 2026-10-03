@@ -293,17 +293,48 @@ at that revision before anything else.
 The projects below are candidates for future evaluation, not selections. Nothing
 here may be introduced as a dependency by this document.
 
+> This document records candidate facts and evidence only. DeepPlant-specific
+> `SELECT` / `REJECT` / `DEFER` outcomes for the Engineering Editor are owned by
+> [engineering-editor-reuse-architecture.md](engineering-editor-reuse-architecture.md).
+
 | Project | Purpose | License | Possible DeepPlant use | Architectural boundary | Strengths | Risks / limitations | Status |
 |---|---|---|---|---|---|---|---|
-| Vue Flow | Vue 3 node/flowchart component: pan, zoom, drag, selection, minimap, graph/state utilities | MIT | Interactive graph surface for a future editor view | Framework node/edge state stays replaceable and non-canonical | Complete interaction vocabulary, active project | Vue commitment; generic flowchart semantics do not encode P&ID behaviour | candidate |
+| Vue Flow | Vue 3 node/flowchart component: pan, zoom, drag, selection, handles, minimap, graph/state utilities | MIT | Credible interactive canvas candidate for a future editor view | Framework node/edge state stays replaceable and non-canonical; controlled mode (`applyDefault=false`) lets DeepPlant own truth | Complete interaction vocabulary (custom nodes/edges, handles, connection validation, controlled state), active project | Vue commitment; generic flowchart semantics do not encode P&ID behaviour; core pulls D3 sub-packages and `@vueuse/core` ^10 | evaluated canvas candidate |
 | React Flow (xyflow) | React and Svelte node-editor libraries | MIT | Comparison baseline, or graph surface in a React stack | Same boundary; application state stays outside the domain model | Very mature ecosystem, strong documentation | Framework lock-in; graph state ownership must be designed | candidate |
-| ELK / elkjs | Automatic graph layout; port-aware layered layout plus routing infrastructure | Needs review: upstream repository licence metadata reports `NOASSERTION`; ELK is an Eclipse project whose exact licence text must be confirmed at the pinned revision | Layout and routing evaluation against a real engineering fragment | Consumes a projection; positions and routes are presentation-only | Purpose-built for node-link diagrams with ports and direction | Layout-only (no rendering); incremental layout and packaging need testing | needs review |
+| ELK / elkjs | Automatic graph layout; port-aware layered layout plus routing infrastructure | `EPL-2.0 OR GPL-3.0-or-later` (dual; licence file confirmed 2026-10-03) | Layout and routing evaluation against a real engineering fragment | Consumes a projection; positions and routes are presentation-only | Purpose-built for node-link diagrams with ports and direction | Layout-only (no rendering); incremental layout and packaging need testing | evaluated layout/routing candidate |
 | Konva | Canvas 2D scene graph with events, drag/drop, transforms, export | MIT | Low-level canvas interaction and rendering substrate | Owns transient scene state only | Flexible, widely used, performance-oriented | DeepPlant still owns editor semantics, routing, widgets, accessibility | candidate |
 | Fabric.js | Canvas library with SVG-to-canvas and canvas-to-SVG parsing | MIT | Comparison for object manipulation and SVG interop | Object serialization must never become engineering persistence | Rich object model, SVG interop | Application-owned semantics remain DeepPlant's responsibility | candidate |
 | Paper.js | Vector graphics scripting framework | MIT | Comparison for vector geometry manipulation | Geometry only; not a model or shell | Strong vector geometry primitives | No engineering or workspace concepts | candidate |
+| AntV X6 | HTML/SVG graph-editing engine with custom nodes, ports, lasso/box selection, minimap, history | MIT | Credible canvas alternative | Framework-agnostic engine; must stay behind a DeepPlant adapter | Professional graph-editing feature set, active project | Framework-agnostic (more Vue bridging), larger dependency set (`lodash-es`, `mousetrap`, `dom-align`) | evaluated canvas candidate |
+| Cytoscape.js | Graph-theory and visualisation library (stylesheets, layouts, selection, viewport) | MIT | Credible topology/visualisation candidate; weaker fit for schematic port-based editing | Stylesheet/port model is a poor fit for engineering connection points | Dependency-free, mature, huge layout ecosystem | Graph-analysis orientation, not schematic-symbol editing | evaluated topology/visualisation candidate |
 
 Any evaluation must start from a concrete evidence need, and each candidate must
 be assessed for data ownership, replaceability, and licence fit before adoption.
+
+## GUI platform and UI-primitive candidates
+
+These are reusable **platform and primitive** candidates for the Engineering Editor
+(Issue #70). They complement the graph/editor table above. Facts were checked on
+**2026-10-03** from package metadata and licence files; they are a snapshot, not a
+standing fact.
+
+| Project | Role | Code licence | Latest inspected version | Notes / adoption surface |
+|---|---|---|---|---|
+| Vue 3 | SPA framework | MIT | 3.5.43 | First-class TypeScript; product-foundation direction |
+| Vite | Build tooling | MIT | 8.3.2 | Vue + TypeScript template; dev server + production bundler |
+| Vue Flow (`@vue-flow/core`) | Engineering canvas | MIT | 1.48.2 | Peer `vue` ^3.3.0; deps D3 sub-packages + `@vueuse/core` ^10.5.0 (a different major from Reka UI's VueUse) |
+| Reka UI (`reka-ui`) | Accessible UI primitives | MIT | 2.10.5 | Peer `vue` >=3.4.0; `sideEffects: false`; unstyled; deps include Floating UI, TanStack Virtual, internationalised date/number, VueUse |
+| shadcn-vue | Component source-distribution layer | MIT | (source repo; CLI-distributed) | Not a runtime library; requires Tailwind CSS, path aliases, copied component source, and `@lucide/vue` icons; composes Reka UI |
+| Dockview (`dockview-vue`) | Docking/workspace manager | MIT (used packages); enterprise package commercial | 8.4.0 | Peer `vue` ^3.4.0; dep `dockview` ^8.4.0 (zero-runtime-dependency core); enterprise superset not needed |
+| Monaco Editor | Browser code/text editor | MIT | 0.57.0 | Large build; worker + HTTP(S)-origin requirement; no mobile support; own `ThirdPartyNotices.txt` |
+| elkjs | Automatic graph layout / routing | `EPL-2.0 OR GPL-3.0-or-later` | 0.12.0 | No runtime deps; browser (main-thread/worker) bundle; layout-only |
+| Pinia | Vue store | MIT | 4.0.3 | Peer `vue` ^3.5.11; a frontend store is not the engineering state owner |
+| VueUse (`@vueuse/core`) | Composition utilities | MIT | 15.0.0 | Peer `vue` ^3.5.0; individual composables only; not a state architecture |
+
+**Asset note:** none of these libraries provides DeepPlant engineering symbols. The
+only symbol asset remains DeepPlant's own `basic` pack under AGPL-3.0-only.
+`@lucide/vue` icons (only if shadcn-vue is adopted) and Monaco's bundled
+assets/fonts would each require separate provenance review.
 
 ## External engineering tools and simulation
 
@@ -446,7 +477,9 @@ anything.
 ## Research basis
 
 Licence and capability claims above were checked against upstream sources on
-**2026-09-30**. Primary sources consulted:
+**2026-09-30** (reference products and IDE/engineering tools) and on **2026-10-03**
+(GUI platform, canvas, UI-primitive, docking, editor, and layout candidates).
+Primary sources consulted:
 
 - [microsoft/vscode](https://github.com/microsoft/vscode) — `LICENSE.txt` (MIT).
 - [eclipse-theia/theia](https://github.com/eclipse-theia/theia) — `README.md`
@@ -471,8 +504,9 @@ Licence and capability claims above were checked against upstream sources on
   (MIT).
 - [xyflow/xyflow](https://github.com/xyflow/xyflow) — `LICENSE` (MIT).
 - [kieler/elkjs](https://github.com/kieler/elkjs) and
-  [eclipse-elk/elk](https://github.com/eclipse-elk/elk) — metadata
-  `NOASSERTION`; licence text not yet confirmed.
+  [eclipse-elk/elk](https://github.com/eclipse-elk/elk) — `LICENSE.md` is the
+  Eclipse Public License v 2.0, published on npm as
+  `EPL-2.0 OR GPL-3.0-or-later` (dual licence; confirmed 2026-10-03).
 - [konvajs/konva](https://github.com/konvajs/konva) — `LICENSE` (MIT).
 - [fabricjs/fabric.js](https://github.com/fabricjs/fabric.js) — `LICENSE`
   (MIT).
@@ -482,8 +516,34 @@ Licence and capability claims above were checked against upstream sources on
   (GPL-3.0); repository reported `archived`.
 
 Where repository licence metadata and the licence file disagree (Konva,
-Paper.js, ELK, `intellij-community`), the pinned licence text governs and must be
-read directly.
+Paper.js, `intellij-community`), the pinned licence text governs and must be read
+directly.
+
+Additional primary sources checked on **2026-10-03** for the GUI platform,
+canvas, UI-primitive, docking, editor, and layout candidates:
+
+- npm registry metadata for `vue`, `vite`, `@vue-flow/core`, `reka-ui`,
+  `@antv/x6`, `cytoscape`, `dockview-vue`, `monaco-editor`, `elkjs`, `pinia`, and
+  `@vueuse/core` — version, `license`, `dependencies`, and `peerDependencies`.
+- [bcakmakoglu/vue-flow](https://github.com/bcakmakoglu/vue-flow) — `LICENSE`
+  (MIT; © webkid GmbH / Burak Cakmakoglu); official docs (vueflow.dev) for
+  custom nodes/edges, handles/connection validation (`ValidConnectionFunc`),
+  selection, controlled flow, and events.
+- [unovue/reka-ui](https://github.com/unovue/reka-ui) — `LICENSE` (MIT); official
+  docs for accessibility/headless model and controlled/uncontrolled usage.
+- [unovue/shadcn-vue](https://github.com/unovue/shadcn-vue) — `LICENSE` (MIT);
+  official installation docs (Tailwind CSS, CLI-copied components) and Command
+  component docs.
+- [antvis/X6](https://github.com/antvis/X6) — `LICENSE` (MIT).
+- [cytoscape/cytoscape.js](https://github.com/cytoscape/cytoscape.js) — `LICENSE`
+  (MIT).
+- [dockview/dockview](https://github.com/dockview/dockview) — `LICENCE.md`
+  (MIT for the used packages; `dockview-enterprise` separately commercial).
+- [microsoft/monaco-editor](https://github.com/microsoft/monaco-editor) —
+  `LICENSE.txt` (MIT) plus `ThirdPartyNotices.txt`.
+- [eclipse.dev/elk](https://eclipse.dev/elk/) and
+  [kieler/elkjs](https://github.com/kieler/elkjs) — ELK graph/port/routing model
+  and the browser integration.
 
 ## Unresolved questions
 

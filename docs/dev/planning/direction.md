@@ -143,10 +143,11 @@ GUI framework may dictate the domain model.
 Stages 3 and 4.** It does not require all engineering-view capability to be
 completed before interactive editing begins: the MVP is limited to a local-first
 interactive subset of PFD and P&ID. Issue #68 completed its product boundary;
-Issue #69 now owns the UI/UX definition, and neither authorizes prebuilding GUI
-architecture. Issue #39 has since delivered its process ↔ physical realization
-boundary evidence and ADR-0016; the selected smallest executable slice follows
-only after that evidence, #69, and #70 have been re-evaluated.
+Issue #69 delivered the UI/UX interaction architecture and Issue #70 delivered the
+reuse-first frontend architecture; none authorizes prebuilding GUI architecture.
+Issue #39 delivered its process ↔ physical realization boundary evidence and
+ADR-0016. With #39, #69, and #70 complete, the smallest executable slice is
+selected at the roadmap re-evaluation gate.
 
 ### Stage 5 — Git-native Engineering Workflow
 

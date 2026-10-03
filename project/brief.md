@@ -51,8 +51,12 @@ boundary map, not by this brief:
 **Engineering Editor MVP v0.1** is the current product initiative: a local-first,
 standalone browser SPA launched locally that lets process and piping engineers
 interactively author a bounded PFD and P&ID subset while the semantic model
-remains authoritative. The exact UI/UX and reuse-first GUI architecture are the
-focused work of Issues #69 and #70; this does not mean a GUI is implemented.
+remains authoritative. The UI/UX interaction architecture (Issue #69,
+[docs/dev/research/engineering-editor-ux.md](../docs/dev/research/engineering-editor-ux.md))
+and the reuse-first frontend architecture (Issue #70,
+[docs/dev/research/engineering-editor-reuse-architecture.md](../docs/dev/research/engineering-editor-reuse-architecture.md))
+are delivered as evidence/design; the GUI is not implemented, and the first
+executable slice is selected at the roadmap re-evaluation gate.
 
 ### Deferred / out-of-scope capabilities
 
