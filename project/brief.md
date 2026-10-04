@@ -60,8 +60,10 @@ and the reuse-first frontend architecture (Issue #70,
 are delivered as evidence/design. The first executable slice (Issue #75) is
 delivered: a read-only Process/PFD editor over the existing Python semantic core,
 launched with `deepplant ui <path>`. Semantic editing, presentation persistence,
-and P&ID authoring remain unimplemented; the next slice is decided at the
-roadmap re-evaluation gate.
+and P&ID authoring remain unimplemented. The post-#82 roadmap re-evaluation gate
+selected the DeepPlant project format and portable package (Issue #89) as the
+sole next product capability, so persistence semantics are decided before the
+first write-capable editor slice.
 
 ### Deferred / out-of-scope capabilities
 

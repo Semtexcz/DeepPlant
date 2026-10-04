@@ -74,12 +74,14 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   product path: the production SPA build, the real `deepplant ui --port 0` CLI
   over loopback FastAPI/Uvicorn, and real pointer interaction in the browser.
 
-Not implemented: semantic editing and any semantic mutation command, presentation
-persistence, undo/redo, P&ID rendering and physical/P&ID symbols, full DEXPI and
-Plant/P&ID import/export, other vendor adapters (COMOS, AVEVA), instrumentation
-and signal semantics, engineering rules, and the process ↔ physical realization
-mapping. The authoritative boundary map, including
-directional-but-unimplemented components, is [architecture.md](../architecture/index.md).
+Not implemented: a DeepPlant project format (canonical project directory,
+manifest, or portable `.deepplant` package); semantic editing and any semantic
+mutation command; presentation persistence; undo/redo; P&ID rendering and
+physical/P&ID symbols; full DEXPI and Plant/P&ID import/export; other vendor
+adapters (COMOS, AVEVA); instrumentation and signal semantics; engineering rules;
+and the process ↔ physical realization mapping. The authoritative boundary map,
+including directional-but-unimplemented components, is
+[architecture.md](../architecture/index.md).
 
 ## Completed
 
@@ -91,8 +93,12 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- **Re-evaluate the next product capability.** The Engineering Editor
-  quality-hardening sequence is complete:
+- **#89 — Define the DeepPlant project format and portable package.** The
+  post-#82 re-evaluation gate is executed (see
+  [Re-evaluation Gate](#re-evaluation-gate)) and selects exactly one product
+  capability: define what a DeepPlant project *is* — its canonical persistent
+  representation, its project-format version, and its portable package — before
+  the first write-capable editor slice defines persistence semantics by accident.
 
   ```text
   #75 read-only Process/PFD slice delivered
@@ -105,48 +111,71 @@ evidence-heavy slices, in the linked spike/decision documents.
           ↓
   #82 browser end-to-end tests                           (delivered)
           ↓
-  re-evaluate the next product capability    ← open gate; no successor selected
+  re-evaluation after #82                                (executed → #89)
+          ↓
+  #89 project format + portable package                  ← selected product Now
   ```
 
-  No successor is selected. No semantic-editing, presentation-persistence, P&ID,
-  or process ↔ physical realization slice is promoted. The evidence now available
-  and the re-evaluation criteria are in **Next**.
+  Issue:
+  [#89 — Define the DeepPlant project format and portable package](https://github.com/Semtexcz/DeepPlant/issues/89).
+
+  #89 is one umbrella capability, not one mandatory PR. Its first executable
+  slice is deliberately smaller than its full acceptance criteria; the
+  recommended implementation boundary is recorded in the
+  [Re-evaluation Gate](#re-evaluation-gate) section. Semantic editing and any
+  semantic mutation command, Save/persistence beyond that contract, presentation
+  persistence, P&ID, the process ↔ physical realization mapping, release
+  automation, and desktop packaging remain unauthorized.
+
+  This selection is a **product capability**. It is deliberately not a serial
+  chain over the other open Issues; the small independent work items below are
+  neither part of the product selection nor hard prerequisites of #89:
+
+  ```text
+  Product Now
+  -----------
+  #89 project format + portable package
+
+  Independent / maintenance backlog (not a serial chain)
+  -----------
+  #77 product philosophy            (governance / documentation)
+  #84 Python engineering standards  (developer-quality maintenance)
+  #88 release / version automation  (release infrastructure)
+
+  Strategic later capability
+  -----------
+  #85 standalone Core boundary / editor distribution
+  ```
 
 ### Next
 
-- **Unselected.** The next product capability is deliberately not chosen yet;
-  select it from the evidence #75–#82 produced, using the criteria below. Do not
-  mechanically promote a backlog row.
+- **Re-evaluate after #89.** No successor product capability is selected. Do not
+  preselect one and do not mechanically promote a backlog row; re-evaluate once
+  #89 delivers the project/persistence contract, using the evidence that slice
+  produces.
 
-  Evidence now available to decide from:
+  Candidate evidence inputs (not commitments):
 
   ```text
-  Python semantic / application boundary             ✓
-  FastAPI transport boundary                         ✓
-  production Vue SPA                                 ✓
-  Vue Flow integration                               ✓
-  real browser interaction                           ✓
-  critical semantic selection workflow               ✓
-  semantic validity != projectability (in browser)   ✓
+  first semantic mutation
+  save / persistence
+  presentation state persistence
+  release / version automation
+  standalone packaging
+  P&ID
+  process ↔ physical realization
   ```
-
-  Candidate capabilities remain evidence inputs, not commitments: semantic
-  editing, presentation persistence, presentation-quality work,
-  packaging/distribution, P&ID, and the process ↔ physical realization mapping.
 
   Re-evaluation criteria include:
 
-  - whether the projection/view boundary is strong enough to authorize the first
-    semantic-editing slice;
-  - whether the first mutation slice needs the minimum application-command
-    machinery Issue #69 describes, and where undo/redo belongs;
-  - whether presentation state (positions, per-step overrides) now needs its own
-    explicit, non-semantic home;
-  - what the editor's packaging story must be, given the SPA assets are still
-    read from the checkout.
-
-  The re-evaluation outcome is deliberately not decided here, and no successor
-  Issue is created.
+  - whether the project contract is strong enough to authorize the first
+    semantic-mutation + Save slice;
+  - where the minimum application-command machinery Issue #69 describes belongs,
+    and where undo/redo belongs;
+  - whether presentation state (diagram positions, per-view overrides) now needs
+    a concrete persisted schema inside the project;
+  - what standalone packaging and release automation consume from the project,
+    Core, and release/version contracts.
 
 ### Re-evaluation Gate
 
@@ -189,9 +218,105 @@ as the next executable slice, followed by the dependency-ordered
 frontend-engineering work #80 → #81 → #82. #79, #80, #81 and #82 are now
 delivered, so the quality-hardening sequence is complete.
 
-The next re-evaluation gate is now **open** (it opened after #82). Its outcome is
-deliberately not decided here, and no successor Issue is created (see **Now** and
-**Next**).
+#### Re-evaluation after #82 (executed)
+
+The gate that opened after #82 is now executed. It selected exactly one product
+capability:
+
+[#89 — Define the DeepPlant project format and portable package](https://github.com/Semtexcz/DeepPlant/issues/89)
+
+Reasoning: the delivered editor (#75 → #79 → #80 → #81 → #82) proves the read
+path `load → semantic model → application/projection boundary → FastAPI →
+production SPA → Vue Flow → browser interaction`. The next meaningful product
+step is `user action → semantic mutation → validation → save/persistence`. That
+step must not define persistence semantics by accident: before the editor writes
+project state, DeepPlant needs an explicit answer to what a DeepPlant project is,
+what canonical persistent state is, where semantic and presentation state may
+live, how a project grows beyond one `plant.yaml`, and what Open/Save operate on.
+Deciding that contract explicitly and in the open also matches the open-format,
+interoperability, and Engineering-as-Code direction recorded in
+[VISION.md](../../../VISION.md) and in the product-philosophy direction of
+[Issue #77](https://github.com/Semtexcz/DeepPlant/issues/77).
+
+#89 preserves the existing invariants: the semantic model stays the authoritative
+engineering state, YAML stays serialization rather than the domain model, the
+project directory is the canonical editable representation, and a `.deepplant`
+package is only a portable ZIP-based representation of the same project — not a
+second internal model.
+
+Candidate classification (evidence-based; not issue number or recency):
+
+- **#89 project format + portable package — selected product Now.** Foundational
+  product contract: it defines the project/persistence boundary the first
+  mutation/save slice depends on.
+- **#77 product philosophy — not product Now.** Valuable independent
+  governance/documentation work and a decision framework; not a prerequisite for
+  #89 and not itself the next product capability.
+- **#84 Python engineering standards — not product Now.**
+  Engineering-maintenance / developer-quality work; useful before substantial new
+  Python persistence/package code, but it answers a developer-quality question
+  rather than a user/product one and does not block #89.
+- **#88 versioning / changelog / releases — not product Now.** Release
+  infrastructure; it becomes important before distributable artifacts but is not
+  a product capability.
+- **#85 Core boundary + standalone distribution — strategic later capability.**
+  Strategically important but broad and dependency-heavy; not the immediate
+  product Now, and likely needs its own later scoping.
+
+Dependencies supported by current evidence (not a fabricated serial chain):
+
+```text
+#89 (project contract)
+      ↓
+first semantic mutation + Save
+
+#88 (release / version contract)
+      ↓
+future release artifacts / installer publishing
+
+#85 (standalone distribution)
+      consumes later packaging:
+        existing Core boundary
+      + release / version contract
+      + packaging technology
+      + project / open / save semantics
+```
+
+#77 and #84 are **not** prerequisites of #89: no current evidence shows them
+blocking. Their independence from the product sequence is deliberate — see the
+maintenance/product split in **Now**.
+
+Unresolved boundary recorded by this gate: a DeepPlant project will eventually
+need to store presentation state (diagram positions, layout, per-view overrides,
+possibly multiple diagrams/views), but presentation state is **not** semantic
+engineering state. #89 must create a project-level place where such state can
+later live **without** forcing the exact presentation schema now. The first #89
+slice does not implement that schema.
+
+#### #89 first executable slice (recommended implementation boundary)
+
+#89 is one umbrella capability, not one mandatory PR, and its first
+implementation slice should be a vertical, testable subset rather than
+architecture-only scaffolding. Recommended first boundary, to be confirmed
+against the loader/model code at implementation time:
+
+```text
+project directory contract
++ minimal deepplant.yaml manifest
++ open/load a project directory
++ deterministic pack/unpack .deepplant
++ round-trip + archive-security tests
+```
+
+Deliberately excluded from the first slice: per-discipline schemas for every
+future capability, the exact presentation-state schema, and the full
+multi-document layout. This keeps the slice honest while preserving the #89
+invariants (filesystem structure is not semantic identity; the ZIP archive is not
+a new internal domain model; there is no GUI-only format and no hidden required
+database).
+
+No successor product capability after #89 is preselected, and no successor Issue
+is created by this gate (see **Now** and **Next**).
 
 ### Completed Context
 
@@ -327,6 +452,11 @@ deliberately not decided here, and no successor Issue is created (see **Now** an
   frontend-framework state; YAML remains serialization, not the domain model.
 - `Connection` is topology only; do not attach pipe/stream/signal engineering
   semantics until a real requirement justifies them.
+- #89 authorizes a project/persistence contract, not a new internal domain model.
+  Filesystem structure must not become semantic identity, the `.deepplant` ZIP
+  archive must not become a new internal model, no GUI-only project format and no
+  hidden required database may be introduced, and Open/Save semantics must not be
+  defined by the first mutation slice before the project contract exists.
 
 ## Directional Capability Roadmap
 
@@ -362,5 +492,9 @@ Concrete examples:
   realization question do not justify attaching pipe or process-stream semantics
   to `Connection` now — and the decided piping layer (ADR-0011) honours that by
   referencing identified connections instead of widening `Connection`
+- defining the project format (#89) does not authorize semantic editing,
+  Save/mutation, presentation persistence, a desktop shell, an installer, or
+  release automation; the first #89 slice is the smallest project/persistence
+  vertical slice, not the full project architecture
 
 Think broadly about the destination. Build narrowly in the current iteration.

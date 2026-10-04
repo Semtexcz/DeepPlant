@@ -92,10 +92,12 @@ stack. Its foundation was hardened by the explicitly sequenced slices
 [#79](roadmap.md) (application layout + FastAPI boundary) → #80 (frontend
 engineering contract) → #81 (frontend refactor) → #82 (browser E2E), all
 delivered. No semantic
-editing, presentation persistence, or P&ID authoring is implemented, and the next
-product capability is selected only now, at the open
-[re-evaluation gate](roadmap.md#re-evaluation-gate). Detailed view-projection rules
-remain deliberately undecided here.
+editing, presentation persistence, or P&ID authoring is implemented. The post-#82
+[re-evaluation gate](roadmap.md#re-evaluation-gate) selected
+[Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89) — the DeepPlant
+project format and portable package — as the sole next product capability, so
+persistence semantics are decided before the first write-capable editor slice.
+Detailed view-projection rules remain deliberately undecided here.
 
 ## Engineering Editor MVP v0.1
 

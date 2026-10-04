@@ -84,8 +84,10 @@ editor product behavior.
   `tsconfig.node.json`) so Node globals never reach production browser code.
 - **Canonical rule:** everything below is binding for new frontend work.
 - **Deferred:** none for the current frontend-engineering baseline; the #82
-  browser E2E slice is delivered and the next product capability is decided at
-  the [roadmap](../planning/roadmap.md) re-evaluation gate.
+  browser E2E slice is delivered. The [roadmap](../planning/roadmap.md) post-#82
+  re-evaluation gate selected the DeepPlant project format and portable package
+  ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) as the next
+  product capability.
 
 ## Frontend review checklist
 
