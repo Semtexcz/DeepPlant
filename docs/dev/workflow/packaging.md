@@ -133,11 +133,12 @@ Both packaging jobs verify the toolchain **before executing it**:
   them executable. A mismatch fails the job, so the tool never runs and no
   artifact is produced.
 - Windows installs the pinned Chocolatey package version with an explicit
-  `--version`, then confirms the installed version through Chocolatey **and** by
-  asking the resolved `ISCC.exe` for its own version (`ISCC --version`). That
-  exact compiler path is exported as `ISCC`, so the compiler that builds the
-  installer is the verified one. A missing or different version fails the job;
-  there is no fallback to another installed Inno Setup.
+  `--version`, then confirms the installed version through Chocolatey **and** from
+  the resolved `ISCC.exe` itself — its `VERSIONINFO` resource, with the Inno Setup
+  uninstall entry as a fallback, because Inno Setup 6.7.1 has no `--version`
+  option. That exact compiler path is exported as `ISCC`, so the compiler that
+  builds the installer is the verified one. A missing or different version fails
+  the job; there is no fallback to another installed Inno Setup.
 
 Both jobs print the pinned release identity, the verified digest, and the tool's
 own reported version, so the CI log shows which toolchain produced the uploaded

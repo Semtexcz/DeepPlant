@@ -153,39 +153,67 @@ jobs:
         run: |
           $expected = $env:INNO_SETUP_VERSION
 
-          # The requested package version must be the installed one. Chocolatey
-          # records it, so a silent fallback to another installed version fails.
+          # 1. Chocolatey's own record of the installed package version. This is
+          #    what "the requested version was installed" means, so a silent
+          #    fallback to another installed Inno Setup cannot pass.
           $record = choco list --local-only --exact innosetup --limit-output |
             Where-Object { $_ -match '^innosetup\|' } | Select-Object -First 1
           if (-not $record) {
             throw "Chocolatey does not report an installed 'innosetup' package."
           }
-          $installed = ($record -split '\|', 2)[1].Trim()
-          Write-Host "Chocolatey innosetup package version: $installed"
-          if ($installed -ne $expected) {
-            throw "Inno Setup version mismatch: requested $expected, Chocolatey reports '$installed'."
+          $packageVersion = ($record -split '\|', 2)[1].Trim()
+          Write-Host "Chocolatey innosetup package version: $packageVersion"
+          if ($packageVersion -ne $expected) {
+            throw "Inno Setup version mismatch: requested $expected, Chocolatey reports '$packageVersion'."
           }
 
-          # Resolve the compiler and record the version it reports itself. The
-          # resolved file is then pinned for the packaging driver through ISCC,
-          # so the compiler that built the installer is the verified one.
+          # 2. Resolve the compiler. The Inno Setup 6 install directory is
+          #    preferred over PATH, because a PATH entry may be a Chocolatey shim
+          #    rather than the compiler itself.
           $candidates = @()
-          $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
-          if ($command) { $candidates += $command.Source }
           $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
           if ($programFilesX86) { $candidates += Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe' }
           $candidates += Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'
+          $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          if ($command) { $candidates += $command.Source }
           $iscc = $candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
           if (-not $iscc) {
             throw "Inno Setup $expected was requested, but ISCC.exe was not found on this runner."
           }
-          $reported = (& $iscc --version | Out-String).Trim()
-          Write-Host "Inno Setup compiler:         $iscc"
-          Write-Host "Inno Setup compiler version: $reported"
-          $detected = [regex]::Match($reported, '\d+(\.\d+)+').Value
-          if (-not $detected.StartsWith($expected)) {
-            throw "ISCC reports '$reported', which does not match the pinned $expected."
+
+          # 3. The installed program version, from independent sources: the
+          #    compiler's own VERSIONINFO resource (Inno Setup 6.7.1 has no
+          #    `--version` option) and the Inno Setup 6 uninstall entry.
+          $info = (Get-Item $iscc).VersionInfo
+          $versionStrings = @($info.FileVersion, $info.ProductVersion)
+          $uninstallKeys = @(
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1',
+            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1'
+          )
+          foreach ($key in $uninstallKeys) {
+            if (Test-Path $key) {
+              $versionStrings += (Get-ItemProperty $key -ErrorAction SilentlyContinue).DisplayVersion
+            }
           }
+          $detected = $null
+          foreach ($value in $versionStrings) {
+            if (-not "$value") { continue }
+            $match = [regex]::Match("$value", '\d+(\.\d+)+')
+            if ($match.Success) { $detected = $match.Value; break }
+          }
+          Write-Host "Inno Setup compiler:             $iscc"
+          Write-Host "ISCC VERSIONINFO FileVersion:    $($info.FileVersion)"
+          Write-Host "ISCC VERSIONINFO ProductVersion: $($info.ProductVersion)"
+          Write-Host "Detected installed version:      $detected"
+
+          if (-not $detected) {
+            throw "Could not determine the Inno Setup version of '$iscc'; refusing to guess."
+          }
+          if (-not $detected.StartsWith($expected)) {
+            throw "Inno Setup version mismatch: expected $expected, detected '$detected' at '$iscc'."
+          }
+          Write-Host "Inno Setup $detected verified; the packaging driver will use exactly this compiler."
           "ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build, package and verify the standalone Editor
