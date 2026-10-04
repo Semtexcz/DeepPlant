@@ -88,8 +88,15 @@ editor product behavior.
   re-evaluation gate selected
   [Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85) — independent
   DeepPlant Core and standalone editor distribution — as the next product
-  capability. That selection is a product/application concern owned by the
-  roadmap and Issue #85; it does not change this frontend contract.
+  capability, and that capability is in progress. That selection is a
+  product/application concern owned by the roadmap and Issue #85; it does not
+  change this frontend contract.
+- **Host invariant:** DeepPlant has **one** engineering frontend implemented in
+  web technologies. The native desktop host
+  ([Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93)) and any future
+  web deployment are hosts of the same `apps/editor/` Vue SPA, not separate
+  frontend codebases. This contract applies unchanged to that host boundary; the
+  host is an application concern outside `apps/editor/`.
 
 ## Frontend review checklist
 

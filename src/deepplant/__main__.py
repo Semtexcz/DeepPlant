@@ -10,8 +10,13 @@ from typing import Annotated
 import typer
 
 from deepplant import __version__
-from deepplant.editor.api import DEFAULT_PORT, serve_editor
-from deepplant.editor.application import EditorSetupError, load_editor_application
+from deepplant.editor import DEFAULT_PORT
+from deepplant.editor.launcher import (
+    ASSETS_DIR_HELP,
+    SYMBOL_ROLE_HELP,
+    EditorLaunchError,
+    run_editor,
+)
 from deepplant.io import PlantLoadError, load_plant
 
 app = typer.Typer(
@@ -52,15 +57,7 @@ def ui(
     path: Path,
     symbol_role: Annotated[
         list[str] | None,
-        typer.Option(
-            "--symbol-role",
-            help=(
-                "Per-step presentation symbol role as STEP=ROLE (repeatable). "
-                "A presentation override only: it is never written to the model "
-                "or to YAML. The realistic fragment needs "
-                "'--symbol-role PS-vessel=vessel'."
-            ),
-        ),
+        typer.Option("--symbol-role", help=SYMBOL_ROLE_HELP),
     ] = None,
     port: Annotated[
         int,
@@ -68,39 +65,20 @@ def ui(
     ] = DEFAULT_PORT,
     assets_dir: Annotated[
         Path | None,
-        typer.Option(
-            "--assets-dir",
-            help="Directory with built editor assets. Defaults to ./apps/editor/dist.",
-        ),
+        typer.Option("--assets-dir", help=ASSETS_DIR_HELP),
     ] = None,
 ) -> None:
     """Launch the local read-only Engineering Editor for a plant model."""
     try:
-        overrides = _parse_symbol_role_overrides(symbol_role or [])
-    except ValueError as exc:
-        typer.echo(f"✗ {exc}", err=True)
-        raise typer.Exit(code=1) from exc
-    try:
-        application = load_editor_application(
+        run_editor(
             path,
-            symbol_role_overrides=overrides,
+            symbol_role_entries=symbol_role or [],
+            port=port,
             assets_dir=assets_dir,
         )
-    except (PlantLoadError, EditorSetupError) as exc:
+    except EditorLaunchError as exc:
         typer.echo(f"✗ {exc}", err=True)
         raise typer.Exit(code=1) from exc
-    serve_editor(application, port=port, echo=typer.echo)
-
-
-def _parse_symbol_role_overrides(entries: list[str]) -> dict[str, str]:
-    """Parse ``--symbol-role STEP=ROLE`` entries into a presentation mapping."""
-    overrides: dict[str, str] = {}
-    for entry in entries:
-        step_id, separator, role = entry.partition("=")
-        if not separator or not step_id.strip() or not role.strip():
-            raise ValueError(f"invalid --symbol-role {entry!r}: expected the form STEP=ROLE")
-        overrides[step_id.strip()] = role.strip()
-    return overrides
 
 
 def main() -> None:

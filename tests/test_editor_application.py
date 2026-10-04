@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from deepplant.editor import application as application_module
 from deepplant.editor.application import (
     EditorApplication,
     load_editor_application,
@@ -74,18 +75,58 @@ def test_load_editor_application_reports_a_missing_project(assets_dir: Path) -> 
         )
 
 
-def test_resolve_assets_dir_requires_a_built_editor_app(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_resolve_assets_dir_requires_a_built_editor_app(tmp_path: Path) -> None:
     empty = tmp_path / "empty"
     empty.mkdir()
-    monkeypatch.chdir(tmp_path)
 
     assert resolve_assets_dir(empty) is None
-    # No default checkout build is visible from this temporary working directory.
+
+    explicit = tmp_path / "explicit" / "dist"
+    explicit.mkdir(parents=True)
+    (explicit / "index.html").write_text("<!doctype html>", encoding="utf-8")
+    assert resolve_assets_dir(explicit) == explicit
+
+
+def test_resolve_assets_dir_prefers_the_spa_shipped_with_the_application(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A packaged application finds its own SPA and never needs a checkout.
+
+    This is the #85 ownership rule: the built frontend is an explicit resource
+    of the editor application, so resolution uses the packaged resource first
+    and the development checkout build only as a fallback.
+    """
+    packaged_root = tmp_path / "bundle" / "deepplant" / "editor"
+    packaged_spa = packaged_root / "dist"
+    packaged_spa.mkdir(parents=True)
+    (packaged_spa / "index.html").write_text("<!doctype html>", encoding="utf-8")
+
+    checkout_spa = tmp_path / "checkout" / "apps" / "editor" / "dist"
+    checkout_spa.mkdir(parents=True)
+    (checkout_spa / "index.html").write_text("<!doctype html>", encoding="utf-8")
+
+    def fake_files(package: str) -> Path:
+        return packaged_root
+
+    monkeypatch.setattr(application_module.resources, "files", fake_files)
+    monkeypatch.setattr(application_module, "_checkout_assets_dir", lambda: checkout_spa)
+
+    assert resolve_assets_dir(None) == packaged_spa
+
+
+def test_resolve_assets_dir_does_not_depend_on_the_working_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    checkout_spa = tmp_path / "checkout" / "apps" / "editor" / "dist"
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+
+    monkeypatch.setattr(application_module, "_packaged_assets_dir", lambda: None)
+    monkeypatch.setattr(application_module, "_checkout_assets_dir", lambda: checkout_spa)
+    monkeypatch.chdir(elsewhere)
+
     assert resolve_assets_dir(None) is None
 
-    default_dir = tmp_path / "apps" / "editor" / "dist"
-    default_dir.mkdir(parents=True)
-    (default_dir / "index.html").write_text("<!doctype html>", encoding="utf-8")
-    assert resolve_assets_dir(None) == default_dir
+    checkout_spa.mkdir(parents=True)
+    (checkout_spa / "index.html").write_text("<!doctype html>", encoding="utf-8")
+    assert resolve_assets_dir(None) == checkout_spa

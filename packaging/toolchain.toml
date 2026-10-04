@@ -1,0 +1,45 @@
+# External native packaging toolchain (Issue #85 review fix).
+#
+# Python build dependencies are locked in uv.lock. The native tools that turn the
+# frozen application into a user-facing artifact are NOT Python packages, so they
+# cannot live in that lock. This file is the single reviewed source of truth for
+# their exact version, immutable upstream URL, and expected SHA-256:
+#
+#   uv.lock                 -> the Python dependency graph
+#   packaging/toolchain.toml -> the pinned external native build tools
+#
+# It is consumed by .github/workflows/ci.yml (through tools/packaging_toolchain.py)
+# and documented in docs/dev/workflow/packaging.md. Both packaging jobs download
+# and integrity-check these exact artifacts before any tool executes, so the same
+# DeepPlant revision always declares the same packaging toolchain inputs.
+#
+# The `version` below must equal the release tag segment of `url`: that rule
+# forbids mutable locators (continuous / latest / master / main) and is enforced
+# by tools/packaging_toolchain.py and tests/test_packaging_toolchain.py.
+schema_version = 1
+
+[appimagetool]
+# The AppImage assembly tool. Its executable is not distributed with DeepPlant.
+version = "1.9.1"
+architecture = "x86_64"
+url = "https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage"
+sha256 = "ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0"
+licence = "MIT"
+
+[appimage_runtime]
+# The AppImage type-2 runtime embedded INTO the generated .AppImage. appimagetool
+# would otherwise download whatever the mutable `continuous` release serves at
+# build time, so the runtime is pinned and checksum-verified here as well.
+version = "20251108"
+architecture = "x86_64"
+url = "https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64"
+sha256 = "2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d"
+licence = "MIT"
+
+[inno_setup]
+# The Windows installer compiler, installed from the Chocolatey community feed
+# and pinned to one exact package version (= the Inno Setup release). Its
+# compiler executable is not distributed with DeepPlant.
+chocolatey_package = "innosetup"
+version = "6.7.1"
+licence = "Inno Setup License (free to use, including commercially)"

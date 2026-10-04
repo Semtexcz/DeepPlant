@@ -65,6 +65,9 @@ jobs:
       - name: Verify wheel runtime resources
         run: python tools/verify_wheel_contents.py dist/deepplant-*.whl
 
+      - name: Verify the base installation keeps the Core independent
+        run: uv run python tools/verify_base_install.py dist/deepplant-*.whl
+
 
   frontend-e2e:
     # Real-browser system gate: production SPA build + real `deepplant ui` CLI +
@@ -109,4 +112,249 @@ jobs:
             apps/editor/playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+
+  editor-package-windows:
+    # Native Windows distribution gate (Issue #85): build the standalone Editor
+    # on the OS it targets, produce a real installer, and verify the installed
+    # application outside the repository. Kept out of `check` because packaging
+    # is slow and platform-specific.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack for the pinned frontend package manager
+        run: corepack enable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install build dependencies
+        run: uv sync --group package
+
+      - name: Read the pinned packaging toolchain
+        run: python tools/packaging_toolchain.py export
+
+      - name: Install the pinned Inno Setup (build-time tool only)
+        shell: pwsh
+        run: |
+          choco install innosetup --version $env:INNO_SETUP_VERSION --no-progress -y
+
+      - name: Verify the pinned Inno Setup installation
+        shell: pwsh
+        run: |
+          $expected = $env:INNO_SETUP_VERSION
+
+          # 1. Chocolatey's own record of the installed package version. This is
+          #    what "the requested version was installed" means, so a silent
+          #    fallback to another installed Inno Setup cannot pass.
+          $record = choco list --local-only --exact innosetup --limit-output |
+            Where-Object { $_ -match '^innosetup\|' } | Select-Object -First 1
+          if (-not $record) {
+            throw "Chocolatey does not report an installed 'innosetup' package."
+          }
+          $packageVersion = ($record -split '\|', 2)[1].Trim()
+          Write-Host "Chocolatey innosetup package version: $packageVersion"
+          if ($packageVersion -ne $expected) {
+            throw "Inno Setup version mismatch: requested $expected, Chocolatey reports '$packageVersion'."
+          }
+
+          # 2. Resolve the compiler. The Inno Setup 6 install directory is
+          #    preferred over PATH, because a PATH entry may be a Chocolatey shim
+          #    rather than the compiler itself.
+          $candidates = @()
+          $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+          if ($programFilesX86) { $candidates += Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe' }
+          $candidates += Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'
+          $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          if ($command) { $candidates += $command.Source }
+          $iscc = $candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+          if (-not $iscc) {
+            throw "Inno Setup $expected was requested, but ISCC.exe was not found on this runner."
+          }
+
+          # 3. ISCC.exe cannot report its own version: its VERSIONINFO resource is
+          #    deliberately 0.0.0.0 and Inno Setup 6.7.1 has no `--version`
+          #    option. The version that actually built the artifact is asserted
+          #    from ISCC's own compiler-engine banner immediately after the build,
+          #    before anything is uploaded.
+          Write-Host "Inno Setup compiler: $iscc"
+          "ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Build, package and verify the standalone Editor
+        shell: pwsh
+        run: |
+          uv run --group package python tools/package_editor.py all *>&1 | Tee-Object -FilePath packaging.log
+
+      - name: Verify the compiler engine version ISCC reported
+        shell: pwsh
+        run: |
+          $expected = $env:INNO_SETUP_VERSION
+
+          # ISCC prints "Compiler engine version: <title> <version>" when it
+          # compiles, so the packaging log records the version of the compiler
+          # engine that actually built this installer.
+          $line = (Select-String -Path packaging.log -Pattern 'Compiler engine version:' |
+            Select-Object -First 1).Line
+          if (-not $line) {
+            throw "ISCC did not report a 'Compiler engine version:' line while building the installer."
+          }
+          Write-Host "ISCC reported: $line"
+          $detected = [regex]::Match($line, '\d+(\.\d+)+').Value
+          if ($detected -ne $expected) {
+            throw "Inno Setup version mismatch: expected $expected, ISCC reported '$detected'."
+          }
+          Write-Host "Inno Setup $detected was the compiler engine that built this installer."
+
+      - name: Write artifact checksum
+        shell: pwsh
+        run: |
+          Get-ChildItem dist/editor/*.exe | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" |
+              Set-Content -Path "$($_.FullName).sha256" -Encoding ascii
+          }
+
+      - name: Upload packaging log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-package-windows-log
+          path: |
+            packaging.log
+            build/editor-package/**/*.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Windows Editor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepplant-editor-windows
+          path: |
+            dist/editor/*.exe
+            dist/editor/*.exe.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+
+  editor-package-linux:
+    # Native Linux distribution gate (Issue #85): AppImage built and verified on
+    # Linux, plus one real-browser workflow against the packaged application
+    # rather than the source CLI.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack for the pinned frontend package manager
+        run: corepack enable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install build dependencies
+        run: uv sync --group package
+
+      - name: Read the pinned packaging toolchain
+        run: python tools/packaging_toolchain.py export
+
+      - name: Install pinned, integrity-verified appimagetool and AppImage runtime
+        run: |
+          set -euo pipefail
+          tool="$RUNNER_TEMP/appimagetool"
+          runtime="$RUNNER_TEMP/appimage-runtime"
+
+          # Immutable upstream artifacts, declared in
+          # packaging/toolchain.toml. The digest is checked before either file
+          # is made executable, so a mismatch aborts the job here and no
+          # artifact can be produced with an unexpected toolchain.
+          curl -fsSL -o "$tool" "$APPIMAGETOOL_URL"
+          echo "$APPIMAGETOOL_SHA256  $tool" | sha256sum --check -
+
+          curl -fsSL -o "$runtime" "$APPIMAGE_RUNTIME_URL"
+          echo "$APPIMAGE_RUNTIME_SHA256  $runtime" | sha256sum --check -
+
+          chmod +x "$tool" "$runtime"
+
+          echo "appimagetool release:             $APPIMAGETOOL_VERSION"
+          echo "appimagetool sha256 verified:     $APPIMAGETOOL_SHA256"
+          echo "AppImage runtime release:         $APPIMAGE_RUNTIME_VERSION"
+          echo "AppImage runtime sha256 verified: $APPIMAGE_RUNTIME_SHA256"
+          "$tool" --version
+
+          echo "APPIMAGETOOL=$tool" >> "$GITHUB_ENV"
+          echo "APPIMAGE_RUNTIME=$runtime" >> "$GITHUB_ENV"
+
+      - name: Build, package and verify the standalone Editor
+        run: |
+          uv run --group package python tools/package_editor.py all 2>&1 | tee packaging.log
+
+      - name: Write artifact checksum
+        run: |
+          cd dist/editor
+          for artifact in *.AppImage; do
+            sha256sum "$artifact" > "$artifact.sha256"
+          done
+
+      - name: Install Chromium for the packaged-application E2E
+        run: cd apps/editor && pnpm exec playwright install --with-deps chromium
+
+      - name: Prepare the packaged application outside the repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/editor-e2e/model"
+          cp examples/realistic-process-fragment/plant.yaml \
+            "$RUNNER_TEMP/editor-e2e/model/plant.yaml"
+          uv run --group package python tools/package_editor.py extract \
+            --extract-to "$RUNNER_TEMP/editor-e2e/install"
+          echo "DEEPLANT_EDITOR_EXECUTABLE=$RUNNER_TEMP/editor-e2e/install/squashfs-root/AppRun" >> "$GITHUB_ENV"
+          echo "DEEPLANT_EDITOR_PROJECT=$RUNNER_TEMP/editor-e2e/model/plant.yaml" >> "$GITHUB_ENV"
+
+      - name: Run the browser E2E against the packaged application
+        run: |
+          cd apps/editor
+          pnpm run e2e
+
+      - name: Upload packaged-application E2E failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-packaged-e2e-failure-artifacts
+          path: |
+            apps/editor/test-results/
+            apps/editor/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload packaging log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-package-linux-log
+          path: packaging.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Linux Editor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepplant-editor-linux
+          path: |
+            dist/editor/*.AppImage
+            dist/editor/*.AppImage.sha256
+          retention-days: 14
+          if-no-files-found: error
 

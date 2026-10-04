@@ -58,15 +58,24 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 | Process/PFD view projection | `src/deepplant/editor/projection.py` | [contracts/rendering.md](../../contracts/rendering.md) |
 | Editor application (framework-independent) | `src/deepplant/editor/application.py` | this document (local-only) |
+| Editor application entry point | `src/deepplant/editor/launcher.py` | this document (shared with the CLI, browser-optional) |
 | Editor FastAPI/Uvicorn transport | `src/deepplant/editor/api.py` | this document (local-only, transport-thin) |
 | Editor SPA (standalone application) | `apps/editor/` | this document (Vue 3 + TypeScript + Vite + Vue Flow) |
+| Standalone Editor packaging | `tools/package_editor.py`, `packaging/windows/` | [workflow/packaging.md](../workflow/packaging.md) |
 
 Runtime and toolchain:
 
 - Python >= 3.12, managed with `uv`.
-- Runtime dependencies: Typer (CLI), Pydantic v2, PyYAML, and — for the local
-  editor only — FastAPI and Uvicorn. The DEXPI adapter and the rest of the core
-  use only the standard library plus those declared dependencies.
+- Base runtime dependencies: Typer (CLI), Pydantic v2, PyYAML. FastAPI and Uvicorn
+  are an explicit installation extra, `deepplant[editor]` (mirrored as a uv
+  dependency group), so the semantic Core and the ordinary CLI stay installable
+  and importable without the editor transport (Issue #85). The DEXPI adapter and
+  the rest of the core use only the standard library plus the base dependencies.
+- Build-only tooling for the standalone application: PyInstaller (dependency
+  group `package`), plus Inno Setup on Windows and `appimagetool` on Linux. None
+  of it is a runtime dependency of the installed application. The non-Python
+  tools are pinned and integrity-checked through `packaging/toolchain.toml` (see
+  [workflow/packaging.md](../workflow/packaging.md)).
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict), and `httpx2` for the
   FastAPI/Starlette test client.
 - Editor SPA toolchain (`apps/editor/`, ephemeral build output): Vue 3,
@@ -214,9 +223,11 @@ standalone, pinned Vite application with its own dependency graph, while
   `EditorApplication`, and map the result to a response. The `api.py` →
   `application.py` direction is one-way. It binds to loopback only and makes no
   production or server-security claim.
-- **Launch and failures.** `deepplant ui <path>` loads the project through the
-  ordinary DeepPlant loader and serves the built editor application from
-  `apps/editor/dist` (or `--assets-dir`). A successful `load_plant` is the
+- **Launch and failures.** `deepplant ui <path>` and the standalone application
+  entry point `deepplant-editor <path>` share one launch path (`run_editor`) and
+  serve the built editor application from the assets the application carries,
+  from an explicit `--assets-dir`, or from the source-checkout build. A
+  successful `load_plant` is the
   semantic validation
   boundary. If the Process/PFD projection or its presentation role resolution
   fails, the local JSON route returns a separate view error (currently HTTP 422)
@@ -252,10 +263,33 @@ save, undo/redo, presentation persistence, P&ID rendering, physical/P&ID
 symbols, the ADR-0016 mapping, an automatic layout engine, a plugin system, and
 an application-command architecture.
 
-Known limitation: the built editor assets are read from the checkout
-(`apps/editor/dist`); bundling them into the Python wheel is not done in this
-slice. A checkout run is a complete user path (`make frontend-build`, then
-`deepplant ui <path>`); wheel packaging of the SPA assets remains a future step.
+Known limitation: none for frontend asset ownership any more. The built SPA is an
+explicit resource of the standalone Editor application: the packaging stage maps
+it into the frozen bundle at `deepplant/editor/dist` and the editor application
+resolves it through `importlib.resources` before falling back to the
+source-checkout build. The base Python wheel deliberately never contains it. See
+[workflow/packaging.md](../workflow/packaging.md) and
+[research/standalone-editor-distribution.md](../research/standalone-editor-distribution.md).
+
+**Current host vs target host.** The delivered distribution foundation still runs
+the SPA in the user's external browser: the packaged executable starts the local
+FastAPI/Uvicorn server and opens the system browser. That is the
+distribution-foundation UX, not the final standalone desktop UX.
+[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) adds the native
+desktop host over the unchanged `EditorApplication`/transport/frontend boundary:
+
+```text
+current distribution foundation
+packaged executable → local FastAPI/Uvicorn → external browser
+
+target completion of #85 (native desktop host, #93)
+packaged executable → native desktop host → embedded shared Vue SPA
+```
+
+DeepPlant has **one** engineering frontend implemented in web technologies: the
+desktop host and any future web deployment are hosts of the same `apps/editor/`
+Vue SPA, not separate frontend codebases. The host boundary is owned by #93 and is
+not implemented here.
 
 ## Not implemented (directional only)
 

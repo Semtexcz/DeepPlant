@@ -195,11 +195,21 @@ def test_ui_loads_the_project_through_the_python_core(
 ) -> None:
     captured: dict[str, object] = {}
 
-    def fake_serve(application: object, *, port: int, echo: object) -> None:
+    def fake_serve(
+        application: object,
+        *,
+        host: str = "",
+        port: int,
+        echo: object,
+        on_listening: object = None,
+    ) -> None:
         captured["application"] = application
         captured["port"] = port
 
-    monkeypatch.setattr("deepplant.__main__.serve_editor", fake_serve)
+    # ``deepplant ui`` and ``deepplant-editor`` share one launch path, so the
+    # transport seam now lives with the transport it fakes. The assertion below
+    # is unchanged: the CLI must still load the project through the Python Core.
+    monkeypatch.setattr("deepplant.editor.api.serve_editor", fake_serve)
 
     result = runner.invoke(
         app,
@@ -222,3 +232,28 @@ def test_ui_loads_the_project_through_the_python_core(
     assert len(application.model.process.steps) == 7
     assert application.symbol_role_overrides == {"PS-vessel": "vessel"}
     assert captured["port"] == 0
+
+
+def test_ui_does_not_open_a_browser(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The developer CLI keeps its documented behavior: no browser auto-open."""
+    captured: dict[str, object] = {}
+
+    def fake_serve(
+        application: object,
+        *,
+        host: str = "",
+        port: int,
+        echo: object,
+        on_listening: object = None,
+    ) -> None:
+        captured["on_listening"] = on_listening
+
+    monkeypatch.setattr("deepplant.editor.api.serve_editor", fake_serve)
+
+    result = runner.invoke(
+        app,
+        ["ui", str(REALISTIC_EXAMPLE), "--assets-dir", str(_built_editor_app(tmp_path))],
+    )
+
+    assert result.exit_code == 0
+    assert captured["on_listening"] is None

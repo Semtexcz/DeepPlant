@@ -24,8 +24,9 @@ view only; it never recasts a semantically valid model as invalid.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
 
 from deepplant.editor.projection import (
@@ -46,6 +47,12 @@ __all__ = [
     "load_editor_application",
     "resolve_assets_dir",
 ]
+
+#: Directory name holding the built SPA inside the application bundle.
+PACKAGED_SPA_DIRNAME: str = "dist"
+
+#: Path from the repository root to the development SPA build.
+_CHECKOUT_SPA_PARTS: tuple[str, ...] = ("apps", "editor", "dist")
 
 
 class EditorSetupError(Exception):
@@ -128,13 +135,63 @@ class EditorApplication:
 def resolve_assets_dir(explicit: Path | None) -> Path | None:
     """Return the directory holding the built editor assets, or ``None``.
 
-    Resolution order: an explicit ``--assets-dir`` path, otherwise the checkout's
-    ``apps/editor/dist`` relative to the current directory. A directory only
-    counts when it actually contains ``index.html``, so a missing build is
-    reported honestly instead of serving an empty canvas.
+    Resolution order:
+
+    1. an explicit ``--assets-dir`` path (development and testing);
+    2. the SPA shipped inside the application bundle
+       (``deepplant/editor/dist``), which the standalone packaging stage maps
+       into the frozen application and which the base Python wheel never
+       carries;
+    3. the development checkout build, resolved from this module's location
+       rather than the current working directory.
+
+    A candidate only counts when it actually contains ``index.html``, so a
+    missing build is reported honestly instead of serving an empty canvas. No
+    candidate depends on the process working directory, so a packaged
+    application never falls back to a checkout by accident.
     """
-    candidate = explicit if explicit is not None else Path.cwd() / "apps" / "editor" / "dist"
-    return candidate if (candidate / "index.html").is_file() else None
+    for candidate in _asset_dir_candidates(explicit):
+        if (candidate / "index.html").is_file():
+            return candidate
+    return None
+
+
+def _asset_dir_candidates(explicit: Path | None) -> Iterator[Path]:
+    """Yield built-SPA candidates in resolution order."""
+    if explicit is not None:
+        yield explicit
+        return
+    packaged = _packaged_assets_dir()
+    if packaged is not None:
+        yield packaged
+    yield _checkout_assets_dir()
+
+
+def _packaged_assets_dir() -> Path | None:
+    """Return the SPA carried by the application itself, or ``None``.
+
+    The assets are held as a package resource, using the same
+    ``importlib.resources`` mechanism as the canonical symbol pack, so the
+    application never names a packaging tool and works from a frozen bundle the
+    same way it works from an installed distribution. Only a real filesystem
+    directory can back static file serving.
+    """
+    candidate = resources.files("deepplant.editor").joinpath(PACKAGED_SPA_DIRNAME)
+    if isinstance(candidate, Path) and candidate.is_dir():
+        return candidate
+    return None
+
+
+def _checkout_assets_dir() -> Path:
+    """Return the source-checkout SPA build path, derived from this module.
+
+    The path is computed from the installed module's own location, so an
+    ordinary source run finds ``apps/editor/dist`` no matter which directory it
+    was started from. In an installed wheel the derived path simply does not
+    exist.
+    """
+    # .../src/deepplant/editor/application.py -> repository root
+    return Path(__file__).resolve().parents[3].joinpath(*_CHECKOUT_SPA_PARTS)
 
 
 def load_editor_application(
@@ -155,9 +212,10 @@ def load_editor_application(
     resolved_assets = resolve_assets_dir(assets_dir)
     if resolved_assets is None:
         raise EditorSetupError(
-            "editor frontend assets were not found; build them first with "
-            "`make frontend-build` (or `cd apps/editor && pnpm build`), or pass "
-            "an explicit --assets-dir"
+            "editor frontend assets were not found; in a source checkout build them "
+            "first with `make frontend-build` (or `cd apps/editor && pnpm build`), "
+            "otherwise pass an explicit --assets-dir. A standalone DeepPlant Editor "
+            "application always carries them."
         )
     return EditorApplication(
         project_path=Path(project_path),

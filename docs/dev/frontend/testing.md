@@ -71,6 +71,13 @@ so it is the slowest and most expensive layer. It exists to prove that the whole
 local product path works together, not to re-assert behaviour the unit,
 component, and integration layers already cover.
 
+The same two specs run against either launcher: the developer `deepplant ui`
+command (source run) or the packaged standalone application (Issue #85). The
+choice is one environment variable in `e2e/support/editor-server.ts`
+(`DEEPLANT_EDITOR_EXECUTABLE`, plus `DEEPLANT_EDITOR_PROJECT` for a model outside
+the checkout). Feature specs stay packaging-agnostic; see
+[workflow/packaging.md](../workflow/packaging.md).
+
 ## Ownership of each layer
 
 - **#80** documented the pyramid.
@@ -216,10 +223,10 @@ uv run deepplant ui \
 ```
 
 - `e2e/support/editor-server.ts` spawns that command with the repository root as
-  the Python process `cwd`. `deepplant ui` resolves its default built-SPA assets
-  as `./apps/editor/dist` relative to the working directory, so the launcher sets
-  the `cwd` deliberately instead of relying on whatever directory Playwright
-  happens to use.
+  the Python process `cwd`, because `uv run` discovers the project from there.
+  Asset resolution no longer depends on the working directory (Issue #85): the
+  editor application resolves the packaged SPA resource first and the
+  source-checkout build from its own module location.
 - `--port 0` lets the OS pick a free port, so the suite never depends on port
   `8765` being unused and never collides in CI. Port allocation stays owned by
   the CLI; the helper only parses the URL the CLI prints.

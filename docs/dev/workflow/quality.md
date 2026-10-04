@@ -47,6 +47,18 @@ superseded_by: null
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
   `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
   are prerequisites of `make check`.
+- Standalone Editor packaging runs through `python tools/package_editor.py` (or
+  `make package-editor`): production SPA build, freeze, platform package, and a
+  packaged-artifact smoke test. It is deliberately **not** part of `check`,
+  because it is slow and platform-specific. It runs in CI as the native
+  `editor-package-windows` and `editor-package-linux` jobs, which install and
+  integrity-check the pinned external toolchain
+  (`packaging/toolchain.toml`) before building. Ownership and debugging are
+  canonical in [workflow/packaging.md](packaging.md).
+- Base-installation independence verification runs through
+  `python tools/verify_base_install.py <wheel>` in the `check` job: it installs
+  the base wheel into clean environments and proves the semantic Core works
+  without the editor transport while the editor extra still provides it.
 - The template repository has a separate full release-candidate gate across
   every generated profile and workflow.
 

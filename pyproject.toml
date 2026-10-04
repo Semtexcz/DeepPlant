@@ -6,19 +6,37 @@ license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi>=0.115",
-
   "pydantic>=2.11",
 
   "pyyaml>=6.0.2",
 
   "typer>=0.16.0",
 
+]
+
+# The editor HTTP transport is the only part of DeepPlant that needs FastAPI and
+# Uvicorn. They are an explicit extra so the semantic Core and the ordinary CLI
+# stay installable and usable without an editor transport (Issue #85). The
+# standalone Editor distribution always contains them; `deepplant ui` and
+# `deepplant-editor` report a supported installation instead of an ImportError
+# traceback when the extra is absent.
+[project.optional-dependencies]
+editor = [
+  "fastapi>=0.115",
   "uvicorn>=0.34",
 ]
 
 [dependency-groups]
+# ``editor`` is repeated as a group (not only as an extra) because uv installs
+# dependency groups for a source checkout, while ``deepplant[editor]`` is the
+# end-user/PyPI spelling of the same requirement set. Keep the two in step.
+editor = [
+  "fastapi>=0.115",
+  "uvicorn>=0.34",
+]
+
 dev = [
+  { include-group = "editor" },
   "httpx2>=2",
   "pytest>=8.3",
 
@@ -28,11 +46,16 @@ dev = [
 
 ]
 
-
+# Build-only: assembles the standalone Editor distribution. Never a runtime
+# dependency of the installed application (see docs/dev/workflow/packaging.md).
+package = [
+  "pyinstaller>=6.16",
+]
 
 
 [project.scripts]
 deepplant = "deepplant.__main__:main"
+deepplant-editor = "deepplant.editor.launcher:main"
 
 
 [build-system]
@@ -41,6 +64,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/deepplant"]
+# The built SPA is owned by the standalone Editor packaging stage, which maps it
+# into the frozen application bundle. It is deliberately never part of the base
+# Python wheel, even if a developer has staged a copy in the source tree.
+exclude = ["/src/deepplant/editor/dist"]
 
 
 [tool.pytest.ini_options]

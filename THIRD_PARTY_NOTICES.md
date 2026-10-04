@@ -131,6 +131,42 @@ Cypress, Storybook, Testing Library, a visual-regression service, a browser-test
 abstraction layer, or video recording. No mock server, Vite dev/preview E2E path,
 or Page Object framework was introduced.
 
+## Standalone Editor packaging tooling (Issue #85)
+
+Issue #85 made the Engineering Editor distributable as a standalone Windows/Linux
+application. It added the following **build-time-only** tooling. None of it is a
+runtime dependency of the installed Python package, and the base Python wheel
+still bundles no JavaScript and no built SPA.
+
+The non-Python tools are pinned — version, immutable upstream URL, SHA-256 — in
+[`packaging/toolchain.toml`](packaging/toolchain.toml), and CI verifies them
+before they run; see
+[`docs/dev/workflow/packaging.md`](docs/dev/workflow/packaging.md). The
+distinction below matters: a *build tool executable* is not distributed with
+DeepPlant, but the artifact that tool generates can still contain upstream
+runtime/bootstrap components.
+
+| Dependency | Pinned input | Licence | Contributes | Distributed with DeepPlant? |
+|---|---|---|---|---|
+| `pyinstaller` | `uv.lock` (dependency group `package`) | GPL-2.0-or-later **with a special exception** that permits using PyInstaller to build and distribute applications under any licence, without an attribution requirement, as long as the bundled dependencies' own licences are respected | Freezes the Editor (bundled CPython, the DeepPlant package, its runtime dependencies, the canonical SVG symbols, and the built SPA) into a self-contained onedir application | Yes — PyInstaller's bootloader code is part of the frozen launcher; the exception permits that without an attribution requirement |
+| `Inno Setup` (`ISCC.exe`) | Chocolatey package `innosetup`, pinned version | Inno Setup License: free to use, including commercially; binary redistributions must retain the existing copyright notices and web site addresses; an acknowledgment in product documentation is appreciated but not required | Compiles the Windows installer the end user downloads | **The `ISCC.exe` compiler executable is not distributed with DeepPlant.** The generated setup `.exe` does contain Inno Setup installer/runtime components and stays subject to the applicable Inno Setup terms — including the copyright notices and web site addresses Inno Setup embeds in what it produces |
+| `appimagetool` | immutable upstream release, pinned with SHA-256 | MIT (AppImage project) | Assembles the Linux AppImage from the plain AppDir layout the packaging driver creates | **The `appimagetool` build executable is not distributed with DeepPlant** |
+| AppImage type-2 runtime | immutable upstream release, pinned with SHA-256 | MIT (AppImage project, `AppImage/type2-runtime`); the statically linked runtime additionally contains musl libc, libfuse (LGPL-2.0), squashfuse, libzstd, and zlib, as listed in its upstream `LICENSE` | The bootstrap executable of a type-2 AppImage; it is passed to `appimagetool` with `--runtime-file` and prepended to the AppDir | Yes — every generated `.AppImage` contains it. The runtime binary is redistributed unmodified and carries its own upstream licence/notice text, and the same licence is recorded here |
+
+The frozen artifacts also contain the project's own runtime dependencies
+(FastAPI, Starlette, Uvicorn, Pydantic, Pydantic-Core, PyYAML, Typer, Click,
+Rich, Pygments, `typing-extensions`, `annotated-doc`, `shellingham`,
+`h11`/`httptools`/`uvloop` where applicable) under their own licences (MIT,
+BSD-3-Clause, Apache-2.0 family) plus the CPython runtime (PSF-2.0). They were
+already declared project dependencies; freeze tooling changed only how they are
+distributed.
+
+Deliberately **not** added: Nuitka, Briefcase, Electron, Tauri, PySide/PyQt, or
+any desktop webview runtime, and no browser engine is redistributed. The
+standalone Editor uses the end user's own browser. The decision record and the
+measured comparison are in
+[`docs/dev/research/standalone-editor-distribution.md`](docs/dev/research/standalone-editor-distribution.md).
+
 ## Standards, vendors, and unresolved boundaries
 
 The repository contains project-authored standards summaries and references;
