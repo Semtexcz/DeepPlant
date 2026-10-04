@@ -671,7 +671,15 @@ def run_host(
         if report_path is not None:
             _stage_log(report_path, "host: window shown, entering the event loop")
 
-        return int(qt_application.exec())
+        exit_code = int(qt_application.exec())
+        if report_path is not None:
+            _stage_log(report_path, f"host: event loop returned {exit_code}")
+        # Terminate the process directly. Qt WebEngine keeps global state that can
+        # block interpreter shutdown even when no page was ever created, and a
+        # desktop application whose window has closed must not linger: the
+        # requirement is that closing the window ends the application and the
+        # helpers it owns, not that Python's finalizers happen to run.
+        os._exit(exit_code)
     except BaseException as exc:
         # A failure while the Qt application already exists must still be bounded
         # and reported: tearing a half-constructed Qt application down at

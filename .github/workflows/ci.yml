@@ -443,6 +443,10 @@ jobs:
             echo "--- diagnostics ---"
             echo "window manager: $(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null)"
             echo "openbox: $(pgrep -a openbox || echo none)"
+            echo "remaining application processes:"
+            pgrep -af deepplant-editor || echo "  none"
+            echo "remaining web engine helpers:"
+            pgrep -af QtWebEngineProcess || echo "  none"
             echo "remaining windows:"
             xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
               echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
