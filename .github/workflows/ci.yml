@@ -356,8 +356,9 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/editor-window"
           launcher="$(uv run --group package --group desktop python tools/package_editor.py extract \
-            --extract-to "$RUNNER_TEMP/editor-window/install")"
+            --extract-to "$RUNNER_TEMP/editor-window/install" | tail -n 1)"
           echo "packaged launcher: $launcher"
+          test -x "$launcher"
 
           # Launch exactly as an end user does: with NO model argument. This must
           # open a graphical window, never demand a path or print help.

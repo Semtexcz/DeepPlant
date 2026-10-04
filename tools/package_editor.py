@@ -100,8 +100,13 @@ class PackagingError(RuntimeError):
 
 
 def log(message: str) -> None:
-    """Print one packaging diagnostic line, unbuffered enough for CI logs."""
-    print(f"[package-editor] {message}", flush=True)
+    """Print one packaging diagnostic line, unbuffered enough for CI logs.
+
+    Diagnostics go to **stderr** so that a phase whose machine-readable result is
+    printed to stdout (``extract`` prints the launcher path) can be consumed by a
+    shell substitution. CI captures both streams, so nothing is lost.
+    """
+    print(f"[package-editor] {message}", file=sys.stderr, flush=True)
 
 
 def run(
