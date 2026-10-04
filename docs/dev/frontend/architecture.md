@@ -72,6 +72,16 @@ apps/editor/src/
     └── vue-flow-adapter.ts        canvas integration: the only Node/Edge graph shapes
 ```
 
+`apps/editor/src/` contains production application code only. Automated frontend
+tests and their fixtures live under `apps/editor/tests/` (their structure is
+documented in [testing.md](testing.md)); fixtures are test-owned and are never
+imported by production source.
+
+> **Canonical rule:** production application code lives under
+> `apps/editor/src/`. Automated frontend tests live under `apps/editor/tests/`;
+> test fixtures are test-owned and must not live in, or be imported by,
+> production source code.
+
 The rule is:
 
 > Cohesion and clear ownership matter more than matching a prescribed directory

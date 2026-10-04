@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { fetchProjection, PROJECTION_ROUTE, symbolUrl } from './api'
-import { ProjectionContractError } from './projection-contract'
-import { PROJECTION_FIXTURE } from './test-fixtures'
+import { fetchProjection, PROJECTION_ROUTE, symbolUrl } from '../../../src/process-pfd/api'
+import { ProjectionContractError } from '../../../src/process-pfd/projection-contract'
+import { PROJECTION_FIXTURE } from '../../fixtures/process-pfd'
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {

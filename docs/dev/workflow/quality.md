@@ -24,10 +24,10 @@ superseded_by: null
 - Type checking runs through `make typecheck`.
 - Tests run through `make test`.
 - Frontend lint runs through `make frontend-lint`: ESLint (flat config in
-  `apps/editor/eslint.config.js`) over the editor source and the frontend
-  configuration. It enforces Vue/TypeScript correctness, the explicit-`any` ban,
-  and the hard size/cohesion limits from
-  [frontend/architecture.md](../frontend/architecture.md).
+  `apps/editor/eslint.config.js`) over the editor source (`src/**`), the automated
+  tests and their fixtures (`tests/**`), and the frontend configuration. It
+  enforces Vue/TypeScript correctness, the explicit-`any` ban, and the hard
+  size/cohesion limits from [frontend/architecture.md](../frontend/architecture.md).
 - Frontend checks run through `make frontend-check`: dependency install from the
   committed lockfile, `frontend-lint`, `vue-tsc` type checking, Vitest (pure unit
   plus Vue component and feature-integration suites), and a production build.

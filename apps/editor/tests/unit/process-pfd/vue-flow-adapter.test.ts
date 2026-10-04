@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { MIX_STEP, PROJECTION_FIXTURE, PUMP_DISCHARGE_STREAM, PUMP_STEP, SYMBOL_SIZE } from './test-fixtures'
+import {
+  MIX_STEP,
+  PROJECTION_FIXTURE,
+  PUMP_DISCHARGE_STREAM,
+  PUMP_STEP,
+  SYMBOL_SIZE,
+} from '../../fixtures/process-pfd'
 import {
   DEEPLANT_STEP_NODE_TYPE,
   deepPlantIdOf,
@@ -10,7 +16,7 @@ import {
   toProcessPfdView,
   toVueFlowEdge,
   toVueFlowNode,
-} from './vue-flow-adapter'
+} from '../../../src/process-pfd/vue-flow-adapter'
 
 /** Framework-only concepts that must never appear on a DeepPlant DTO. */
 const FRAMEWORK_ONLY_KEYS = [

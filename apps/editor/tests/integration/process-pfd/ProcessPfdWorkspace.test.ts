@@ -3,9 +3,9 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, type PropType } from 'vue'
 
-import ProcessPfdWorkspace from './ProcessPfdWorkspace.vue'
-import type { ProcessPfdProjectionDto } from './dto'
-import { PROJECTION_FIXTURE } from './test-fixtures'
+import ProcessPfdWorkspace from '../../../src/process-pfd/ProcessPfdWorkspace.vue'
+import type { ProcessPfdProjectionDto } from '../../../src/process-pfd/dto'
+import { PROJECTION_FIXTURE } from '../../fixtures/process-pfd'
 
 /**
  * Feature integration test for the Process/PFD workspace.

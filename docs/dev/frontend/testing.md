@@ -57,7 +57,11 @@ For example the current workspace chain:
 projection → workspace → selection → Inspector
 ```
 
-Prove the chain works with real modules, without a browser.
+Prove the chain works with real modules, without a browser. The current
+`ProcessPfdWorkspace.test.ts` replaces only the two unavoidable boundaries — the
+network (`fetch`) and a canvas integration double — while the transport, the
+contract narrowing, the feature state, selection, the Inspector and the
+validation/error behaviour stay real.
 
 ### Browser E2E
 
@@ -72,34 +76,72 @@ this layer deliberately tiny.
 - **#82** owns browser end-to-end tests (Playwright). No E2E tooling is added
   here.
 
+## Test root and layout (implemented)
+
+Production application code lives under `apps/editor/src/`. Automated frontend
+tests live under `apps/editor/tests/`; test fixtures are test-owned and must not
+live in, or be imported by, production source code. Vitest discovers tests only
+under that single canonical root (`include: ['tests/**/*.test.ts']` in
+`apps/editor/vite.config.ts`), and `vue-tsc` type checks it together with `src/`
+(one frontend tsconfig includes `tests/**/*.ts`).
+
+The directory structure makes the test pyramid visible, and every layer keeps its
+feature identity below the layer:
+
+```text
+apps/editor/
+├── src/                         production application architecture
+│   └── process-pfd/
+└── tests/                       verification architecture
+    ├── unit/                    pure tests (Node environment, DOM-free)
+    │   └── process-pfd/
+    ├── component/               Vue component tests (happy-dom)
+    │   └── process-pfd/
+    ├── integration/             feature-level integration tests (happy-dom)
+    │   └── process-pfd/
+    └── fixtures/                test-owned fixture data (never imported by src/)
+```
+
+Do not flatten feature tests into generic buckets: feature ownership stays
+visible below each layer (`unit/process-pfd/`, `component/process-pfd/`,
+`integration/process-pfd/`).
+
 ## Current state (implemented)
 
 Seven Vitest suites, all offline and independent of a running DeepPlant server.
 
-Pure unit (**Node** environment — the default in `apps/editor/vite.config.ts`):
+Pure unit — `tests/unit/process-pfd/` (**Node** environment, the default in
+`apps/editor/vite.config.ts`):
 
 | Suite | Covers |
 |---|---|
-| `process-pfd/projection-contract.test.ts` | transport payload narrowing and contract errors |
-| `process-pfd/api.test.ts` | projection transport, boundary failures, symbol asset URL |
-| `process-pfd/inspector-model.test.ts` | selection → Inspector mapping |
-| `process-pfd/vue-flow-adapter.test.ts` | DTO → Vue Flow adapter, identity separation, identity narrowing |
+| `api.test.ts` | projection transport, boundary failures, symbol asset URL |
+| `projection-contract.test.ts` | transport payload narrowing and contract errors |
+| `inspector-model.test.ts` | selection → Inspector mapping |
+| `vue-flow-adapter.test.ts` | DTO → Vue Flow adapter, identity separation, identity narrowing |
 
-Vue component and feature integration (**DOM** environment):
+Vue component — `tests/component/process-pfd/` — and feature integration —
+`tests/integration/process-pfd/` (**DOM** environment):
 
 | Suite | Covers |
 |---|---|
-| `process-pfd/InspectorPanel.test.ts` | empty state, ProcessStep/ProcessStream semantic fields, Inspector landmark |
-| `process-pfd/ProcessNode.test.ts` | canonical symbol URL from `symbol_role`, semantic id/name, selected state, anchor-derived non-connectable handles |
-| `process-pfd/ProcessPfdWorkspace.test.ts` | loading, load success, step selection → Inspector, stream selection → Inspector, validation vs projection-error |
+| `InspectorPanel.test.ts` | empty state, ProcessStep/ProcessStream semantic fields, Inspector landmark |
+| `ProcessNode.test.ts` | canonical symbol URL from `symbol_role`, semantic id/name, selected state, anchor-derived non-connectable handles |
+| `ProcessPfdWorkspace.test.ts` | loading, load success, step selection → Inspector, stream selection → Inspector, validation vs projection-error |
 
-There is no browser layer yet; it is #82 work.
+The shared fixtures live in `tests/fixtures/process-pfd.ts` and are imported only
+by test suites.
+
+There is no browser layer yet; it is #82 work. #82 decides its own
+ownership/layout (`apps/editor/tests/e2e/` or `apps/editor/e2e/`) from the real
+server/browser lifecycle requirements; no `tests/e2e/` directory is reserved
+here.
 
 ## Environment convention
 
-The Vitest default environment stays `node`, so the pure suites keep running
-without a DOM. Component and feature-integration suites opt in per file with a
-docblock on the first line:
+The Vitest default environment stays `node`, so the pure suites under
+`tests/unit/` keep running without a DOM. Component and feature-integration
+suites opt in per file with a docblock on the first line:
 
 ```ts
 // @vitest-environment happy-dom

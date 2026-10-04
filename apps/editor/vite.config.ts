@@ -21,7 +21,11 @@ export default defineConfig({
     // Default environment stays `node` so the pure suites keep running without
     // a DOM. Component and feature-integration tests opt into the DOM with a
     // `@vitest-environment happy-dom` docblock (see docs/dev/frontend/testing.md).
+    //
+    // `tests/` is the single canonical frontend test root: production code lives
+    // under `src/`, verification code under `tests/` (see
+    // docs/dev/frontend/testing.md).
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['tests/**/*.test.ts'],
   },
 })

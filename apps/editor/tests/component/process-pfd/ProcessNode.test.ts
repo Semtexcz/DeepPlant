@@ -5,14 +5,14 @@ import { defineComponent, h, type PropType } from 'vue'
 
 import { Position, type NodeProps } from '@vue-flow/core'
 
-import ProcessNode from './ProcessNode.vue'
-import { SYMBOL_SIZE, PROJECTION_FIXTURE, PUMP_STEP } from './test-fixtures'
+import ProcessNode from '../../../src/process-pfd/ProcessNode.vue'
+import { SYMBOL_SIZE, PROJECTION_FIXTURE, PUMP_STEP } from '../../fixtures/process-pfd'
 import {
   DEEPLANT_STEP_NODE_TYPE,
   frameworkNodeId,
   stepHandleId,
   type DeepPlantNodeData,
-} from './vue-flow-adapter'
+} from '../../../src/process-pfd/vue-flow-adapter'
 
 /**
  * Minimal, test-local Vue Flow provider.
