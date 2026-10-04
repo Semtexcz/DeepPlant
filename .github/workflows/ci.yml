@@ -65,6 +65,9 @@ jobs:
       - name: Verify wheel runtime resources
         run: python tools/verify_wheel_contents.py dist/deepplant-*.whl
 
+      - name: Verify the base installation keeps the Core independent
+        run: uv run python tools/verify_base_install.py dist/deepplant-*.whl
+
 
   frontend-e2e:
     # Real-browser system gate: production SPA build + real `deepplant ui` CLI +
@@ -109,4 +112,160 @@ jobs:
             apps/editor/playwright-report/
           retention-days: 7
           if-no-files-found: ignore
+
+
+  editor-package-windows:
+    # Native Windows distribution gate (Issue #85): build the standalone Editor
+    # on the OS it targets, produce a real installer, and verify the installed
+    # application outside the repository. Kept out of `check` because packaging
+    # is slow and platform-specific.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack for the pinned frontend package manager
+        run: corepack enable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install build dependencies
+        run: uv sync --group package
+
+      - name: Install Inno Setup (build-time tool only)
+        run: choco install innosetup --no-progress -y
+
+      - name: Build, package and verify the standalone Editor
+        shell: pwsh
+        run: |
+          uv run --group package python tools/package_editor.py all *>&1 | Tee-Object -FilePath packaging.log
+
+      - name: Write artifact checksum
+        shell: pwsh
+        run: |
+          Get-ChildItem dist/editor/*.exe | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower())  $($_.Name)" |
+              Set-Content -Path "$($_.FullName).sha256" -Encoding ascii
+          }
+
+      - name: Upload packaging log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-package-windows-log
+          path: |
+            packaging.log
+            build/editor-package/**/*.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Windows Editor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepplant-editor-windows
+          path: |
+            dist/editor/*.exe
+            dist/editor/*.exe.sha256
+          retention-days: 14
+          if-no-files-found: error
+
+
+  editor-package-linux:
+    # Native Linux distribution gate (Issue #85): AppImage built and verified on
+    # Linux, plus one real-browser workflow against the packaged application
+    # rather than the source CLI.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack for the pinned frontend package manager
+        run: corepack enable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install build dependencies
+        run: uv sync --group package
+
+      - name: Install appimagetool (build-time tool only)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/appimagetool" \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x "$RUNNER_TEMP/appimagetool"
+          echo "APPIMAGETOOL=$RUNNER_TEMP/appimagetool" >> "$GITHUB_ENV"
+
+      - name: Build, package and verify the standalone Editor
+        run: |
+          uv run --group package python tools/package_editor.py all 2>&1 | tee packaging.log
+
+      - name: Write artifact checksum
+        run: |
+          cd dist/editor
+          for artifact in *.AppImage; do
+            sha256sum "$artifact" | sed "s|  |  |" > "$artifact.sha256"
+          done
+
+      - name: Install Chromium for the packaged-application E2E
+        run: cd apps/editor && pnpm exec playwright install --with-deps chromium
+
+      - name: Prepare the packaged application outside the repository
+        run: |
+          mkdir -p "$RUNNER_TEMP/editor-e2e/model"
+          cp examples/realistic-process-fragment/plant.yaml \
+            "$RUNNER_TEMP/editor-e2e/model/plant.yaml"
+          uv run --group package python tools/package_editor.py extract \
+            --extract-to "$RUNNER_TEMP/editor-e2e/install"
+          echo "DEEPLANT_EDITOR_EXECUTABLE=$RUNNER_TEMP/editor-e2e/install/squashfs-root/AppRun" >> "$GITHUB_ENV"
+          echo "DEEPLANT_EDITOR_PROJECT=$RUNNER_TEMP/editor-e2e/model/plant.yaml" >> "$GITHUB_ENV"
+
+      - name: Run the browser E2E against the packaged application
+        run: |
+          cd apps/editor
+          pnpm run e2e
+
+      - name: Upload packaged-application E2E failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-packaged-e2e-failure-artifacts
+          path: |
+            apps/editor/test-results/
+            apps/editor/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload packaging log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-package-linux-log
+          path: packaging.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Linux Editor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepplant-editor-linux
+          path: |
+            dist/editor/*.AppImage
+            dist/editor/*.AppImage.sha256
+          retention-days: 14
+          if-no-files-found: error
 

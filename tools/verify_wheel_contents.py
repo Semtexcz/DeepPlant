@@ -24,6 +24,12 @@ REQUIRED_MEMBERS = {
     "deepplant/assets/symbols/process/basic/sink.svg",
 }
 
+# The built frontend is owned by the standalone Editor packaging stage, not by
+# the base Python wheel (Issue #85). A packaged SPA inside the wheel would make
+# the wheel non-deterministic, because its content depends on whether a
+# developer happened to run a frontend build first.
+FORBIDDEN_PREFIX = "deepplant/editor/dist/"
+
 
 def main() -> None:
     wheels = [Path(argument) for argument in sys.argv[1:]]
@@ -36,7 +42,15 @@ def main() -> None:
         raise SystemExit(
             "wheel is missing required process-symbol resources: " + ", ".join(missing)
         )
-    print(f"verified {wheels[0]} contains {len(REQUIRED_MEMBERS)} process-symbol resources")
+    leaked = sorted(name for name in names if name.startswith(FORBIDDEN_PREFIX))
+    if leaked:
+        raise SystemExit(
+            "wheel must not bundle the built editor SPA; found: " + ", ".join(leaked[:5])
+        )
+    print(
+        f"verified {wheels[0]} contains {len(REQUIRED_MEMBERS)} process-symbol resources "
+        "and no bundled editor SPA"
+    )
 
 
 if __name__ == "__main__":

@@ -28,6 +28,9 @@ superseded_by: null
 - Console script: `deepplant`
 - Module execution: `python -m deepplant` (equivalent; `make run` / `make dev`
   use it)
+- Editor application: `deepplant-editor` — the same editor with an
+  application-oriented identity; see
+  [The standalone Editor application](#the-standalone-editor-application)
 
 Running with no arguments prints help.
 
@@ -85,7 +88,19 @@ Options:
 |---|---|
 | `--symbol-role STEP=ROLE` | Repeatable transient presentation override for one `ProcessStep` id. Presentation only: it is never written to the model or YAML. The realistic fragment needs `--symbol-role PS-vessel=vessel` because `PS-vessel.function` is honestly `unspecified` (ADR-0009). |
 | `--port <n>` | Local port; `0` picks a free port. Defaults to `8765`. |
-| `--assets-dir <dir>` | Directory containing the built editor assets. Defaults to `./apps/editor/dist`. |
+| `--assets-dir <dir>` | Directory containing the built editor assets. Defaults to the assets the application itself carries, then the development checkout build (see below). |
+
+Built-asset resolution (Issue #85) is working-directory independent and names no
+packaging tool:
+
+1. an explicit `--assets-dir`;
+2. the packaged resource `deepplant/editor/dist` inside the application bundle;
+3. the source-checkout build `<repository root>/apps/editor/dist`, derived from
+   the installed module's location.
+
+The base Python wheel never contains the SPA: it is owned by the standalone
+Editor packaging stage. See
+[workflow/packaging.md](../dev/workflow/packaging.md).
 
 Behavior:
 
@@ -95,9 +110,14 @@ Behavior:
 - It serves exactly three read routes: the Process/PFD projection JSON
   (`/api/projection`), the canonical packaged symbol assets
   (`/api/symbols/<role>.svg`), and the built editor assets.
-- The built editor application must exist first: `make frontend-build` (or
-  `cd apps/editor && pnpm build`). If it is missing, the command exits 1 with a
+- The built editor application must exist first in a source checkout:
+  `make frontend-build` (or `cd apps/editor && pnpm build`). A standalone
+  application always carries it. If it is missing, the command exits 1 with a
   concise message and no traceback.
+- The editor transport needs FastAPI and Uvicorn, which are the `deepplant[editor]`
+  extra. Without it, the command exits 1 with a message naming that extra instead
+  of an `ImportError` traceback. `deepplant version` and `deepplant validate`
+  never import the transport.
 - Project path, YAML, and model errors reuse the `PlantLoadError` text from
   [yaml-format.md](yaml-format.md) and exit 1.
 - Semantic validation comes from `load_plant`. A valid model without a
@@ -106,12 +126,36 @@ Behavior:
   `validation.valid: true`, `projection: null`, and a separate projection error.
   Load, YAML, and semantic-reference failures remain `PlantLoadError` failures.
 
+### The standalone Editor application
+
+`deepplant-editor` is the same editor under the identity an end user runs. It is
+the entry point the frozen Windows/Linux artifact launches.
+
+```text
+deepplant-editor <path> [--symbol-role STEP=ROLE] [--port <n>]
+                        [--assets-dir <dir>] [--browser | --no-browser]
+```
+
+- It accepts the same `path`, `--symbol-role`, `--port`, and `--assets-dir`
+  arguments, resolves the project through the same
+  `EditorApplication`, serves through the same FastAPI/Uvicorn transport, and
+  prints the same launch message. There is no second editor implementation.
+- It additionally opens the user's default browser once the loopback server is
+  actually accepting connections (`--browser`, the default). `--no-browser`
+  suppresses that for automation and headless use; the URL is always printed, and
+  if no browser can be opened the URL is printed again.
+- It is installed by the base distribution but only *runs* with the editor
+  transport available; without it, it reports the same actionable message as
+  `deepplant ui`.
+
 ## Deliberately not provided
 
 A render command, a save/format command, a symbol-pack selector, machine-readable
-(JSON) output, watch mode, browser auto-open, daemon/service management, and any
-configuration file or environment-variable surface. Each needs its own evidence
-and Issue; the renderer and loader are currently library/API-level only.
+(JSON) output, watch mode, browser auto-open **in `deepplant ui`**, daemon/service
+management, and any configuration file or environment-variable surface. Each
+needs its own evidence and Issue; the renderer and loader are currently
+library/API-level only. Browser auto-open exists only in the application entry
+point `deepplant-editor`, not in the developer command.
 
 ## Related
 

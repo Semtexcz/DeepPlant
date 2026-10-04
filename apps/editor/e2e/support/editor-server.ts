@@ -1,26 +1,37 @@
-import { spawn, type ChildProcess } from 'node:child_process'
+import { spawn, spawnSync, type ChildProcess } from 'node:child_process'
 import path from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Real-CLI lifecycle for the Engineering Editor browser E2E suite.
+ * Real-application lifecycle for the Engineering Editor browser E2E suite.
  *
  * The suite is evidence for the product path users actually receive, so this
- * helper starts the real user-facing launcher (`deepplant ui`) over the
- * production build in `apps/editor/dist`. It never starts a Vite dev/preview
- * server, a test-only FastAPI app, or `create_editor_api()` directly.
+ * helper always starts a real application boundary and its own loopback server.
+ * It never starts a Vite dev/preview server, a test-only FastAPI app, or
+ * `create_editor_api()` directly. Two launchers are supported, and the same
+ * browser workflow (the specs) runs against either:
  *
- * Readiness is the CLI's own announcement of the loopback URL:
+ *     source     `uv run deepplant ui <path> --port 0`   developer checkout
+ *     packaged   the standalone Editor launcher          Issue #85 artifact
+ *
+ * The packaged launcher is selected through the environment:
+ *
+ *     DEEPLANT_EDITOR_EXECUTABLE   path to the installed/extracted launcher
+ *     DEEPLANT_EDITOR_PROJECT      model path, so it can live outside the repo
+ *
+ * Packaging concerns stop here: the feature specs never mention them.
+ *
+ * Readiness is the application's own announcement of the loopback URL:
  *
  *     DeepPlant Engineering Editor (read-only Process/PFD)
  *       project: <path>
  *       open:    http://127.0.0.1:<port>/
  *       press Ctrl+C to stop
  *
- * Port allocation stays owned by `deepplant ui --port 0` (the OS picks a free
- * port); this helper only parses the URL the real CLI prints and never
- * re-implements socket allocation. There is no arbitrary readiness sleep.
+ * Port allocation stays owned by `--port 0` (the OS picks a free port); this
+ * helper only parses the URL the application prints and never re-implements
+ * socket allocation. There is no arbitrary readiness sleep.
  */
 
 const SUPPORT_DIR = path.dirname(fileURLToPath(import.meta.url))
@@ -29,9 +40,9 @@ const SUPPORT_DIR = path.dirname(fileURLToPath(import.meta.url))
 const EDITOR_DIR = path.resolve(SUPPORT_DIR, '..', '..')
 
 /**
- * Repository root. The Python process is deliberately started from here,
- * because `deepplant ui` resolves its default built-SPA assets as
- * `./apps/editor/dist` relative to the process working directory.
+ * Repository root, used as the working directory for the source launcher:
+ * `uv run` discovers the project from there. The packaged launcher never uses
+ * it - asset resolution does not depend on the working directory (Issue #85).
  */
 const REPO_ROOT = path.resolve(EDITOR_DIR, '..', '..')
 
@@ -65,12 +76,50 @@ export interface EditorServerOptions {
 }
 
 export interface EditorServer {
-  /** Loopback base URL announced by the real CLI, e.g. `http://127.0.0.1:53421/`. */
+  /** Loopback base URL announced by the real application, e.g. `http://127.0.0.1:53421/`. */
   readonly baseUrl: string
-  /** Stop the real CLI process tree: graceful first, forced only when required. */
+  /** Stop the real application process tree: graceful first, forced only when required. */
   stop(): Promise<void>
-  /** Captured CLI stdout/stderr, bounded; for failure diagnostics only. */
+  /** Captured application stdout/stderr, bounded; for failure diagnostics only. */
   logs(): string
+}
+
+/** How to start the application under test. */
+interface LaunchSpec {
+  /** Human-readable launcher name used in failure messages. */
+  readonly label: string
+  readonly command: string
+  readonly args: readonly string[]
+  readonly cwd: string
+}
+
+/**
+ * Resolve the launcher: the packaged standalone application when
+ * `DEEPLANT_EDITOR_EXECUTABLE` is set, otherwise the developer `deepplant ui`.
+ *
+ * Both produce the identical launch message and the identical HTTP surface, so
+ * the specs cannot tell them apart - which is exactly the point.
+ */
+function resolveLaunchSpec(symbolRoles: readonly string[]): LaunchSpec {
+  const project = process.env['DEEPLANT_EDITOR_PROJECT'] ?? REALISTIC_PROJECT
+  const executable = process.env['DEEPLANT_EDITOR_EXECUTABLE']
+  const roleArgs = symbolRoles.flatMap((entry) => ['--symbol-role', entry])
+  if (executable !== undefined && executable !== '') {
+    return {
+      label: 'the packaged DeepPlant Editor',
+      command: executable,
+      args: [project, '--port', '0', '--no-browser', ...roleArgs],
+      // A packaged application is self-contained, so it runs from wherever the
+      // model lives - outside the checkout.
+      cwd: path.dirname(project),
+    }
+  }
+  return {
+    label: '`deepplant ui`',
+    command: 'uv',
+    args: ['run', 'deepplant', 'ui', project, '--port', '0', ...roleArgs],
+    cwd: REPO_ROOT,
+  }
 }
 
 interface LogBuffer {
@@ -156,33 +205,35 @@ function findAnnouncedUrl(logText: string): string | null {
   return null
 }
 
-/** Fail clearly when the CLI died or could not be spawned before it was ready. */
-function assertStillStarting(tracker: ExitTracker, log: LogBuffer): void {
+/** Fail clearly when the application died or could not be spawned before it was ready. */
+function assertStillStarting(tracker: ExitTracker, log: LogBuffer, label: string): void {
   if (tracker.spawnError !== null) {
-    throw new Error(
-      `could not start \`uv run deepplant ui\`: ${tracker.spawnError.message}\n${log.text()}`,
-    )
+    throw new Error(`could not start ${label}: ${tracker.spawnError.message}\n${log.text()}`)
   }
   if (tracker.code !== null || tracker.signal !== null) {
     throw new Error(
-      `\`deepplant ui\` exited before the editor became ready ` +
+      `${label} exited before the editor became ready ` +
         `(code ${tracker.code ?? 'null'}, signal ${tracker.signal ?? 'none'}).\n${log.text()}`,
     )
   }
 }
 
-async function waitForAnnouncedUrl(tracker: ExitTracker, log: LogBuffer): Promise<string> {
+async function waitForAnnouncedUrl(
+  tracker: ExitTracker,
+  log: LogBuffer,
+  label: string,
+): Promise<string> {
   const deadline = Date.now() + STARTUP_TIMEOUT_MS
   while (Date.now() < deadline) {
     const url = findAnnouncedUrl(log.text())
     if (url !== null) {
       return url
     }
-    assertStillStarting(tracker, log)
+    assertStillStarting(tracker, log, label)
     await delay(POLL_INTERVAL_MS)
   }
   throw new Error(
-    `\`deepplant ui\` did not announce a loopback URL within ${STARTUP_TIMEOUT_MS} ms.\n${log.text()}`,
+    `${label} did not announce a loopback URL within ${STARTUP_TIMEOUT_MS} ms.\n${log.text()}`,
   )
 }
 
@@ -192,11 +243,16 @@ async function waitForAnnouncedUrl(tracker: ExitTracker, log: LogBuffer): Promis
  * The CLI binds the loopback socket before it prints, so the URL remains the
  * readiness boundary; this only confirms Uvicorn is accepting connections.
  */
-async function waitForServing(baseUrl: string, tracker: ExitTracker, log: LogBuffer): Promise<void> {
+async function waitForServing(
+  baseUrl: string,
+  tracker: ExitTracker,
+  log: LogBuffer,
+  label: string,
+): Promise<void> {
   const deadline = Date.now() + READY_TIMEOUT_MS
   let lastFailure = 'no response yet'
   while (Date.now() < deadline) {
-    assertStillStarting(tracker, log)
+    assertStillStarting(tracker, log, label)
     try {
       const response = await fetch(baseUrl, { redirect: 'manual' })
       if (response.ok) {
@@ -213,16 +269,24 @@ async function waitForServing(baseUrl: string, tracker: ExitTracker, log: LogBuf
   )
 }
 
-/** Signal only the process group this helper started. */
-function signalGroup(child: ChildProcess, signal: NodeJS.Signals): void {
+/** End the process this helper started, using platform-appropriate semantics. */
+function signalProcess(child: ChildProcess, force: boolean): void {
   const pid = child.pid
   if (pid === undefined) {
+    return
+  }
+  if (process.platform === 'win32') {
+    // Windows has no POSIX process groups. `taskkill` is the platform-native way
+    // to end the process and anything it started, so no Unix-only negative-PID
+    // assumption is copied into the Windows path.
+    const args = ['/PID', String(pid), '/T', ...(force ? ['/F'] : [])]
+    spawnSync('taskkill', args, { stdio: 'ignore' })
     return
   }
   try {
     // `detached: true` makes the child a process-group leader, so a negative pid
     // signals the whole `uv` -> python -> uvicorn tree and nothing else.
-    process.kill(-pid, signal)
+    process.kill(-pid, force ? 'SIGKILL' : 'SIGTERM')
   } catch {
     // The process group is already gone; there is nothing left to clean up.
   }
@@ -236,33 +300,28 @@ async function stopProcessTree(child: ChildProcess, tracker: ExitTracker): Promi
   if (tracker.code !== null || tracker.signal !== null) {
     return
   }
-  signalGroup(child, 'SIGTERM')
+  signalProcess(child, false)
   if (await settlesWithin(tracker.done, SHUTDOWN_GRACE_MS)) {
     return
   }
-  signalGroup(child, 'SIGKILL')
+  signalProcess(child, true)
   await settlesWithin(tracker.done, FORCE_KILL_WAIT_MS)
 }
 
 /**
- * Start the real `deepplant ui` launcher against the production frontend build.
+ * Start the real application under test: the packaged standalone Editor when
+ * `DEEPLANT_EDITOR_EXECUTABLE` is set, otherwise `deepplant ui` over the
+ * production build.
  *
- * Resolves once the CLI has announced its loopback URL and the server answers.
- * Rejects with the captured CLI log when startup fails for any reason.
+ * Resolves once the application has announced its loopback URL and the server
+ * answers. Rejects with the captured application log when startup fails for any
+ * reason.
  */
 export async function startEditorServer(options: EditorServerOptions = {}): Promise<EditorServer> {
   installSafetyNet()
-  const args = [
-    'run',
-    'deepplant',
-    'ui',
-    REALISTIC_PROJECT,
-    '--port',
-    '0',
-    ...(options.symbolRoles ?? []).flatMap((entry) => ['--symbol-role', entry]),
-  ]
-  const child = spawn('uv', args, {
-    cwd: REPO_ROOT,
+  const spec = resolveLaunchSpec(options.symbolRoles ?? [])
+  const child = spawn(spec.command, [...spec.args], {
+    cwd: spec.cwd,
     detached: true,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
@@ -280,8 +339,8 @@ export async function startEditorServer(options: EditorServerOptions = {}): Prom
   }
 
   try {
-    const baseUrl = await waitForAnnouncedUrl(tracker, log)
-    await waitForServing(baseUrl, tracker, log)
+    const baseUrl = await waitForAnnouncedUrl(tracker, log, spec.label)
+    await waitForServing(baseUrl, tracker, log, spec.label)
     return {
       baseUrl,
       stop: () => stopProcessTree(child, tracker),

@@ -84,6 +84,12 @@ boundaries, instrumentation/signals, and presentation/graphics.
 | [reference-products.md](reference-products.md) | Which existing projects are credible reuse, integration, or reference candidates for future views/editing? | Study list with licence findings and unresolved items; no selection or dependency | [direction.md](../planning/direction.md) stages 3–4 (not authorized) |
 | [standards-licensing-evidence.md](standards-licensing-evidence.md) | What public/open sources, licences, provenance claims, and candidate graphical assets were inspected to justify DeepPlant's standards and symbol-provenance policy? | Source/licence/provenance findings with their inspection dates: ISPF not approved, draw.io `pid2` a candidate pending per-file confirmation, IPD Studio current rejected, DEXPI CC BY 4.0 confirmed; no asset imported | ADR-0007 + [workflow/standards.md](../workflow/standards.md) (policy); [reference/standards-registry.md](../reference/standards-registry.md) (registry) |
 
+## Editor distribution evidence
+
+| Document | Question investigated | Outcome | Operationalized by |
+|---|---|---|---|
+| [standalone-editor-distribution.md](standalone-editor-distribution.md) | How can the read-only Engineering Editor become an installable Windows and Linux application without losing the local browser SPA, the FastAPI/Uvicorn boundary, or Core independence? | Measured four candidate stacks against the real application; selects PyInstaller onedir + Inno Setup (Windows) + AppImage (Linux); rejects Briefcase (documented AppImage/binary-wheel unreliability plus required project restructuring) and webview/Electron/Tauri (no current product value); defers Nuitka (free integrated NSIS/AppImage, but 768-module C builds and unverified runtime here); makes the SPA an application-owned package resource | [workflow/packaging.md](../workflow/packaging.md) (practice); [user/how-to/install-the-editor.md](../../user/how-to/install-the-editor.md) (user path); [contracts/cli.md](../../contracts/cli.md) (shared launch contract) |
+
 Implementation history is maintained separately in
 [docs/dev/history/implementation-slices.md](../history/implementation-slices.md).
 

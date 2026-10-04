@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -104,6 +104,20 @@ frontend-e2e: frontend-build
 	$(FRONTEND_PNPM) run e2e
 
 
+# Standalone Editor packaging (Issue #85). The canonical operation is the
+# cross-platform Python driver; these wrappers are developer convenience only,
+# because Windows CI calls the driver directly and must not need GNU Make.
+# Deliberately outside `check`: packaging is a slow, platform-specific gate.
+package-editor:
+
+	uv run --group package python tools/package_editor.py all
+
+
+verify-packaged-editor:
+
+	uv run --group package python tools/package_editor.py verify
+
+
 api-schema:
 
 	@true
@@ -203,10 +217,12 @@ validate-docs:
 	@test -f docs/dev/workflow/standards.md
 	@test -f docs/dev/reference/standards-registry.md
 	@test -f docs/dev/research/standards-licensing-evidence.md
+	@test -f docs/dev/research/standalone-editor-distribution.md
 	@test ! -e docs/standards.md
 	@test -f docs/dev/history/implementation-slices.md
 	@test -f docs/contracts/rendering.md
 	@test -f docs/dev/reference/svg-symbols.md
+	@test -f docs/dev/workflow/packaging.md
 	@test -f docs/dev/frontend/index.md
 	@test -f docs/dev/frontend/architecture.md
 	@test -f docs/dev/frontend/vue.md
@@ -222,6 +238,7 @@ validate-docs:
 	@test -f docs/user/how-to/validate-a-model.md
 	@test -f docs/user/how-to/diagnose-validation-errors.md
 	@test -f docs/user/how-to/render-process-svg.md
+	@test -f docs/user/how-to/install-the-editor.md
 	@test -f docs/user/reference/index.md
 	@test -f project/brief.md
 

@@ -131,6 +131,33 @@ Cypress, Storybook, Testing Library, a visual-regression service, a browser-test
 abstraction layer, or video recording. No mock server, Vite dev/preview E2E path,
 or Page Object framework was introduced.
 
+## Standalone Editor packaging tooling (Issue #85)
+
+Issue #85 made the Engineering Editor distributable as a standalone Windows/Linux
+application. It added the following **build-time-only** tooling. None of it is a
+runtime dependency of the installed Python package, and the base Python wheel
+still bundles no JavaScript and no built SPA.
+
+| Dependency | Declared range | Licence | Why it is needed now |
+|---|---|---|---|
+| `pyinstaller` | `>=6.16` (uv dependency group `package`) | GPL-2.0-or-later **with a special exception** that permits using PyInstaller to build and distribute applications under any licence, without an attribution requirement, as long as the bundled dependencies' own licences are respected | Freezes the Editor with a bundled CPython interpreter, the DeepPlant package, its runtime dependencies, the canonical SVG symbols, and the built SPA into a self-contained onedir application. Its bootloader becomes part of the frozen launcher. |
+| `Inno Setup` (`ISCC.exe`) | build machine tool (not a Python dependency) | Free-of-charge custom licence; source-available; commercial users are asked to purchase a licence | Compiles the Windows installer the end user downloads. Used only on the build machine: Inno Setup itself is **not** redistributed inside the artifact, and the installer it produces is the user artifact. |
+| `appimagetool` | build machine tool (not a Python dependency) | MIT | Assembles the Linux AppImage from the plain AppDir layout the packaging driver creates. Build-time only; it downloads no code into the repository. |
+
+The frozen artifacts also contain the project's own runtime dependencies
+(FastAPI, Starlette, Uvicorn, Pydantic, Pydantic-Core, PyYAML, Typer, Click,
+Rich, Pygments, `typing-extensions`, `annotated-doc`, `shellingham`,
+`h11`/`httptools`/`uvloop` where applicable) under their own licences (MIT,
+BSD-3-Clause, Apache-2.0 family) plus the CPython runtime (PSF-2.0). They were
+already declared project dependencies; freeze tooling changed only how they are
+distributed.
+
+Deliberately **not** added: Nuitka, Briefcase, Electron, Tauri, PySide/PyQt, or
+any desktop webview runtime, and no browser engine is redistributed. The
+standalone Editor uses the end user's own browser. The decision record and the
+measured comparison are in
+[`docs/dev/research/standalone-editor-distribution.md`](docs/dev/research/standalone-editor-distribution.md).
+
 ## Standards, vendors, and unresolved boundaries
 
 The repository contains project-authored standards summaries and references;

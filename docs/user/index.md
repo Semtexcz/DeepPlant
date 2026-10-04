@@ -48,6 +48,11 @@ instead of restating it.
 - Render a process diagram to SVG:
   [how-to/render-process-svg.md](how-to/render-process-svg.md)
 
+## Install the editor
+
+- Install and run the standalone Editor on Windows or Linux:
+  [how-to/install-the-editor.md](how-to/install-the-editor.md)
+
 ## Reference
 
 - [reference/index.md](reference/index.md) — routes to the exact canonical rules.

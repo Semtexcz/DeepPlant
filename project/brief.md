@@ -34,9 +34,12 @@ connections, reference validation), the physical piping-realization layer
 `ProcessStep.function` semantics (ADR-0009), YAML load/save into typed Pydantic
 models, the `deepplant validate` command, the `basic` process symbol-pack
 contract, a headless read-only process renderer, a narrow DEXPI 2.0.0 Process
-adapter, and the first runnable, read-only Process/PFD editor slice
+adapter, and the runnable, read-only Process/PFD editor slice
 (the `src/deepplant/editor/` application boundary plus the `apps/editor/` SPA,
-launched with `deepplant ui <path>`).
+launched with `deepplant ui <path>`). The editor now also ships as a standalone
+`deepplant-editor` application packaged for Windows and Linux (Issue #85), with
+the editor HTTP transport behind an optional `deepplant[editor]` extra so the
+semantic Core stays installable without it.
 
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:
@@ -62,9 +65,12 @@ delivered: a read-only Process/PFD editor over the existing Python semantic core
 launched with `deepplant ui <path>`. Semantic editing, presentation persistence,
 and P&ID authoring remain unimplemented. The post-#82 roadmap re-evaluation gate
 selected independent DeepPlant Core and standalone editor distribution (Issue #85)
-as the sole next product capability: prove the editor can ship as a self-contained
-Windows/Linux application while the Core stays independently usable, before more
-editor functionality is layered on it.
+as the sole next product capability; that slice is now delivered — the editor
+ships as a self-contained Windows installer and a Linux AppImage, the bundled SPA
+is an application-owned resource rather than a checkout dependency, and the Core
+stays independently usable without the editor transport. No successor capability
+is selected: the roadmap is at a re-evaluation gate before any further editor
+functionality is layered on.
 
 ### Deferred / out-of-scope capabilities
 
@@ -185,6 +191,10 @@ persistence, and P&ID authoring are still unimplemented.
 - Presentation and rendering data stay separate from engineering semantics.
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
+  FastAPI and Uvicorn are confined to the optional `deepplant[editor]` extra and
+  must never become base dependencies again; PyInstaller, Inno Setup, and
+  `appimagetool` are build-time-only and must never become runtime dependencies
+  (Issue #85).
 - Do not create empty architecture directories before real code exists.
 - Planning authority is repository-led: `VISION.md` →
   `docs/dev/planning/product.md` → `docs/dev/planning/direction.md` →
