@@ -6,7 +6,7 @@ from typer.testing import CliRunner
 
 from deepplant import __version__
 from deepplant.__main__ import app, main
-from deepplant.editor.app import EditorApplication
+from deepplant.editor.application import EditorApplication
 
 runner = CliRunner()
 

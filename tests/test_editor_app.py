@@ -1,9 +1,10 @@
-"""Focused tests for the Engineering Editor application and FastAPI boundary.
+"""Focused FastAPI transport tests for the Engineering Editor.
 
-These exercise the editor transport without a browser: the JSON projection
-route, canonical symbol delivery, static asset delivery, honest failure for a
-plant that cannot be projected, and the framework-independent application the
-routes delegate to (Issues #75, #79).
+These exercise the transport without a browser: the JSON projection route,
+canonical symbol delivery, static asset delivery, HEAD behavior, unknown and
+traversal cases, and the honest 422 for a plant that cannot be projected
+(Issues #75, #79). Framework-independent application behaviour is covered
+directly in tests/test_editor_application.py and is not duplicated here.
 """
 
 from __future__ import annotations
@@ -17,14 +18,9 @@ import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
-from deepplant import load_plant
-from deepplant.editor.app import (
-    EditorApplication,
-    create_editor_api,
-    load_editor_application,
-    resolve_assets_dir,
-)
-from deepplant.io import PlantLoadError
+from deepplant.editor.api import create_editor_api
+from deepplant.editor.application import EditorApplication, load_editor_application
+from deepplant.io import load_plant
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
@@ -40,17 +36,14 @@ def assets_dir(tmp_path: Path) -> Path:
     return directory
 
 
-def _application(assets_dir: Path) -> EditorApplication:
-    return load_editor_application(
+@pytest.fixture()
+def client(assets_dir: Path) -> Iterator[TestClient]:
+    application = load_editor_application(
         REALISTIC_EXAMPLE,
         symbol_role_overrides=VESSEL_OVERRIDES,
         assets_dir=assets_dir,
     )
-
-
-@pytest.fixture()
-def client(assets_dir: Path) -> Iterator[TestClient]:
-    with TestClient(create_editor_api(_application(assets_dir))) as test_client:
+    with TestClient(create_editor_api(application)) as test_client:
         yield test_client
 
 
@@ -166,38 +159,3 @@ def test_projection_route_keeps_a_valid_model_valid_when_its_role_is_unrenderabl
     assert _validation_of(payload) == {"valid": True, "message": "Valid"}
     assert payload["projection"] is None
     assert "PS-vessel" in str(payload["error"])
-
-
-def test_application_projects_without_http(assets_dir: Path) -> None:
-    """Engineering behaviour stays usable and testable without the HTTP layer."""
-    view = _application(assets_dir).projection_view()
-
-    assert view.projectable is True
-    assert view.error is None
-    assert view.projection is not None
-    assert len(view.projection.steps) == 7
-    assert len(view.projection.streams) == 7
-
-
-def test_load_editor_application_reports_a_missing_project(assets_dir: Path) -> None:
-    with pytest.raises(PlantLoadError):
-        load_editor_application(
-            REPO_ROOT / "examples" / "does-not-exist.yaml", assets_dir=assets_dir
-        )
-
-
-def test_resolve_assets_dir_requires_a_built_editor_app(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    empty = tmp_path / "empty"
-    empty.mkdir()
-    monkeypatch.chdir(tmp_path)
-
-    assert resolve_assets_dir(empty) is None
-    # No default checkout build is visible from this temporary working directory.
-    assert resolve_assets_dir(None) is None
-
-    default_dir = tmp_path / "apps" / "editor" / "dist"
-    default_dir.mkdir(parents=True)
-    (default_dir / "index.html").write_text("<!doctype html>", encoding="utf-8")
-    assert resolve_assets_dir(None) == default_dir

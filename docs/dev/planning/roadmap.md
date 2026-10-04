@@ -55,8 +55,9 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
 - the first runnable, read-only Process/PFD editor slice
   ([architecture.md](../architecture/index.md#engineering-editor-slice-implemented)):
   a DeepPlant-owned Process/PFD projection (`src/deepplant/editor/projection.py`),
-  a DeepPlant-owned editor application with a thin, loopback-only FastAPI/Uvicorn
-  boundary (`src/deepplant/editor/app.py`), the `deepplant ui <path>` launcher,
+  a framework-independent editor application
+  (`src/deepplant/editor/application.py`) with a thin, loopback-only FastAPI/Uvicorn
+  boundary (`src/deepplant/editor/api.py`), the `deepplant ui <path>` launcher,
   and a Vue 3 + TypeScript + Vite + Vue Flow SPA under `apps/editor/` that serves
   pan, zoom, fit view, single selection, a read-only semantic Inspector, and the
   current validation status.
@@ -183,15 +184,19 @@ not decided here, and no successor Issue is created (see **Next**).
   unclassified root-level `frontend/` tree, and the custom `http.server` editor
   adapter was replaced by a thin FastAPI application factory
   (`create_editor_api`) served by Uvicorn on loopback only. Engineering behaviour
-  stayed in `EditorApplication` and below it, so the semantic core and the CLI
+  stayed in `EditorApplication` and below it — now factored into the
+  framework-independent `src/deepplant/editor/application.py` with the transport
+  in `src/deepplant/editor/api.py` — so the semantic core and the CLI
   remain usable without the GUI, and no editor capability was added. See
   [history/implementation-slices.md](../history/implementation-slices.md) and
   [architecture.md](../architecture/index.md#engineering-editor-slice-implemented).
 - **Issue #75 is delivered:** the first runnable, read-only Process/PFD editor
   slice shipped — a DeepPlant-owned Process/PFD projection
   (`src/deepplant/editor/projection.py`), a loopback-only local application
-  boundary (`src/deepplant/editor/app.py`, later replaced by the FastAPI/Uvicorn
-  boundary in Issue #79), the `deepplant ui <path>` launcher, and a Vue 3 +
+  boundary (`src/deepplant/editor/app.py`, later split into the
+  framework-independent `src/deepplant/editor/application.py` and the
+  FastAPI/Uvicorn `src/deepplant/editor/api.py` in Issue #79), the
+  `deepplant ui <path>` launcher, and a Vue 3 +
   TypeScript + Vite + Vue Flow SPA under `apps/editor/`. It is read-only
   (pan/zoom/fit/selection/Inspector/validation status) and delivered no semantic
   editing, presentation persistence, undo/redo, P&ID rendering, or process ↔

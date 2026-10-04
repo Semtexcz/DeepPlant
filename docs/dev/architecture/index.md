@@ -57,7 +57,8 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 | Process/PFD view projection | `src/deepplant/editor/projection.py` | [contracts/rendering.md](../../contracts/rendering.md) |
-| Editor application + FastAPI boundary | `src/deepplant/editor/app.py` | this document (local-only, transport-thin) |
+| Editor application (framework-independent) | `src/deepplant/editor/application.py` | this document (local-only) |
+| Editor FastAPI/Uvicorn transport | `src/deepplant/editor/api.py` | this document (local-only, transport-thin) |
 | Editor SPA (standalone application) | `apps/editor/` | this document (Vue 3 + TypeScript + Vite + Vue Flow) |
 
 Runtime and toolchain:
@@ -83,7 +84,8 @@ Runtime and toolchain:
 | `render.py` | presentation policy, symbol-role resolution, layout, routing, SVG output | store presentation data in the semantic model, or require it to validate |
 | `adapters/dexpi.py` | DEXPI XML <-> `ProcessModel` conversion and its fail-closed checks | leak DEXPI shapes into the canonical model |
 | `editor/projection.py` | the read-only Process/PFD view projection of `ProcessModel` | contain domain rules, import the CLI or a web framework, or leak framework concepts |
-| `editor/app.py` | the editor application plus its thin, local-only FastAPI/Uvicorn transport | move engineering logic into route handlers, or claim production/server security |
+| `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, or Uvicorn, or contain HTTP/runtime concerns |
+| `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport and loopback runtime | contain engineering logic, or claim production/server security |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
 | `apps/editor/` (TypeScript) | browser view state, the Vue Flow adapter, and the read-only Inspector | re-implement the semantic model, parse YAML, or become project truth |
 
@@ -98,7 +100,7 @@ The dependency direction is one-way:
                           ▲
               editor/projection.py
                           ▲
-                  editor/app.py   ──►  apps/editor/ (browser SPA)
+        editor/application.py  ──►  editor/api.py  ──►  apps/editor/ (browser SPA)
 ```
 
 Consumers depend on the model; the model depends on nothing consumer-specific
@@ -152,8 +154,8 @@ slice. It is deliberately narrow and Process/PFD-only:
 YAML → load_plant → PlantModel → ProcessModel
                                    ↓  projection (src/deepplant/editor/projection.py)
                         DeepPlant-owned read-only Process/PFD projection
-                                   ↓  application (EditorApplication, src/deepplant/editor/app.py)
-                        FastAPI adapter → Uvicorn (loopback only)
+                                   ↓  application (EditorApplication, src/deepplant/editor/application.py)
+                        FastAPI transport (src/deepplant/editor/api.py) → Uvicorn (loopback only)
                                    ↓  HTTP: JSON projection + canonical symbol assets
                         editor application adapter (apps/editor/src/process-pfd/)
                         Vue Flow nodes/edges  →  interactive read-only canvas
@@ -175,9 +177,11 @@ The dependency direction is one-way and the HTTP layer is a thin adapter only:
 ```text
 apps/editor/ (Vue SPA)
         ↓  HTTP
-create_editor_api (FastAPI transport, src/deepplant/editor/app.py)
+FastAPI transport (src/deepplant/editor/api.py)
         ↓
-EditorApplication → projection → renderer / semantic model
+EditorApplication (src/deepplant/editor/application.py)
+        ↓
+projection → renderer / semantic model
 ```
 
 `apps/editor/` is the only tree for this application; there is no root-level
@@ -195,13 +199,15 @@ standalone, pinned Vite application with its own dependency graph, while
   (`compute_process_pfd_layout`), and reads the canonical packaged symbol assets
   through `read_process_symbol_svg`. There is no second mapping and no second
   symbol pack.
-- **Transport.** `deepplant.editor.app` exposes the editor through an explicit
-  FastAPI application factory, `create_editor_api(editor)`, run by Uvicorn
-  (Issue #79). The route handlers are transport-thin: they receive a request,
-  call `EditorApplication`, and map the result to a response. All engineering
-  behaviour — projection, validation reporting, symbol resolution, asset
-  resolution — stays in `EditorApplication` and below it and remains testable
-  from plain Python without FastAPI. It binds to loopback only and makes no
+- **Application and transport.** `deepplant.editor.application` owns
+  `EditorApplication`, project loading, projection and validation reporting,
+  symbol resolution, and asset resolution without importing FastAPI, Starlette,
+  or Uvicorn, so it stays usable and testable from plain Python.
+  `deepplant.editor.api` exposes that application through the explicit FastAPI
+  application factory `create_editor_api(editor)`, run by Uvicorn (Issue #79).
+  The route handlers are transport-thin: they receive a request, call
+  `EditorApplication`, and map the result to a response. The `api.py` →
+  `application.py` direction is one-way. It binds to loopback only and makes no
   production or server-security claim.
 - **Launch and failures.** `deepplant ui <path>` loads the project through the
   ordinary DeepPlant loader and serves the built editor application from
