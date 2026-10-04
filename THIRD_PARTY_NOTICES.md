@@ -116,7 +116,7 @@ no JavaScript and `apps/editor/dist` is not committed.
 | Dependency | Declared range | Licence | Why it is needed now |
 |---|---|---|---|
 | `@playwright/test` | `^1.63.0` | Apache-2.0 | The maintained browser automation and test runner used for the two critical-system E2E workflows. Chromium is the only browser configured; there is no browser matrix. |
-| `@types/node` | `^26.6.4` | MIT | Type definitions for the Node APIs the E2E launch helper uses (`node:child_process`, `node:timers/promises`, `node:url`, `node:path`) and for the `node` type environment added to `apps/editor/tsconfig.json`. Already present transitively via `vite`/`vitest`/`happy-dom`; declared directly so it is publicly resolvable for `vue-tsc`. |
+| `@types/node` | `^22.20.0` | MIT | Dev-only Node API typings for the Node-executed frontend tooling and the Playwright E2E launch helper (`node:child_process`, `node:timers/promises`, `node:url`, `node:path`). They are confined to the Node/tooling TypeScript config (`apps/editor/tsconfig.node.json`, `types: ["node"]`); the browser application config (`apps/editor/tsconfig.json`) deliberately does **not** expose Node globals, so Node APIs are never available to the browser application. The range tracks the pinned `engines.node` `>=22.12.0 <23` and cannot cross into Node 23+. Already present transitively via `vite`/`vitest`/`happy-dom`; declared directly so it is publicly resolvable for the Node/tooling typecheck. |
 
 Playwright downloads Chromium browser binaries at install time
 (`pnpm exec playwright install chromium`). Those binaries are **not** npm

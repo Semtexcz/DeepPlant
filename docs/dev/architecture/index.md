@@ -283,7 +283,7 @@ make validate-docs
 make validate-agent-skills
 
 make check   # ruff format --check, ruff check, pyright, pytest, frontend-check
-make frontend-check  # pnpm install --frozen-lockfile, eslint, vue-tsc, vitest, vite build
+make frontend-check  # install, eslint, typecheck (vue-tsc + tsc), vitest, vite build
 make frontend-lint   # pnpm lint (ESLint correctness + hard size/cohesion limits)
 make frontend-e2e    # production build + Playwright/Chromium against the real `deepplant ui`
 make build   # uv build

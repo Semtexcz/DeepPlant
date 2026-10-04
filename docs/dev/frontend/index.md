@@ -78,7 +78,10 @@ editor product behavior.
   Vue components, and the Process/PFD feature integration; ESLint (this
   contract), `vue-tsc`, Vitest, and a production build are enforced. Browser
   system tests live in the separate `apps/editor/e2e/` root and run the real
-  local product (production build + real `deepplant ui` CLI + real Chromium).
+  local product (production build + real `deepplant ui` CLI + real Chromium). The
+  browser application + Vitest code and the Node-executed tooling + Playwright E2E
+  suite use two separate TypeScript runtime environments (`tsconfig.json` /
+  `tsconfig.node.json`) so Node globals never reach production browser code.
 - **Canonical rule:** everything below is binding for new frontend work.
 - **Deferred:** none for the current frontend-engineering baseline; the #82
   browser E2E slice is delivered and the next product capability is decided at

@@ -90,9 +90,17 @@ export default tseslint.config(
     },
   },
   {
-    // Node-environment frontend tooling: the configuration files and the
-    // browser E2E suite, which starts a real Python/Uvicorn process.
-    files: ['eslint.config.js', 'vite.config.ts', 'playwright.config.ts', 'e2e/**/*.ts'],
+    // Node-environment frontend tooling: the configuration files (including
+    // `uno.config.ts`, which is loaded by the `unocss/vite` plugin in the Node
+    // build/dev process) and the browser E2E suite, which starts a real
+    // Python/Uvicorn process.
+    files: [
+      'eslint.config.js',
+      'vite.config.ts',
+      'playwright.config.ts',
+      'uno.config.ts',
+      'e2e/**/*.ts',
+    ],
     languageOptions: { globals: { ...globals.node } },
   },
 )

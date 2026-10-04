@@ -85,8 +85,11 @@ Production application code lives under `apps/editor/src/`. Automated frontend
 tests live under `apps/editor/tests/`; test fixtures are test-owned and must not
 live in, or be imported by, production source code. Vitest discovers tests only
 under that single canonical root (`include: ['tests/**/*.test.ts']` in
-`apps/editor/vite.config.ts`), and `vue-tsc` type checks it together with `src/`
-(one frontend tsconfig includes `tests/**/*.ts`).
+`apps/editor/vite.config.ts`), and the browser `vue-tsc` config
+(`apps/editor/tsconfig.json`) type checks them together with `src/`. The
+Playwright E2E tree under `apps/editor/e2e/` is type checked separately by the
+Node/tooling config (`apps/editor/tsconfig.node.json`); see
+[typescript.md](typescript.md#runtime-type-environments-implemented).
 
 The directory structure makes the test pyramid visible: the test **layer** comes
 first, then the feature, then the responsibility being verified — mirroring the
@@ -315,7 +318,10 @@ Both run in CI. Running the suite directly is equivalent to
   a trace and a screenshot in `test-results/`; the HTML report in
   `playwright-report/` is written each run. Both directories are git-ignored.
 - The captured `deepplant ui` stdout/stderr is attached to a failing test as
-  `deepplant-ui-server-log`; a successful run does not print the server log.
+  `deepplant-ui-server-log` once the server has started. A startup failure (the
+  helper throws before returning an `EditorServer`) includes the same bounded log
+  directly in the thrown error instead, because there is no server object to
+  attach from. A successful run does not print the server log.
 - The happy path fails on any unexpected `pageerror` or `console.error`, and is
   currently clean on both. The error path allows exactly one documented message:
   the resource-load `console.error` the browser emits for the deliberate HTTP 422

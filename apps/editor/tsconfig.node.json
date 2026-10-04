@@ -1,0 +1,13 @@
+{
+  // Node/tooling runtime: the frontend config files and the Playwright E2E
+  // suite that start a real `deepplant ui` process. This is the only TypeScript
+  // environment where Node globals and `node:*` modules are available. It
+  // deliberately does not include `src/**` or `tests/**`, which stay browser-only
+  // (see docs/dev/frontend/typescript.md).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts", "vite.config.ts", "uno.config.ts"]
+}

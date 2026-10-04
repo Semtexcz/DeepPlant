@@ -29,10 +29,13 @@ superseded_by: null
   enforces Vue/TypeScript correctness, the explicit-`any` ban, and the hard
   size/cohesion limits from [frontend/architecture.md](../frontend/architecture.md).
 - Frontend checks run through `make frontend-check`: dependency install from the
-  committed lockfile, `frontend-lint`, `vue-tsc` type checking, Vitest (pure unit
-  plus Vue component and feature-integration suites), and a production build.
-  These are four independent gates; no gate replaces another, and hard size-limit
-  violations fail `frontend-lint`.
+  committed lockfile, `frontend-lint`, `frontend-typecheck` (browser `vue-tsc`
+  over `tsconfig.json` plus Node/tooling `tsc` over `tsconfig.node.json`), Vitest
+  (pure unit plus Vue component and feature-integration suites), and a production
+  build. These are four independent gates; no gate replaces another, and hard
+  size-limit violations fail `frontend-lint`. The two TypeScript runtime
+  environments are canonical in
+  [frontend/typescript.md](../frontend/typescript.md).
 - Browser system E2E runs through `make frontend-e2e`: it installs frontend
   dependencies from the committed lockfile, builds the production SPA, and runs
   the Playwright + Chromium suite against the real local `deepplant ui` CLI. It is
