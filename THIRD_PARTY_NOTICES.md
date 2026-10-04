@@ -161,11 +161,49 @@ BSD-3-Clause, Apache-2.0 family) plus the CPython runtime (PSF-2.0). They were
 already declared project dependencies; freeze tooling changed only how they are
 distributed.
 
-Deliberately **not** added: Nuitka, Briefcase, Electron, Tauri, PySide/PyQt, or
-any desktop webview runtime, and no browser engine is redistributed. The
-standalone Editor uses the end user's own browser. The decision record and the
-measured comparison are in
+Deliberately **not** added: Nuitka, Briefcase, Electron, or Tauri. The decision
+record and the measured comparison are in
 [`docs/dev/research/standalone-editor-distribution.md`](docs/dev/research/standalone-editor-distribution.md).
+
+## Standalone Editor desktop host (Issue #93)
+
+Issue #93 turned the packaged Editor into a native graphical desktop application.
+It added one redistributed runtime stack, recorded here separately because it
+enters the shipped Windows and Linux artifacts.
+
+| Dependency | Pinned input | Licence | Contributes | Distributed with DeepPlant? |
+|---|---|---|---|---|
+| `PySide6` (Qt for Python) | `uv.lock` (optional extra `desktop`, uv dependency group `desktop`) | `LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only`, and additionally a commercial licence (PyPI project metadata; Qt describes LGPLv3 as its primary open-source licence, with some parts available only under GPL) | The native window, the native Open dialog, and the `QWebEngineView` that embeds the shared Vue SPA; a build/dev toolchain for `apps/editor/dist` is unaffected | Yes — the PySide6 wheels' Qt libraries and the Python bindings are frozen into the artifact |
+| Qt WebEngine (Chromium) | shipped inside the `PySide6` wheels (no separate pin) | Qt-specific parts: commercial, LGPL-3.0, GPL-3.0, or GPL-2.0. Chromium parts carry a large third-party set whose most restrictive licence is LGPL-2.1. Qt states that distributing Qt WebEngine requires complying with **both** the Qt WebEngine licences and Chromium's licences | The embedded webview engine and its multiprocess renderer | Yes — `QtWebEngineCore`, the `QtWebEngineProcess` helper, Chromium resource packs (`.pak`), ICU data (`icudtl.dat`), and the locale packs are all inside the artifact. They are redistributed unmodified, and the PyInstaller onedir layout keeps the Qt libraries as separate, replaceable files |
+| `PyInstaller` | *(see the packaging-tooling table above)* | | Also freezes the Qt/WebEngine runtime | Yes |
+
+Sources verified at the time of writing:
+[Qt WebEngine Licensing](https://doc.qt.io/qt-6/qtwebengine-licensing.html),
+[Obligations of the GPL and LGPL](https://www.qt.io/licensing/open-source-lgpl-obligations),
+and the [PySide6 PyPI project metadata](https://pypi.org/project/PySide6/).
+
+What this changed for distribution:
+
+- the base Python/Core installation still redistributes **no** desktop or GUI
+  dependency; PySide6 lives only in the optional `deepplant[desktop]` extra, the
+  `desktop` uv group, and the frozen application;
+- a webview engine and a Chromium-based renderer are now redistributed by
+  DeepPlant, which is why the artifact is roughly an order of magnitude larger
+  than the #92 browser-hosted artifact;
+- the obligations above (Qt/Qt WebEngine notices plus Chromium's third-party set)
+  apply to the shipped artifacts and must be honoured with the redistributed
+  components. Conformance that depends on the applicable upstream notices
+  requires checking them against the actual redistributed files, not inferring
+  them from this summary.
+
+Evaluated and **not** adopted:
+[`pywebview`](https://pywebview.flowrl.com/guide/installation.html) (Windows needs
+the Microsoft WebView2 runtime; Linux needs system Qt or GTK/WebKitGTK, so the
+artifact would not be self-contained) and
+[Tauri v2](https://v2.tauri.app/start/prerequisites/) (adds the Rust toolchain and
+a Python sidecar, and still depends on `libwebkit2gtk-4.1`/WebView2). Electron was
+not added to the matrix. The full reasoning is in
+[`docs/dev/research/editor-desktop-host.md`](docs/dev/research/editor-desktop-host.md).
 
 ## Standards, vendors, and unresolved boundaries
 

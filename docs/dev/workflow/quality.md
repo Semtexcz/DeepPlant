@@ -47,13 +47,17 @@ superseded_by: null
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
   `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
   are prerequisites of `make check`.
-- Standalone Editor packaging runs through `python tools/package_editor.py` (or
-  `make package-editor`): production SPA build, freeze, platform package, and a
-  packaged-artifact smoke test. It is deliberately **not** part of `check`,
-  because it is slow and platform-specific. It runs in CI as the native
-  `editor-package-windows` and `editor-package-linux` jobs, which install and
-  integrity-check the pinned external toolchain
-  (`packaging/toolchain.toml`) before building. Ownership and debugging are
+- Standalone Editor packaging runs through `uv run --group package --group desktop
+  python tools/package_editor.py` (or `make package-editor`): production SPA
+  build, freeze (PyInstaller + Qt WebEngine), platform package, and a packaged
+  **desktop** verification that launches the real native window. It is
+  deliberately **not** part of `check`, because it is slow and platform-specific.
+  It runs in CI as the native `editor-package-windows` and `editor-package-linux`
+  jobs, which install and integrity-check the pinned external toolchain
+  (`packaging/toolchain.toml`) before building; the Linux job also runs the
+  graphical verification on a virtual display. The Qt/desktop group is never part
+  of `make setup`/`check`, so the fast gate stays free of Qt and the Core, CLI,
+  and browser host stay provably independent of it. Ownership and debugging are
   canonical in [workflow/packaging.md](packaging.md).
 - Base-installation independence verification runs through
   `python tools/verify_base_install.py <wheel>` in the `check` job: it installs

@@ -1,27 +1,26 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Application entry point for the standalone DeepPlant Editor (Issue #85).
+"""Shared launch primitives for the DeepPlant Editor hosts (Issues #85, #93).
 
-``deepplant-editor`` is the identity an end user runs. It is the *same* editor as
-the developer-facing ``deepplant ui`` command: both call :func:`run_editor`, which
-resolves the project through
-:func:`deepplant.editor.application.load_editor_application`, serves it through
-the FastAPI/Uvicorn transport in :mod:`deepplant.editor.api`, and prints the same
-launch message. There is no second editor implementation.
+Two hosts serve the *same* editor over the *same* transport:
 
-Two things distinguish the application entry point from the developer command:
+- ``deepplant ui <path>`` - the developer/browser host. It prints the loopback
+  URL and serves the built SPA to whatever browser the developer uses.
+- ``deepplant-editor [path]`` - the standalone desktop host
+  (:mod:`deepplant.editor.desktop`), which embeds the same SPA in a native
+  window and starts no external browser.
 
-- it may open the user's own browser once the loopback server is genuinely
-  accepting connections (``--no-browser`` suppresses this for automation, and
-  the browser is never required — the URL is always printed);
-- it is what the standalone Windows/Linux artifact launches, so it must not
-  require the user to know about ``uv``, module paths, or repository layout.
+Both call :func:`run_editor`, which resolves the project through
+:func:`deepplant.editor.application.load_editor_application` and serves it
+through the FastAPI/Uvicorn transport in :mod:`deepplant.editor.api`. There is no
+second editor implementation, and neither host re-implements engineering
+semantics.
 
-Importing this module is deliberately cheap: it never imports FastAPI or Uvicorn.
-The transport is imported inside :func:`run_editor`, after the editor dependency
-probe, which is what keeps ``deepplant version`` and ``deepplant validate``
-independent of the editor transport.
+Importing this module is deliberately cheap: it never imports FastAPI or
+Uvicorn. The transport is imported inside :func:`run_editor`, after the editor
+dependency probe, which is what keeps ``deepplant version`` and
+``deepplant validate`` independent of the editor transport.
 """
 
 from __future__ import annotations
@@ -29,9 +28,6 @@ from __future__ import annotations
 import webbrowser
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Annotated
-
-import typer
 
 from deepplant.editor import (
     DEFAULT_HOST,
@@ -46,7 +42,6 @@ __all__ = [
     "ASSETS_DIR_HELP",
     "EditorLaunchError",
     "SYMBOL_ROLE_HELP",
-    "main",
     "parse_symbol_role_overrides",
     "run_editor",
 ]
@@ -155,52 +150,3 @@ def _browser_launcher(
             echo(f"  could not open a browser automatically; open {url}")
 
     return open_browser
-
-
-app = typer.Typer(
-    help="DeepPlant Editor - local read-only Process/PFD editor for a plant model.",
-    no_args_is_help=True,
-    add_completion=False,
-)
-
-
-@app.command()
-def open_editor(
-    path: Annotated[Path, typer.Argument(help="DeepPlant plant model YAML file to open.")],
-    symbol_role: Annotated[
-        list[str] | None,
-        typer.Option("--symbol-role", help=SYMBOL_ROLE_HELP),
-    ] = None,
-    port: Annotated[
-        int,
-        typer.Option(help="Local port for the editor server (0 picks a free port)."),
-    ] = DEFAULT_PORT,
-    assets_dir: Annotated[
-        Path | None,
-        typer.Option("--assets-dir", help=ASSETS_DIR_HELP),
-    ] = None,
-    browser: Annotated[
-        bool,
-        typer.Option(
-            "--browser/--no-browser",
-            help="Open the editor in the default browser once the server is listening.",
-        ),
-    ] = True,
-) -> None:
-    """Open a DeepPlant plant model in the local read-only editor."""
-    try:
-        run_editor(
-            path,
-            symbol_role_entries=symbol_role or [],
-            port=port,
-            assets_dir=assets_dir,
-            open_browser=browser,
-        )
-    except EditorLaunchError as exc:
-        typer.echo(f"✗ {exc}", err=True)
-        raise typer.Exit(code=1) from exc
-
-
-def main() -> None:
-    """Console-script entry point for the standalone DeepPlant Editor."""
-    app()

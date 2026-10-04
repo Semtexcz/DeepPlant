@@ -61,6 +61,24 @@ class _BlockEditorTransport:
 sys.meta_path.insert(0, _BlockEditorTransport())
 """
 
+# Same probe for the desktop entry point: the native host must not be reachable
+# from an installation that lacks the `desktop` extra either.
+_BLOCK_DESKTOP_HOST_PREAMBLE = _BLOCK_EDITOR_TRANSPORT_PREAMBLE + textwrap.dedent(
+    """
+    class _BlockDesktopHost:
+        blocked = ("PySide6",)
+
+        def find_spec(self, fullname, path=None, target=None):
+            root = fullname.split(".")[0]
+            if root in self.blocked:
+                raise ModuleNotFoundError(f"No module named {root!r}", name=root)
+            return None
+
+
+    sys.meta_path.insert(0, _BlockDesktopHost())
+    """
+)
+
 
 def _run_python(program: str, *args: str) -> subprocess.CompletedProcess[str]:
     """Run ``program`` in a fresh interpreter that can import DeepPlant."""
@@ -162,15 +180,15 @@ def test_ui_without_the_editor_extra_reports_a_supported_installation() -> None:
     assert "ModuleNotFoundError" not in result.stdout
 
 
-def test_editor_entry_point_without_the_editor_extra_reports_the_same_message() -> None:
-    """The application entry point fails as clearly as the CLI does."""
-    program = _BLOCK_EDITOR_TRANSPORT_PREAMBLE + textwrap.dedent(
+def test_desktop_entry_point_without_the_desktop_extra_reports_the_same_message() -> None:
+    """The desktop application entry point fails as clearly as the CLI does."""
+    program = _BLOCK_DESKTOP_HOST_PREAMBLE + textwrap.dedent(
         """
         from typer.testing import CliRunner
 
-        from deepplant.editor.launcher import app
+        from deepplant.editor.desktop import app
 
-        result = CliRunner().invoke(app, ["plant.yaml", "--no-browser"])
+        result = CliRunner().invoke(app, ["--self-check", "--self-check-report", "r.json"])
         print("exit_code:", result.exit_code)
         print(result.output)
         """
@@ -179,20 +197,20 @@ def test_editor_entry_point_without_the_editor_extra_reports_the_same_message() 
 
     assert result.returncode == 0, result.stderr
     assert "exit_code: 1" in result.stdout
-    assert "deepplant[editor]" in result.stdout
+    assert "deepplant[desktop]" in result.stdout
     assert "Traceback" not in result.stdout
 
 
 def test_editor_entry_point_help_does_not_import_the_editor_transport() -> None:
-    """The packaged entry point describes itself without FastAPI/Uvicorn."""
-    program = _BLOCK_EDITOR_TRANSPORT_PREAMBLE + textwrap.dedent(
+    """The packaged entry point describes itself without FastAPI/Uvicorn/PySide6."""
+    program = _BLOCK_DESKTOP_HOST_PREAMBLE + textwrap.dedent(
         """
         import json
         import sys
 
         from typer.testing import CliRunner
 
-        from deepplant.editor.launcher import app
+        from deepplant.editor.desktop import app
 
         result = CliRunner().invoke(app, ["--help"])
         assert result.exit_code == 0, result.output
@@ -200,7 +218,7 @@ def test_editor_entry_point_help_does_not_import_the_editor_transport() -> None:
         print(json.dumps({"forbidden": forbidden}))
         """
     )
-    result = _run_python(program, *FORBIDDEN_CORE_IMPORTS)
+    result = _run_python(program, *FORBIDDEN_CORE_IMPORTS, "PySide6")
 
     assert result.returncode == 0, result.stderr
     assert json.loads(result.stdout.strip().splitlines()[-1])["forbidden"] == []

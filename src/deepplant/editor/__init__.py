@@ -24,8 +24,10 @@ import importlib
 __all__ = [
     "DEFAULT_HOST",
     "DEFAULT_PORT",
+    "DESKTOP_EXTRA",
     "EDITOR_EXTRA",
     "MissingEditorDependenciesError",
+    "require_desktop_dependencies",
     "require_editor_dependencies",
 ]
 
@@ -38,10 +40,18 @@ DEFAULT_PORT: int = 8765
 #: Installation extra carrying the editor HTTP transport dependencies.
 EDITOR_EXTRA: str = "editor"
 
+#: Installation extra carrying the native desktop host dependencies (Issue #93).
+#: A superset of :data:`EDITOR_EXTRA`: the desktop application embeds the same
+#: loopback transport, so it needs the transport *and* the native webview host.
+DESKTOP_EXTRA: str = "desktop"
+
 _TRANSPORT_DEPENDENCIES: tuple[tuple[str, str], ...] = (
     ("fastapi", "fastapi"),
     ("uvicorn", "uvicorn"),
 )
+
+#: Native host dependencies, checked as an importable module.
+_DESKTOP_HOST_DEPENDENCIES: tuple[tuple[str, str], ...] = (("PySide6", "PySide6"),)
 
 
 class MissingEditorDependenciesError(Exception):
@@ -66,6 +76,31 @@ def require_editor_dependencies() -> None:
         f"the DeepPlant Editor needs {', '.join(missing)}, which this installation "
         f"does not include. Install the editor extra "
         f'(`pip install "deepplant[{EDITOR_EXTRA}]"`), or use the standalone '
+        "DeepPlant Editor application, which already contains them."
+    )
+
+
+def require_desktop_dependencies() -> None:
+    """Fail with an actionable message when the native host is unavailable.
+
+    The native desktop host adds Qt WebEngine on top of the loopback transport,
+    so a missing piece is reported against ``deepplant[desktop]`` (which installs
+    the transport too) instead of surfacing an ``ImportError`` traceback. It is
+    probed *before* :mod:`deepplant.editor.desktop_qt` is imported, which is what
+    keeps ``deepplant version``, ``deepplant validate``, and ``deepplant ui``
+    independent of the desktop host.
+    """
+    missing = [
+        distribution
+        for module, distribution in _TRANSPORT_DEPENDENCIES + _DESKTOP_HOST_DEPENDENCIES
+        if not _module_available(module)
+    ]
+    if not missing:
+        return
+    raise MissingEditorDependenciesError(
+        f"the standalone DeepPlant Editor needs {', '.join(missing)}, which this "
+        f"installation does not include. Install the desktop extra "
+        f'(`pip install "deepplant[{DESKTOP_EXTRA}]"`), or use the downloaded '
         "DeepPlant Editor application, which already contains them."
     )
 

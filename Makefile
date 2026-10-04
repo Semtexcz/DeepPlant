@@ -107,15 +107,17 @@ frontend-e2e: frontend-build
 # Standalone Editor packaging (Issue #85). The canonical operation is the
 # cross-platform Python driver; these wrappers are developer convenience only,
 # because Windows CI calls the driver directly and must not need GNU Make.
-# Deliberately outside `check`: packaging is a slow, platform-specific gate.
+# The `desktop` group supplies PySide6/Qt WebEngine (Issue #93); it is never part
+# of `make setup`/`check`. Deliberately outside `check`: packaging is slow and
+# platform-specific.
 package-editor:
 
-	uv run --group package python tools/package_editor.py all
+	uv run --group package --group desktop python tools/package_editor.py all
 
 
 verify-packaged-editor:
 
-	uv run --group package python tools/package_editor.py verify
+	uv run --group package --group desktop python tools/package_editor.py verify
 
 
 api-schema:
@@ -218,6 +220,7 @@ validate-docs:
 	@test -f docs/dev/reference/standards-registry.md
 	@test -f docs/dev/research/standards-licensing-evidence.md
 	@test -f docs/dev/research/standalone-editor-distribution.md
+	@test -f docs/dev/research/editor-desktop-host.md
 	@test ! -e docs/standards.md
 	@test -f docs/dev/history/implementation-slices.md
 	@test -f docs/contracts/rendering.md

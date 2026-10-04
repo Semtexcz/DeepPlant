@@ -58,8 +58,10 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 | Process/PFD view projection | `src/deepplant/editor/projection.py` | [contracts/rendering.md](../../contracts/rendering.md) |
 | Editor application (framework-independent) | `src/deepplant/editor/application.py` | this document (local-only) |
-| Editor application entry point | `src/deepplant/editor/launcher.py` | this document (shared with the CLI, browser-optional) |
-| Editor FastAPI/Uvicorn transport | `src/deepplant/editor/api.py` | this document (local-only, transport-thin) |
+| Editor shared launch primitives | `src/deepplant/editor/launcher.py` | this document (used by both hosts) |
+| Editor desktop host (Qt CLI + policy) | `src/deepplant/editor/desktop.py` | this document (host-specific, Qt-free) |
+| Editor Qt/WebEngine window | `src/deepplant/editor/desktop_qt.py` | this document (the only GUI-toolkit module) |
+| Editor FastAPI/Uvicorn transport and server lifecycle | `src/deepplant/editor/api.py` | this document (local-only, transport-thin) |
 | Editor SPA (standalone application) | `apps/editor/` | this document (Vue 3 + TypeScript + Vite + Vue Flow) |
 | Standalone Editor packaging | `tools/package_editor.py`, `packaging/windows/` | [workflow/packaging.md](../workflow/packaging.md) |
 
@@ -69,8 +71,10 @@ Runtime and toolchain:
 - Base runtime dependencies: Typer (CLI), Pydantic v2, PyYAML. FastAPI and Uvicorn
   are an explicit installation extra, `deepplant[editor]` (mirrored as a uv
   dependency group), so the semantic Core and the ordinary CLI stay installable
-  and importable without the editor transport (Issue #85). The DEXPI adapter and
-  the rest of the core use only the standard library plus the base dependencies.
+  and importable without the editor transport (Issue #85). The native desktop
+  host adds PySide6/Qt WebEngine as the `deepplant[desktop]` extra (group
+  `desktop`), which includes the transport. The DEXPI adapter and the rest of the
+  core use only the standard library plus the base dependencies.
 - Build-only tooling for the standalone application: PyInstaller (dependency
   group `package`), plus Inno Setup on Windows and `appimagetool` on Linux. None
   of it is a runtime dependency of the installed application. The non-Python
@@ -98,8 +102,11 @@ Runtime and toolchain:
 | `render.py` | presentation policy, symbol-role resolution, layout, routing, SVG output | store presentation data in the semantic model, or require it to validate |
 | `adapters/dexpi.py` | DEXPI XML <-> `ProcessModel` conversion and its fail-closed checks | leak DEXPI shapes into the canonical model |
 | `editor/projection.py` | the read-only Process/PFD view projection of `ProcessModel` | contain domain rules, import the CLI or a web framework, or leak framework concepts |
-| `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, or Uvicorn, or contain HTTP/runtime concerns |
-| `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport and loopback runtime | contain engineering logic, or claim production/server security |
+| `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, Uvicorn, or a GUI toolkit, or contain HTTP/runtime concerns |
+| `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport, the owned `EditorServer` lifecycle, and loopback binding | contain engineering logic, or claim production/server security |
+| `editor/launcher.py` | the shared launch primitives both hosts use (`run_editor`, symbol-role parsing, help text) | import FastAPI, Uvicorn, or a GUI toolkit at import time |
+| `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-project load, and the embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
+| `editor/desktop_qt.py` | the native window, the embedded webview, the native Open dialog, and the Qt window/server lifecycle | parse DeepPlant YAML, own the semantic model, or become a second frontend |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
 | `apps/editor/` (TypeScript) | application composition, the Process/PFD feature (projection state, selection, canvas/adapter, Inspector), transport and runtime contract narrowing, and styling | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
 
@@ -114,7 +121,10 @@ The dependency direction is one-way:
                           ▲
               editor/projection.py
                           ▲
-        editor/application.py  ──►  editor/api.py  ──►  apps/editor/ (browser SPA)
+        editor/application.py  ──►  editor/api.py  ──►  apps/editor/ (shared SPA)
+                                        ▲                        ▲
+                                        │                        │
+                     editor/desktop.py  ──►  editor/desktop_qt.py ┘
 ```
 
 Consumers depend on the model; the model depends on nothing consumer-specific
@@ -271,25 +281,35 @@ source-checkout build. The base Python wheel deliberately never contains it. See
 [workflow/packaging.md](../workflow/packaging.md) and
 [research/standalone-editor-distribution.md](../research/standalone-editor-distribution.md).
 
-**Current host vs target host.** The delivered distribution foundation still runs
-the SPA in the user's external browser: the packaged executable starts the local
-FastAPI/Uvicorn server and opens the system browser. That is the
-distribution-foundation UX, not the final standalone desktop UX.
-[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) adds the native
-desktop host over the unchanged `EditorApplication`/transport/frontend boundary:
+**Hosts of one frontend.** DeepPlant has **one** engineering frontend implemented
+in web technologies. Three surfaces exist and stay distinct:
 
 ```text
-current distribution foundation
+deepplant <command>          Python API / CLI / automation
+deepplant ui <path>          developer/browser host  → system browser (URL printed)
+deepplant-editor [path]      native desktop host     → embedded webview, no browser
+```
+
+```text
+delivered distribution foundation (PR #92)
 packaged executable → local FastAPI/Uvicorn → external browser
 
-target completion of #85 (native desktop host, #93)
+delivered product (PR #93)
 packaged executable → native desktop host → embedded shared Vue SPA
 ```
 
-DeepPlant has **one** engineering frontend implemented in web technologies: the
-desktop host and any future web deployment are hosts of the same `apps/editor/`
-Vue SPA, not separate frontend codebases. The host boundary is owned by #93 and is
-not implemented here.
+The desktop host is a *thin host*, not a second frontend: it owns a window, a
+native Open dialog, an embedded `QWebEngineView`, and the server/window
+lifecycle. It re-implements no Process/PFD canvas, Inspector, engineering form,
+navigation, or validation presentation, and it routes no engineering semantics
+through a desktop-only bridge. It loads the ordinary production build of
+`apps/editor/`, which a future web deployment would serve unchanged; the
+technology evidence is in
+[research/editor-desktop-host.md](../research/editor-desktop-host.md).
+
+`deepplant-editor` is the desktop application; it is deliberately not the general
+DeepPlant CLI, and `deepplant ui` was deliberately not turned into the desktop
+application.
 
 ## Not implemented (directional only)
 

@@ -39,13 +39,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import http.client
+import importlib
 import json
 import os
 import platform
-import re
 import shutil
-import socket
 import subprocess
 import sys
 import tempfile
@@ -74,6 +72,27 @@ DEFAULT_DIST_DIR = REPO_ROOT / "dist" / "editor"
 BUNDLE_SPA_DESTINATION = "deepplant/editor/dist"
 
 SUPPORTED_PLATFORMS = ("windows", "linux")
+
+#: Qt modules the desktop host imports *lazily*, so that the semantic Core, the
+#: CLI, and the developer/browser host never depend on PySide6. PyInstaller's
+#: static analysis cannot follow a lazy import, so each module is declared
+#: explicitly. Naming them makes the PyInstaller Qt hooks bundle the Qt WebEngine
+#: helper process, resource packs, ICU data, and locales into the frozen
+#: application (Issue #93).
+QT_HIDDEN_IMPORTS: tuple[str, ...] = (
+    "PySide6.QtCore",
+    "PySide6.QtGui",
+    "PySide6.QtNetwork",
+    "PySide6.QtWidgets",
+    "PySide6.QtWebEngineCore",
+    "PySide6.QtWebEngineWidgets",
+)
+
+#: Resources a packaged desktop application must contain. The check is a search
+#: by name, not a hard-coded layout, because PyInstaller's per-OS placement
+#: differs (see `verify_bundle_contents`).
+REQUIRED_SPA_ENTRY: str = "deepplant/editor/dist/index.html"
+REQUIRED_SYMBOL: str = "deepplant/assets/symbols/process/basic/pump.svg"
 
 
 class PackagingError(RuntimeError):
@@ -199,6 +218,35 @@ def _directory_size(path: Path) -> int:
     return sum(item.stat().st_size for item in path.rglob("*") if item.is_file())
 
 
+def qt_build_environment() -> dict[str, str]:
+    """Return build-environment overrides that keep the frozen Qt consistent.
+
+    PyInstaller resolves each collected library's own dependencies through the
+    *build host*. If that host happens to have a Qt 6 runtime installed - a common
+    developer machine, and some CI images - a Qt library that PySide6 ships can be
+    collected from the host instead, producing a bundle that mixes two Qt versions
+    and fails at import with an unresolved Qt *private* symbol rather than a clear
+    error.
+
+    Preferring PySide6's own Qt library directory during dependency analysis makes
+    the collected Qt come from one place on any build host. This is a build-time
+    concern only: nothing about the end-user runtime changes, and the base
+    Python/Core installation is unaffected.
+    """
+    if os.name == "nt":
+        return {}
+    module = importlib.import_module("PySide6")
+    module_file = getattr(module, "__file__", None)
+    if not isinstance(module_file, str):
+        return {}
+    qt_lib = Path(module_file).parent / "Qt" / "lib"
+    if not qt_lib.is_dir():
+        return {}
+    existing = os.environ.get("LD_LIBRARY_PATH", "")
+    value = f"{qt_lib}{os.pathsep}{existing}" if existing else str(qt_lib)
+    return {"LD_LIBRARY_PATH": value}
+
+
 def freeze(build_dir: Path, staged_spa: Path) -> Path:
     """Phase 3: assemble the standalone application for this native OS.
 
@@ -213,30 +261,36 @@ def freeze(build_dir: Path, staged_spa: Path) -> Path:
         shutil.rmtree(frozen_root)
     # PyInstaller uses the platform path separator in --add-data on purpose.
     separator = ";" if os.name == "nt" else ":"
-    run(
-        [
-            sys.executable,
-            "-m",
-            "PyInstaller",
-            "--noconfirm",
-            "--clean",
-            "--onedir",
-            "--name",
-            APP_NAME,
-            "--collect-data",
-            "deepplant",
-            "--add-data",
-            f"{staged_spa}{separator}{BUNDLE_SPA_DESTINATION}",
-            "--distpath",
-            str(frozen_root),
-            "--workpath",
-            str(build_dir / "work"),
-            "--specpath",
-            str(build_dir / "work"),
-            str(ENTRY_SCRIPT),
-        ],
-        cwd=REPO_ROOT,
-    )
+    command = [
+        sys.executable,
+        "-m",
+        "PyInstaller",
+        "--noconfirm",
+        "--clean",
+        "--onedir",
+        "--name",
+        APP_NAME,
+        "--collect-data",
+        "deepplant",
+        "--add-data",
+        f"{staged_spa}{separator}{BUNDLE_SPA_DESTINATION}",
+        "--distpath",
+        str(frozen_root),
+        "--workpath",
+        str(build_dir / "work"),
+        "--specpath",
+        str(build_dir / "work"),
+    ]
+    # The desktop host imports Qt lazily, so its hidden imports are declared here
+    # (see QT_HIDDEN_IMPORTS).
+    for module in QT_HIDDEN_IMPORTS:
+        command += ["--hidden-import", module]
+    if platform_slug() == "windows":
+        # A graphical application must not open a console window when the user
+        # launches it from the Start Menu.
+        command.append("--windowed")
+    command.append(str(ENTRY_SCRIPT))
+    run(command, cwd=REPO_ROOT, env=qt_build_environment())
     frozen_app = frozen_root / APP_NAME
     launcher = frozen_launcher(frozen_app)
     if not launcher.is_file():
@@ -364,12 +418,12 @@ def _assemble_appdir(build_dir: Path, frozen_app: Path) -> Path:
         "[Desktop Entry]\n"
         "Type=Application\n"
         f"Name={APP_DISPLAY_NAME}\n"
-        "Comment=Read-only Process/PFD editor over the DeepPlant semantic model\n"
+        "Comment=Graphical editor for the DeepPlant semantic model\n"
         f"Exec={APP_NAME}\n"
         f"Icon={APP_NAME}\n"
-        # The editor prints the loopback URL and keeps running, so it uses a
-        # terminal window instead of pretending to be a silent background app.
-        "Terminal=true\n"
+        # The standalone application is a native desktop window with an embedded
+        # webview (Issue #93), so it must not ask for a terminal.
+        "Terminal=false\n"
         "Categories=Science;Engineering;\n",
         encoding="utf-8",
     )
@@ -460,10 +514,13 @@ def uninstall(artifact: Path, destination: Path) -> None:
 def sanitized_environment() -> dict[str, str]:
     """Return an environment that proves no separate Python/Node toolchain is used.
 
-    Only operating-system facilities are kept on ``PATH``. Virtual environments,
-    Python homes, Node/npm/pnpm entries, and PyInstaller's own variables are
-    removed, so a packaged application that still needed any of them would fail
-    here. Required OS facilities are deliberately **not** broken.
+    Only operating-system facilities are kept. Virtual environments, Python
+    homes, Node/npm/pnpm entries, and PyInstaller's own variables are removed, so
+    a packaged application that still needed any of them would fail here.
+    Required OS facilities are deliberately **not** broken - and that includes the
+    graphical session: the desktop application (Issue #93) needs the display it
+    would have in a normal user session, so ``DISPLAY`` and the other platform
+    session variables are preserved and are *not* considered a toolchain.
     """
     if platform_slug() == "windows":
         system_root = os.environ.get("SystemRoot", r"C:\Windows")
@@ -472,7 +529,7 @@ def sanitized_environment() -> dict[str, str]:
         path = os.pathsep.join(
             ["/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"]
         )
-    return {
+    environment = {
         "PATH": path,
         "HOME": os.environ.get("HOME", ""),
         "TMPDIR": os.environ.get("TMPDIR", ""),
@@ -484,96 +541,203 @@ def sanitized_environment() -> dict[str, str]:
         # unset proves the artifact does not depend on the build environment.
         "PYTHONNOUSERSITE": "1",
     }
+    # The graphical session the application would find on a normal desktop. These
+    # are OS/platform facilities, not a Python/Node toolchain, and without them a
+    # GUI application cannot start on Linux at all.
+    for name in (
+        "DISPLAY",
+        "WAYLAND_DISPLAY",
+        "XDG_RUNTIME_DIR",
+        "XAUTHORITY",
+        "DBUS_SESSION_BUS_ADDRESS",
+        "XDG_SESSION_TYPE",
+    ):
+        value = os.environ.get(name)
+        if value:
+            environment[name] = value
+    return environment
 
 
-_ANNOUNCED_URL = re.compile(r"^\s*open:\s+(http://127\.0\.0\.1:(\d+)/)\s*$", re.MULTILINE)
-_STARTUP_TIMEOUT_S = 120.0
-_READY_TIMEOUT_S = 60.0
-_POLL_INTERVAL_S = 0.2
-_HTTP_TIMEOUT_S = 20.0
-EXPECTED_STEPS = 7
-EXPECTED_STREAMS = 7
+#: The packaged desktop application is a graphical product, so its verification
+#: drives the real window rather than an HTTP endpoint (Issue #93). The bound is
+#: generous because a first launch initialises Qt WebEngine.
+_DESKTOP_SELF_CHECK_TIMEOUT_S = 240.0
 
 
-def _http_get(port: int, path: str) -> tuple[int, str, bytes]:
-    """Return ``(status, content_type, body)`` for one loopback GET."""
-    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=_HTTP_TIMEOUT_S)
-    try:
-        connection.request("GET", path)
-        response = connection.getresponse()
-        return response.status, response.getheader("content-type") or "", response.read()
-    finally:
-        connection.close()
+def frozen_app_dir_of(launcher: Path) -> Path:
+    """Return the directory that contains the frozen executable.
 
+    The two artifacts expose a different launcher path:
 
-def _wait_for_port(port: int, process: subprocess.Popen[str]) -> None:
-    """Block until the loopback port accepts connections, or fail with the log."""
-    deadline = time.monotonic() + _READY_TIMEOUT_S
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise PackagingError("the packaged application exited during startup")
-        try:
-            with socket.create_connection(("127.0.0.1", port), timeout=_POLL_INTERVAL_S):
-                return
-        except OSError:
-            time.sleep(_POLL_INTERVAL_S)
-    raise PackagingError(f"the packaged application never accepted connections on port {port}")
-
-
-def _read_announced_port(process: subprocess.Popen[str]) -> int:
-    """Read the launcher's own announcement of its loopback URL.
-
-    Readiness is the application's real output, not a fixed sleep, and the port
-    is never hard-coded: the launcher is asked for port ``0``.
+    - the Windows installer installs the onedir tree directly, so the launcher is
+      ``<dir>/deepplant-editor.exe``;
+    - the AppImage exposes ``AppRun`` at the AppDir root, with the frozen tree at
+      ``usr/bin/deepplant-editor/``.
     """
-    assert process.stdout is not None
-    deadline = time.monotonic() + _STARTUP_TIMEOUT_S
-    captured: list[str] = []
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise PackagingError(
-                "the packaged application exited before announcing a URL:\n" + "".join(captured)
-            )
-        line = process.stdout.readline()
-        if not line:
-            time.sleep(_POLL_INTERVAL_S)
-            continue
-        captured.append(line)
-        log("  app: " + line.rstrip())
-        match = _ANNOUNCED_URL.search(line)
-        if match:
-            return int(match.group(2))
-    raise PackagingError("the packaged application never announced a URL:\n" + "".join(captured))
+    if launcher.name == "AppRun":
+        payload = launcher.parent / "usr" / "bin" / APP_NAME
+        if payload.is_dir():
+            return payload
+    return launcher.parent
 
 
-def _stop_process(process: subprocess.Popen[str]) -> None:
-    """Stop the packaged application and prove nothing is left listening.
+def bundle_dir(launcher: Path) -> Path:
+    """Return the directory that holds the frozen application's bundled data.
 
-    Windows and POSIX are handled with the same API on purpose: the packaged
-    application is a single direct child (the browser is disabled for
-    automation), so ``terminate``/``kill`` is correct on both and no Unix-only
-    process-group signal is used.
+    PyInstaller 6 *onedir* places the collected modules, resources, and data
+    under ``_internal/`` beside the executable (older layouts put them in the
+    same directory), so that directory is preferred when it exists.
     """
-    if process.poll() is None:
-        process.terminate()
-        try:
-            process.wait(timeout=15)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait(timeout=15)
-    if process.stdout is not None:
-        process.stdout.close()
+    app_dir = frozen_app_dir_of(launcher)
+    internal = app_dir / "_internal"
+    return internal if internal.is_dir() else app_dir
+
+
+def verify_bundle_contents(bundle: Path) -> dict[str, object]:
+    """Assert the packaged application really carries what it must.
+
+    Static artifact evidence for Issue #93: the built shared SPA, the canonical
+    DeepPlant symbols, and the Qt WebEngine runtime (helper process, resource
+    packs, locales) that make the embedded webview work without a system browser
+    and without the end user installing anything.
+    """
+    evidence: dict[str, object] = {}
+    for required in (REQUIRED_SPA_ENTRY, REQUIRED_SYMBOL):
+        path = bundle / required
+        if not path.is_file():
+            raise PackagingError(f"the packaged application is missing {required}")
+        evidence[required] = path.stat().st_size
+
+    entries = list(bundle.rglob("*"))
+    names = [entry.name for entry in entries]
+    helper = sorted(name for name in names if name.startswith("QtWebEngineProcess"))
+    if not helper:
+        raise PackagingError("the packaged application carries no QtWebEngineProcess helper")
+    packs = sorted(name for name in names if name.endswith(".pak"))
+    if not packs:
+        raise PackagingError("the packaged application carries no Qt WebEngine resource pack")
+    if "icudtl.dat" not in names:
+        raise PackagingError(
+            "the packaged application carries no Qt WebEngine ICU data (icudtl.dat)"
+        )
+
+    # The locale packs live in a platform- and PyInstaller-version-dependent
+    # directory name (``locales`` or ``qtwebengine_locales``), and an empty
+    # ``resources/locales`` directory can also exist. The search therefore looks
+    # for a directory that actually *contains* locale packs, in any order, rather
+    # than trusting the first name match.
+    locale_dirs = [entry for entry in entries if entry.is_dir() and "locale" in entry.name.lower()]
+    locale_dir = next(
+        (
+            directory
+            for directory in locale_dirs
+            if any(item.suffix == ".pak" for item in directory.glob("*"))
+        ),
+        None,
+    )
+    if locale_dir is None:
+        raise PackagingError("the packaged application carries no Qt WebEngine locale packs")
+
+    evidence["qtwebengine_helper"] = helper[0]
+    evidence["qt_webengine_resource_packs"] = len(packs)
+    evidence["qt_webengine_locales"] = locale_dir.name
+    return evidence
+
+
+def run_desktop_self_check(
+    launcher: Path,
+    *,
+    report: Path,
+    model: Path | None,
+    cwd: Path,
+    timeout: float = _DESKTOP_SELF_CHECK_TIMEOUT_S,
+) -> dict[str, object]:
+    """Run the packaged desktop application's own verification and check it.
+
+    The application is launched exactly as an end user launches it - from outside
+    the checkout, with a sanitized environment (no virtualenv, and no Python/Node
+    entries on ``PATH``) - and shows the real native window with the real embedded
+    SPA. It then writes a JSON report and exits; both the exit code and the report
+    must agree that the desktop product works.
+
+    ``model`` is optional. Without it the bootstrap window is verified (the
+    no-argument launch), with it the full packaged editor workflow is verified.
+    """
+    command = [str(launcher)]
+    if model is not None:
+        command += [str(model), "--symbol-role", "PS-vessel=vessel"]
+    # Absolute: the application runs with the model's directory as its working
+    # directory, so a relative report path would be written somewhere else.
+    report = report.resolve()
+    command += ["--self-check", "--self-check-report", str(report), "--port", "0"]
+    log("desktop self-check: " + " ".join(command))
+
+    if report.exists():
+        report.unlink()
+
+    environment = sanitized_environment()
+    # The verification runs on a headless/virtual display in CI, which has no GPU
+    # it can use. This is an automation-only Chromium flag and is not part of the
+    # user's runtime environment; the sandbox is untouched.
+    environment["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
+
+    completed = subprocess.run(
+        command,
+        cwd=str(cwd),
+        env=environment,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+        check=False,
+    )
+    for line in (completed.stdout or "").splitlines():
+        log("  app: " + line)
+    for line in (completed.stderr or "").splitlines():
+        log("  app!: " + line)
+
+    if not report.is_file():
+        raise PackagingError(
+            "the packaged desktop application wrote no self-check report "
+            f"(exit code {completed.returncode})"
+        )
+    payload = json.loads(report.read_text(encoding="utf-8"))
+    if completed.returncode != 0 or payload.get("verdict") != "pass":
+        raise PackagingError(f"the packaged desktop self-check failed: {payload}")
+    checks_raw = payload.get("checks")
+    if not isinstance(checks_raw, dict):
+        raise PackagingError(f"the packaged desktop self-check reported no checks: {payload}")
+    checks = cast("dict[str, object]", checks_raw)
+    if not checks:
+        raise PackagingError(f"the packaged desktop self-check reported no checks: {payload}")
+    failed = sorted(name for name, value in checks.items() if value is not True)
+    if failed:
+        raise PackagingError(f"the packaged desktop self-check failed: {failed} -> {payload}")
+    return payload
 
 
 def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> dict[str, object]:
-    """Run the full packaged-artifact verification and return the evidence.
+    """Verify the packaged **desktop** application outside the checkout.
 
-    The sequence intentionally mirrors what an end user does, and additionally
-    hides the checkout's built SPA first, so a packaged application that secretly
-    depended on ``apps/editor/dist`` fails here instead of passing.
+    The sequence mirrors what an end user does, and additionally hides the
+    checkout's built SPA first, so a packaged application that secretly depended
+    on ``apps/editor/dist`` fails here instead of passing.
+
+    Since Issue #93 the product is a graphical desktop application, so the
+    evidence is the real native window and the real embedded SPA - not an HTTP
+    endpoint. Two launches are checked:
+
+    1. no model argument -> the bootstrap window appears and closes cleanly;
+    2. the realistic fragment -> the packaged editor workflow renders Valid, seven
+       ProcessSteps, seven ProcessStreams, selects ``PS-pump``, and shows its
+       semantic data in the Inspector.
+
+    Both report whether the owned server stopped and the loopback socket was
+    released when the window closed.
     """
     work_dir.mkdir(parents=True, exist_ok=True)
-    evidence: dict[str, object] = {"artifact": str(artifact)}
+    evidence: dict[str, object] = {"artifact": str(artifact), "sha256": sha256_of(artifact)}
 
     # The model is copied outside the repository: the packaged application must
     # open a plant model that has nothing to do with the source checkout.
@@ -584,6 +748,7 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
 
     launcher = install_or_extract(artifact, work_dir / "install")
     evidence["launcher"] = str(launcher)
+    evidence["bundle"] = verify_bundle_contents(bundle_dir(launcher))
 
     # The checkout's built SPA is moved out of the way so a packaged application
     # that secretly read `apps/editor/dist` would fail here. It is moved into the
@@ -591,7 +756,8 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
     # be picked up by the frontend lint/type gates.
     hidden_spa = work_dir / "checkout-spa-hidden"
     spa_was_present = SPA_BUILD_DIR.is_dir()
-    process: subprocess.Popen[str] | None = None
+    reports = work_dir / "reports"
+    reports.mkdir(parents=True, exist_ok=True)
     try:
         if spa_was_present:
             if hidden_spa.exists():
@@ -599,80 +765,24 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
             SPA_BUILD_DIR.rename(hidden_spa)
         evidence["checkout_spa_removed"] = spa_was_present
 
-        process = _start_packaged_app(launcher, model_copy)
-        port = _read_announced_port(process)
-        evidence["port"] = port
-        _wait_for_port(port, process)
-        evidence["checks"] = _verify_served_application(port)
+        evidence["window_lifecycle"] = run_desktop_self_check(
+            launcher,
+            report=reports / "no-model.json",
+            model=None,
+            cwd=model_copy.parent,
+        )
+        evidence["desktop_workflow"] = run_desktop_self_check(
+            launcher,
+            report=reports / "desktop-workflow.json",
+            model=model_copy,
+            cwd=model_copy.parent,
+        )
     finally:
-        if process is not None:
-            _stop_process(process)
         if spa_was_present and hidden_spa.exists() and not SPA_BUILD_DIR.exists():
             hidden_spa.rename(SPA_BUILD_DIR)
         uninstall(artifact, work_dir / "install")
 
     return evidence
-
-
-def _start_packaged_app(launcher: Path, model_copy: Path) -> subprocess.Popen[str]:
-    """Start the packaged application like an end user, with a sanitized env."""
-    command = [
-        str(launcher),
-        str(model_copy),
-        "--port",
-        "0",
-        "--no-browser",
-        "--symbol-role",
-        "PS-vessel=vessel",
-    ]
-    log("smoke: " + " ".join(command))
-    return subprocess.Popen(
-        command,
-        cwd=str(model_copy.parent),
-        env=sanitized_environment(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-
-
-def _verify_served_application(port: int) -> dict[str, object]:
-    """Probe the running packaged application over loopback only."""
-    checks: dict[str, object] = {}
-
-    status, content_type, body = _http_get(port, "/")
-    if status != 200 or "text/html" not in content_type:
-        raise PackagingError(f"GET / returned {status} ({content_type})")
-    if b"/src/main.ts" in body:
-        raise PackagingError("the served document is a dev entry point, not the built SPA")
-    if b"assets/" not in body:
-        raise PackagingError("the served document does not reference built SPA assets")
-    checks["GET /"] = status
-
-    status, _, body = _http_get(port, "/api/projection")
-    if status != 200:
-        raise PackagingError(f"GET /api/projection returned {status}")
-    payload = json.loads(body.decode("utf-8"))
-    projection = payload["projection"]
-    if projection is None:
-        raise PackagingError(f"no projection for the realistic fragment: {payload}")
-    if payload["validation"]["valid"] is not True:
-        raise PackagingError("the packaged application reported the model as invalid")
-    checks["steps"] = len(projection["steps"])
-    checks["streams"] = len(projection["streams"])
-    if checks["steps"] != EXPECTED_STEPS or checks["streams"] != EXPECTED_STREAMS:
-        raise PackagingError(f"unexpected projection size: {checks}")
-
-    for role in ("pump", "vessel", "heat_exchanger"):
-        status, content_type, body = _http_get(port, f"/api/symbols/{role}.svg")
-        if status != 200 or "image/svg+xml" not in content_type or not body.startswith(b"<"):
-            raise PackagingError(
-                f"canonical symbol {role!r} did not load: {status} ({content_type})"
-            )
-    checks["symbols"] = "pump,vessel,heat_exchanger"
-    return checks
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -730,7 +840,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 artifact, work_dir=build_dir / "verify", model_path=args.model
             )
             log("packaged smoke: " + json.dumps(evidence, sort_keys=True, default=str))
-            log("VERIFIED: the packaged application served the real editor outside the checkout")
+            log(
+                "VERIFIED: the packaged desktop application opened a native window with the "
+                "real shared Vue editor outside the checkout, and closed cleanly"
+            )
         elif phase == "extract":
             artifact = (
                 args.artifact if args.artifact is not None else dist_dir / artifact_name(version)

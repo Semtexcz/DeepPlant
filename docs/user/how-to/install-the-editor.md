@@ -12,9 +12,11 @@ update_when:
 depends_on:
   - docs/contracts/cli.md
   - docs/dev/research/standalone-editor-distribution.md
+  - docs/dev/research/editor-desktop-host.md
 decision: []
 evidence:
   - docs/dev/research/standalone-editor-distribution.md
+  - docs/dev/research/editor-desktop-host.md
 superseded_by: null
 ---
 
@@ -76,8 +78,26 @@ extract-and-run mode, which needs no FUSE at all:
 
 ## Open a plant model
 
-Point the application at a DeepPlant YAML file, exactly the input the developer
-command `deepplant ui` accepts:
+**The normal way — no terminal.** Launch **DeepPlant Editor** (Start Menu on
+Windows, or the AppImage on Linux). The editor window opens with a start page:
+
+```text
+┌────────────────────────────────────────┐
+│ DeepPlant Editor                       │
+│                                        │
+│               DeepPlant                │
+│                                        │
+│            [ Open plant… ]             │
+│                                        │
+└────────────────────────────────────────┘
+```
+
+Choose **File → Open…** (or the **Open plant…** button) and pick your DeepPlant
+YAML file (`*.yaml` or `*.yml`) in the normal operating-system file chooser. The
+model opens inside the application window.
+
+**The advanced way.** You can also pass the model on the command line, which
+opens the same window directly on that file:
 
 ```bash
 deepplant-editor path/to/plant.yaml
@@ -102,35 +122,34 @@ your model or to your YAML file.
 ```text
 start the application
         ↓
-it prints the loopback address and opens your default browser
+the DeepPlant Editor window opens
         ↓
-you see the read-only Process / PFD view
+File → Open…  (or the model you passed on the command line)
         ↓
-press Ctrl+C in the terminal window (or close it) to stop
+you see the read-only Process / PFD view inside the window
+        ↓
+close the window to stop the application
 ```
+
+No terminal stays open and no browser window appears: the editor runs inside its
+own window. Everything the editor needs is inside the application — you do not
+need Python, Node.js, a compiler, a web server, or a separately installed
+webview.
 
 The editor serves itself only on `127.0.0.1` (your own machine). It is not
 reachable from the network, and there is no login because there is no remote
 surface to protect.
 
-> **Status — distribution foundation.** This is the current
-> *distribution-foundation* behavior: the packaged application starts the local
-> editor and opens it in your system browser. It is **not** the final standalone
-> desktop experience. A native desktop window that embeds the same Vue frontend —
-> requiring no terminal and no external browser for the normal workflow — is not
-> implemented yet and is tracked by
-> [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93).
-
-Useful options:
+Useful options (`deepplant-editor --help` lists them):
 
 | Option | Meaning |
 |---|---|
-| `--port <n>` | Local port to use; `0` asks the operating system for a free port (the default). |
-| `--no-browser` | Do not open a browser; just print the address. Use this on a headless machine or in scripts. |
+| `<path>` | Optional. Open this model immediately instead of the start page. |
+| `--port <n>` | Local port for the embedded server; `0` asks the operating system for a free port. |
 | `--symbol-role STEP=ROLE` | Repeatable transient presentation override (see above). |
 
-If the browser cannot be opened (for example in a remote session), the address is
-printed again so you can open it yourself.
+The following are used by our automated packaging checks and are not needed in
+normal use: `--self-check`, `--self-check-report <path>`, `--assets-dir <dir>`.
 
 ## What is not implemented yet
 
@@ -138,10 +157,6 @@ printed again so you can open it yourself.
   save process steps, streams, or properties.
 - **No project format.** It opens a single `plant.yaml`. There is no
   `.deepplant` project directory or manifest.
-- **No native desktop window.** Today the packaged application opens your system
-  browser. A native desktop host embedding the same frontend — no terminal or
-  external browser required — is tracked by
-  [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93).
 - **No P&ID view.** Only the read-only Process/PFD projection exists.
 - **No automatic updates.** Download a newer artifact to upgrade.
 - **No macOS build.** Windows and Linux are the supported platforms.
@@ -149,7 +164,10 @@ printed again so you can open it yourself.
 ## Related
 
 - [contracts/cli.md](../../contracts/cli.md) — the canonical `deepplant ui`
-  contract the standalone application shares.
+  contract the standalone application shares, and the standalone application's
+  own contract.
+- [dev/research/editor-desktop-host.md](../../dev/research/editor-desktop-host.md)
+  — the evidence behind the native desktop host.
 - [dev/research/standalone-editor-distribution.md](../../dev/research/standalone-editor-distribution.md)
   — the evidence behind the chosen distribution format.
 - [getting-started.md](../getting-started.md) — using DeepPlant from a source

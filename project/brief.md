@@ -36,12 +36,13 @@ models, the `deepplant validate` command, the `basic` process symbol-pack
 contract, a headless read-only process renderer, a narrow DEXPI 2.0.0 Process
 adapter, and the runnable, read-only Process/PFD editor slice
 (the `src/deepplant/editor/` application boundary plus the `apps/editor/` SPA,
-launched with `deepplant ui <path>`). The editor now also ships as a
-self-contained `deepplant-editor` application for Windows and Linux (the
-distribution-foundation slice of Issue #85), with the editor HTTP transport
-behind an optional `deepplant[editor]` extra so the semantic Core stays
-installable without it. The standalone desktop-product UX is not delivered yet;
-it is tracked by Issue #93.
+launched with `deepplant ui <path>`). The editor ships as a self-contained
+graphical application on Windows and Linux: `deepplant-editor` opens a native
+desktop window with an embedded webview rendering the same `apps/editor/` SPA
+(PR #92 established the distribution foundation; PR #93 delivered the native
+desktop host). The editor HTTP transport is an optional `deepplant[editor]` extra
+and the native host an optional `deepplant[desktop]` extra, so the semantic Core
+stays installable without either.
 
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:
@@ -67,15 +68,18 @@ delivered: a read-only Process/PFD editor over the existing Python semantic core
 launched with `deepplant ui <path>`. Semantic editing, presentation persistence,
 and P&ID authoring remain unimplemented. The post-#82 roadmap re-evaluation gate
 selected independent DeepPlant Core and standalone editor distribution (Issue #85)
-as the sole next product capability, and #85 is currently in progress. PR #92
-establishes the self-contained distribution foundation: the editor ships as a
-Windows installer and a Linux AppImage, the bundled SPA is an application-owned
-resource rather than a checkout dependency, and the Core stays independently
-usable without the editor transport. Issue #93 is the remaining desktop-host
-slice — a native application window embedding the same Vue SPA — and #85 is not
-complete until that is delivered. No successor capability is selected;
-[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) remains the
-authority for current operational priority.
+as the sole next product capability, and **#85 is now delivered** through its two
+child slices. PR #92 established the self-contained distribution foundation: the
+editor ships as a Windows installer and a Linux AppImage, the bundled SPA is an
+application-owned resource rather than a checkout dependency, and the Core stays
+independently usable without the editor transport. PR #93 (Issue #93) delivered
+the native desktop host: `deepplant-editor` opens a real graphical window with an
+embedded webview rendering the same `apps/editor/` SPA, with a native **Open**
+workflow; the browser host `deepplant ui` and the Python CLI remain separate
+surfaces. `#85` is complete, and **no successor capability is selected**;
+[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) moves to an
+explicit evidence-based re-evaluation before any next capability, and remains
+the authority for current operational priority.
 
 ### Deferred / out-of-scope capabilities
 
@@ -197,9 +201,11 @@ persistence, and P&ID authoring are still unimplemented.
 - Domain objects remain usable from Python and CLI without a GUI.
 - Keep the dependency set minimal (Typer, Pydantic v2, PyYAML, pytest toolchain).
   FastAPI and Uvicorn are confined to the optional `deepplant[editor]` extra and
-  must never become base dependencies again; PyInstaller, Inno Setup, and
-  `appimagetool` are build-time-only and must never become runtime dependencies
-  (Issue #85).
+  must never become base dependencies again; the native desktop host
+  (PySide6/Qt WebEngine) is confined to the optional `deepplant[desktop]` extra
+  and the uv `desktop` group, which is never part of `make setup`/`make check`;
+  PyInstaller, Inno Setup, and `appimagetool` are build-time-only and must never
+  become runtime dependencies (Issue #85).
 - Do not create empty architecture directories before real code exists.
 - Planning authority is repository-led: `VISION.md` →
   `docs/dev/planning/product.md` → `docs/dev/planning/direction.md` →
