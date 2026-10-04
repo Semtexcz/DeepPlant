@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
 
-import { parseProjectionEnvelope, ProjectionContractError, symbolUrl } from './api'
-import { PROJECTION_FIXTURE, PUMP_STEP } from './test-fixtures'
+import {
+  parseProjectionEnvelope,
+  ProjectionContractError,
+} from '../../../../src/process-pfd/transport/projection-contract'
+import { PROJECTION_FIXTURE, PUMP_STEP } from '../../../fixtures/process-pfd'
 
 function plain(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value)) as unknown
 }
 
-describe('DeepPlant boundary payload parsing', () => {
+describe('DeepPlant projection contract narrowing', () => {
   it('accepts the projection envelope produced by the Python boundary', () => {
     const envelope = parseProjectionEnvelope(
       plain({ validation: { valid: true, message: 'Valid' }, projection: PROJECTION_FIXTURE }),
@@ -64,14 +67,13 @@ describe('DeepPlant boundary payload parsing', () => {
 
     expect(() => parseProjectionEnvelope(payload)).toThrow(/in_anchors must be an array/)
   })
-})
 
-describe('canonical symbol asset URL', () => {
-  it('points at the DeepPlant boundary symbol route', () => {
-    expect(symbolUrl('pump')).toBe('/api/symbols/pump.svg')
-  })
-
-  it('escapes a role so it cannot form a path', () => {
-    expect(symbolUrl('../pump')).toBe('/api/symbols/..%2Fpump.svg')
+  it('does not trust a partially shaped projection', () => {
+    expect(() =>
+      parseProjectionEnvelope({
+        validation: { valid: true, message: 'Valid' },
+        projection: { symbol_pack: 'basic' },
+      }),
+    ).toThrow(ProjectionContractError)
   })
 })

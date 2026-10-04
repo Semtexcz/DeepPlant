@@ -1,15 +1,22 @@
 import { describe, expect, it } from 'vitest'
 
-import { MIX_STEP, PROJECTION_FIXTURE, PUMP_DISCHARGE_STREAM, PUMP_STEP, SYMBOL_SIZE } from './test-fixtures'
+import {
+  MIX_STEP,
+  PROJECTION_FIXTURE,
+  PUMP_DISCHARGE_STREAM,
+  PUMP_STEP,
+  SYMBOL_SIZE,
+} from '../../../fixtures/process-pfd'
 import {
   DEEPLANT_STEP_NODE_TYPE,
+  deepPlantIdOf,
   frameworkEdgeId,
   frameworkNodeId,
   stepHandleId,
   toProcessPfdView,
   toVueFlowEdge,
   toVueFlowNode,
-} from './vue-flow-adapter'
+} from '../../../../src/process-pfd/adapters/vue-flow'
 
 /** Framework-only concepts that must never appear on a DeepPlant DTO. */
 const FRAMEWORK_ONLY_KEYS = [
@@ -90,5 +97,20 @@ describe('DeepPlant projection -> Vue Flow adapter', () => {
 
     expect(node.data.step.in_anchors.map((anchor) => anchor.index)).toEqual([0, 1])
     expect(node.data.symbolSize).toBe(SYMBOL_SIZE)
+  })
+})
+
+describe('DeepPlant identity narrowing from framework data', () => {
+  it('reads the explicit semantic id carried by a node or edge', () => {
+    expect(deepPlantIdOf(toVueFlowNode(PUMP_STEP, SYMBOL_SIZE).data)).toBe('PS-pump')
+    expect(deepPlantIdOf(toVueFlowEdge(PUMP_DISCHARGE_STREAM).data)).toBe('S-004')
+  })
+
+  it('never infers identity from the framework id or an unknown payload', () => {
+    expect(deepPlantIdOf(undefined)).toBeNull()
+    expect(deepPlantIdOf(null)).toBeNull()
+    expect(deepPlantIdOf('PS-pump')).toBeNull()
+    expect(deepPlantIdOf({ id: frameworkNodeId('PS-pump') })).toBeNull()
+    expect(deepPlantIdOf({ deeplantId: 42 })).toBeNull()
   })
 })

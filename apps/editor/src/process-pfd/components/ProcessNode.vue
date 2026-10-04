@@ -2,9 +2,9 @@
 import { Handle, Position, type NodeProps } from '@vue-flow/core'
 import { computed } from 'vue'
 
-import { symbolUrl } from './api'
-import type { ProcessAnchorDto } from './dto'
-import { stepHandleId, type DeepPlantNodeData } from './vue-flow-adapter'
+import { symbolUrl } from '../transport/api'
+import type { ProcessAnchorDto } from '../transport/dto'
+import { stepHandleId, type DeepPlantNodeData } from '../adapters/vue-flow'
 
 /**
  * Custom Vue Flow node for one projected DeepPlant `ProcessStep`.
@@ -61,3 +61,63 @@ const boxStyle = computed<Record<string, string>>(() => ({
     </div>
   </div>
 </template>
+
+<style scoped>
+/*
+ * Engineering-node styling.
+ *
+ * This is specialized engineering presentation, not ordinary application UI, so
+ * it stays with the node that owns it rather than in the global stylesheet or
+ * the utility layer: exact symbol sizing, the selected treatment, and the
+ * label geometry are component invariants.
+ *
+ * `:deep()` is required for the Vue Flow handle elements: the framework renders
+ * them, but this component declares them on behalf of the symbol anchors. They
+ * are made visually inert because the canonical SVG symbol is the visual, while
+ * the handles only express the DeepPlant presentation anchors.
+ */
+.dp-step {
+  position: relative;
+  color: var(--dp-ink);
+}
+
+.dp-step--selected .dp-step__symbol {
+  filter: drop-shadow(0 0 3px var(--dp-accent));
+}
+
+.dp-step__symbol {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dp-step__label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.dp-step__id {
+  font-weight: 600;
+}
+
+.dp-step__name {
+  color: var(--dp-muted);
+  font-size: 12px;
+}
+
+:deep(.vue-flow__handle) {
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  background: transparent;
+}
+</style>

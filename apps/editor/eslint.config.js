@@ -7,9 +7,10 @@ import tseslint from 'typescript-eslint'
 /**
  * Canonical frontend lint gate for the DeepPlant Engineering Editor.
  *
- * This gate covers the real editor source (`src/**`, `env.d.ts`) and the
- * frontend configuration files. It deliberately uses maintained ecosystem
- * tooling (ESLint flat config, `typescript-eslint`, `eslint-plugin-vue`) and
+ * This gate covers the real editor source (`src/**`), the automated frontend
+ * tests and their fixtures (`tests/**`), `env.d.ts`, and the frontend
+ * configuration files. It deliberately uses maintained ecosystem tooling
+ * (ESLint flat config, `typescript-eslint`, `eslint-plugin-vue`) and
  * high-signal correctness rules only - not a large stylistic rule collection -
  * so lint does not become a second formatter or a style war.
  *

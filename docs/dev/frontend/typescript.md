@@ -52,8 +52,9 @@ relax a compiler option to silence a real problem; fix the type design instead.
 - `readonly` where it meaningfully expresses ownership.
 - Narrow, purpose-specific types over broad shared ones.
 
-The current DTOs (`process-pfd/dto.ts`) are `readonly` and the selection type in
-`process-pfd/inspector-model.ts` is a discriminated union — keep that style.
+The current DTOs (`process-pfd/transport/dto.ts`) are `readonly` and the
+selection type in `process-pfd/view-models/inspector.ts` is a discriminated
+union — keep that style.
 
 ## Avoid
 
@@ -85,6 +86,7 @@ type guard or a validating parser over a cast.
 
 Data coming from the local FastAPI boundary is `unknown` until narrowed. The
 canonical pattern is the explicit runtime narrowing in
-`process-pfd/api.ts`, which raises `ProjectionContractError` with an actionable
-message when the payload does not match the DTO contract. A contract mismatch
+`process-pfd/transport/projection-contract.ts` (reached through
+`process-pfd/transport/api.ts`), which raises `ProjectionContractError` with an
+actionable message when the payload does not match the DTO contract. A contract mismatch
 must fail clearly; it must never silently produce a half-valid view.

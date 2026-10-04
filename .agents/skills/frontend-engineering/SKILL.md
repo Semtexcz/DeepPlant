@@ -25,7 +25,7 @@ approval_boundary:
   may_approve: false
 stop_conditions:
   - change would re-implement the semantic model or parse YAML in the browser
-  - change would leak Vue Flow types outside the adapter boundary
+  - change would leak Vue Flow framework objects/types into framework-independent feature/application layers
   - change requires a new dependency without justification
   - change crosses a hard size limit without a centralized config change
   - change exceeds the currently authorized Issue or roadmap scope
@@ -50,8 +50,14 @@ them, so there is one canonical copy.
 
 - The Python semantic model stays authoritative. The browser reads the
   projection DTO, never parses YAML, and never recreates validation.
-- Vue Flow stays behind `process-pfd/vue-flow-adapter.ts`:
-  `Vue Flow Node != ProcessStep` and `Vue Flow Edge != ProcessStream`.
+- Vue Flow-specific code stays inside the explicit Process/PFD canvas
+  integration surface (`components/ProcessPfdCanvas.vue`,
+  `components/ProcessNode.vue`, and `adapters/vue-flow.ts`), the only place
+  framework shapes and framework objects appear: `Vue Flow Node != ProcessStep`
+  and `Vue Flow Edge != ProcessStream`.
+- Vue Flow `Node`/`Edge` graph shapes belong only in `adapters/vue-flow.ts`, and
+  framework objects/types must not leak into feature state, transport, DTO,
+  Inspector, or application composition layers.
 - Untrusted transport data is narrowed from `unknown` before it is trusted.
 
 ## Before review

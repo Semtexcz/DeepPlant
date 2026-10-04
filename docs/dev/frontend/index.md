@@ -39,11 +39,12 @@ any agent harness and by a human.
 |---|---|
 | **Implemented** | Already true or already enforced in the repository today. |
 | **Canonical rule** | Required for future frontend work. |
-| **Deferred (#81/#82)** | Direction decided here, applied by that Issue. |
+| **Deferred (#82)** | Direction decided here, applied by that Issue. |
 
-This contract does **not** perform the #81 refactor or the #82 browser E2E work.
-It states the rules those slices must follow. It also does not change editor
-product behavior.
+The #81 refactor has been applied, including the explicit production
+(`apps/editor/src/`) / verification (`apps/editor/tests/`) split; the remaining
+deferred item is the #82 browser E2E slice. This contract still states the rules
+future slices must follow and does not itself change editor product behavior.
 
 ## Topics
 
@@ -60,14 +61,23 @@ product behavior.
 ## Current vs canonical vs deferred
 
 - **Implemented:** `apps/editor/` is a Vue 3 + TypeScript + Vite SPA with Vue Flow
-  confined to `process-pfd/vue-flow-adapter.ts`; the transport contract is a
-  hand-written, explicitly validated DTO boundary (`process-pfd/dto.ts`,
-  `process-pfd/api.ts`); Vitest unit tests cover the pure modules; ESLint (this
+  confined to the explicit Process/PFD canvas integration surface
+  (`components/ProcessPfdCanvas.vue`, `components/ProcessNode.vue`,
+  `adapters/vue-flow.ts`), whose `Node`/`Edge` graph shapes stay in
+  `adapters/vue-flow.ts`; the Process/PFD feature separates page composition
+  (`pages/ProcessPfdPage.vue`), components, composables, transport, view models,
+  and framework adapters, and the transport contract is a hand-written,
+  explicitly validated DTO boundary (`process-pfd/transport/dto.ts`,
+  `transport/projection-contract.ts`, `transport/api.ts`); feature state lives in
+  `process-pfd/composables/useProcessPfd.ts` and ordinary UI uses the canonical
+  UnoCSS utility layer over semantic tokens. Production code lives under
+  `apps/editor/src/` and automated tests under `apps/editor/tests/` (`unit/`,
+  `component/`, `integration/`, `fixtures/`, with feature ownership and the
+  verified responsibility below each layer); Vitest covers the pure modules, the
+  Vue components, and the Process/PFD feature integration; ESLint (this
   contract), `vue-tsc`, Vitest, and a production build are enforced.
 - **Canonical rule:** everything below is binding for new frontend work.
-- **Deferred:** the feature/`app`/`shared` reorganization, composable extraction,
-  component and feature-integration tests, UnoCSS integration and CSS migration,
-  and browser E2E. Those are owned by #81 and #82, not by this contract.
+- **Deferred:** browser end-to-end tests (Playwright), owned by #82.
 
 ## Frontend review checklist
 
@@ -79,7 +89,7 @@ the `frontend-engineering` skill points here rather than duplicating it.
 - Is application behavior trapped unnecessarily inside rendering code?
 - Is a composable actually cohesive, and named for its domain?
 - Is global state genuinely justified, and is mutable state owned once?
-- Are Vue Flow concepts contained behind the adapter/integration boundary?
+- Are Vue Flow concepts contained behind the explicit Process/PFD integration boundary?
 - Is untrusted transport input narrowed from `unknown` before being trusted?
 - Is an assertion hiding a type-design problem?
 - Are watchers synchronizing duplicated state instead of an owned source?

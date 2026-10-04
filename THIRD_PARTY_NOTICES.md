@@ -74,9 +74,34 @@ committed.
 are resolved transitively and are not separately declared.
 
 Deliberately **not** added by Issue #80: Prettier (the gate enforces correctness,
-not a second formatter) and UnoCSS (the selected canonical styling direction — see
-[`docs/dev/frontend/styling.md`](docs/dev/frontend/styling.md) — whose integration
-and CSS migration are deferred to #81, so no unused dependency is recorded).
+not a second formatter). UnoCSS was selected as the canonical styling direction
+(see [`docs/dev/frontend/styling.md`](docs/dev/frontend/styling.md)) but
+deliberately not installed by #80, because an unused package must not be added
+merely to record a decision; #81 integrated it (see below).
+
+## Engineering Editor frontend styling and test tooling (Issue #81)
+
+Issue #81 applied the #80 contract to the existing editor frontend. It added the
+following direct **dev-only** dependencies. They are build/dev/integration-test
+time only: the Python wheel bundles no JavaScript and `apps/editor/dist` is not
+committed.
+
+| Dependency | Declared range | Licence | Why it is needed now |
+|---|---|---|---|
+| `unocss` | `^66.10.5` | MIT | The canonical utility-first styling layer selected by the #80 frontend contract; generates only the utilities the editor uses. Configured in `apps/editor/uno.config.ts`. It also exposes the maintained official UnoCSS Vite integration as `unocss/vite`, wired into `apps/editor/vite.config.ts` (`UnoCSS()`). |
+| `@vue/test-utils` | `^2.5.1` | MIT | The official Vue 3 component test utility; mounts `InspectorPanel.vue`, `ProcessNode.vue` and the Process/PFD workspace in the component and feature-integration suites. |
+| `happy-dom` | `^20.14.5` | MIT | The single DOM environment for the component and feature-integration suites (`@vitest-environment happy-dom`). Chosen over `jsdom` as the one maintained DOM environment: it is actively maintained and its declared Node `>=20` engine range covers the pinned Node `>=22.12 <23`. |
+
+`unocss` re-exports the official `@unocss/vite` plugin as `unocss/vite` and depends
+on `@unocss/vite` transitively, so `@unocss/vite` is resolved through `unocss` and
+is deliberately **not** declared as a separate direct dependency.
+
+`happy-dom` is the only DOM environment added; `jsdom` was deliberately **not**
+added. Playwright, Cypress and Testing Library were deliberately **not** added
+(#82 owns browser E2E). No second utility framework, no CSS reset package and no
+component framework were added: the UnoCSS preset's only preflight output is its
+own transform variables, so the minimal global reset stays explicit in
+`apps/editor/src/styles.css`.
 
 ## Standards, vendors, and unresolved boundaries
 

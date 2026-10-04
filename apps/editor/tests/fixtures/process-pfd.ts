@@ -1,4 +1,4 @@
-import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from './dto'
+import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from '../../src/process-pfd/transport/dto'
 
 /**
  * Test-only fixture data for the editor frontend tests.

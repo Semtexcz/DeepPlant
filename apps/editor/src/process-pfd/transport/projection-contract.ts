@@ -10,18 +10,17 @@ import type {
 } from './dto'
 
 /**
- * Browser access to the local DeepPlant application boundary.
+ * Runtime narrowing of the local DeepPlant boundary payload into the DTO
+ * contract.
  *
- * The browser never parses YAML and never rebuilds the semantic model: it reads
- * the DeepPlant-owned projection JSON and the canonical packaged symbol assets
- * through the local Python boundary. Incoming data is narrowed to the DTO
- * contract so a contract mismatch fails clearly instead of silently producing a
- * half-valid view.
+ * Transport data arrives as `unknown`. It is narrowed here, field by field, so a
+ * contract mismatch fails clearly and loudly instead of silently producing a
+ * half-valid view. This module owns *only* the shape contract: it performs no
+ * I/O and it does not re-implement any engineering semantics - the Python
+ * projection remains the single source of engineering truth.
  */
 
-export const PROJECTION_ROUTE = '/api/projection'
-
-/** Raised when the boundary's payload does not match the expected contract. */
+/** Raised when a payload does not match the expected DeepPlant DTO contract. */
 export class ProjectionContractError extends Error {
   constructor(message: string) {
     super(message)
@@ -182,7 +181,13 @@ function parseProjection(value: unknown): ProcessPfdProjectionDto {
   }
 }
 
-/** Narrow an unknown `/api/projection` payload to the DTO contract. */
+/**
+ * Narrow an unknown `/api/projection` payload to the DTO contract.
+ *
+ * A semantic validation failure and a projection/view failure stay distinct:
+ * `projection` remains `null` and `error` carries the separate view error while
+ * `validation` still reports the semantic model's own validity.
+ */
 export function parseProjectionEnvelope(raw: unknown): ProjectionEnvelope {
   const record = asRecord(raw, 'projection response')
   const validation = parseValidationStatus(record['validation'])
@@ -197,32 +202,3 @@ export function parseProjectionEnvelope(raw: unknown): ProjectionEnvelope {
         : parseProjection(projectionValue),
   }
 }
-
-/** Load the Process/PFD projection from the local DeepPlant boundary. */
-export async function fetchProjection(): Promise<ProjectionEnvelope> {
-  let response: Response
-  try {
-    response = await fetch(PROJECTION_ROUTE, { headers: { Accept: 'application/json' } })
-  } catch (error) {
-    throw new ProjectionContractError(
-      `cannot reach the local DeepPlant editor boundary: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    )
-  }
-  let payload: unknown
-  try {
-    payload = await response.json()
-  } catch {
-    throw new ProjectionContractError(
-      `the local DeepPlant editor boundary returned non-JSON (HTTP ${response.status})`,
-    )
-  }
-  return parseProjectionEnvelope(payload)
-}
-
-/** URL of one canonical packaged symbol asset, served by the local boundary. */
-export function symbolUrl(symbolRole: string): string {
-  return `/api/symbols/${encodeURIComponent(symbolRole)}.svg`
-}
-

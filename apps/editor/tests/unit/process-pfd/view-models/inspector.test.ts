@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { inspectorForSelection, selectProcessStep, selectProcessStream } from './inspector-model'
-import { PROJECTION_FIXTURE } from './test-fixtures'
+import {
+  inspectorForSelection,
+  selectProcessStep,
+  selectProcessStream,
+} from '../../../../src/process-pfd/view-models/inspector'
+import { PROJECTION_FIXTURE } from '../../../fixtures/process-pfd'
 
 /** Labels that would indicate framework state leaking into the Inspector. */
 const FRAMEWORK_LABELS = [

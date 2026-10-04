@@ -148,7 +148,8 @@ reuse-first frontend architecture; none authorizes prebuilding GUI architecture.
 Issue #39 delivered its process ↔ physical realization boundary evidence and
 ADR-0016. With #39, #69, and #70 complete, the first read-only Process/PFD slice
 ([#75](roadmap.md)) was selected at the roadmap re-evaluation gate and delivered;
-its foundation is now being hardened (#79 → #80 → #81 → #82) before the next
+its foundation is being hardened by the sequenced slices #79 → #80 → #81 (all
+delivered) → #82, before the next
 product capability is selected.
 
 ### Stage 5 — Git-native Engineering Workflow

@@ -86,6 +86,7 @@ change_patterns:
     - docs/dev/frontend/architecture.md
     - docs/dev/workflow/quality.md
     - apps/editor/src/
+    - apps/editor/tests/
   "artifacts/openapi.json":
     - backend/src/app/main.py
     - frontend/shared/api/
