@@ -49,9 +49,10 @@ the Python wheel does not bundle or redistribute any JavaScript, and the built
 | `pnpm` | pinned `10.20.0` in `apps/editor/package.json` | MIT | Package manager; a build-time tool, not distributed or linked. |
 
 Deliberately **not** added: Reka UI, Dockview, Monaco, ELK/elkjs, Pinia,
-shadcn-vue, Tailwind, jsdom, a browser E2E framework, or any third-party
-engineering symbol asset. The engineering symbols remain the DeepPlant-original
-`basic` pack (see above), served from the Python package.
+shadcn-vue, Tailwind, jsdom, or any third-party engineering symbol asset. The
+engineering symbols remain the DeepPlant-original `basic` pack (see above),
+served from the Python package. (A browser E2E framework was also deliberately not
+added by #75; Issue #82 later added Playwright — see below.)
 
 ## Engineering Editor frontend lint tooling (Issue #80)
 
@@ -97,11 +98,38 @@ on `@unocss/vite` transitively, so `@unocss/vite` is resolved through `unocss` a
 is deliberately **not** declared as a separate direct dependency.
 
 `happy-dom` is the only DOM environment added; `jsdom` was deliberately **not**
-added. Playwright, Cypress and Testing Library were deliberately **not** added
-(#82 owns browser E2E). No second utility framework, no CSS reset package and no
+added. Cypress, Storybook and Testing Library were deliberately **not** added;
+#82 later added Playwright and Chromium only (see below). No second utility
+framework, no CSS reset package and no
 component framework were added: the UnoCSS preset's only preflight output is its
 own transform variables, so the minimal global reset stays explicit in
 `apps/editor/src/styles.css`.
+
+## Engineering Editor frontend browser E2E tooling (Issue #82)
+
+Issue #82 added the real-browser system/browser verification layer for the
+editor: Playwright driving Chromium against the real local `deepplant ui` CLI and
+the production SPA build. It added the following direct **dev-only** dependencies.
+Like the tooling above, they are build/dev/test time only: the Python wheel bundles
+no JavaScript and `apps/editor/dist` is not committed.
+
+| Dependency | Declared range | Licence | Why it is needed now |
+|---|---|---|---|
+| `@playwright/test` | `^1.63.0` | Apache-2.0 | The maintained browser automation and test runner used for the two critical-system E2E workflows. Chromium is the only browser configured; there is no browser matrix. |
+| `@types/node` | `^22.20.0` | MIT | Dev-only Node API typings for the Node-executed frontend tooling and the Playwright E2E launch helper (`node:child_process`, `node:timers/promises`, `node:url`, `node:path`). They are confined to the Node/tooling TypeScript config (`apps/editor/tsconfig.node.json`, `types: ["node"]`); the browser application config (`apps/editor/tsconfig.json`) deliberately does **not** expose Node globals, so Node APIs are never available to the browser application. The range tracks the pinned `engines.node` `>=22.12.0 <23` and cannot cross into Node 23+. Already present transitively via `vite`/`vitest`/`happy-dom`; declared directly so it is publicly resolvable for the Node/tooling typecheck. |
+
+Playwright downloads Chromium browser binaries at install time
+(`pnpm exec playwright install chromium`). Those binaries are **not** npm
+dependencies, are not committed, and are not redistributed by DeepPlant; they are
+fetched into the local Playwright browser cache
+(`~/.cache/ms-playwright`) under Playwright's own redistribution terms. The
+maintained Playwright installation mechanism is used, so no separate browser
+provenance tracking is required here.
+
+Deliberately **not** added by Issue #82: a Firefox or WebKit browser matrix,
+Cypress, Storybook, Testing Library, a visual-regression service, a browser-test
+abstraction layer, or video recording. No mock server, Vite dev/preview E2E path,
+or Page Object framework was introduced.
 
 ## Standards, vendors, and unresolved boundaries
 

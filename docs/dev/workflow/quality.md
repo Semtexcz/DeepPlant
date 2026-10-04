@@ -29,10 +29,21 @@ superseded_by: null
   enforces Vue/TypeScript correctness, the explicit-`any` ban, and the hard
   size/cohesion limits from [frontend/architecture.md](../frontend/architecture.md).
 - Frontend checks run through `make frontend-check`: dependency install from the
-  committed lockfile, `frontend-lint`, `vue-tsc` type checking, Vitest (pure unit
-  plus Vue component and feature-integration suites), and a production build.
-  These are four independent gates; no gate replaces another, and hard size-limit
-  violations fail `frontend-lint`.
+  committed lockfile, `frontend-lint`, `frontend-typecheck` (browser `vue-tsc`
+  over `tsconfig.json` plus Node/tooling `tsc` over `tsconfig.node.json`), Vitest
+  (pure unit plus Vue component and feature-integration suites), and a production
+  build. These are four independent gates; no gate replaces another, and hard
+  size-limit violations fail `frontend-lint`. The two TypeScript runtime
+  environments are canonical in
+  [frontend/typescript.md](../frontend/typescript.md).
+- Browser system E2E runs through `make frontend-e2e`: it installs frontend
+  dependencies from the committed lockfile, builds the production SPA, and runs
+  the Playwright + Chromium suite against the real local `deepplant ui` CLI. It is
+  deliberately **not** part of `frontend-check`/`check`, so the fast default gate
+  never downloads a browser. Install Chromium once per environment with
+  `cd apps/editor && pnpm exec playwright install chromium`. Ownership, lifecycle,
+  selector policy, and debugging are canonical in
+  [frontend/testing.md](../frontend/testing.md).
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
   `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
   are prerequisites of `make check`.
@@ -64,8 +75,11 @@ superseded_by: null
   DeepPlant DTO → Vue Flow adapter, and the selection → Inspector mapping, plus
   Vue component tests and a Process/PFD feature-integration test for the
   projection → selection → Inspector chain. Frontend runtime data is narrowed to
-  the explicit DTO contract so a contract mismatch fails clearly. Browser E2E is
-  deferred to #82.
+  the explicit DTO contract so a contract mismatch fails clearly. A small
+  Playwright + Chromium browser E2E layer proves the critical workflow across the
+  real local product path (production build + real `deepplant ui` CLI + real
+  browser); it is a separate gate (`make frontend-e2e`) and its ownership is
+  canonical in [frontend/testing.md](../frontend/testing.md).
 - Frontend work follows the canonical contract in
   [frontend/index.md](../frontend/index.md): feature ownership, the DeepPlant/Vue
   Flow boundary, Vue and composable conventions, state ownership, TypeScript

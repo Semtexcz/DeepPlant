@@ -1,4 +1,10 @@
 {
+  // Browser/frontend runtime: the production application (`src/**`) and the
+  // Vitest verification code (`tests/**`). `vite/client` is the only ambient
+  // type environment needed; Node globals are deliberately absent so production
+  // browser code cannot accidentally use `process`, `Buffer`, or `node:*`.
+  // The Node-executed frontend tooling and Playwright E2E suite are typed by the
+  // separate `tsconfig.node.json` (see docs/dev/frontend/typescript.md).
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
@@ -18,5 +24,5 @@
     "jsx": "preserve",
     "useDefineForClassFields": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "env.d.ts", "vite.config.ts", "uno.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "env.d.ts"]
 }

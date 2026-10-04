@@ -20,7 +20,8 @@ import {
  * `ProcessNode` is a custom Vue Flow node, so it is mounted with the framework's
  * node props. Only `Handle` is replaced, because it needs the whole Vue Flow
  * runtime graph context, which is exactly what this component test does not own
- * (#82 covers the real browser interaction). `Position` is used unreplaced.
+ * (the browser E2E suite covers the real interaction). `Position` is used
+ * unreplaced.
  */
 const HandleStub = defineComponent({
   name: 'HandleStub',

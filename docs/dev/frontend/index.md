@@ -39,12 +39,13 @@ any agent harness and by a human.
 |---|---|
 | **Implemented** | Already true or already enforced in the repository today. |
 | **Canonical rule** | Required for future frontend work. |
-| **Deferred (#82)** | Direction decided here, applied by that Issue. |
+| **Deferred** | Direction decided here, applied by a later Issue. |
 
-The #81 refactor has been applied, including the explicit production
-(`apps/editor/src/`) / verification (`apps/editor/tests/`) split; the remaining
-deferred item is the #82 browser E2E slice. This contract still states the rules
-future slices must follow and does not itself change editor product behavior.
+The #81 refactor and the #82 browser E2E slice have both been applied, including
+the explicit production (`apps/editor/src/`), isolated-verification
+(`apps/editor/tests/`), and system/browser (`apps/editor/e2e/`) split. This
+contract states the rules those slices must follow and does not itself change
+editor product behavior.
 
 ## Topics
 
@@ -75,9 +76,16 @@ future slices must follow and does not itself change editor product behavior.
   `component/`, `integration/`, `fixtures/`, with feature ownership and the
   verified responsibility below each layer); Vitest covers the pure modules, the
   Vue components, and the Process/PFD feature integration; ESLint (this
-  contract), `vue-tsc`, Vitest, and a production build are enforced.
+  contract), `vue-tsc`, Vitest, and a production build are enforced. Browser
+  system tests live in the separate `apps/editor/e2e/` root and run the real
+  local product (production build + real `deepplant ui` CLI + real Chromium). The
+  browser application + Vitest code and the Node-executed tooling + Playwright E2E
+  suite use two separate TypeScript runtime environments (`tsconfig.json` /
+  `tsconfig.node.json`) so Node globals never reach production browser code.
 - **Canonical rule:** everything below is binding for new frontend work.
-- **Deferred:** browser end-to-end tests (Playwright), owned by #82.
+- **Deferred:** none for the current frontend-engineering baseline; the #82
+  browser E2E slice is delivered and the next product capability is decided at
+  the [roadmap](../planning/roadmap.md) re-evaluation gate.
 
 ## Frontend review checklist
 

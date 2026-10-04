@@ -19,7 +19,8 @@ import { PROJECTION_FIXTURE } from '../../../fixtures/process-pfd'
  *   semantic selection contract as the real canvas component.
  *
  * It therefore runs without a server, without a browser engine, and without
- * Vue Flow. The real framework interaction is #82's browser E2E concern.
+ * Vue Flow. The real framework interaction is owned by the browser E2E suite
+ * (`apps/editor/e2e/`).
  */
 const CanvasStub = defineComponent({
   name: 'ProcessPfdCanvas',

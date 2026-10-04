@@ -13,8 +13,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "typecheck:browser": "vue-tsc --noEmit -p tsconfig.json",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "typecheck": "pnpm run typecheck:browser && pnpm run typecheck:node",
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@vue-flow/core": "^1.48.2",
@@ -22,6 +25,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.0",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/test-utils": "^2.5.1",
     "eslint": "^10.12.0",

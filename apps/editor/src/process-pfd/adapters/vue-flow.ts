@@ -63,6 +63,21 @@ export function frameworkEdgeId(streamId: string): string {
 }
 
 /**
+ * Accessible name of a projected `ProcessStep` in the canvas.
+ *
+ * The prefix is DeepPlant-owned vocabulary and deliberately uses the semantic
+ * step id; the framework id never appears in an accessible name.
+ */
+export function stepLabel(stepId: string): string {
+  return `Process step ${stepId}`
+}
+
+/** Accessible name of a projected `ProcessStream` in the canvas (same contract). */
+export function streamLabel(streamId: string): string {
+  return `Process stream ${streamId}`
+}
+
+/**
  * Read the explicit DeepPlant semantic identity carried in a Vue Flow node or
  * edge `data` payload.
  *
@@ -85,6 +100,11 @@ export function toVueFlowNode(step: ProcessStepDto, symbolSize: number): DeepPla
     draggable: false,
     connectable: false,
     selectable: true,
+    // DeepPlant-owned accessible name. Vue Flow renders focusable nodes with a
+    // `group` role, so the element needs a name: this states the semantic
+    // identity (never the framework id) and gives the browser/E2E layer one
+    // stable, framework-independent handle on the projected `ProcessStep`.
+    ariaLabel: stepLabel(step.id),
     data: {
       kind: 'process-step',
       deeplantId: step.id,
@@ -103,6 +123,12 @@ export function toVueFlowEdge(stream: ProcessStreamDto): DeepPlantEdge {
     targetHandle: stepHandleId('in', stream.target.anchor),
     type: 'smoothstep',
     selectable: true,
+    // DeepPlant-owned accessible name. A `ProcessStream` has no visible label,
+    // and Vue Flow's default edge name would leak the framework node ids
+    // (`vue-flow-node:...`) instead of the semantic stream identity. This states
+    // the semantic identity and gives the browser/E2E layer one stable,
+    // framework-independent handle on the projected `ProcessStream`.
+    ariaLabel: streamLabel(stream.id),
     data: {
       kind: 'process-stream',
       deeplantId: stream.id,
