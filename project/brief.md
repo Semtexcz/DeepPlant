@@ -35,7 +35,8 @@ connections, reference validation), the physical piping-realization layer
 models, the `deepplant validate` command, the `basic` process symbol-pack
 contract, a headless read-only process renderer, a narrow DEXPI 2.0.0 Process
 adapter, and the first runnable, read-only Process/PFD editor slice
-(`src/deepplant/editor/` + `frontend/`, launched with `deepplant ui <path>`).
+(the `src/deepplant/editor/` application boundary plus the `apps/editor/` SPA,
+launched with `deepplant ui <path>`).
 
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:

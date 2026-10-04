@@ -542,7 +542,7 @@ Phase 3A repointed the architecture and workflow/governance routes to the actual
 v2.1 paths, including the pattern keys:
 
 - the architecture pattern key is now `docs/dev/architecture/index.md`, and the
-  generic `src/**/*.py`, `tests/**/*.py`, `backend/**`, `frontend/**`, and
+  generic `src/**/*.py`, `tests/**/*.py`, `backend/**`, `apps/editor/**`, and
   `**/Dockerfile` patterns route to `docs/dev/architecture/index.md` and
   `docs/dev/workflow/quality.md`;
 - the workflow and quality pattern keys are now `docs/dev/workflow/index.md` and

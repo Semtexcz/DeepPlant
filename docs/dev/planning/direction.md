@@ -146,8 +146,10 @@ interactive subset of PFD and P&ID. Issue #68 completed its product boundary;
 Issue #69 delivered the UI/UX interaction architecture and Issue #70 delivered the
 reuse-first frontend architecture; none authorizes prebuilding GUI architecture.
 Issue #39 delivered its process ↔ physical realization boundary evidence and
-ADR-0016. With #39, #69, and #70 complete, the smallest executable slice is
-selected at the roadmap re-evaluation gate.
+ADR-0016. With #39, #69, and #70 complete, the first read-only Process/PFD slice
+([#75](roadmap.md)) was selected at the roadmap re-evaluation gate and delivered;
+its foundation is now being hardened (#79 → #80 → #81 → #82) before the next
+product capability is selected.
 
 ### Stage 5 — Git-native Engineering Workflow
 

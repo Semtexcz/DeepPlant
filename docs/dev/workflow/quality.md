@@ -26,8 +26,8 @@ superseded_by: null
 - Frontend checks run through `make frontend-check`: dependency install from the
   committed lockfile, `vue-tsc` type checking, Vitest, and a production build.
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
-  `frontend-check`, so Node 22 and `pnpm` (pinned by `frontend/package.json`) are
-  prerequisites of `make check`.
+  `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
+  are prerequisites of `make check`.
 - The template repository has a separate full release-candidate gate across
   every generated profile and workflow.
 

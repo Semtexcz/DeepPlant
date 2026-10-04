@@ -21,7 +21,7 @@ coverage/
 playwright-report/
 test-results/
 artifacts/
-frontend/shared/api/generated/
+apps/editor/shared/api/generated/
 
 .DS_Store
 Thumbs.db

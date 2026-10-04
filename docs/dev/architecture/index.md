@@ -57,19 +57,21 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 | Process/PFD view projection | `src/deepplant/editor/projection.py` | [contracts/rendering.md](../../contracts/rendering.md) |
-| Local editor application boundary | `src/deepplant/editor/app.py` | this document (local-only, replaceable) |
-| Editor SPA | `frontend/` | this document (Vue 3 + TypeScript + Vite + Vue Flow) |
+| Editor application + FastAPI boundary | `src/deepplant/editor/app.py` | this document (local-only, transport-thin) |
+| Editor SPA (standalone application) | `apps/editor/` | this document (Vue 3 + TypeScript + Vite + Vue Flow) |
 
 Runtime and toolchain:
 
 - Python >= 3.12, managed with `uv`.
-- Runtime dependencies: Typer (CLI), Pydantic v2, PyYAML. The DEXPI adapter and
-  the local editor boundary use only the standard library.
-- Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict).
-- Frontend toolchain (`frontend/`, ephemeral build output): Vue 3, TypeScript,
-  Vite, Vue Flow, Vitest, `vue-tsc`. The package manager is pinned by
-  `frontend/package.json` (`packageManager`) with a committed
-  `frontend/pnpm-lock.yaml`.
+- Runtime dependencies: Typer (CLI), Pydantic v2, PyYAML, and — for the local
+  editor only — FastAPI and Uvicorn. The DEXPI adapter and the rest of the core
+  use only the standard library plus those declared dependencies.
+- Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict), and `httpx2` for the
+  FastAPI/Starlette test client.
+- Editor SPA toolchain (`apps/editor/`, ephemeral build output): Vue 3,
+  TypeScript, Vite, Vue Flow, Vitest, `vue-tsc`. The package manager is pinned by
+  `apps/editor/package.json` (`packageManager`) with a committed
+  `apps/editor/pnpm-lock.yaml`.
 
 ## Module boundaries
 
@@ -81,9 +83,9 @@ Runtime and toolchain:
 | `render.py` | presentation policy, symbol-role resolution, layout, routing, SVG output | store presentation data in the semantic model, or require it to validate |
 | `adapters/dexpi.py` | DEXPI XML <-> `ProcessModel` conversion and its fail-closed checks | leak DEXPI shapes into the canonical model |
 | `editor/projection.py` | the read-only Process/PFD view projection of `ProcessModel` | contain domain rules, import the CLI or a web framework, or leak framework concepts |
-| `editor/app.py` | the small, local-only, replaceable editor transport boundary | contain domain or projection logic, or claim production/server security |
+| `editor/app.py` | the editor application plus its thin, local-only FastAPI/Uvicorn transport | move engineering logic into route handlers, or claim production/server security |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
-| `frontend/` (TypeScript) | browser view state, the Vue Flow adapter, and the read-only Inspector | re-implement the semantic model, parse YAML, or become project truth |
+| `apps/editor/` (TypeScript) | browser view state, the Vue Flow adapter, and the read-only Inspector | re-implement the semantic model, parse YAML, or become project truth |
 
 The dependency direction is one-way:
 
@@ -96,7 +98,7 @@ The dependency direction is one-way:
                           ▲
               editor/projection.py
                           ▲
-                  editor/app.py   ──►  frontend/ (browser)
+                  editor/app.py   ──►  apps/editor/ (browser SPA)
 ```
 
 Consumers depend on the model; the model depends on nothing consumer-specific
@@ -143,18 +145,45 @@ a separate cross-layer realization layer.
 
 ## Engineering Editor slice (implemented)
 
-Issue #75 delivered the first runnable, read-only Process/PFD editor slice. It is
-deliberately narrow and Process/PFD-only:
+Issues #75 and #79 delivered the first runnable, read-only Process/PFD editor
+slice. It is deliberately narrow and Process/PFD-only:
 
 ```text
 YAML → load_plant → PlantModel → ProcessModel
                                    ↓  projection (src/deepplant/editor/projection.py)
                         DeepPlant-owned read-only Process/PFD projection
-                                   ↓  local boundary (src/deepplant/editor/app.py)
-                        JSON + canonical symbol assets + built SPA assets
-                                   ↓  frontend adapter (frontend/src/process-pfd/)
+                                   ↓  application (EditorApplication, src/deepplant/editor/app.py)
+                        FastAPI adapter → Uvicorn (loopback only)
+                                   ↓  HTTP: JSON projection + canonical symbol assets
+                        editor application adapter (apps/editor/src/process-pfd/)
                         Vue Flow nodes/edges  →  interactive read-only canvas
 ```
+
+### Repository layout and dependency direction
+
+The browser editor is an **application**, not package code or reusable frontend
+infrastructure, so it lives outside the Python package under `apps/editor/`:
+
+```text
+src/deepplant/          reusable Python package/library and CLI
+src/deepplant/editor/   DeepPlant-owned editor application + FastAPI HTTP adapter
+apps/editor/            the standalone Engineering Editor SPA (Vue 3 + Vite)
+```
+
+The dependency direction is one-way and the HTTP layer is a thin adapter only:
+
+```text
+apps/editor/ (Vue SPA)
+        ↓  HTTP
+create_editor_api (FastAPI transport, src/deepplant/editor/app.py)
+        ↓
+EditorApplication → projection → renderer / semantic model
+```
+
+`apps/editor/` is the only tree for this application; there is no root-level
+`frontend/` directory. Issue #79 selected this layout because the SPA is a
+standalone, pinned Vite application with its own dependency graph, while
+`src/deepplant/` is the reusable Python surface.
 
 - **Projection.** `deepplant.editor.projection` turns a loaded `PlantModel` into
   `ProcessPfdProjection` and a JSON-ready transport DTO. It carries explicit
@@ -166,20 +195,22 @@ YAML → load_plant → PlantModel → ProcessModel
   (`compute_process_pfd_layout`), and reads the canonical packaged symbol assets
   through `read_process_symbol_svg`. There is no second mapping and no second
   symbol pack.
-- **Transport.** `deepplant.editor.app` is a small, local-only boundary built on
-  the Python standard library `http.server`. For this slice (one JSON route, the
-  canonical symbol assets, and the built SPA assets) a compact explicit handler
-  is maintenance-cheap and adds **no Python runtime dependency**; it also keeps
-  the boundary replaceable, since only `EditorApplication`,
-  `load_editor_application`, and `serve_editor` are used by the CLI. It binds to
-  loopback only and makes no production or server-security claim.
+- **Transport.** `deepplant.editor.app` exposes the editor through an explicit
+  FastAPI application factory, `create_editor_api(editor)`, run by Uvicorn
+  (Issue #79). The route handlers are transport-thin: they receive a request,
+  call `EditorApplication`, and map the result to a response. All engineering
+  behaviour — projection, validation reporting, symbol resolution, asset
+  resolution — stays in `EditorApplication` and below it and remains testable
+  from plain Python without FastAPI. It binds to loopback only and makes no
+  production or server-security claim.
 - **Launch and failures.** `deepplant ui <path>` loads the project through the
-  ordinary DeepPlant loader and serves the built frontend from `frontend/dist`
-  (or `--assets-dir`). A successful `load_plant` is the semantic validation
+  ordinary DeepPlant loader and serves the built editor application from
+  `apps/editor/dist` (or `--assets-dir`). A successful `load_plant` is the
+  semantic validation
   boundary. If the Process/PFD projection or its presentation role resolution
   fails, the local JSON route returns a separate view error (currently HTTP 422)
   with no projection; it does not recast the loaded semantic model as invalid.
-- **Frontend.** `frontend/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA. The
+- **Frontend.** `apps/editor/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA. The
   adapter (`process-pfd/vue-flow-adapter.ts`) is the only place Vue Flow shapes
   appear. Selection is transient UI state, translated back to DeepPlant identity
   before the Inspector renders anything.
@@ -190,9 +221,9 @@ save, undo/redo, presentation persistence, P&ID rendering, physical/P&ID
 symbols, the ADR-0016 mapping, an automatic layout engine, a plugin system, and
 an application-command architecture.
 
-Known limitation: the built frontend assets are read from the checkout
-(`frontend/dist`); bundling them into the Python wheel is not done in this slice.
-A checkout run is a complete user path (`make frontend-build`, then
+Known limitation: the built editor assets are read from the checkout
+(`apps/editor/dist`); bundling them into the Python wheel is not done in this
+slice. A checkout run is a complete user path (`make frontend-build`, then
 `deepplant ui <path>`); wheel packaging of the SPA assets remains a future step.
 
 ## Not implemented (directional only)

@@ -147,9 +147,9 @@ first-use workflow, see [Getting Started](docs/user/getting-started.md).
 ### Open the read-only Process/PFD editor
 
 The first executable GUI slice loads a project through the ordinary DeepPlant
-loader and shows its Process/PFD view in a local browser page. The editor frontend
-requires Node.js >= 22.12 and the pnpm version pinned in `frontend/package.json`
-(Corepack can provide it). Build the frontend, then launch it:
+loader and shows its Process/PFD view in a local browser page. The editor
+application requires Node.js >= 22.12 and the pnpm version pinned in
+`apps/editor/package.json` (Corepack can provide it). Build it, then launch it:
 
 ```bash
 make frontend-build

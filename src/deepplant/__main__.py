@@ -74,7 +74,7 @@ def ui(
         Path | None,
         typer.Option(
             "--assets-dir",
-            help="Directory with built editor assets. Defaults to ./frontend/dist.",
+            help="Directory with built editor assets. Defaults to ./apps/editor/dist.",
         ),
     ] = None,
 ) -> None:
