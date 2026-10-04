@@ -22,7 +22,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@unocss/vite": "^66.10.5",
     "@vitejs/plugin-vue": "^6.0.9",
     "@vue/test-utils": "^2.5.1",
     "eslint": "^10.12.0",

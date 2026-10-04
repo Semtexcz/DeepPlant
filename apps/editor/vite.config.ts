@@ -1,4 +1,4 @@
-import UnoCSS from '@unocss/vite'
+import UnoCSS from 'unocss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 

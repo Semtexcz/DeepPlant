@@ -88,10 +88,13 @@ committed.
 
 | Dependency | Declared range | Licence | Why it is needed now |
 |---|---|---|---|
-| `unocss` | `^66.10.5` | MIT | The canonical utility-first styling layer selected by the #80 frontend contract; generates only the utilities the editor uses. Configured in `apps/editor/uno.config.ts`. |
-| `@unocss/vite` | `^66.10.5` | MIT | The maintained official UnoCSS integration for Vite, wired into `apps/editor/vite.config.ts` (`UnoCSS()`), which also loads `uno.config.ts`. |
+| `unocss` | `^66.10.5` | MIT | The canonical utility-first styling layer selected by the #80 frontend contract; generates only the utilities the editor uses. Configured in `apps/editor/uno.config.ts`. It also exposes the maintained official UnoCSS Vite integration as `unocss/vite`, wired into `apps/editor/vite.config.ts` (`UnoCSS()`). |
 | `@vue/test-utils` | `^2.5.1` | MIT | The official Vue 3 component test utility; mounts `InspectorPanel.vue`, `ProcessNode.vue` and the Process/PFD workspace in the component and feature-integration suites. |
 | `happy-dom` | `^20.14.5` | MIT | The single DOM environment for the component and feature-integration suites (`@vitest-environment happy-dom`). Chosen over `jsdom` as the one maintained DOM environment: it is actively maintained and its declared Node `>=20` engine range covers the pinned Node `>=22.12 <23`. |
+
+`unocss` re-exports the official `@unocss/vite` plugin as `unocss/vite` and depends
+on `@unocss/vite` transitively, so `@unocss/vite` is resolved through `unocss` and
+is deliberately **not** declared as a separate direct dependency.
 
 `happy-dom` is the only DOM environment added; `jsdom` was deliberately **not**
 added. Playwright, Cypress and Testing Library were deliberately **not** added
