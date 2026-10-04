@@ -60,8 +60,10 @@ and does not itself change editor product behavior.
 ## Current vs canonical vs deferred
 
 - **Implemented:** `apps/editor/` is a Vue 3 + TypeScript + Vite SPA with Vue Flow
-  confined to the `process-pfd` canvas/adapter boundary; the transport contract is
-  a hand-written, explicitly validated DTO boundary (`process-pfd/dto.ts`,
+  confined to the explicit Process/PFD canvas integration surface
+  (`ProcessPfdCanvas.vue`, `ProcessNode.vue`, `vue-flow-adapter.ts`), whose
+  `Node`/`Edge` graph shapes stay in `vue-flow-adapter.ts`; the transport contract
+  is a hand-written, explicitly validated DTO boundary (`process-pfd/dto.ts`,
   `process-pfd/projection-contract.ts`, `process-pfd/api.ts`); feature state lives
   in `process-pfd/useProcessPfd.ts` and ordinary UI uses the canonical UnoCSS
   utility layer over semantic tokens; Vitest covers the pure modules, the Vue
@@ -80,7 +82,7 @@ the `frontend-engineering` skill points here rather than duplicating it.
 - Is application behavior trapped unnecessarily inside rendering code?
 - Is a composable actually cohesive, and named for its domain?
 - Is global state genuinely justified, and is mutable state owned once?
-- Are Vue Flow concepts contained behind the adapter/integration boundary?
+- Are Vue Flow concepts contained behind the explicit Process/PFD integration boundary?
 - Is untrusted transport input narrowed from `unknown` before being trusted?
 - Is an assertion hiding a type-design problem?
 - Are watchers synchronizing duplicated state instead of an owned source?

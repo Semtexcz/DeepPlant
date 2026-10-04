@@ -224,10 +224,13 @@ standalone, pinned Vite application with its own dependency graph, while
   `process-pfd/` (`ProcessPfdWorkspace.vue`, `ProcessPfdCanvas.vue`,
   `useProcessPfd.ts`, `InspectorPanel.vue`, `ProcessNode.vue`, `api.ts`,
   `projection-contract.ts`, `dto.ts`, `inspector-model.ts`,
-  `vue-flow-adapter.ts`). The adapter/canvas boundary is the only place Vue Flow
-  shapes appear: a framework node/edge click is translated to a DeepPlant semantic
-  id before the feature resolves it, so the Inspector only ever consumes
-  projection objects. Selection is transient UI state and nothing is persisted.
+  `vue-flow-adapter.ts`). Vue Flow-specific code is confined to the explicit
+  Process/PFD canvas integration surface (`ProcessPfdCanvas.vue`,
+  `ProcessNode.vue`, `vue-flow-adapter.ts`), and its `Node`/`Edge` graph shapes
+  appear only in `vue-flow-adapter.ts`: a framework node/edge click is translated
+  to a DeepPlant semantic id before the feature resolves it, so the Inspector only
+  ever consumes projection objects. Selection is transient UI state and nothing is
+  persisted.
   Frontend engineering rules — feature ownership, Vue/TypeScript conventions,
   state ownership, styling ownership, accessibility, testing layers, and
   size/cohesion guardrails — are canonical in [frontend/](../frontend/index.md)
