@@ -16,6 +16,7 @@ import pytest
 from deepplant.editor.application import EditorApplication
 from deepplant.editor.desktop import (
     DesktopHostError,
+    initial_open_directory,
     is_allowed_navigation,
     run_desktop_editor,
 )
@@ -54,6 +55,41 @@ def test_navigation_policy_stays_on_the_local_application() -> None:
     assert is_allowed_navigation("https://example.com/") is False
     assert is_allowed_navigation("http://192.168.0.10:53421/") is False
     assert is_allowed_navigation("file:///etc/passwd") is False
+
+
+def test_open_directory_falls_back_when_the_platform_reports_no_home(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A missing home directory must not stop the application from starting.
+
+    The packaged Windows desktop smoke found this: in a session where the
+    platform cannot report a home directory, ``Path.home()`` raises
+    ``RuntimeError`` and the Editor failed at startup. The Open dialog now starts
+    from the working directory instead.
+    """
+
+    def no_home() -> Path:
+        raise RuntimeError("Could not determine home directory.")
+
+    monkeypatch.setattr(Path, "home", staticmethod(no_home))
+    monkeypatch.chdir(tmp_path)
+
+    assert initial_open_directory() == str(tmp_path)
+
+
+def test_open_directory_never_raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With neither a home nor a working directory, Qt's own default is used."""
+
+    def no_home() -> Path:
+        raise RuntimeError("Could not determine home directory.")
+
+    def no_cwd() -> Path:
+        raise OSError("no working directory")
+
+    monkeypatch.setattr(Path, "home", staticmethod(no_home))
+    monkeypatch.setattr(Path, "cwd", staticmethod(no_cwd))
+
+    assert initial_open_directory() == ""
 
 
 def test_no_path_starts_the_window_without_a_project(assets_dir: Path) -> None:

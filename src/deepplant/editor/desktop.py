@@ -64,6 +64,7 @@ __all__ = [
     "MODEL_FILE_FILTER",
     "WINDOW_TITLE",
     "app",
+    "initial_open_directory",
     "is_allowed_navigation",
     "main",
     "run_desktop_editor",
@@ -93,6 +94,23 @@ ProjectLoader = Callable[[Path], EditorApplication]
 
 class DesktopHostError(Exception):
     """User-facing desktop launch failure reported without a traceback."""
+
+
+def initial_open_directory() -> str:
+    """Return a usable starting directory for the native Open dialog.
+
+    This must never raise. A graphical application has to start even when the
+    platform cannot report a home directory - a service or locked-down session, a
+    hardened CI runner - and ``Path.home()`` raises ``RuntimeError`` in exactly
+    those cases. The current working directory is the fallback, and an empty
+    string (Qt's own default) the last resort.
+    """
+    for candidate in (Path.home, Path.cwd):
+        try:
+            return str(candidate())
+        except (OSError, RuntimeError):
+            continue
+    return ""
 
 
 def is_allowed_navigation(url: str) -> bool:

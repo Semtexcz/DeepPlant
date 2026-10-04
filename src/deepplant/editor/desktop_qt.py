@@ -57,6 +57,7 @@ from deepplant.editor.desktop import (
     MODEL_FILE_FILTER,
     WINDOW_TITLE,
     ProjectLoader,
+    initial_open_directory,
     is_allowed_navigation,
 )
 from deepplant.io import PlantLoadError
@@ -294,6 +295,22 @@ class _MainWindow(QMainWindow):
             instance.quit()
 
 
+def _initial_open_directory() -> str:
+    """Return a usable starting directory for the native Open dialog.
+
+    This must never raise. A graphical application has to start even when the
+    platform cannot report a home directory (a service or locked-down session, a
+    hardened CI runner); the Open dialog simply starts somewhere sensible.
+    ``Path.home()`` raises ``RuntimeError`` in exactly those cases.
+    """
+    for candidate in (Path.home, Path.cwd):
+        try:
+            return str(candidate())
+        except (OSError, RuntimeError):
+            continue
+    return ""
+
+
 class _DesktopEditor:
     """Owns the window, the open project, and that project's local server.
 
@@ -321,7 +338,7 @@ class _DesktopEditor:
         self._host = host
         self._echo = echo
         self._server: EditorServer | None = None
-        self._open_directory = str(Path.home())
+        self._open_directory = initial_open_directory()
         #: Set by the self-check before the first load; harmless when unset.
         self.page_loaded_hook: Callable[[bool], None] | None = None
         self._window = _MainWindow(
@@ -635,22 +652,38 @@ def run_host(
     if report_path is not None:
         _stage_log(report_path, "host: Qt application created")
 
-    editor = _DesktopEditor(loader=loader, port=port, host=host, echo=echo)
-    if self_check:
+    try:
+        editor = _DesktopEditor(loader=loader, port=port, host=host, echo=echo)
+        if self_check:
+            if report_path is None:
+                raise RuntimeError("the desktop self-check requires a report path")
+            _start_self_check(
+                editor,
+                Path(report_path),
+                echo=echo,
+                finish=qt_application.exit,
+                has_project=initial_application is not None,
+            )
+
+        if initial_application is not None:
+            editor.open_project(initial_application)
+        editor.show()
+        if report_path is not None:
+            _stage_log(report_path, "host: window shown, entering the event loop")
+
+        return int(qt_application.exec())
+    except BaseException as exc:
+        # A failure while the Qt application already exists must still be bounded
+        # and reported: tearing a half-constructed Qt application down at
+        # interpreter exit can block, which would leave an automated caller
+        # waiting instead of receiving the reason.
         if report_path is None:
-            raise RuntimeError("the desktop self-check requires a report path")
-        _start_self_check(
-            editor,
-            Path(report_path),
-            echo=echo,
-            finish=qt_application.exit,
-            has_project=initial_application is not None,
+            raise
+        _stage_log(report_path, f"host: fatal {type(exc).__name__}: {exc}")
+        _write_json(
+            report_path,
+            {"verdict": "fail", "error": f"{type(exc).__name__}: {exc}"},
         )
-
-    if initial_application is not None:
-        editor.open_project(initial_application)
-    editor.show()
-    if report_path is not None:
-        _stage_log(report_path, "host: window shown, entering the event loop")
-
-    return int(qt_application.exec())
+        echo(f"self-check failed: {type(exc).__name__}: {exc}")
+        os._exit(1)
+        raise  # unreachable; keeps the return type honest for static analysis

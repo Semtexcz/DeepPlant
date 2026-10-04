@@ -546,9 +546,11 @@ def sanitized_environment() -> dict[str, str]:
         # unset proves the artifact does not depend on the build environment.
         "PYTHONNOUSERSITE": "1",
     }
-    # The graphical session the application would find on a normal desktop. These
-    # are OS/platform facilities, not a Python/Node toolchain, and without them a
-    # GUI application cannot start on Linux at all.
+    # The graphical session and platform identity a normal desktop provides.
+    # These are OS/platform facilities, not a Python/Node toolchain: without the
+    # display variables a GUI application cannot start on Linux at all, and
+    # without the Windows session variables the platform cannot resolve a home or
+    # application-data directory.
     for name in (
         "DISPLAY",
         "WAYLAND_DISPLAY",
@@ -556,6 +558,17 @@ def sanitized_environment() -> dict[str, str]:
         "XAUTHORITY",
         "DBUS_SESSION_BUS_ADDRESS",
         "XDG_SESSION_TYPE",
+        "USERPROFILE",
+        "HOMEDRIVE",
+        "HOMEPATH",
+        "APPDATA",
+        "LOCALAPPDATA",
+        "PROGRAMDATA",
+        "USERNAME",
+        "USERDOMAIN",
+        "COMPUTERNAME",
+        "NUMBER_OF_PROCESSORS",
+        "PROCESSOR_ARCHITECTURE",
     ):
         value = os.environ.get(name)
         if value:
