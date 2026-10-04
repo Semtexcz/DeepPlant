@@ -39,11 +39,11 @@ any agent harness and by a human.
 |---|---|
 | **Implemented** | Already true or already enforced in the repository today. |
 | **Canonical rule** | Required for future frontend work. |
-| **Deferred (#81/#82)** | Direction decided here, applied by that Issue. |
+| **Deferred (#82)** | Direction decided here, applied by that Issue. |
 
-This contract does **not** perform the #81 refactor or the #82 browser E2E work.
-It states the rules those slices must follow. It also does not change editor
-product behavior.
+The #81 refactor has been applied; the remaining deferred item is the #82
+browser E2E slice. This contract still states the rules future slices must follow
+and does not itself change editor product behavior.
 
 ## Topics
 
@@ -60,14 +60,15 @@ product behavior.
 ## Current vs canonical vs deferred
 
 - **Implemented:** `apps/editor/` is a Vue 3 + TypeScript + Vite SPA with Vue Flow
-  confined to `process-pfd/vue-flow-adapter.ts`; the transport contract is a
-  hand-written, explicitly validated DTO boundary (`process-pfd/dto.ts`,
-  `process-pfd/api.ts`); Vitest unit tests cover the pure modules; ESLint (this
-  contract), `vue-tsc`, Vitest, and a production build are enforced.
+  confined to the `process-pfd` canvas/adapter boundary; the transport contract is
+  a hand-written, explicitly validated DTO boundary (`process-pfd/dto.ts`,
+  `process-pfd/projection-contract.ts`, `process-pfd/api.ts`); feature state lives
+  in `process-pfd/useProcessPfd.ts` and ordinary UI uses the canonical UnoCSS
+  utility layer over semantic tokens; Vitest covers the pure modules, the Vue
+  components, and the Process/PFD feature integration; ESLint (this contract),
+  `vue-tsc`, Vitest, and a production build are enforced.
 - **Canonical rule:** everything below is binding for new frontend work.
-- **Deferred:** the feature/`app`/`shared` reorganization, composable extraction,
-  component and feature-integration tests, UnoCSS integration and CSS migration,
-  and browser E2E. Those are owned by #81 and #82, not by this contract.
+- **Deferred:** browser end-to-end tests (Playwright), owned by #82.
 
 ## Frontend review checklist
 

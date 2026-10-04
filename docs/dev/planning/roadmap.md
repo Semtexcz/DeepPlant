@@ -63,7 +63,11 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   current validation status;
 - the canonical frontend engineering contract and quality gates for that SPA
   ([dev/frontend/](../frontend/index.md)), enforced by an ESLint flat-config gate
-  as part of `make frontend-check` and `make check`.
+  as part of `make frontend-check` and `make check`, and applied to the existing
+  frontend by the #81 refactor: a thin application composition root
+  (`apps/editor/src/App.vue`), a feature-owned Process/PFD workspace and canvas
+  boundary, explicit feature state ownership (`process-pfd/useProcessPfd.ts`),
+  UnoCSS over semantic tokens, and Vue component plus feature-integration tests.
 
 Not implemented: semantic editing and any semantic mutation command, presentation
 persistence, undo/redo, P&ID rendering and physical/P&ID symbols, full DEXPI and
@@ -82,15 +86,16 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- [#81 — Engineering Editor: frontend refactor and component/integration tests](https://github.com/Semtexcz/DeepPlant/issues/81)
+- [#82 — Engineering Editor: browser end-to-end tests](https://github.com/Semtexcz/DeepPlant/issues/82)
   is the next authorized executable slice.
 
   #75 delivered the first runnable read-only Process/PFD slice, #79 hardened its
-  foundation (the editor application layout and the FastAPI/Uvicorn boundary), and
+  foundation (the editor application layout and the FastAPI/Uvicorn boundary),
   #80 established the canonical frontend engineering contract and its quality
-  gates. None produced a new product capability or evidence that changes the
-  sequence. The smallest next evidence-producing slice is therefore the frontend
-  refactor against that contract, which the browser E2E slice (#82) depends on:
+  gates, and #81 applied that contract to the existing frontend without changing
+  product behavior. None produced a new product capability or evidence that
+  changes the sequence. The smallest next evidence-producing slice is therefore
+  the browser end-to-end slice over the now-stable feature structure:
 
   ```text
   #75 read-only Process/PFD slice delivered
@@ -99,9 +104,9 @@ evidence-heavy slices, in the linked spike/decision documents.
           ↓
   #80 frontend engineering contract + quality gates      (delivered)
           ↓
-  #81 frontend refactor + component/integration tests    (selected)
+  #81 frontend refactor + component/integration tests    (delivered)
           ↓
-  #82 browser end-to-end tests
+  #82 browser end-to-end tests                           (selected)
           ↓
   re-evaluate the next product capability
   ```
@@ -109,16 +114,10 @@ evidence-heavy slices, in the linked spike/decision documents.
   No semantic-editing, presentation-persistence, P&ID, or process ↔ physical
   realization slice is selected or promoted.
 
-- No other slice is currently selected. #82 is a dependency-ordered follow-up,
-  not parallel `Now` work (see **Next**).
-
 ### Next
 
-- [#82 — Engineering Editor: browser end-to-end tests](https://github.com/Semtexcz/DeepPlant/issues/82),
-  after #81 applies the frontend engineering contract and adds component and
-  feature-integration tests.
-- Re-evaluate the next product capability only after #81–#82, from the evidence
-  those slices produce.
+- Re-evaluate the next product capability after #82, from the evidence #75–#82
+  produced.
 
   Do not mechanically promote semantic editing, presentation persistence, P&ID,
   or another backlog item. Re-evaluation criteria include:
@@ -173,14 +172,24 @@ functionality was layered on it. Its outcome selected
 [#79 — Bug: Engineering Editor architecture is inconsistent with the existing
 DeepPlant application structure](https://github.com/Semtexcz/DeepPlant/issues/79)
 as the next executable slice, followed by the dependency-ordered
-frontend-engineering work #80 → #81 → #82. #79 and #80 are now delivered, so the
-remaining sequence is #81 → #82.
+frontend-engineering work #80 → #81 → #82. #79, #80 and #81 are now delivered, so
+the remaining sequence is #82.
 
 The next re-evaluation gate opens only after #82. Its outcome is deliberately
 not decided here, and no successor Issue is created (see **Next**).
 
 ### Completed Context
 
+- **Issue #81 is delivered (frontend refactor, unocss, component and integration
+  tests):** the #80 contract was applied to the existing editor frontend without
+  changing product behaviour. `App.vue` is now a thin application composition
+  root; the Process/PFD feature owns its own workspace, canvas boundary, feature
+  state (`process-pfd/useProcessPfd.ts`), transport (`api.ts`) and runtime
+  contract narrowing (`projection-contract.ts`); Vue Flow stays behind the canvas
+  and adapter boundaries and emits semantic ids only; UnoCSS over semantic
+  `--dp-*` tokens replaced broad global feature CSS; and Vue component plus
+  feature-integration tests were added alongside the DOM-free pure suites. See
+  [history/implementation-slices.md](../history/implementation-slices.md).
 - **Issue #80 is delivered (frontend engineering contract and quality gates):**
   the canonical, repository-owned frontend engineering contract now lives in
   [docs/dev/frontend/](../frontend/index.md) (architecture and feature ownership,
@@ -306,9 +315,9 @@ Concrete examples:
   authorized only within the explicitly selected Engineering Editor slices. The
   hardening sequence is #79 (delivered: application layout + FastAPI boundary) →
   #80 (delivered: frontend engineering contract + quality gates) → #81
-  (frontend refactor + component/integration tests) → #82 (browser E2E); that
-  sequence does not authorize semantic editing, presentation persistence, a
-  GUI redesign, P&ID, or broader Engineering Editor infrastructure
+  (delivered: frontend refactor + component/integration tests) → #82 (browser
+  E2E); that sequence does not authorize semantic editing, presentation
+  persistence, a GUI redesign, P&ID, or broader Engineering Editor infrastructure
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
 - the physical-piping realization question and the separate process ↔ physical

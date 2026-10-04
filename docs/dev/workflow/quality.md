@@ -29,9 +29,10 @@ superseded_by: null
   and the hard size/cohesion limits from
   [frontend/architecture.md](../frontend/architecture.md).
 - Frontend checks run through `make frontend-check`: dependency install from the
-  committed lockfile, `frontend-lint`, `vue-tsc` type checking, Vitest, and a
-  production build. These are four independent gates; no gate replaces another,
-  and hard size-limit violations fail `frontend-lint`.
+  committed lockfile, `frontend-lint`, `vue-tsc` type checking, Vitest (pure unit
+  plus Vue component and feature-integration suites), and a production build.
+  These are four independent gates; no gate replaces another, and hard size-limit
+  violations fail `frontend-lint`.
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
   `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
   are prerequisites of `make check`.
@@ -59,9 +60,12 @@ superseded_by: null
 - `make check` is the local gate before every commit and pull request.
 - The editor slice is tested at its architecture boundaries rather than by
   screenshots: the projection and the local boundary have Python tests, and the
-  frontend has unit tests for the DeepPlant DTO → Vue Flow adapter and for the
-  selection → Inspector mapping. Frontend runtime data is narrowed to the
-  explicit DTO contract so a contract mismatch fails clearly.
+  frontend has pure unit tests for the runtime DTO contract, the transport, the
+  DeepPlant DTO → Vue Flow adapter, and the selection → Inspector mapping, plus
+  Vue component tests and a Process/PFD feature-integration test for the
+  projection → selection → Inspector chain. Frontend runtime data is narrowed to
+  the explicit DTO contract so a contract mismatch fails clearly. Browser E2E is
+  deferred to #82.
 - Frontend work follows the canonical contract in
   [frontend/index.md](../frontend/index.md): feature ownership, the DeepPlant/Vue
   Flow boundary, Vue and composable conventions, state ownership, TypeScript

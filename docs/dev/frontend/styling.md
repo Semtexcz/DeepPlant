@@ -80,16 +80,45 @@ right choice for:
 Third-party overrides (for example Vue Flow classes) stay minimal, explicit, and
 documented where they are not obvious.
 
-## Current state vs deferred
+## Current state (implemented)
 
-- **Current (implemented):** one global stylesheet, `apps/editor/src/styles.css`,
-  with hand-authored `--dp-*` CSS custom properties. This is honest global CSS
-  debt, **not** a migrated design-token or utility system.
-- **Canonical rule:** new ordinary application UI should move toward semantic
-  tokens plus utility-first styling rather than adding more global selectors.
-- **Deferred to #81:** integrating UnoCSS, defining the token layer, and migrating
-  the existing global CSS.
+The canonical layering is now applied, not merely decided:
 
-This contract records the decision only. It deliberately adds **no** UnoCSS
-dependency, because an unused package must not be installed merely to record a
-decision. #81 integrates and applies it.
+| Layer | Location | Owns |
+|---|---|---|
+| Semantic design tokens | `apps/editor/src/styles.css` (`:root`) | `--dp-bg`, `--dp-surface`, `--dp-border`, `--dp-text`, `--dp-muted`, `--dp-accent`, `--dp-valid-*`, `--dp-invalid-*`, `--dp-ink` — meaning, not component detail |
+| Utility layer | `apps/editor/uno.config.ts` + `virtual:uno.css` imported by `src/main.ts` | ordinary application presentation: layout, spacing, sizing, typography, borders, backgrounds, interaction states |
+| Component CSS | `*.vue` scoped `<style>` | specialized component behaviour that utilities express less clearly |
+| Vue Flow integration | `ProcessPfdCanvas.vue` scoped `:deep(...)` | framework node-wrapper resets |
+| Global CSS | `apps/editor/src/styles.css` | semantic tokens, minimal reset, document/root sizing, global typography defaults — nothing else |
+
+UnoCSS is one preset (`presetWind3`) with no reset package, no directive
+transformer, and no second utility framework. Utilities never hard-code colours:
+they reference the semantic tokens through bracket values, for example
+`bg-[var(--dp-surface)]` and `text-[var(--dp-muted)]`, so the token layer stays
+the single place DeepPlant colour meaning is defined and remains easy to replace.
+
+Two scoped `:deep(...)` integration selectors exist and are documented where they
+live:
+
+- `ProcessPfdCanvas.vue` neutralises `.vue-flow__node-deeplantProcessStep`, because
+  the framework renders the node wrapper and the engineering symbol — not a
+  generic card — is the visual.
+- `ProcessNode.vue` makes `.vue-flow__handle` visually inert, because the handles
+  only express DeepPlant presentation anchors while the canonical SVG symbol is
+  the visual.
+
+`ProcessNode.vue` additionally keeps its symbol sizing, selected treatment, and
+label geometry as scoped component CSS: those are component invariants, not
+ordinary UI.
+
+## Rules for new styling work
+
+- Add ordinary application presentation as UnoCSS utilities in the owning
+  component, not as a new global selector.
+- Add semantic meaning as a `--dp-*` token in `src/styles.css`, not as a
+  component-local literal, when more than one surface must agree on it.
+- Keep specialized engineering/SVG/Vue Flow behaviour in the owning component's
+  scoped CSS, with a comment stating why the selector is framework-facing.
+- Do not add a second utility framework, a CSS reset package, or a component
+  framework.

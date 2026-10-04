@@ -66,26 +66,48 @@ this layer deliberately tiny.
 
 ## Ownership of each layer
 
-- **This contract (#80)** documents the pyramid. It does not add component or
-  integration coverage.
-- **#81** owns component tests and feature-integration tests, including the
-  Vue Test Utils / DOM-environment setup they require (Vitest currently runs in a
-  `node` environment, so component tests need that setup added there).
+- **#80** documented the pyramid.
+- **#81** added the component and feature-integration layers, including the Vue
+  Test Utils / DOM-environment setup they require.
 - **#82** owns browser end-to-end tests (Playwright). No E2E tooling is added
   here.
 
 ## Current state (implemented)
 
-Three Vitest suites, all **pure unit**:
+Seven Vitest suites, all offline and independent of a running DeepPlant server.
+
+Pure unit (**Node** environment — the default in `apps/editor/vite.config.ts`):
 
 | Suite | Covers |
 |---|---|
-| `process-pfd/api.test.ts` | transport payload narrowing and contract errors |
+| `process-pfd/projection-contract.test.ts` | transport payload narrowing and contract errors |
+| `process-pfd/api.test.ts` | projection transport, boundary failures, symbol asset URL |
 | `process-pfd/inspector-model.test.ts` | selection → Inspector mapping |
-| `process-pfd/vue-flow-adapter.test.ts` | DTO → Vue Flow adapter and identity separation |
+| `process-pfd/vue-flow-adapter.test.ts` | DTO → Vue Flow adapter, identity separation, identity narrowing |
 
-There is no component, integration, or browser layer yet. That is expected; it is
-#81/#82 work, not a gap in this contract.
+Vue component and feature integration (**DOM** environment):
+
+| Suite | Covers |
+|---|---|
+| `process-pfd/InspectorPanel.test.ts` | empty state, ProcessStep/ProcessStream semantic fields, Inspector landmark |
+| `process-pfd/ProcessNode.test.ts` | canonical symbol URL from `symbol_role`, semantic id/name, selected state, anchor-derived non-connectable handles |
+| `process-pfd/ProcessPfdWorkspace.test.ts` | loading, load success, step selection → Inspector, stream selection → Inspector, validation vs projection-error |
+
+There is no browser layer yet; it is #82 work.
+
+## Environment convention
+
+The Vitest default environment stays `node`, so the pure suites keep running
+without a DOM. Component and feature-integration suites opt in per file with a
+docblock on the first line:
+
+```ts
+// @vitest-environment happy-dom
+```
+
+`happy-dom` is the single DOM environment dependency. Do not add a second one,
+and do not move the global default to a DOM environment merely because a
+component test exists.
 
 ## Expectations
 

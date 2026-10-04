@@ -50,7 +50,9 @@ them, so there is one canonical copy.
 
 - The Python semantic model stays authoritative. The browser reads the
   projection DTO, never parses YAML, and never recreates validation.
-- Vue Flow stays behind `process-pfd/vue-flow-adapter.ts`:
+- Vue Flow stays behind the `process-pfd` canvas/adapter boundary
+  (`ProcessPfdCanvas.vue` plus `vue-flow-adapter.ts`), which is the only place
+  framework shapes appear:
   `Vue Flow Node != ProcessStep` and `Vue Flow Edge != ProcessStream`.
 - Untrusted transport data is narrowed from `unknown` before it is trusted.
 

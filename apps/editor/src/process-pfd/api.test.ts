@@ -1,68 +1,93 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { parseProjectionEnvelope, ProjectionContractError, symbolUrl } from './api'
-import { PROJECTION_FIXTURE, PUMP_STEP } from './test-fixtures'
+import { fetchProjection, PROJECTION_ROUTE, symbolUrl } from './api'
+import { ProjectionContractError } from './projection-contract'
+import { PROJECTION_FIXTURE } from './test-fixtures'
 
-function plain(value: unknown): unknown {
-  return JSON.parse(JSON.stringify(value)) as unknown
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }
 
-describe('DeepPlant boundary payload parsing', () => {
-  it('accepts the projection envelope produced by the Python boundary', () => {
-    const envelope = parseProjectionEnvelope(
-      plain({ validation: { valid: true, message: 'Valid' }, projection: PROJECTION_FIXTURE }),
-    )
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
-    expect(envelope.validation).toEqual({ valid: true, message: 'Valid' })
-    expect(envelope.error).toBeNull()
+describe('DeepPlant boundary transport', () => {
+  it('requests the projection route from the local boundary', async () => {
+    const fetchMock = vi.fn(async () =>
+      jsonResponse({ validation: { valid: true, message: 'Valid' }, projection: PROJECTION_FIXTURE }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const envelope = await fetchProjection()
+
+    expect(fetchMock).toHaveBeenCalledWith(PROJECTION_ROUTE, {
+      headers: { Accept: 'application/json' },
+    })
     expect(envelope.projection?.steps).toHaveLength(2)
-    expect(envelope.projection?.steps[0]?.id).toBe('PS-pump')
-    expect(envelope.projection?.streams[0]?.id).toBe('S-004')
+    expect(envelope.projection?.streams).toHaveLength(2)
+    expect(envelope.error).toBeNull()
   })
 
-  it('accepts a projection failure without changing semantic validation', () => {
-    const envelope = parseProjectionEnvelope({
-      validation: { valid: true, message: 'Valid' },
-      projection: null,
-      error: 'no process model to project',
-    })
+  it('keeps a projection failure separate from semantic validation', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse(
+          {
+            validation: { valid: true, message: 'Valid' },
+            projection: null,
+            error: 'no process model to project',
+          },
+          422,
+        ),
+      ),
+    )
+
+    const envelope = await fetchProjection()
 
     expect(envelope.projection).toBeNull()
     expect(envelope.validation).toEqual({ valid: true, message: 'Valid' })
     expect(envelope.error).toBe('no process model to project')
   })
 
-  it('fails clearly when the payload is not an object', () => {
-    expect(() => parseProjectionEnvelope([1, 2, 3])).toThrow(ProjectionContractError)
-  })
+  it('reports an unreachable boundary clearly', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('connection refused')
+      }),
+    )
 
-  it('fails clearly when a required field has the wrong type', () => {
-    expect(() => parseProjectionEnvelope({ validation: { valid: 'yes', message: 'x' } })).toThrow(
-      /validation\.valid must be a boolean/,
+    await expect(fetchProjection()).rejects.toThrow(
+      /cannot reach the local DeepPlant editor boundary: connection refused/,
     )
   })
 
-  it('fails clearly when a projected object has an unexpected kind', () => {
-    const payload = plain({
-      validation: { valid: true, message: 'Valid' },
-      projection: {
-        ...PROJECTION_FIXTURE,
-        steps: [{ ...PUMP_STEP, kind: 'equipment' }],
-      },
-    })
+  it('reports a non-JSON boundary response clearly', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('<html>nope</html>', { status: 502 })),
+    )
 
-    expect(() => parseProjectionEnvelope(payload)).toThrow(/must be 'process-step'/)
+    await expect(fetchProjection()).rejects.toThrow(/returned non-JSON \(HTTP 502\)/)
   })
 
-  it('fails clearly when a projected step is missing an anchor array', () => {
-    const brokenStep: Record<string, unknown> = { ...PUMP_STEP }
-    delete brokenStep['in_anchors']
-    const payload = plain({
-      validation: { valid: true, message: 'Valid' },
-      projection: { ...PROJECTION_FIXTURE, steps: [brokenStep] },
-    })
+  it('narrows the boundary payload through the runtime contract', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse({
+          validation: { valid: true, message: 'Valid' },
+          projection: { ...PROJECTION_FIXTURE, symbol_size: 'big' },
+        }),
+      ),
+    )
 
-    expect(() => parseProjectionEnvelope(payload)).toThrow(/in_anchors must be an array/)
+    await expect(fetchProjection()).rejects.toThrow(ProjectionContractError)
   })
 })
 

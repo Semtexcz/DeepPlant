@@ -50,8 +50,29 @@ DeepPlant application / core
 ```
 
 A future tree may resemble `app/`, `features/`, `shared/`, but matching that
-tree is **not** the goal, and this contract does not reorganize the current
-frontend. The rule is:
+tree is **not** the goal. Issue #81 applied feature ownership inside the existing
+`process-pfd/` module and deliberately did **not** create `app/`, `shared/`, or
+`features/`, because no current responsibility required those directories:
+
+```text
+apps/editor/src/
+├── App.vue                        application composition root
+├── main.ts                        SPA entry + style layers
+├── styles.css                     global only: tokens, reset, root sizing, typography
+└── process-pfd/                   the Process/PFD feature module
+    ├── ProcessPfdWorkspace.vue    feature composition + feature state wiring
+    ├── ProcessPfdCanvas.vue       Vue Flow canvas boundary (framework only here)
+    ├── InspectorPanel.vue         read-only Inspector
+    ├── ProcessNode.vue            engineering symbol node
+    ├── useProcessPfd.ts           feature state: projection, selection, derived Inspector
+    ├── api.ts                     transport access
+    ├── projection-contract.ts     unknown -> runtime narrowing -> DTO
+    ├── dto.ts                     read-only projection DTO contract
+    ├── inspector-model.ts         selection -> Inspector view model
+    └── vue-flow-adapter.ts        the only Vue Flow Node/Edge shapes
+```
+
+The rule is:
 
 > Cohesion and clear ownership matter more than matching a prescribed directory
 > tree.
@@ -59,7 +80,7 @@ frontend. The rule is:
 Prefer feature ownership. Do not create generic buckets (`utils/`, `helpers/`,
 `services/`, `common/`, `composables/`) that merely collect unrelated code.
 Shared code exists only when it is genuinely cross-cutting. The existing
-`process-pfd/` folder is already a feature module and is the model to follow.
+`process-pfd/` folder is already a feature module and remains the model to follow.
 
 ## DeepPlant boundary (non-negotiable)
 
@@ -91,20 +112,42 @@ replaceable Vue Flow adapter
 ```
 
 The current transport contract is **hand-written and explicit**
-(`process-pfd/dto.ts` plus runtime narrowing in `process-pfd/api.ts`). That is
-the documented current state. Generated OpenAPI clients are deliberately not
-introduced; if they ever are, that is a separate, evidence-backed decision.
+(`process-pfd/dto.ts` for the shape plus runtime narrowing in
+`process-pfd/projection-contract.ts`, reached through the transport in
+`process-pfd/api.ts`). That is the documented current state. Generated OpenAPI
+clients are deliberately not introduced; if they ever are, that is a separate,
+evidence-backed decision.
 
 ## Module boundaries (current)
 
 | Module | Owns | Must not |
 |---|---|---|
+| `src/App.vue` | application composition: shell, application chrome, active view, toolbar wiring | own projection, selection, Inspector, or framework state |
+| `src/process-pfd/ProcessPfdWorkspace.vue` | feature composition: binds feature state to the canvas, notices, Inspector, and status strip | reach into Vue Flow or parse transport data |
+| `src/process-pfd/useProcessPfd.ts` | feature state: remote/projection state, selection state, loading lifecycle, derived Inspector and status | hold Vue Flow state or perform I/O directly |
+| `src/process-pfd/ProcessPfdCanvas.vue` | the Vue Flow canvas boundary: node registration, view derivation, framework events, viewport action | emit Vue Flow `Node`/`Edge` upwards |
 | `src/process-pfd/dto.ts` | the read-only projection DTO contract | contain a domain model or framework shapes |
-| `src/process-pfd/api.ts` | browser access to the local boundary and `unknown` narrowing | re-implement semantics or trust raw JSON |
-| `src/process-pfd/vue-flow-adapter.ts` | the only place Vue Flow `Node`/`Edge` shapes appear | leak `Node`/`Edge` outside the adapter |
+| `src/process-pfd/api.ts` | transport access to the local boundary (projection route, symbol asset URL) | interpret or validate payload shape |
+| `src/process-pfd/projection-contract.ts` | `unknown` -> runtime narrowing -> typed DTO | define a second semantic model |
+| `src/process-pfd/vue-flow-adapter.ts` | the only place Vue Flow `Node`/`Edge` shapes appear, plus framework-data identity narrowing | leak `Node`/`Edge` outside the adapter |
 | `src/process-pfd/inspector-model.ts` | selection → read-only Inspector view mapping | inspect framework objects or labels |
-| `src/process-pfd/*.vue` | Vue Flow nodes and the read-only Inspector | own engineering truth |
-| `src/App.vue` | current workspace composition and transient selection | grow into the permanent application controller (see [vue.md](vue.md)) |
+| `src/process-pfd/*.vue` | the engineering node and the read-only Inspector | own engineering truth |
+| `src/styles.css` | semantic tokens, minimal reset, root sizing, global typography | own feature/component selectors |
+
+The application path is one-way:
+
+```text
+App.vue
+    ↓
+ProcessPfdWorkspace.vue  (feature state + feature UI)
+    ├── ProcessPfdCanvas.vue  (Vue Flow + adapter)
+    └── InspectorPanel.vue
+```
+
+Framework interaction is translated before it leaves the canvas: a Vue Flow
+node/edge click becomes a DeepPlant semantic id, and the feature state resolves
+that id to a projected object. The Inspector therefore consumes projection
+objects only, never framework objects.
 
 ## Dependencies
 

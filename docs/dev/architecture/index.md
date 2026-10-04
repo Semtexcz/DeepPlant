@@ -70,10 +70,11 @@ Runtime and toolchain:
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict), and `httpx2` for the
   FastAPI/Starlette test client.
 - Editor SPA toolchain (`apps/editor/`, ephemeral build output): Vue 3,
-  TypeScript, Vite, Vue Flow, Vitest, `vue-tsc`, and ESLint (flat config). The
-  package manager is pinned by `apps/editor/package.json` (`packageManager`) with
-  a committed `apps/editor/pnpm-lock.yaml`. The frontend engineering rules and
-  gates are canonical in [frontend/](../frontend/index.md).
+  TypeScript, Vite, Vue Flow, UnoCSS, Vitest with `@vue/test-utils` and
+  `happy-dom`, `vue-tsc`, and ESLint (flat config). The package manager is pinned
+  by `apps/editor/package.json` (`packageManager`) with a committed
+  `apps/editor/pnpm-lock.yaml`. The frontend engineering rules and gates are
+  canonical in [frontend/](../frontend/index.md).
 
 ## Module boundaries
 
@@ -88,7 +89,7 @@ Runtime and toolchain:
 | `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, or Uvicorn, or contain HTTP/runtime concerns |
 | `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport and loopback runtime | contain engineering logic, or claim production/server security |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
-| `apps/editor/` (TypeScript) | browser view state, the Vue Flow adapter, and the read-only Inspector | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
+| `apps/editor/` (TypeScript) | application composition, the Process/PFD feature (projection state, selection, canvas/adapter, Inspector), transport and runtime contract narrowing, and styling | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
 
 The dependency direction is one-way:
 
@@ -217,13 +218,20 @@ standalone, pinned Vite application with its own dependency graph, while
   boundary. If the Process/PFD projection or its presentation role resolution
   fails, the local JSON route returns a separate view error (currently HTTP 422)
   with no projection; it does not recast the loaded semantic model as invalid.
-- **Frontend.** `apps/editor/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA. The
-  adapter (`process-pfd/vue-flow-adapter.ts`) is the only place Vue Flow shapes
-  appear. Selection is transient UI state, translated back to DeepPlant identity
-  before the Inspector renders anything. Frontend engineering rules — feature
-  ownership, Vue/TypeScript conventions, state ownership, styling ownership,
-  accessibility, testing layers, and size/cohesion guardrails — are canonical in
-  [frontend/](../frontend/index.md) and enforced by `make frontend-lint`.
+- **Frontend.** `apps/editor/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA with
+  UnoCSS as the canonical utility layer. `App.vue` is a thin application
+  composition root; the Process/PFD feature is owned by
+  `process-pfd/` (`ProcessPfdWorkspace.vue`, `ProcessPfdCanvas.vue`,
+  `useProcessPfd.ts`, `InspectorPanel.vue`, `ProcessNode.vue`, `api.ts`,
+  `projection-contract.ts`, `dto.ts`, `inspector-model.ts`,
+  `vue-flow-adapter.ts`). The adapter/canvas boundary is the only place Vue Flow
+  shapes appear: a framework node/edge click is translated to a DeepPlant semantic
+  id before the feature resolves it, so the Inspector only ever consumes
+  projection objects. Selection is transient UI state and nothing is persisted.
+  Frontend engineering rules — feature ownership, Vue/TypeScript conventions,
+  state ownership, styling ownership, accessibility, testing layers, and
+  size/cohesion guardrails — are canonical in [frontend/](../frontend/index.md)
+  and enforced by `make frontend-lint` and `make frontend-check`.
 
 Explicit non-goals of this slice (unchanged direction, not implemented):
 semantic editing, process step/stream creation, deletion, property editing,

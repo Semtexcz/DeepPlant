@@ -22,12 +22,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@unocss/vite": "^66.10.5",
     "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/test-utils": "^2.5.1",
     "eslint": "^10.12.0",
     "eslint-plugin-vue": "^10.11.1",
     "globals": "^17.13.0",
+    "happy-dom": "^20.14.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.71.0",
+    "unocss": "^66.10.5",
     "vite": "^8.3.2",
     "vitest": "^5.0.3",
     "vue-tsc": "^3.3.12"

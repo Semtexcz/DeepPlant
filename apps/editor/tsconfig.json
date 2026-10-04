@@ -18,5 +18,5 @@
     "jsx": "preserve",
     "useDefineForClassFields": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "env.d.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.vue", "env.d.ts", "vite.config.ts", "uno.config.ts"]
 }

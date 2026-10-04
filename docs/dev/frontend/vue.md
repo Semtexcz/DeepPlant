@@ -52,9 +52,11 @@ meaningful, for example:
 - independently testable application behavior;
 - sufficiently complex reactive coordination.
 
-`src/App.vue` currently owns the workspace composition and transient selection
-because that is where the current slice is small. Extracting it is a real,
-justified refactor owned by #81 — not by this contract. Do not extract it here.
+`src/App.vue` **is** the application composition root: it owns the application
+shell (chrome, active view, toolbar) and composes the Process/PFD feature
+workspace (`src/process-pfd/ProcessPfdWorkspace.vue`). It does not own
+projection state, selection, Inspector derivation, or Vue Flow interaction.
+Issue #81 performed that extraction; keep `App.vue` thin.
 
 ## Composables
 
@@ -63,11 +65,28 @@ Prefer domain- or feature-named composables such as `useProcessPfd()` or
 `useProcessSelection()`, and only when the behavior is genuinely cohesive and
 reused or independently testable.
 
-This contract deliberately creates no composables. `src/process-pfd/` contains
-none today; adding them is #81 work justified by real extraction, not by this
-document.
+`src/process-pfd/useProcessPfd.ts` is the current example and the model to
+follow: it owns one cohesive stateful application behaviour (the Process/PFD
+feature's projection lifecycle and selection), it is feature-named, and it is
+worth extracting because the workspace and the canvas boundaries need it to be
+separable.
 
-## State ownership
+## State ownership (implemented)
+
+Each mutable state concept has exactly one owner:
+
+| State kind | Owner |
+|---|---|
+| remote/projection state (`projection`, `validation`, `loading`, `projectionError`) | `process-pfd/useProcessPfd.ts` |
+| selection state | `process-pfd/useProcessPfd.ts` |
+| derived Inspector + status | `computed` inside `process-pfd/useProcessPfd.ts` |
+| Vue Flow transient state (nodes/edges view, viewport, fit view) | `process-pfd/ProcessPfdCanvas.vue` |
+| component-local presentation | the component that renders it |
+
+There is **no global store, no Pinia, and no synchronization watcher chain.**
+Everything derived is a `computed` of an owned source. The application shell does
+not duplicate feature state; it only delegates the toolbar's *Fit view* action to
+the feature workspace.
 
 Own each mutable state concept exactly once, at the lowest sufficient level:
 
@@ -105,6 +124,7 @@ watch / watchEffect only for actual reactive side effects
 - A watcher used only to synchronize duplicated state is a design smell: fix the
   duplication and keep one owner instead.
 
-Watchers are not banned. `src/App.vue` uses a lifecycle hook (`onMounted`) and a
-one-shot `nextTick` + `fitView` after load, which is an imperative framework
-interaction — a legitimate use. A watcher added purely to mirror state is not.
+Watchers are not banned. The current implementation uses a lifecycle hook
+(`onMounted`) plus a one-shot `nextTick` followed by an imperative canvas
+`fitView()`, because the initial fit view is a genuine post-load framework
+interaction. A watcher added purely to mirror state is not acceptable.

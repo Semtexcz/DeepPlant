@@ -62,6 +62,21 @@ export function frameworkEdgeId(streamId: string): string {
   return `vue-flow-edge:${streamId}`
 }
 
+/**
+ * Read the explicit DeepPlant semantic identity carried in a Vue Flow node or
+ * edge `data` payload.
+ *
+ * Framework event payloads are untrusted at this boundary, so the id is narrowed
+ * at runtime rather than cast to a DeepPlant type.
+ */
+export function deepPlantIdOf(data: unknown): string | null {
+  if (typeof data !== 'object' || data === null || !('deeplantId' in data)) {
+    return null
+  }
+  const candidate: unknown = data.deeplantId
+  return typeof candidate === 'string' ? candidate : null
+}
+
 export function toVueFlowNode(step: ProcessStepDto, symbolSize: number): DeepPlantNode {
   return {
     id: frameworkNodeId(step.id),
