@@ -23,8 +23,15 @@ superseded_by: null
 - Formatting and linting run through `make lint`.
 - Type checking runs through `make typecheck`.
 - Tests run through `make test`.
+- Frontend lint runs through `make frontend-lint`: ESLint (flat config in
+  `apps/editor/eslint.config.js`) over the editor source and the frontend
+  configuration. It enforces Vue/TypeScript correctness, the explicit-`any` ban,
+  and the hard size/cohesion limits from
+  [frontend/architecture.md](../frontend/architecture.md).
 - Frontend checks run through `make frontend-check`: dependency install from the
-  committed lockfile, `vue-tsc` type checking, Vitest, and a production build.
+  committed lockfile, `frontend-lint`, `vue-tsc` type checking, Vitest, and a
+  production build. These are four independent gates; no gate replaces another,
+  and hard size-limit violations fail `frontend-lint`.
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
   `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
   are prerequisites of `make check`.
@@ -55,6 +62,12 @@ superseded_by: null
   frontend has unit tests for the DeepPlant DTO → Vue Flow adapter and for the
   selection → Inspector mapping. Frontend runtime data is narrowed to the
   explicit DTO contract so a contract mismatch fails clearly.
+- Frontend work follows the canonical contract in
+  [frontend/index.md](../frontend/index.md): feature ownership, the DeepPlant/Vue
+  Flow boundary, Vue and composable conventions, state ownership, TypeScript
+  safety, styling ownership, accessibility, the testing pyramid, and the
+  size/cohesion guardrails. Lint, type checking, tests, and the production build
+  are separate gates.
 
 ## Security Baseline
 

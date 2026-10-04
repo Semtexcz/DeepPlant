@@ -49,6 +49,14 @@ Capability skills:
 - `change-api-contract` for full-stack OpenAPI/client workflows.
 - `verify-production-artifact` for production runtime artifact checks.
 
+Project skills (DeepPlant-specific):
+
+- `frontend-engineering` for any change under `apps/editor/`: the canonical
+  Engineering Editor frontend contract (architecture, feature ownership, Vue
+  conventions, composables, state ownership, effects/watchers, TypeScript,
+  styling, accessibility, testing, size guardrails). It routes to the durable
+  rules in `docs/dev/frontend/` and does not restate them.
+
 ## Context Map
 
 `.agents/context-map.yaml` defines a small routing model. Its `always` list is

@@ -53,6 +53,9 @@ The current → target mapping is in
   boundaries, durable invariants.
 - **Governance** — [workflow.md](workflow/index.md): the change loop.
 - **Governance** — [quality.md](workflow/quality.md): checks and test expectations.
+- **Governance** — [frontend/index.md](frontend/index.md): the Engineering Editor
+  frontend engineering contract (architecture, feature ownership, Vue, TypeScript,
+  styling, testing, accessibility, size guardrails).
 - **Current** — [roadmap.md](planning/roadmap.md): current state and next direction.
 - **Governance** — [conventions.md](workflow/conventions.md): documentation rules.
 - **Governance** — [standards.md](workflow/standards.md): standards usage and
@@ -73,7 +76,8 @@ table, not an orchestration engine.
 | Plan or pick the next slice | [planning/roadmap.md](planning/roadmap.md), [planning/index.md](planning/index.md) |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
-| Change the editor frontend or the local application boundary | [architecture.md](architecture/index.md), [contracts/rendering.md](../contracts/rendering.md), [workflow/quality.md](workflow/quality.md) |
+| Change the editor frontend or the local application boundary | [frontend/index.md](frontend/index.md), [architecture.md](architecture/index.md), [contracts/rendering.md](../contracts/rendering.md), [workflow/quality.md](workflow/quality.md) |
+| Change editor Vue components, composables, TypeScript, styling, tests, or accessibility | [frontend/index.md](frontend/index.md), then the matching topic document in [frontend/](frontend/index.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
 | Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
@@ -110,7 +114,8 @@ authoritative.
   shipped, in what order.
 - **Governance** (developer-owned) — [planning.md](planning/index.md),
   [standards.md](workflow/standards.md), [quality.md](workflow/quality.md),
-  [workflow.md](workflow/index.md), [conventions.md](workflow/conventions.md).
+  [workflow.md](workflow/index.md), [conventions.md](workflow/conventions.md),
+  [frontend/](frontend/index.md).
 - **Reference** (developer-owned) —
   [standards-registry.md](reference/standards-registry.md): current standards
   lookup data (not policy).

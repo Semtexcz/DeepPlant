@@ -53,6 +53,31 @@ shadcn-vue, Tailwind, jsdom, a browser E2E framework, or any third-party
 engineering symbol asset. The engineering symbols remain the DeepPlant-original
 `basic` pack (see above), served from the Python package.
 
+## Engineering Editor frontend lint tooling (Issue #80)
+
+The canonical frontend lint gate (`apps/editor/eslint.config.js`, run by
+`pnpm lint` / `make frontend-lint`) is built from the following direct
+**dev-only** dependencies. Like the SPA dependencies above, they are build/dev
+time only: the Python wheel bundles no JavaScript and `apps/editor/dist` is not
+committed.
+
+| Dependency | Declared range | Licence | Why it is needed now |
+|---|---|---|---|
+| `eslint` | `^10.12.0` | MIT | The lint engine; flat-config based, one of the four independent frontend gates. |
+| `@eslint/js` | `^10.0.1` | MIT | ESLint's own recommended JavaScript correctness rules. |
+| `typescript-eslint` | `^8.71.0` | MIT | TypeScript parser plus lint rules; enforces the explicit-`any` ban and unused-code checks. |
+| `eslint-plugin-vue` | `^10.11.1` | MIT | Vue 3 SFC correctness rules (`flat/essential`); also brings the Vue parser. |
+| `globals` | `^17.13.0` | MIT | Standard browser and node global definitions for the linted files. |
+
+`eslint-plugin-vue` requires `vue-eslint-parser` (MIT) and
+`@typescript-eslint/parser` (MIT, provided by `typescript-eslint`) as peers; they
+are resolved transitively and are not separately declared.
+
+Deliberately **not** added by Issue #80: Prettier (the gate enforces correctness,
+not a second formatter) and UnoCSS (the selected canonical styling direction — see
+[`docs/dev/frontend/styling.md`](docs/dev/frontend/styling.md) — whose integration
+and CSS migration are deferred to #81, so no unused dependency is recorded).
+
 ## Standards, vendors, and unresolved boundaries
 
 The repository contains project-authored standards summaries and references;

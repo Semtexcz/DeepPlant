@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-typecheck frontend-test frontend-build frontend-check api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -66,6 +66,15 @@ frontend-install:
 	$(FRONTEND_PNPM) install --frozen-lockfile $(PNPM_INSTALL_FLAGS)
 
 
+# Frontend lint is the canonical ESLint gate for `apps/editor/` (flat config in
+# `apps/editor/eslint.config.js`). It enforces Vue/TypeScript correctness rules,
+# forbids explicit `any`, and implements the hard size/cohesion limits from
+# `docs/dev/frontend/architecture.md`. It does not replace `frontend-typecheck`.
+frontend-lint: frontend-install
+
+	$(FRONTEND_PNPM) run lint
+
+
 frontend-typecheck: frontend-install
 
 	$(FRONTEND_PNPM) run typecheck
@@ -81,7 +90,8 @@ frontend-build: frontend-install
 	$(FRONTEND_PNPM) run build
 
 
-frontend-check: frontend-typecheck frontend-test frontend-build
+# Complete current frontend baseline: lint, typecheck, tests, production build.
+frontend-check: frontend-lint frontend-typecheck frontend-test frontend-build
 
 
 api-schema:
@@ -187,6 +197,14 @@ validate-docs:
 	@test -f docs/dev/history/implementation-slices.md
 	@test -f docs/contracts/rendering.md
 	@test -f docs/dev/reference/svg-symbols.md
+	@test -f docs/dev/frontend/index.md
+	@test -f docs/dev/frontend/architecture.md
+	@test -f docs/dev/frontend/vue.md
+	@test -f docs/dev/frontend/typescript.md
+	@test -f docs/dev/frontend/styling.md
+	@test -f docs/dev/frontend/testing.md
+	@test -f docs/dev/frontend/accessibility.md
+	@test -f .agents/skills/frontend-engineering/SKILL.md
 	@test -f docs/user/index.md
 	@test -f docs/user/getting-started.md
 	@test -f docs/user/concepts/what-is-deepplant.md
