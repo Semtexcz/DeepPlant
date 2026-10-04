@@ -650,13 +650,14 @@ def verify_bundle_contents(bundle: Path) -> dict[str, object]:
     return evidence
 
 
-def _captured_text(value: bytes | str | None) -> str:
-    """Return captured subprocess output as text, tolerating bytes or ``None``."""
-    if isinstance(value, str):
-        return value
-    if isinstance(value, bytes):
-        return value.decode("utf-8", errors="replace")
-    return ""
+def _read_text_file(path: Path) -> str:
+    """Return a file's text, or an empty string when it is absent or unreadable."""
+    if not path.is_file():
+        return ""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
 
 
 def _self_check_diagnostics(report: Path) -> str:
@@ -706,9 +707,10 @@ def run_desktop_self_check(
 
     if report.exists():
         report.unlink()
-    stage_log = report.with_name(report.name + ".log")
-    if stage_log.exists():
-        stage_log.unlink()
+    for suffix in (".log", ".console.log"):
+        stale = report.with_name(report.name + suffix)
+        if stale.exists():
+            stale.unlink()
 
     environment = sanitized_environment()
     # The verification runs on a headless/virtual display in CI, which has no GPU
@@ -716,34 +718,32 @@ def run_desktop_self_check(
     # user's runtime environment; the sandbox is untouched.
     environment["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
 
+    # The child's output is redirected to a *file*, never a pipe. A GUI process
+    # can own helper processes (Qt WebEngine's renderer), and an inherited pipe
+    # write handle would keep the pipe open: the caller would then wait for a
+    # channel that nothing can close, which is a well-known way to hang an
+    # automated GUI check. A file handle has no such coupling.
+    console_log = report.with_name(report.name + ".console.log")
     timed_out = False
     return_code: int | None = None
-    stdout = ""
-    stderr = ""
     try:
-        completed = subprocess.run(
-            command,
-            cwd=str(cwd),
-            env=environment,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=timeout,
-            check=False,
-        )
+        with console_log.open("wb") as sink:
+            completed = subprocess.run(
+                command,
+                cwd=str(cwd),
+                env=environment,
+                stdin=subprocess.DEVNULL,
+                stdout=sink,
+                stderr=subprocess.STDOUT,
+                timeout=timeout,
+                check=False,
+            )
         return_code = completed.returncode
-        stdout = completed.stdout or ""
-        stderr = completed.stderr or ""
-    except subprocess.TimeoutExpired as expired:
+    except subprocess.TimeoutExpired:
         timed_out = True
-        stdout = _captured_text(expired.stdout)
-        stderr = _captured_text(expired.stderr)
 
-    for line in stdout.splitlines():
+    for line in _read_text_file(console_log).splitlines():
         log("  app: " + line)
-    for line in stderr.splitlines():
-        log("  app!: " + line)
 
     diagnostics = _self_check_diagnostics(report)
     for line in diagnostics.splitlines():

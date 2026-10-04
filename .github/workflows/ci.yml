@@ -239,7 +239,7 @@ jobs:
         with:
           name: editor-package-windows-desktop-evidence
           path: |
-            build/editor-package/verify/reports/*.json
+            build/editor-package/verify/reports/*
           retention-days: 14
           if-no-files-found: ignore
 
@@ -472,7 +472,7 @@ jobs:
         with:
           name: editor-package-linux-desktop-evidence
           path: |
-            build/editor-package/verify/reports/*.json
+            build/editor-package/verify/reports/*
           retention-days: 14
           if-no-files-found: ignore
 
