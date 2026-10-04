@@ -14,9 +14,9 @@ import {
 /**
  * Vue Flow canvas boundary for the Process/PFD feature.
  *
- * This component is the only place the graph framework appears. It registers the
- * DeepPlant node type, derives the framework view from the DeepPlant projection
- * through the adapter, owns the transient framework state (viewport, fit view),
+ * This component is part of the explicit Process/PFD Vue Flow integration surface.
+ * It registers the * DeepPlant node type, derives the framework view from the DeepPlant
+ * projection  * through the adapter, owns the transient framework state (viewport, fit view),
  * and translates raw framework click payloads back into DeepPlant semantic
  * identities.
  *

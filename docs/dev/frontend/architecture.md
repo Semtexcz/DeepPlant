@@ -257,8 +257,10 @@ projection objects only, never framework objects.
   runtime/build/dev role, and licence in
   [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md), and be removable.
 - Do not add a package merely to record a decision that another Issue will apply.
-- Vue Flow stays behind its adapter; a future canvas replacement must be possible
-  without touching the DTOs or the semantic core.
+- Vue Flow-specific code stays inside the explicit Process/PFD integration
+  surface; `Node`/`Edge` graph shapes remain confined to `adapters/vue-flow.ts`.
+  A future canvas replacement must be possible without touching the transport
+  DTOs or the semantic core.
 
 ## Size and cohesion guardrails
 
