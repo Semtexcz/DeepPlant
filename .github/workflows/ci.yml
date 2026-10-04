@@ -314,13 +314,12 @@ jobs:
           # the window-close assertion below tests the real application behaviour.
           openbox --sm-disable > "$RUNNER_TEMP/openbox.log" 2>&1 &
           for _ in $(seq 1 30); do
-            if xdotool search --class openbox > /dev/null 2>&1 \
-              || xprop -root _NET_SUPPORTING_WM_CHECK > /dev/null 2>&1; then
-              break
-            fi
+            if pgrep -x openbox > /dev/null 2>&1; then break; fi
             sleep 1
           done
+          echo "openbox processes: $(pgrep -a openbox || echo none)"
           echo "window manager: $(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null || echo 'not reported')"
+          cat "$RUNNER_TEMP/openbox.log"
 
       - name: Install build dependencies
         run: uv sync --group package --group desktop
@@ -426,17 +425,28 @@ jobs:
           }
 
           close_windows
-          if ! wait_for_exit 30; then
-            echo "the window manager did not close the window; trying the keyboard"
-            echo "close gesture instead"
+          wait_for_exit 20 || true
+
+          if kill -0 "$app_pid" 2>/dev/null; then
+            # XTest key events are indistinguishable from real input, unlike
+            # `xdotool key --window` (XSendEvent), so a session window manager
+            # really receives the standard close gesture.
             for wid in $(xdotool search --name "DeepPlant Editor"); do
               xdotool windowactivate --sync "$wid" 2>/dev/null || true
-              xdotool key --window "$wid" --clearmodifiers alt+F4 || true
+              xdotool key --clearmodifiers alt+F4 || true
             done
+            wait_for_exit 20 || true
           fi
 
-          if ! wait_for_exit 30; then
+          if kill -0 "$app_pid" 2>/dev/null; then
             echo "FAILED: the application did not exit after its window was closed"
+            echo "--- diagnostics ---"
+            echo "window manager: $(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null)"
+            echo "openbox: $(pgrep -a openbox || echo none)"
+            echo "remaining windows:"
+            xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
+              echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
+            done
             cat "$RUNNER_TEMP/editor-window/app.log" || true
             kill "$app_pid" 2>/dev/null || true
             exit 1

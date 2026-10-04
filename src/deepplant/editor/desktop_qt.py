@@ -279,9 +279,19 @@ class _MainWindow(QMainWindow):
         QMessageBox.critical(self, WINDOW_TITLE, message)
 
     def closeEvent(self, event: object) -> None:  # noqa: N802 - Qt API name
-        """Stop owned resources (:mod:`deepplant.editor.api`) before closing."""
+        """Stop owned resources and terminate the application.
+
+        Closing the main window must end the application: it owns a local server
+        and a native window, and leaving either behind would be wrong. The
+        application does not rely on the ``quitOnLastWindowClosed`` default, so
+        the behaviour is identical however the close was triggered (a user, the
+        platform window manager, or an automation probe).
+        """
         self._on_close()
         super().closeEvent(event)
+        instance = QApplication.instance()
+        if instance is not None:
+            instance.quit()
 
 
 class _DesktopEditor:
