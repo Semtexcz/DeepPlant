@@ -4,7 +4,10 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vite/client"],
+    // `vite/client` covers the application + Vitest code; `node` types the
+    // Node-environment frontend tooling and the Playwright E2E suite
+    // (`playwright.config.ts`, `e2e/**`) that starts a real CLI process.
+    "types": ["vite/client", "node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -18,5 +21,14 @@
     "jsx": "preserve",
     "useDefineForClassFields": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "tests/**/*.ts", "env.d.ts", "vite.config.ts", "uno.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "e2e/**/*.ts",
+    "env.d.ts",
+    "vite.config.ts",
+    "uno.config.ts",
+    "playwright.config.ts"
+  ]
 }

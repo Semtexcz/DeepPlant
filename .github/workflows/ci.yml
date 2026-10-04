@@ -65,3 +65,48 @@ jobs:
       - name: Verify wheel runtime resources
         run: python tools/verify_wheel_contents.py dist/deepplant-*.whl
 
+
+  frontend-e2e:
+    # Real-browser system gate: production SPA build + real `deepplant ui` CLI +
+    # real Chromium. Kept as its own job so an E2E failure is distinguishable
+    # from the fast `check` job, and so the default gate never downloads a browser.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack for the pinned frontend package manager
+        run: corepack enable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install Python dependencies
+        run: make setup
+
+      - name: Install frontend dependencies from the frozen lockfile
+        run: make frontend-install
+
+      - name: Install Chromium for Playwright
+        run: cd apps/editor && pnpm exec playwright install --with-deps chromium
+
+      - name: Run browser E2E (production build + real CLI + Chromium)
+        run: make frontend-e2e
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-artifacts
+          path: |
+            apps/editor/test-results/
+            apps/editor/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+

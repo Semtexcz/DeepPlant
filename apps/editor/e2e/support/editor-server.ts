@@ -1,0 +1,294 @@
+import { spawn, type ChildProcess } from 'node:child_process'
+import path from 'node:path'
+import { setTimeout as delay } from 'node:timers/promises'
+import { fileURLToPath } from 'node:url'
+
+/**
+ * Real-CLI lifecycle for the Engineering Editor browser E2E suite.
+ *
+ * The suite is evidence for the product path users actually receive, so this
+ * helper starts the real user-facing launcher (`deepplant ui`) over the
+ * production build in `apps/editor/dist`. It never starts a Vite dev/preview
+ * server, a test-only FastAPI app, or `create_editor_api()` directly.
+ *
+ * Readiness is the CLI's own announcement of the loopback URL:
+ *
+ *     DeepPlant Engineering Editor (read-only Process/PFD)
+ *       project: <path>
+ *       open:    http://127.0.0.1:<port>/
+ *       press Ctrl+C to stop
+ *
+ * Port allocation stays owned by `deepplant ui --port 0` (the OS picks a free
+ * port); this helper only parses the URL the real CLI prints and never
+ * re-implements socket allocation. There is no arbitrary readiness sleep.
+ */
+
+const SUPPORT_DIR = path.dirname(fileURLToPath(import.meta.url))
+
+/** `apps/editor` - the frontend application directory. */
+const EDITOR_DIR = path.resolve(SUPPORT_DIR, '..', '..')
+
+/**
+ * Repository root. The Python process is deliberately started from here,
+ * because `deepplant ui` resolves its default built-SPA assets as
+ * `./apps/editor/dist` relative to the process working directory.
+ */
+const REPO_ROOT = path.resolve(EDITOR_DIR, '..', '..')
+
+/** The canonical realistic process fragment, resolved from the repository root. */
+export const REALISTIC_PROJECT = path.join(
+  REPO_ROOT,
+  'examples',
+  'realistic-process-fragment',
+  'plant.yaml',
+)
+
+/** Presentation override the realistic fragment needs for a projectable view. */
+export const VESSEL_ROLE_OVERRIDE = ['PS-vessel=vessel'] as const
+
+const ANNOUNCED_URL = /^\s*open:\s+(http:\/\/127\.0\.0\.1:\d+\/)\s*$/
+const STARTUP_TIMEOUT_MS = 30_000
+const READY_TIMEOUT_MS = 20_000
+const POLL_INTERVAL_MS = 100
+const SHUTDOWN_GRACE_MS = 5_000
+const FORCE_KILL_WAIT_MS = 5_000
+const MAX_LOG_CHARS = 32_000
+
+export interface EditorServerOptions {
+  /**
+   * Repeatable `--symbol-role STEP=ROLE` presentation overrides.
+   *
+   * The happy path passes `PS-vessel=vessel`; the valid-but-unprojectable error
+   * path deliberately omits it.
+   */
+  readonly symbolRoles?: readonly string[]
+}
+
+export interface EditorServer {
+  /** Loopback base URL announced by the real CLI, e.g. `http://127.0.0.1:53421/`. */
+  readonly baseUrl: string
+  /** Stop the real CLI process tree: graceful first, forced only when required. */
+  stop(): Promise<void>
+  /** Captured CLI stdout/stderr, bounded; for failure diagnostics only. */
+  logs(): string
+}
+
+interface LogBuffer {
+  push(chunk: string): void
+  text(): string
+}
+
+interface ExitTracker {
+  done: Promise<void>
+  spawnError: Error | null
+  code: number | null
+  signal: NodeJS.Signals | null
+}
+
+/**
+ * Process-group ids started by this helper.
+ *
+ * Used only as a last-resort safety net so an interrupted worker cannot leak a
+ * Uvicorn process. Cleanup never signals anything but these groups.
+ */
+const liveGroups = new Set<number>()
+let safetyNetInstalled = false
+
+function installSafetyNet(): void {
+  if (safetyNetInstalled) {
+    return
+  }
+  safetyNetInstalled = true
+  process.on('exit', () => {
+    for (const pid of liveGroups) {
+      try {
+        process.kill(-pid, 'SIGKILL')
+      } catch {
+        // The process group is already gone; there is nothing left to clean up.
+      }
+    }
+  })
+}
+
+function createLogBuffer(): LogBuffer {
+  let text = ''
+  return {
+    push(chunk: string): void {
+      text += chunk
+      if (text.length > MAX_LOG_CHARS) {
+        text = text.slice(-MAX_LOG_CHARS)
+      }
+    },
+    text(): string {
+      return text
+    },
+  }
+}
+
+function createExitTracker(child: ChildProcess): ExitTracker {
+  const tracker: ExitTracker = {
+    done: Promise.resolve(),
+    spawnError: null,
+    code: null,
+    signal: null,
+  }
+  tracker.done = new Promise<void>((resolve) => {
+    child.once('exit', (code, signal) => {
+      tracker.code = code
+      tracker.signal = signal
+      resolve()
+    })
+    child.once('error', (error: Error) => {
+      tracker.spawnError = error
+      resolve()
+    })
+  })
+  return tracker
+}
+
+function findAnnouncedUrl(logText: string): string | null {
+  for (const line of logText.split('\n')) {
+    const match = ANNOUNCED_URL.exec(line)
+    if (match?.[1] !== undefined) {
+      return match[1]
+    }
+  }
+  return null
+}
+
+/** Fail clearly when the CLI died or could not be spawned before it was ready. */
+function assertStillStarting(tracker: ExitTracker, log: LogBuffer): void {
+  if (tracker.spawnError !== null) {
+    throw new Error(
+      `could not start \`uv run deepplant ui\`: ${tracker.spawnError.message}\n${log.text()}`,
+    )
+  }
+  if (tracker.code !== null || tracker.signal !== null) {
+    throw new Error(
+      `\`deepplant ui\` exited before the editor became ready ` +
+        `(code ${tracker.code ?? 'null'}, signal ${tracker.signal ?? 'none'}).\n${log.text()}`,
+    )
+  }
+}
+
+async function waitForAnnouncedUrl(tracker: ExitTracker, log: LogBuffer): Promise<string> {
+  const deadline = Date.now() + STARTUP_TIMEOUT_MS
+  while (Date.now() < deadline) {
+    const url = findAnnouncedUrl(log.text())
+    if (url !== null) {
+      return url
+    }
+    assertStillStarting(tracker, log)
+    await delay(POLL_INTERVAL_MS)
+  }
+  throw new Error(
+    `\`deepplant ui\` did not announce a loopback URL within ${STARTUP_TIMEOUT_MS} ms.\n${log.text()}`,
+  )
+}
+
+/**
+ * Close the small bind-then-serve window after the URL announcement.
+ *
+ * The CLI binds the loopback socket before it prints, so the URL remains the
+ * readiness boundary; this only confirms Uvicorn is accepting connections.
+ */
+async function waitForServing(baseUrl: string, tracker: ExitTracker, log: LogBuffer): Promise<void> {
+  const deadline = Date.now() + READY_TIMEOUT_MS
+  let lastFailure = 'no response yet'
+  while (Date.now() < deadline) {
+    assertStillStarting(tracker, log)
+    try {
+      const response = await fetch(baseUrl, { redirect: 'manual' })
+      if (response.ok) {
+        return
+      }
+      lastFailure = `HTTP ${response.status}`
+    } catch (error) {
+      lastFailure = error instanceof Error ? error.message : String(error)
+    }
+    await delay(POLL_INTERVAL_MS)
+  }
+  throw new Error(
+    `the editor server at ${baseUrl} did not become ready (${lastFailure}).\n${log.text()}`,
+  )
+}
+
+/** Signal only the process group this helper started. */
+function signalGroup(child: ChildProcess, signal: NodeJS.Signals): void {
+  const pid = child.pid
+  if (pid === undefined) {
+    return
+  }
+  try {
+    // `detached: true` makes the child a process-group leader, so a negative pid
+    // signals the whole `uv` -> python -> uvicorn tree and nothing else.
+    process.kill(-pid, signal)
+  } catch {
+    // The process group is already gone; there is nothing left to clean up.
+  }
+}
+
+async function settlesWithin(work: Promise<unknown>, ms: number): Promise<boolean> {
+  return Promise.race([work.then(() => true), delay(ms).then(() => false)])
+}
+
+async function stopProcessTree(child: ChildProcess, tracker: ExitTracker): Promise<void> {
+  if (tracker.code !== null || tracker.signal !== null) {
+    return
+  }
+  signalGroup(child, 'SIGTERM')
+  if (await settlesWithin(tracker.done, SHUTDOWN_GRACE_MS)) {
+    return
+  }
+  signalGroup(child, 'SIGKILL')
+  await settlesWithin(tracker.done, FORCE_KILL_WAIT_MS)
+}
+
+/**
+ * Start the real `deepplant ui` launcher against the production frontend build.
+ *
+ * Resolves once the CLI has announced its loopback URL and the server answers.
+ * Rejects with the captured CLI log when startup fails for any reason.
+ */
+export async function startEditorServer(options: EditorServerOptions = {}): Promise<EditorServer> {
+  installSafetyNet()
+  const args = [
+    'run',
+    'deepplant',
+    'ui',
+    REALISTIC_PROJECT,
+    '--port',
+    '0',
+    ...(options.symbolRoles ?? []).flatMap((entry) => ['--symbol-role', entry]),
+  ]
+  const child = spawn('uv', args, {
+    cwd: REPO_ROOT,
+    detached: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  const log = createLogBuffer()
+  child.stdout?.setEncoding('utf8')
+  child.stderr?.setEncoding('utf8')
+  child.stdout?.on('data', (chunk: string) => log.push(chunk))
+  child.stderr?.on('data', (chunk: string) => log.push(chunk))
+
+  const tracker = createExitTracker(child)
+  const pid = child.pid
+  if (pid !== undefined) {
+    liveGroups.add(pid)
+    void tracker.done.then(() => liveGroups.delete(pid))
+  }
+
+  try {
+    const baseUrl = await waitForAnnouncedUrl(tracker, log)
+    await waitForServing(baseUrl, tracker, log)
+    return {
+      baseUrl,
+      stop: () => stopProcessTree(child, tracker),
+      logs: () => log.text(),
+    }
+  } catch (error) {
+    await stopProcessTree(child, tracker)
+    throw error
+  }
+}

@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -92,6 +92,16 @@ frontend-build: frontend-install
 
 # Complete current frontend baseline: lint, typecheck, tests, production build.
 frontend-check: frontend-lint frontend-typecheck frontend-test frontend-build
+
+
+# Browser/system E2E: the real local `deepplant ui` CLI serving the production
+# build, driven by a real Chromium browser (see docs/dev/frontend/testing.md).
+# Kept out of `frontend-check`/`check` so the fast default gate never downloads a
+# browser; install Chromium once with
+# `cd apps/editor && pnpm exec playwright install chromium`.
+frontend-e2e: frontend-build
+
+	$(FRONTEND_PNPM) run e2e
 
 
 api-schema:

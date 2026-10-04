@@ -71,10 +71,13 @@ Runtime and toolchain:
   FastAPI/Starlette test client.
 - Editor SPA toolchain (`apps/editor/`, ephemeral build output): Vue 3,
   TypeScript, Vite, Vue Flow, UnoCSS, Vitest with `@vue/test-utils` and
-  `happy-dom`, `vue-tsc`, and ESLint (flat config). The package manager is pinned
-  by `apps/editor/package.json` (`packageManager`) with a committed
-  `apps/editor/pnpm-lock.yaml`. The frontend engineering rules and gates are
-  canonical in [frontend/](../frontend/index.md).
+  `happy-dom`, Playwright (`@playwright/test`, Chromium only) with `@types/node`
+  for the browser E2E suite, `vue-tsc`, and ESLint (flat config). The package
+  manager is pinned by `apps/editor/package.json` (`packageManager`) with a
+  committed `apps/editor/pnpm-lock.yaml`. The frontend engineering rules and gates
+  are canonical in [frontend/](../frontend/index.md), and the browser E2E
+  ownership, lifecycle, and selector policy in
+  [frontend/testing.md](../frontend/testing.md).
 
 ## Module boundaries
 
@@ -237,7 +240,11 @@ standalone, pinned Vite application with its own dependency graph, while
   Frontend engineering rules — feature ownership, Vue/TypeScript conventions,
   state ownership, styling ownership, accessibility, testing layers, and
   size/cohesion guardrails — are canonical in [frontend/](../frontend/index.md)
-  and enforced by `make frontend-lint` and `make frontend-check`.
+  and enforced by `make frontend-lint` and `make frontend-check`. Verification is
+  split by lifecycle: isolated Vitest suites under `apps/editor/tests/` and the
+  system/browser Playwright suite under `apps/editor/e2e/`, which starts the real
+  `deepplant ui` CLI over the production build and drives real Chromium
+  (`make frontend-e2e`).
 
 Explicit non-goals of this slice (unchanged direction, not implemented):
 semantic editing, process step/stream creation, deletion, property editing,
@@ -278,6 +285,7 @@ make validate-agent-skills
 make check   # ruff format --check, ruff check, pyright, pytest, frontend-check
 make frontend-check  # pnpm install --frozen-lockfile, eslint, vue-tsc, vitest, vite build
 make frontend-lint   # pnpm lint (ESLint correctness + hard size/cohesion limits)
+make frontend-e2e    # production build + Playwright/Chromium against the real `deepplant ui`
 make build   # uv build
 ```
 

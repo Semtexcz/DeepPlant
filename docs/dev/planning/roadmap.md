@@ -68,7 +68,11 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   (`apps/editor/src/App.vue`), a feature-owned Process/PFD page and canvas
   boundary, explicit feature state ownership
   (`process-pfd/composables/useProcessPfd.ts`), UnoCSS over semantic tokens, and
-  Vue component plus feature-integration tests.
+  Vue component plus feature-integration tests;
+- a small Playwright + Chromium browser E2E layer (`apps/editor/e2e/`, `make
+  frontend-e2e`) that proves the critical editor workflow across the real local
+  product path: the production SPA build, the real `deepplant ui --port 0` CLI
+  over loopback FastAPI/Uvicorn, and real pointer interaction in the browser.
 
 Not implemented: semantic editing and any semantic mutation command, presentation
 persistence, undo/redo, P&ID rendering and physical/P&ID symbols, full DEXPI and
@@ -87,16 +91,8 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- [#82 — Engineering Editor: browser end-to-end tests](https://github.com/Semtexcz/DeepPlant/issues/82)
-  is the next authorized executable slice.
-
-  #75 delivered the first runnable read-only Process/PFD slice, #79 hardened its
-  foundation (the editor application layout and the FastAPI/Uvicorn boundary),
-  #80 established the canonical frontend engineering contract and its quality
-  gates, and #81 applied that contract to the existing frontend without changing
-  product behavior. None produced a new product capability or evidence that
-  changes the sequence. The smallest next evidence-producing slice is therefore
-  the browser end-to-end slice over the now-stable feature structure:
+- **Re-evaluate the next product capability.** The Engineering Editor
+  quality-hardening sequence is complete:
 
   ```text
   #75 read-only Process/PFD slice delivered
@@ -107,21 +103,38 @@ evidence-heavy slices, in the linked spike/decision documents.
           ↓
   #81 frontend refactor + component/integration tests    (delivered)
           ↓
-  #82 browser end-to-end tests                           (selected)
+  #82 browser end-to-end tests                           (delivered)
           ↓
-  re-evaluate the next product capability
+  re-evaluate the next product capability    ← open gate; no successor selected
   ```
 
-  No semantic-editing, presentation-persistence, P&ID, or process ↔ physical
-  realization slice is selected or promoted.
+  No successor is selected. No semantic-editing, presentation-persistence, P&ID,
+  or process ↔ physical realization slice is promoted. The evidence now available
+  and the re-evaluation criteria are in **Next**.
 
 ### Next
 
-- Re-evaluate the next product capability after #82, from the evidence #75–#82
-  produced.
+- **Unselected.** The next product capability is deliberately not chosen yet;
+  select it from the evidence #75–#82 produced, using the criteria below. Do not
+  mechanically promote a backlog row.
 
-  Do not mechanically promote semantic editing, presentation persistence, P&ID,
-  or another backlog item. Re-evaluation criteria include:
+  Evidence now available to decide from:
+
+  ```text
+  Python semantic / application boundary             ✓
+  FastAPI transport boundary                         ✓
+  production Vue SPA                                 ✓
+  Vue Flow integration                               ✓
+  real browser interaction                           ✓
+  critical semantic selection workflow               ✓
+  semantic validity != projectability (in browser)   ✓
+  ```
+
+  Candidate capabilities remain evidence inputs, not commitments: semantic
+  editing, presentation persistence, presentation-quality work,
+  packaging/distribution, P&ID, and the process ↔ physical realization mapping.
+
+  Re-evaluation criteria include:
 
   - whether the projection/view boundary is strong enough to authorize the first
     semantic-editing slice;
@@ -173,14 +186,36 @@ functionality was layered on it. Its outcome selected
 [#79 — Bug: Engineering Editor architecture is inconsistent with the existing
 DeepPlant application structure](https://github.com/Semtexcz/DeepPlant/issues/79)
 as the next executable slice, followed by the dependency-ordered
-frontend-engineering work #80 → #81 → #82. #79, #80 and #81 are now delivered, so
-the remaining sequence is #82.
+frontend-engineering work #80 → #81 → #82. #79, #80, #81 and #82 are now
+delivered, so the quality-hardening sequence is complete.
 
-The next re-evaluation gate opens only after #82. Its outcome is deliberately
-not decided here, and no successor Issue is created (see **Next**).
+The next re-evaluation gate is now **open** (it opened after #82). Its outcome is
+deliberately not decided here, and no successor Issue is created (see **Now** and
+**Next**).
 
 ### Completed Context
 
+- **Issue #82 is delivered (browser E2E):** the Engineering Editor now has a real
+  browser system/browser test layer. A minimal Playwright (`@playwright/test`,
+  Chromium only) suite lives in the new `apps/editor/e2e/` root — deliberately
+  outside the Vitest `tests/` tree — and runs through `make frontend-e2e`
+  (`pnpm e2e`), which installs from the committed lockfile, builds the production
+  SPA, and then starts the real user-facing `uv run deepplant ui
+  examples/realistic-process-fragment/plant.yaml --symbol-role PS-vessel=vessel
+  --port 0` CLI. Readiness is the CLI's own announced loopback URL (no fixed port,
+  no readiness sleep), and the started process group is always stopped (SIGTERM
+  then bounded SIGKILL). Two tests prove (1) the realistic fragment renders 7
+  `ProcessStep`s and 7 `ProcessStream`s with `Valid` semantics, `Fit view` works,
+  and selecting `PS-pump` then `S-004` through the real rendered graph yields the
+  correct semantic Inspector fields, and (2) a semantically valid model whose
+  `PS-vessel` presentation role is unresolvable still reports `Valid` while
+  showing the projection error as a separate alert. The suite uses DeepPlant-owned
+  accessible names (`Process step <id>` / `Process stream <id>`, supplied by the
+  adapter) as resilient selectors, adds no mocks, and touches no transport,
+  domain, or architecture. `make check` still never downloads a browser; a
+  dedicated CI job installs Chromium and runs the suite, uploading trace,
+  screenshot, and server-log artifacts only on failure. See
+  [frontend/testing.md](../frontend/testing.md).
 - **Issue #81 is delivered (frontend refactor, unocss, component and integration
   tests):** the #80 contract was applied to the existing editor frontend without
   changing product behaviour. `App.vue` is now a thin application composition
@@ -318,8 +353,8 @@ Concrete examples:
   authorized only within the explicitly selected Engineering Editor slices. The
   hardening sequence is #79 (delivered: application layout + FastAPI boundary) →
   #80 (delivered: frontend engineering contract + quality gates) → #81
-  (delivered: frontend refactor + component/integration tests) → #82 (browser
-  E2E); that sequence does not authorize semantic editing, presentation
+  (delivered: frontend refactor + component/integration tests) → #82 (delivered:
+  browser E2E); that sequence does not authorize semantic editing, presentation
   persistence, a GUI redesign, P&ID, or broader Engineering Editor infrastructure
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now

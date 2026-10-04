@@ -90,7 +90,9 @@ export default tseslint.config(
     },
   },
   {
-    files: ['eslint.config.js', 'vite.config.ts'],
+    // Node-environment frontend tooling: the configuration files and the
+    // browser E2E suite, which starts a real Python/Uvicorn process.
+    files: ['eslint.config.js', 'vite.config.ts', 'playwright.config.ts', 'e2e/**/*.ts'],
     languageOptions: { globals: { ...globals.node } },
   },
 )
