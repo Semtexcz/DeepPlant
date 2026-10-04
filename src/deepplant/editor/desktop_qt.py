@@ -29,6 +29,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Final
@@ -70,6 +71,12 @@ DEFAULT_WINDOW_HEIGHT: Final[int] = 820
 #: real DOM rather than guessing that the application is ready.
 POST_LOAD_SETTLE_MS: Final[int] = 1500
 POST_SELECTION_SETTLE_MS: Final[int] = 600
+
+#: Hard bound on one self-check run. A GUI process must never be able to hang an
+#: automated caller: if a stalled webview, a blocking platform dialog, or any
+#: other condition prevents the probe from finishing, the application still
+#: writes a report and still exits with a non-zero code.
+SELF_CHECK_TIMEOUT_MS: Final[int] = 90_000
 
 #: The realistic fragment's step the packaged desktop workflow selects.
 PROBE_STEP_ID: Final[str] = "PS-pump"
@@ -374,6 +381,24 @@ def _write_json(path: Path, payload: dict[str, object]) -> None:
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
+def _stage_log(report_path: Path, message: str) -> None:
+    """Append one diagnostic line next to the self-check report.
+
+    A packaged Windows Editor is a GUI (``--windowed``) executable with no
+    console, so stdout/stderr carry nothing. This is the deliberate diagnostics
+    path for that case: a small stage log beside the machine-readable report, so
+    a stalled or failing run is diagnosable instead of silent.
+    """
+    log_path = report_path.with_name(report_path.name + ".log")
+    try:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with log_path.open("a", encoding="utf-8") as handle:
+            handle.write(f"{time.monotonic():.3f} {message}\n")
+    except OSError:
+        # Diagnostics must never break the application under test.
+        return
+
+
 def _port_accepts(port: int) -> bool:
     """Whether the loopback port still accepts connections."""
     try:
@@ -445,13 +470,38 @@ def _start_self_check(
     reads is the state the application already has.
     """
     results: dict[str, object] = {}
+    finished = False
+
+    def finish_once(code: int) -> None:
+        """Finish exactly once, so a late timer cannot restart the loop exit."""
+        nonlocal finished
+        if finished:
+            return
+        finished = True
+        _stage_log(report_path, f"finish: exit code {code}")
+        finish(code)
 
     def fail(message: str) -> None:
+        _stage_log(report_path, f"fail: {message}")
         _write_json(report_path, {"verdict": "fail", "error": message})
         echo(f"self-check failed: {message}")
-        finish(1)
+        finish_once(1)
+
+    def failed_guard(step: str, work: Callable[[], None]) -> None:
+        """Run one probe step, reporting an unexpected error instead of hanging.
+
+        An exception raised inside a Qt callback would otherwise be printed to a
+        stream a GUI build may not have and would leave the event loop running
+        forever, which is exactly the failure mode automated callers cannot
+        diagnose.
+        """
+        try:
+            work()
+        except Exception as exc:  # noqa: BLE001 - reported, never swallowed
+            fail(f"{step} raised {type(exc).__name__}: {exc}")
 
     def finalize() -> None:
+        _stage_log(report_path, "finalize: begin")
         window = editor.window
         visible_before_close = window.isVisible()
         server = editor.server
@@ -484,9 +534,10 @@ def _start_self_check(
         report["windowTitle"] = WINDOW_TITLE
         _write_json(report_path, report)
         echo(f"self-check verdict: {report['verdict']}")
-        finish(0 if passed else 1)
+        finish_once(0 if passed else 1)
 
     def probe_canvas() -> None:
+        _stage_log(report_path, "probe: canvas")
         view = editor.window.web_view
         if view is None:
             fail("the native window never created an embedded view")
@@ -494,12 +545,16 @@ def _start_self_check(
         view.page().runJavaScript(_CANVAS_PROBE_JS, after_canvas)
 
     def after_canvas(raw: object) -> None:
-        canvas = _parse_probe(raw)
-        if not canvas:
-            fail("the canvas probe returned no usable result")
-            return
-        results["canvas"] = canvas
-        QTimer.singleShot(POST_SELECTION_SETTLE_MS, lambda: probe_inspector(canvas))
+        def handle() -> None:
+            canvas = _parse_probe(raw)
+            _stage_log(report_path, f"probe: canvas result {bool(canvas)}")
+            if not canvas:
+                fail("the canvas probe returned no usable result")
+                return
+            results["canvas"] = canvas
+            QTimer.singleShot(POST_SELECTION_SETTLE_MS, lambda: probe_inspector(canvas))
+
+        failed_guard("the canvas probe", handle)
 
     def probe_inspector(canvas: dict[str, object]) -> None:
         view = editor.window.web_view
@@ -513,18 +568,34 @@ def _start_self_check(
 
     def after_inspector(canvas: dict[str, object], raw: object) -> None:
         del canvas
-        results["inspector"] = _parse_probe(raw)
-        finalize()
+
+        def handle() -> None:
+            results["inspector"] = _parse_probe(raw)
+            _stage_log(report_path, "probe: inspector done")
+            finalize()
+
+        failed_guard("the inspector probe", handle)
 
     def on_loaded(ok: bool) -> None:
+        _stage_log(report_path, f"page loaded: {ok}")
         if not ok:
             fail("the embedded page did not finish loading")
             return
-        QTimer.singleShot(POST_LOAD_SETTLE_MS, probe_canvas)
+        QTimer.singleShot(
+            POST_LOAD_SETTLE_MS, lambda: failed_guard("the canvas probe", probe_canvas)
+        )
+
+    # The watchdog is armed before anything else, so no probe, dialog, or stalled
+    # webview can keep the process alive past the caller's patience.
+    _stage_log(report_path, "self-check: watchdog armed")
+    QTimer.singleShot(
+        SELF_CHECK_TIMEOUT_MS,
+        lambda: fail(f"the self-check did not finish within {SELF_CHECK_TIMEOUT_MS} ms"),
+    )
 
     if not has_project:
         # No model was supplied: the bootstrap window is the thing under test.
-        QTimer.singleShot(POST_LOAD_SETTLE_MS, finalize)
+        QTimer.singleShot(POST_LOAD_SETTLE_MS, lambda: failed_guard("the window check", finalize))
         return
 
     editor.page_loaded_hook = on_loaded
@@ -547,8 +618,12 @@ def run_host(
     the primary end-user workflow.
     """
     _configure_webengine_for_this_process()
+    if report_path is not None:
+        _stage_log(report_path, "host: starting")
     qt_instance = QApplication.instance()
     qt_application = qt_instance if isinstance(qt_instance, QApplication) else QApplication([])
+    if report_path is not None:
+        _stage_log(report_path, "host: Qt application created")
 
     editor = _DesktopEditor(loader=loader, port=port, host=host, echo=echo)
     if self_check:
@@ -565,5 +640,7 @@ def run_host(
     if initial_application is not None:
         editor.open_project(initial_application)
     editor.show()
+    if report_path is not None:
+        _stage_log(report_path, "host: window shown, entering the event loop")
 
     return int(qt_application.exec())

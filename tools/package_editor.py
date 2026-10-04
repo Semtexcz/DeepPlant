@@ -564,9 +564,10 @@ def sanitized_environment() -> dict[str, str]:
 
 
 #: The packaged desktop application is a graphical product, so its verification
-#: drives the real window rather than an HTTP endpoint (Issue #93). The bound is
-#: generous because a first launch initialises Qt WebEngine.
-_DESKTOP_SELF_CHECK_TIMEOUT_S = 240.0
+#: drives the real window rather than an HTTP endpoint (Issue #93). The bound sits
+#: comfortably above the application's own self-check watchdog, so a stalled run
+#: reports why instead of being killed by the caller.
+_DESKTOP_SELF_CHECK_TIMEOUT_S = 150.0
 
 
 def frozen_app_dir_of(launcher: Path) -> Path:
@@ -649,6 +650,32 @@ def verify_bundle_contents(bundle: Path) -> dict[str, object]:
     return evidence
 
 
+def _captured_text(value: bytes | str | None) -> str:
+    """Return captured subprocess output as text, tolerating bytes or ``None``."""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return ""
+
+
+def _self_check_diagnostics(report: Path) -> str:
+    """Return the self-check report and its stage log, for failure messages.
+
+    A packaged Windows Editor has no console, so this is the only place its
+    diagnostics can be read from.
+    """
+    parts: list[str] = []
+    log_path = report.with_name(report.name + ".log")
+    if log_path.is_file():
+        parts.append(f"--- {log_path.name} ---")
+        parts.append(log_path.read_text(encoding="utf-8", errors="replace").rstrip())
+    if report.is_file():
+        parts.append(f"--- {report.name} ---")
+        parts.append(report.read_text(encoding="utf-8", errors="replace").rstrip())
+    return "\n".join(parts)
+
+
 def run_desktop_self_check(
     launcher: Path,
     *,
@@ -679,6 +706,9 @@ def run_desktop_self_check(
 
     if report.exists():
         report.unlink()
+    stage_log = report.with_name(report.name + ".log")
+    if stage_log.exists():
+        stage_log.unlink()
 
     environment = sanitized_environment()
     # The verification runs on a headless/virtual display in CI, which has no GPU
@@ -686,30 +716,52 @@ def run_desktop_self_check(
     # user's runtime environment; the sandbox is untouched.
     environment["QTWEBENGINE_CHROMIUM_FLAGS"] = "--disable-gpu"
 
-    completed = subprocess.run(
-        command,
-        cwd=str(cwd),
-        env=environment,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        timeout=timeout,
-        check=False,
-    )
-    for line in (completed.stdout or "").splitlines():
+    timed_out = False
+    return_code: int | None = None
+    stdout = ""
+    stderr = ""
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(cwd),
+            env=environment,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+            check=False,
+        )
+        return_code = completed.returncode
+        stdout = completed.stdout or ""
+        stderr = completed.stderr or ""
+    except subprocess.TimeoutExpired as expired:
+        timed_out = True
+        stdout = _captured_text(expired.stdout)
+        stderr = _captured_text(expired.stderr)
+
+    for line in stdout.splitlines():
         log("  app: " + line)
-    for line in (completed.stderr or "").splitlines():
+    for line in stderr.splitlines():
         log("  app!: " + line)
 
+    diagnostics = _self_check_diagnostics(report)
+    for line in diagnostics.splitlines():
+        log("  stage: " + line)
+
+    if timed_out:
+        raise PackagingError(
+            f"the packaged desktop application did not exit within {timeout:.0f} s "
+            f"(self-check report written: {report.is_file()})\n{diagnostics}"
+        )
     if not report.is_file():
         raise PackagingError(
             "the packaged desktop application wrote no self-check report "
-            f"(exit code {completed.returncode})"
+            f"(exit code {return_code})\n{diagnostics}"
         )
     payload = json.loads(report.read_text(encoding="utf-8"))
-    if completed.returncode != 0 or payload.get("verdict") != "pass":
-        raise PackagingError(f"the packaged desktop self-check failed: {payload}")
+    if return_code != 0 or payload.get("verdict") != "pass":
+        raise PackagingError(f"the packaged desktop self-check failed: {payload}\n{diagnostics}")
     checks_raw = payload.get("checks")
     if not isinstance(checks_raw, dict):
         raise PackagingError(f"the packaged desktop self-check reported no checks: {payload}")
