@@ -73,7 +73,9 @@ Runtime and toolchain:
   the rest of the core use only the standard library plus the base dependencies.
 - Build-only tooling for the standalone application: PyInstaller (dependency
   group `package`), plus Inno Setup on Windows and `appimagetool` on Linux. None
-  of it is a runtime dependency of the installed application.
+  of it is a runtime dependency of the installed application. The non-Python
+  tools are pinned and integrity-checked through `packaging/toolchain.toml` (see
+  [workflow/packaging.md](../workflow/packaging.md)).
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict), and `httpx2` for the
   FastAPI/Starlette test client.
 - Editor SPA toolchain (`apps/editor/`, ephemeral build output): Vue 3,

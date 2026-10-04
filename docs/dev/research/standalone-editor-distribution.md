@@ -238,7 +238,9 @@ user's default browser  (auto-opened; --no-browser suppresses it)
   pack, and the unchanged production Vue SPA. No editor implementation was
   duplicated and no framework was replaced.
 - It adds exactly one runtime dependency (PyInstaller) and two build-time-only
-  tools that ship nothing inside the artifact.
+  native tools. The tool executables are not distributed with DeepPlant, but the
+  artifacts they generate do embed upstream components (the AppImage runtime;
+  Inno Setup installer/runtime code) — see the licence table in section 7.
 - It introduces no new process model: the frozen application is the same single
   process that already served the editor, so lifecycle, loopback binding and
   automation stay identical to the source path.
@@ -249,11 +251,19 @@ user's default browser  (auto-opened; --no-browser suppresses it)
 
 ## 7. Licence and provenance notes
 
-| Component | Role | Licence | Redistributed in the artifact? |
+The external native tools are pinned — version, immutable upstream URL, SHA-256 —
+in [`packaging/toolchain.toml`](../../packaging/toolchain.toml) and verified by CI
+before they run; they are not Python packages, so they are not part of `uv.lock`.
+The distinction the table keeps is that a **build tool executable** is not
+distributed with DeepPlant, while a generated artifact can still contain upstream
+runtime/bootstrap components.
+
+| Component | Role | Licence | Enters the distributed artifact? |
 |---|---|---|---|
-| PyInstaller | freeze/bundle (build-time) | GPLv2-or-later **with an exception** that permits bundling and distributing applications under any licence, with no attribution requirement | its bootloader code is part of the frozen launcher |
-| `appimagetool` | AppImage assembly (build-time) | MIT | no; only the AppImage runtime it adds is |
-| Inno Setup | Windows installer compilation (build-time) | free-of-charge custom licence (commercial users are asked to purchase); source-available | no; the produced installer is the user artifact |
+| PyInstaller | freeze/bundle (build-time) | GPLv2-or-later **with an exception** that permits bundling and distributing applications under any licence, with no attribution requirement | yes — its bootloader code is part of the frozen launcher (permitted by the exception) |
+| `appimagetool` | AppImage assembly (build-time) | MIT | the executable does not; the AppImage runtime it embeds does (next row) |
+| AppImage type-2 runtime | AppImage bootstrap, embedded by `appimagetool` | MIT (AppImage project, `AppImage/type2-runtime`); the statically linked runtime also contains musl libc, libfuse (LGPL-2.0), squashfuse, libzstd, and zlib, as listed in its upstream `LICENSE` | yes — the generated `.AppImage` contains it unmodified, including its own embedded upstream licence/notice text |
+| Inno Setup | Windows installer compilation (build-time) | free-of-charge custom licence: free for commercial use, but binary redistributions must retain the existing copyright notices and web site addresses | the `ISCC.exe` compiler does not; the generated setup `.exe` contains Inno Setup installer/runtime components and stays subject to the applicable Inno Setup terms |
 | CPython | language runtime | PSF-2.0 | yes (bundled interpreter) |
 | FastAPI / Starlette / Uvicorn / Pydantic / PyYAML / Typer / Rich / Pygments / Click | application runtime dependencies | MIT / BSD-3 / Apache-2.0 family, all already recorded project dependencies | yes |
 | Chromium / WebView2 / Qt / Tauri / Electron | desktop shell runtime | — | **no**: deliberately not adopted |

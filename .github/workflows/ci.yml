@@ -140,8 +140,53 @@ jobs:
       - name: Install build dependencies
         run: uv sync --group package
 
-      - name: Install Inno Setup (build-time tool only)
-        run: choco install innosetup --no-progress -y
+      - name: Read the pinned packaging toolchain
+        run: python tools/packaging_toolchain.py export
+
+      - name: Install the pinned Inno Setup (build-time tool only)
+        shell: pwsh
+        run: |
+          choco install innosetup --version $env:INNO_SETUP_VERSION --no-progress -y
+
+      - name: Verify the pinned Inno Setup compiler
+        shell: pwsh
+        run: |
+          $expected = $env:INNO_SETUP_VERSION
+
+          # The requested package version must be the installed one. Chocolatey
+          # records it, so a silent fallback to another installed version fails.
+          $record = choco list --local-only --exact innosetup --limit-output |
+            Where-Object { $_ -match '^innosetup\|' } | Select-Object -First 1
+          if (-not $record) {
+            throw "Chocolatey does not report an installed 'innosetup' package."
+          }
+          $installed = ($record -split '\|', 2)[1].Trim()
+          Write-Host "Chocolatey innosetup package version: $installed"
+          if ($installed -ne $expected) {
+            throw "Inno Setup version mismatch: requested $expected, Chocolatey reports '$installed'."
+          }
+
+          # Resolve the compiler and record the version it reports itself. The
+          # resolved file is then pinned for the packaging driver through ISCC,
+          # so the compiler that built the installer is the verified one.
+          $candidates = @()
+          $command = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+          if ($command) { $candidates += $command.Source }
+          $programFilesX86 = [Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+          if ($programFilesX86) { $candidates += Join-Path $programFilesX86 'Inno Setup 6\ISCC.exe' }
+          $candidates += Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'
+          $iscc = $candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+          if (-not $iscc) {
+            throw "Inno Setup $expected was requested, but ISCC.exe was not found on this runner."
+          }
+          $reported = (& $iscc --version | Out-String).Trim()
+          Write-Host "Inno Setup compiler:         $iscc"
+          Write-Host "Inno Setup compiler version: $reported"
+          $detected = [regex]::Match($reported, '\d+(\.\d+)+').Value
+          if (-not $detected.StartsWith($expected)) {
+            throw "ISCC reports '$reported', which does not match the pinned $expected."
+          }
+          "ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build, package and verify the standalone Editor
         shell: pwsh
@@ -203,12 +248,35 @@ jobs:
       - name: Install build dependencies
         run: uv sync --group package
 
-      - name: Install appimagetool (build-time tool only)
+      - name: Read the pinned packaging toolchain
+        run: python tools/packaging_toolchain.py export
+
+      - name: Install pinned, integrity-verified appimagetool and AppImage runtime
         run: |
-          curl -fsSL -o "$RUNNER_TEMP/appimagetool" \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x "$RUNNER_TEMP/appimagetool"
-          echo "APPIMAGETOOL=$RUNNER_TEMP/appimagetool" >> "$GITHUB_ENV"
+          set -euo pipefail
+          tool="$RUNNER_TEMP/appimagetool"
+          runtime="$RUNNER_TEMP/appimage-runtime"
+
+          # Immutable upstream artifacts, declared in
+          # packaging/toolchain.toml. The digest is checked before either file
+          # is made executable, so a mismatch aborts the job here and no
+          # artifact can be produced with an unexpected toolchain.
+          curl -fsSL -o "$tool" "$APPIMAGETOOL_URL"
+          echo "$APPIMAGETOOL_SHA256  $tool" | sha256sum --check -
+
+          curl -fsSL -o "$runtime" "$APPIMAGE_RUNTIME_URL"
+          echo "$APPIMAGE_RUNTIME_SHA256  $runtime" | sha256sum --check -
+
+          chmod +x "$tool" "$runtime"
+
+          echo "appimagetool release:             $APPIMAGETOOL_VERSION"
+          echo "appimagetool sha256 verified:     $APPIMAGETOOL_SHA256"
+          echo "AppImage runtime release:         $APPIMAGE_RUNTIME_VERSION"
+          echo "AppImage runtime sha256 verified: $APPIMAGE_RUNTIME_SHA256"
+          "$tool" --version
+
+          echo "APPIMAGETOOL=$tool" >> "$GITHUB_ENV"
+          echo "APPIMAGE_RUNTIME=$runtime" >> "$GITHUB_ENV"
 
       - name: Build, package and verify the standalone Editor
         run: |

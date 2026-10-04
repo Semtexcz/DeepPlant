@@ -51,8 +51,10 @@ superseded_by: null
   `make package-editor`): production SPA build, freeze, platform package, and a
   packaged-artifact smoke test. It is deliberately **not** part of `check`,
   because it is slow and platform-specific. It runs in CI as the native
-  `editor-package-windows` and `editor-package-linux` jobs. Ownership and
-  debugging are canonical in [workflow/packaging.md](packaging.md).
+  `editor-package-windows` and `editor-package-linux` jobs, which install and
+  integrity-check the pinned external toolchain
+  (`packaging/toolchain.toml`) before building. Ownership and debugging are
+  canonical in [workflow/packaging.md](packaging.md).
 - Base-installation independence verification runs through
   `python tools/verify_base_install.py <wheel>` in the `check` job: it installs
   the base wheel into clean environments and proves the semantic Core works

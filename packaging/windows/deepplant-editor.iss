@@ -1,8 +1,13 @@
 ; Inno Setup script for the standalone DeepPlant Editor (Issue #85).
 ;
 ; This produces the Windows user artifact: a normal installer with a wizard,
-; Start Menu entry and a working uninstaller. Inno Setup is a build-time tool
-; only - it is never redistributed inside the artifact.
+; Start Menu entry and a working uninstaller.
+;
+; The Inno Setup compiler (ISCC.exe) is a build-time tool and is not distributed
+; with DeepPlant. The setup executable this script produces does contain Inno
+; Setup installer/runtime components, so the applicable Inno Setup terms
+; (including retaining its copyright notices and web site addresses) apply to the
+; generated installer.
 ;
 ; The packaging driver passes AppVersion, SourceDir, OutputDir,
 ; OutputBaseFilename and LicenseFile as /D defines, so this script contains no

@@ -89,16 +89,67 @@ Intermediate state lives under the git-ignored `build/editor-package/`
 | Platform | Requirements |
 |---|---|
 | Both | Python 3.12, `uv`, PyInstaller (the `package` dependency group), Node.js 22 + `pnpm` for the SPA build |
-| Windows | Inno Setup 6 (`ISCC.exe` on `PATH`, the default install locations, or `ISCC`); `choco install innosetup -y` in CI |
-| Linux | `appimagetool` (official upstream release on `PATH` or `APPIMAGETOOL`) |
+| Windows | Inno Setup 6 (`ISCC.exe` on `PATH`, the default install locations, or `ISCC`). CI installs the pinned Chocolatey package version |
+| Linux | `appimagetool` (upstream release on `PATH` or `APPIMAGETOOL`). CI downloads the pinned, checksum-verified release |
 
 These are **build-time** requirements. End users need none of them, and the
 packaged-artifact smoke test proves that by running the artifact with a
 sanitized PATH (see below).
 
-`appimagetool` is MIT-licensed and Inno Setup is free to use; neither is
-redistributed inside the artifact. Provenance is recorded in
-[THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+## Packaging toolchain (pinned and integrity-checked)
+
+Two dependency systems meet here and deliberately stay separate:
+
+```text
+uv.lock                     -> the Python dependency graph (PyInstaller included)
+packaging/toolchain.toml    -> the pinned external native build tools
+```
+
+PyInstaller is a Python package, so it is resolved from the locked graph like any
+other build dependency. The other tools are **not** Python packages: they are
+native programs distributed by their own upstreams, so they cannot live in
+`uv.lock` and are deliberately not vendored into the repository. Their exact
+version, immutable upstream URL, and expected SHA-256 are recorded once in
+[`packaging/toolchain.toml`](../../../packaging/toolchain.toml), which
+`tools/packaging_toolchain.py` reads for CI
+(`python tools/packaging_toolchain.py show`).
+
+| Tool | Pinned input |
+|---|---|
+| PyInstaller | resolved through `uv.lock` (dependency group `package`) |
+| Inno Setup | Chocolatey package `innosetup`, version `6.7.1` |
+| `appimagetool` | release `1.9.1`, `https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage`, SHA-256 `ed4ce84f0d9caff66f50bcca6ff6f35aae54ce8135408b3fa33abfc3cb384eb0` |
+| AppImage runtime | release `20251108`, `https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64`, SHA-256 `2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d` |
+
+The AppImage runtime is pinned because `appimagetool` would otherwise download
+whatever its own upstream mutable `continuous` release serves at build time and
+embed that into the generated `.AppImage` — a mutable input to a user-facing
+artifact. CI passes the pinned runtime with `--runtime-file` instead.
+
+Both packaging jobs verify the toolchain **before executing it**:
+
+- Linux downloads the exact `appimagetool` and AppImage runtime named in the
+  contract, checks both digests with `sha256sum --check`, and only then makes
+  them executable. A mismatch fails the job, so the tool never runs and no
+  artifact is produced.
+- Windows installs the pinned Chocolatey package version with an explicit
+  `--version`, then confirms the installed version through Chocolatey **and** by
+  asking the resolved `ISCC.exe` for its own version (`ISCC --version`). That
+  exact compiler path is exported as `ISCC`, so the compiler that builds the
+  installer is the verified one. A missing or different version fails the job;
+  there is no fallback to another installed Inno Setup.
+
+Both jobs print the pinned release identity, the verified digest, and the tool's
+own reported version, so the CI log shows which toolchain produced the uploaded
+artifact. Version and checksum literals live only in `packaging/toolchain.toml`;
+`tests/test_packaging_toolchain.py` fails if a mutable locator (`continuous`,
+`latest`, `master`, `main`) or a missing SHA-256 is ever reintroduced.
+
+Licences and what actually enters the artifact are recorded in
+[THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md): the `appimagetool`
+and `ISCC` build executables are not distributed with DeepPlant, while the
+generated AppImage contains the AppImage runtime and the generated Windows
+installer contains Inno Setup installer/runtime components.
 
 ## Resource ownership
 
@@ -132,15 +183,19 @@ Two consequences are deliberate:
 check                    Python + frontend fast gates, wheel build, wheel resource
                          check, base-install independence check
 frontend-e2e             production SPA + real `deepplant ui` + real Chromium (source run)
-editor-package-windows   native windows-latest: build, package, packaged smoke, upload
-editor-package-linux     native ubuntu-latest: build, package, packaged smoke, upload
+editor-package-windows   native windows-latest: pinned Inno Setup, build, package,
+                         packaged smoke, upload
+editor-package-linux     native ubuntu-latest: pinned + checksum-verified
+                         appimagetool and AppImage runtime, build, package,
+                         packaged smoke, packaged browser E2E, upload
 ```
 
 Each packaging job builds on its native runner because a frozen application is
-OS- and architecture-specific. Both jobs upload the artifact plus a `.sha256`
-companion for reviewer download. Uploaded artifacts are development/CI
-artifacts: no GitHub Release, no tag, and no automatic version bumping is part
-of this workflow.
+OS- and architecture-specific, and each reads `packaging/toolchain.toml` and
+verifies its external tools **before** building (see above). Both jobs upload the
+artifact plus a `.sha256` companion for reviewer download. Uploaded artifacts are
+development/CI artifacts: no GitHub Release, no tag, and no automatic version
+bumping is part of this workflow.
 
 ## How the packaged-artifact smoke test works
 
@@ -182,8 +237,11 @@ cd apps/editor && pnpm install --frozen-lockfile && cd ../..
 python tools/package_editor.py all
 ```
 
-On Linux, put `appimagetool` on `PATH` first (or set `APPIMAGETOOL`). On
-Windows, install Inno Setup 6 (or set `ISCC`).
+On Linux, put `appimagetool` on `PATH` (or set `APPIMAGETOOL`); set
+`APPIMAGE_RUNTIME` to pin the AppImage runtime embedded into the artifact instead
+of letting `appimagetool` fetch its own default. On Windows, install Inno Setup 6
+(or set `ISCC`). `python tools/packaging_toolchain.py show` prints the versions
+and digests CI pins, and `... export` exposes them as environment variables.
 
 For ordinary frontend/backend iteration you never need to build an installer:
 `make frontend-build` plus `uv run deepplant ui <path>` still works, and now also

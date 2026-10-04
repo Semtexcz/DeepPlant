@@ -29,6 +29,10 @@ Layout (all under git-ignored paths):
 The selected architecture and the measured alternatives are recorded in
 ``docs/dev/research/standalone-editor-distribution.md``; the reasoning is
 summarized in ``docs/dev/workflow/packaging.md``.
+
+The external native toolchain is not a Python dependency, so it is not in
+``uv.lock``. ``appimagetool``, the AppImage runtime it embeds, and Inno Setup are
+pinned and integrity-checked by CI as declared in ``packaging/toolchain.toml``.
 """
 
 from __future__ import annotations
@@ -305,21 +309,32 @@ def _find_inno_setup() -> Path:
         if candidate.is_file():
             return candidate
     raise PackagingError(
-        "Inno Setup (ISCC.exe) was not found; install it on the build machine "
-        "(for example `choco install innosetup -y`) or set the ISCC environment "
+        "Inno Setup (ISCC.exe) was not found; CI installs the pinned version "
+        "recorded in packaging/toolchain.toml (see docs/dev/workflow/packaging.md). "
+        "For a local build, install Inno Setup 6 or set the ISCC environment "
         "variable. This is a build-time requirement only."
     )
 
 
 def _package_linux(build_dir: Path, frozen_app: Path, artifact: Path) -> None:
-    """Build a directly runnable AppImage (Issue #85's preferred Linux format)."""
+    """Build a directly runnable AppImage (Issue #85's preferred Linux format).
+
+    CI pins the AppImage type-2 runtime and passes it through ``APPIMAGE_RUNTIME``
+    with ``--runtime-file``, so the runtime embedded into the artifact is a
+    reviewed, checksum-verified input instead of whatever the upstream mutable
+    ``continuous`` release happens to serve at build time. Without the variable,
+    ``appimagetool`` selects the runtime itself, which is fine for a local build.
+    """
     log("phase: package - Linux AppImage")
     appdir = _assemble_appdir(build_dir, frozen_app)
     appimagetool = _find_appimagetool()
-    run(
-        [str(appimagetool), "--no-appstream", str(appdir), str(artifact)],
-        env={"ARCH": architecture_slug()},
-    )
+    command = [str(appimagetool), "--no-appstream"]
+    runtime = os.environ.get("APPIMAGE_RUNTIME")
+    if runtime:
+        log(f"AppImage runtime: {runtime}")
+        command += ["--runtime-file", runtime]
+    command += [str(appdir), str(artifact)]
+    run(command, env={"ARCH": architecture_slug()})
 
 
 def _assemble_appdir(build_dir: Path, frozen_app: Path) -> Path:
@@ -377,10 +392,11 @@ def _find_appimagetool() -> Path:
     if found:
         return Path(found)
     raise PackagingError(
-        "appimagetool was not found; download the official upstream release "
-        "(https://github.com/AppImage/appimagetool/releases) onto the build "
-        "machine, put it on PATH, or set the APPIMAGETOOL environment variable. "
-        "This is a build-time requirement only."
+        "appimagetool was not found; CI downloads the pinned, checksum-verified "
+        "release recorded in packaging/toolchain.toml (see "
+        "docs/dev/workflow/packaging.md). For a local build, put appimagetool on "
+        "PATH or set the APPIMAGETOOL environment variable. This is a build-time "
+        "requirement only."
     )
 
 
