@@ -65,9 +65,10 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   ([dev/frontend/](../frontend/index.md)), enforced by an ESLint flat-config gate
   as part of `make frontend-check` and `make check`, and applied to the existing
   frontend by the #81 refactor: a thin application composition root
-  (`apps/editor/src/App.vue`), a feature-owned Process/PFD workspace and canvas
-  boundary, explicit feature state ownership (`process-pfd/useProcessPfd.ts`),
-  UnoCSS over semantic tokens, and Vue component plus feature-integration tests.
+  (`apps/editor/src/App.vue`), a feature-owned Process/PFD page and canvas
+  boundary, explicit feature state ownership
+  (`process-pfd/composables/useProcessPfd.ts`), UnoCSS over semantic tokens, and
+  Vue component plus feature-integration tests.
 
 Not implemented: semantic editing and any semantic mutation command, presentation
 persistence, undo/redo, P&ID rendering and physical/P&ID symbols, full DEXPI and
@@ -183,9 +184,11 @@ not decided here, and no successor Issue is created (see **Next**).
 - **Issue #81 is delivered (frontend refactor, unocss, component and integration
   tests):** the #80 contract was applied to the existing editor frontend without
   changing product behaviour. `App.vue` is now a thin application composition
-  root; the Process/PFD feature owns its own workspace, canvas boundary, feature
-  state (`process-pfd/useProcessPfd.ts`), transport (`api.ts`) and runtime
-  contract narrowing (`projection-contract.ts`); Vue Flow stays behind the canvas
+  root; the Process/PFD feature separates page composition, components,
+  composables, transport and view models inside its own module, owning feature
+  state (`process-pfd/composables/useProcessPfd.ts`), transport
+  (`transport/api.ts`) and runtime contract narrowing
+  (`transport/projection-contract.ts`); Vue Flow stays behind the canvas
   and adapter boundaries and emits semantic ids only; UnoCSS over semantic
   `--dp-*` tokens replaced broad global feature CSS; and Vue component plus
   feature-integration tests were added alongside the DOM-free pure suites. See

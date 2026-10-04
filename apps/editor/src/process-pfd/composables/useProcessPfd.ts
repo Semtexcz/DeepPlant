@@ -1,14 +1,14 @@
 import { computed, ref, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 
-import { fetchProjection } from './api'
-import type { ProcessPfdProjectionDto, ValidationStatusDto } from './dto'
+import { fetchProjection } from '../transport/api'
+import type { ProcessPfdProjectionDto, ValidationStatusDto } from '../transport/dto'
 import {
   inspectorForSelection,
   selectProcessStep,
   selectProcessStream,
   type InspectorView,
   type SelectedEngineeringObject,
-} from './inspector-model'
+} from '../view-models/inspector'
 
 /**
  * Process/PFD feature state.

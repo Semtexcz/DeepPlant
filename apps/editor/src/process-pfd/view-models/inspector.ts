@@ -1,4 +1,4 @@
-import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from './dto'
+import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from '../transport/dto'
 
 /**
  * Selection-to-Inspector mapping.

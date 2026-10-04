@@ -3,13 +3,13 @@ import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { computed, markRaw } from 'vue'
 
 import ProcessNode from './ProcessNode.vue'
-import type { ProcessPfdProjectionDto } from './dto'
+import type { ProcessPfdProjectionDto } from '../transport/dto'
 import {
   DEEPLANT_STEP_NODE_TYPE,
   deepPlantIdOf,
   toProcessPfdView,
   type ProcessPfdView,
-} from './vue-flow-adapter'
+} from '../adapters/vue-flow'
 
 /**
  * Vue Flow canvas boundary for the Process/PFD feature.

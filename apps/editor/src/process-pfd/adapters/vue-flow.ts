@@ -1,6 +1,6 @@
 import type { Edge, Node } from '@vue-flow/core'
 
-import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from './dto'
+import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from '../transport/dto'
 
 /**
  * Frontend adapter between the DeepPlant projection DTOs and Vue Flow.

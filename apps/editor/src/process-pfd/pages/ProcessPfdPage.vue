@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
 
-import InspectorPanel from './InspectorPanel.vue'
-import ProcessPfdCanvas from './ProcessPfdCanvas.vue'
-import { useProcessPfd } from './useProcessPfd'
+import InspectorPanel from '../components/InspectorPanel.vue'
+import ProcessPfdCanvas from '../components/ProcessPfdCanvas.vue'
+import { useProcessPfd } from '../composables/useProcessPfd'
 
 /**
- * Process/PFD feature workspace.
+ * Process/PFD feature page.
  *
- * Owns the feature state (`useProcessPfd`) and composes the feature UI: the
- * canvas, the read-only Inspector, the canvas notices, and the semantic status
- * strip. It is the one place that binds feature state to feature UI; the
- * application shell above it only composes and the canvas below it only renders
- * the graph.
+ * Page composition for the top-level Process/PFD screen: it owns the feature
+ * state (`useProcessPfd`) and composes the feature UI: the canvas, the
+ * read-only Inspector, the canvas notices, and the semantic status strip. It is
+ * the one place that binds feature state to feature UI; the application shell
+ * above it only composes and the canvas below it only renders the graph.
  *
  * The canvas viewport action (*Fit view*) is exposed so the application toolbar
  * can offer it without importing the graph framework.

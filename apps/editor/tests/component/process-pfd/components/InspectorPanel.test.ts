@@ -2,13 +2,13 @@
 import { mount, type VueWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import InspectorPanel from '../../../src/process-pfd/InspectorPanel.vue'
+import InspectorPanel from '../../../../src/process-pfd/components/InspectorPanel.vue'
 import {
   inspectorForSelection,
   selectProcessStep,
   selectProcessStream,
-} from '../../../src/process-pfd/inspector-model'
-import { PROJECTION_FIXTURE } from '../../fixtures/process-pfd'
+} from '../../../../src/process-pfd/view-models/inspector'
+import { PROJECTION_FIXTURE } from '../../../fixtures/process-pfd'
 
 /** Read the rendered definition list as label/value pairs. */
 function fieldsOf(wrapper: VueWrapper): Array<[string, string]> {

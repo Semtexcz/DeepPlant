@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   parseProjectionEnvelope,
   ProjectionContractError,
-} from '../../../src/process-pfd/projection-contract'
-import { PROJECTION_FIXTURE, PUMP_STEP } from '../../fixtures/process-pfd'
+} from '../../../../src/process-pfd/transport/projection-contract'
+import { PROJECTION_FIXTURE, PUMP_STEP } from '../../../fixtures/process-pfd'
 
 function plain(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value)) as unknown

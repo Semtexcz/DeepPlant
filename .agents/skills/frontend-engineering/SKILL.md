@@ -51,10 +51,11 @@ them, so there is one canonical copy.
 - The Python semantic model stays authoritative. The browser reads the
   projection DTO, never parses YAML, and never recreates validation.
 - Vue Flow-specific code stays inside the explicit Process/PFD canvas
-  integration surface (`ProcessPfdCanvas.vue`, `ProcessNode.vue`, and
-  `vue-flow-adapter.ts`), the only place framework shapes and framework objects
-  appear: `Vue Flow Node != ProcessStep` and `Vue Flow Edge != ProcessStream`.
-- Vue Flow `Node`/`Edge` graph shapes belong only in `vue-flow-adapter.ts`, and
+  integration surface (`components/ProcessPfdCanvas.vue`,
+  `components/ProcessNode.vue`, and `adapters/vue-flow.ts`), the only place
+  framework shapes and framework objects appear: `Vue Flow Node != ProcessStep`
+  and `Vue Flow Edge != ProcessStream`.
+- Vue Flow `Node`/`Edge` graph shapes belong only in `adapters/vue-flow.ts`, and
   framework objects/types must not leak into feature state, transport, DTO,
   Inspector, or application composition layers.
 - Untrusted transport data is narrowed from `unknown` before it is trusted.

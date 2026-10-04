@@ -54,7 +54,7 @@ meaningful, for example:
 
 `src/App.vue` **is** the application composition root: it owns the application
 shell (chrome, active view, toolbar) and composes the Process/PFD feature
-workspace (`src/process-pfd/ProcessPfdWorkspace.vue`). It does not own
+page (`src/process-pfd/pages/ProcessPfdPage.vue`). It does not own
 projection state, selection, Inspector derivation, or Vue Flow interaction.
 Issue #81 performed that extraction; keep `App.vue` thin.
 
@@ -65,11 +65,11 @@ Prefer domain- or feature-named composables such as `useProcessPfd()` or
 `useProcessSelection()`, and only when the behavior is genuinely cohesive and
 reused or independently testable.
 
-`src/process-pfd/useProcessPfd.ts` is the current example and the model to
-follow: it owns one cohesive stateful application behaviour (the Process/PFD
-feature's projection lifecycle and selection), it is feature-named, and it is
-worth extracting because the workspace and the canvas boundaries need it to be
-separable.
+`src/process-pfd/composables/useProcessPfd.ts` is the current example and the
+model to follow: it owns one cohesive stateful application behaviour (the
+Process/PFD feature's projection lifecycle and selection), it is feature-named,
+and it is worth extracting because the page and the canvas boundaries need it
+to be separable.
 
 ## State ownership (implemented)
 
@@ -77,16 +77,16 @@ Each mutable state concept has exactly one owner:
 
 | State kind | Owner |
 |---|---|
-| remote/projection state (`projection`, `validation`, `loading`, `projectionError`) | `process-pfd/useProcessPfd.ts` |
-| selection state | `process-pfd/useProcessPfd.ts` |
-| derived Inspector + status | `computed` inside `process-pfd/useProcessPfd.ts` |
-| Vue Flow transient state (nodes/edges view, viewport, fit view) | `process-pfd/ProcessPfdCanvas.vue` |
+| remote/projection state (`projection`, `validation`, `loading`, `projectionError`) | `process-pfd/composables/useProcessPfd.ts` |
+| selection state | `process-pfd/composables/useProcessPfd.ts` |
+| derived Inspector + status | `computed` inside `process-pfd/composables/useProcessPfd.ts` |
+| Vue Flow transient state (nodes/edges view, viewport, fit view) | `process-pfd/components/ProcessPfdCanvas.vue` |
 | component-local presentation | the component that renders it |
 
 There is **no global store, no Pinia, and no synchronization watcher chain.**
 Everything derived is a `computed` of an owned source. The application shell does
 not duplicate feature state; it only delegates the toolbar's *Fit view* action to
-the feature workspace.
+the feature page.
 
 Own each mutable state concept exactly once, at the lowest sufficient level:
 

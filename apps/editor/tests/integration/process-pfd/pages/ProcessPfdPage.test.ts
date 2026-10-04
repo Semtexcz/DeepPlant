@@ -3,12 +3,12 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, type PropType } from 'vue'
 
-import ProcessPfdWorkspace from '../../../src/process-pfd/ProcessPfdWorkspace.vue'
-import type { ProcessPfdProjectionDto } from '../../../src/process-pfd/dto'
-import { PROJECTION_FIXTURE } from '../../fixtures/process-pfd'
+import ProcessPfdPage from '../../../../src/process-pfd/pages/ProcessPfdPage.vue'
+import type { ProcessPfdProjectionDto } from '../../../../src/process-pfd/transport/dto'
+import { PROJECTION_FIXTURE } from '../../../fixtures/process-pfd'
 
 /**
- * Feature integration test for the Process/PFD workspace.
+ * Feature integration test for the Process/PFD page.
  *
  * Only the two unavoidable boundaries are replaced:
  *
@@ -90,15 +90,15 @@ function stubBoundary(body: unknown, status = 200): void {
   )
 }
 
-async function mountWorkspace(): Promise<VueWrapper> {
-  const wrapper = mount(ProcessPfdWorkspace, {
+async function mountPage(): Promise<VueWrapper> {
+  const wrapper = mount(ProcessPfdPage, {
     global: { stubs: { ProcessPfdCanvas: CanvasStub } },
   })
   await flushPromises()
   return wrapper
 }
 
-describe('ProcessPfdWorkspace', () => {
+describe('ProcessPfdPage', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
   })
@@ -109,7 +109,7 @@ describe('ProcessPfdWorkspace', () => {
       vi.fn(() => new Promise<Response>(() => {})),
     )
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
 
     expect(wrapper.text()).toContain('Loading the process model…')
     expect(wrapper.get('footer').text()).toBe('Loading validation status…')
@@ -118,7 +118,7 @@ describe('ProcessPfdWorkspace', () => {
   it('renders the projection envelope as usable Process/PFD state with Valid semantics', async () => {
     stubBoundary(envelope(PROJECTION_FIXTURE))
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
 
     expect(wrapper.get('[data-test="canvas-stub"]').attributes('data-projection-steps')).toBe('2')
     expect(wrapper.get('footer').text()).toBe('Valid')
@@ -129,7 +129,7 @@ describe('ProcessPfdWorkspace', () => {
   it('drives the Inspector from a selected ProcessStep', async () => {
     stubBoundary(envelope(PROJECTION_FIXTURE))
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
     await wrapper.get('[data-test="select-step"]').trigger('click')
 
     const inspector = wrapper.get('aside[aria-label="Inspector"]')
@@ -141,7 +141,7 @@ describe('ProcessPfdWorkspace', () => {
   it('drives the Inspector from a selected ProcessStream', async () => {
     stubBoundary(envelope(PROJECTION_FIXTURE))
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
     await wrapper.get('[data-test="select-stream"]').trigger('click')
 
     const inspector = wrapper.get('aside[aria-label="Inspector"]')
@@ -153,7 +153,7 @@ describe('ProcessPfdWorkspace', () => {
   it('keeps a projection limitation separate from a valid semantic model', async () => {
     stubBoundary(envelope(null, { error: 'no process model to project' }), 422)
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
 
     // The model is still semantically valid; only the view cannot be produced.
     expect(wrapper.get('footer').text()).toBe('Valid')
@@ -163,7 +163,7 @@ describe('ProcessPfdWorkspace', () => {
   it('reports an invalid semantic model as invalid, without a projection error', async () => {
     stubBoundary(envelope(null, { valid: false, message: 'duplicate process step id' }))
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
 
     expect(wrapper.get('footer').text()).toBe('Invalid: duplicate process step id')
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
@@ -177,7 +177,7 @@ describe('ProcessPfdWorkspace', () => {
       }),
     )
 
-    const wrapper = await mountWorkspace()
+    const wrapper = await mountPage()
 
     expect(wrapper.get('[role="alert"]').text()).toContain('cannot reach the local DeepPlant')
   })

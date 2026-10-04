@@ -51,14 +51,14 @@ behavior of a single component.
 
 ### Feature integration
 
-For example the current workspace chain:
+For example the current page chain:
 
 ```text
-projection → workspace → selection → Inspector
+projection → page → selection → Inspector
 ```
 
 Prove the chain works with real modules, without a browser. The current
-`ProcessPfdWorkspace.test.ts` replaces only the two unavoidable boundaries — the
+`ProcessPfdPage.test.ts` replaces only the two unavoidable boundaries — the
 network (`fetch`) and a canvas integration double — while the transport, the
 contract narrowing, the feature state, selection, the Inspector and the
 validation/error behaviour stay real.
@@ -85,49 +85,58 @@ under that single canonical root (`include: ['tests/**/*.test.ts']` in
 `apps/editor/vite.config.ts`), and `vue-tsc` type checks it together with `src/`
 (one frontend tsconfig includes `tests/**/*.ts`).
 
-The directory structure makes the test pyramid visible, and every layer keeps its
-feature identity below the layer:
+The directory structure makes the test pyramid visible: the test **layer** comes
+first, then the feature, then the responsibility being verified — mirroring the
+production responsibility the suite covers:
 
 ```text
 apps/editor/
 ├── src/                         production application architecture
-│   └── process-pfd/
+│   └── process-pfd/             feature
+│       ├── pages/ components/ composables/
+│       └── transport/ view-models/ adapters/
 └── tests/                       verification architecture
     ├── unit/                    pure tests (Node environment, DOM-free)
     │   └── process-pfd/
+    │       ├── transport/
+    │       ├── view-models/
+    │       └── adapters/
     ├── component/               Vue component tests (happy-dom)
     │   └── process-pfd/
+    │       └── components/
     ├── integration/             feature-level integration tests (happy-dom)
     │   └── process-pfd/
+    │       └── pages/
     └── fixtures/                test-owned fixture data (never imported by src/)
 ```
 
-Do not flatten feature tests into generic buckets: feature ownership stays
-visible below each layer (`unit/process-pfd/`, `component/process-pfd/`,
-`integration/process-pfd/`).
+Do not flatten feature tests into generic buckets. Feature ownership stays
+visible below each layer, and the responsibility directory mirrors the
+production module the suite verifies (`unit/process-pfd/transport/`,
+`component/process-pfd/components/`, `integration/process-pfd/pages/`).
 
 ## Current state (implemented)
 
 Seven Vitest suites, all offline and independent of a running DeepPlant server.
 
-Pure unit — `tests/unit/process-pfd/` (**Node** environment, the default in
-`apps/editor/vite.config.ts`):
+Pure unit — `tests/unit/process-pfd/{transport,view-models,adapters}/`
+(**Node** environment, the default in `apps/editor/vite.config.ts`):
 
 | Suite | Covers |
 |---|---|
-| `api.test.ts` | projection transport, boundary failures, symbol asset URL |
-| `projection-contract.test.ts` | transport payload narrowing and contract errors |
-| `inspector-model.test.ts` | selection → Inspector mapping |
-| `vue-flow-adapter.test.ts` | DTO → Vue Flow adapter, identity separation, identity narrowing |
+| `transport/api.test.ts` | projection transport, boundary failures, symbol asset URL |
+| `transport/projection-contract.test.ts` | transport payload narrowing and contract errors |
+| `view-models/inspector.test.ts` | selection → Inspector mapping |
+| `adapters/vue-flow.test.ts` | DTO → Vue Flow adapter, identity separation, identity narrowing |
 
-Vue component — `tests/component/process-pfd/` — and feature integration —
-`tests/integration/process-pfd/` (**DOM** environment):
+Vue component — `tests/component/process-pfd/components/` — and feature
+integration — `tests/integration/process-pfd/pages/` (**DOM** environment):
 
 | Suite | Covers |
 |---|---|
-| `InspectorPanel.test.ts` | empty state, ProcessStep/ProcessStream semantic fields, Inspector landmark |
-| `ProcessNode.test.ts` | canonical symbol URL from `symbol_role`, semantic id/name, selected state, anchor-derived non-connectable handles |
-| `ProcessPfdWorkspace.test.ts` | loading, load success, step selection → Inspector, stream selection → Inspector, validation vs projection-error |
+| `components/InspectorPanel.test.ts` | empty state, ProcessStep/ProcessStream semantic fields, Inspector landmark |
+| `components/ProcessNode.test.ts` | canonical symbol URL from `symbol_role`, semantic id/name, selected state, anchor-derived non-connectable handles |
+| `pages/ProcessPfdPage.test.ts` | loading, load success, step selection → Inspector, stream selection → Inspector, validation vs projection-error |
 
 The shared fixtures live in `tests/fixtures/process-pfd.ts` and are imported only
 by test suites.

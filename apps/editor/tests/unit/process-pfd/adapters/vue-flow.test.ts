@@ -6,7 +6,7 @@ import {
   PUMP_DISCHARGE_STREAM,
   PUMP_STEP,
   SYMBOL_SIZE,
-} from '../../fixtures/process-pfd'
+} from '../../../fixtures/process-pfd'
 import {
   DEEPLANT_STEP_NODE_TYPE,
   deepPlantIdOf,
@@ -16,7 +16,7 @@ import {
   toProcessPfdView,
   toVueFlowEdge,
   toVueFlowNode,
-} from '../../../src/process-pfd/vue-flow-adapter'
+} from '../../../../src/process-pfd/adapters/vue-flow'
 
 /** Framework-only concepts that must never appear on a DeepPlant DTO. */
 const FRAMEWORK_ONLY_KEYS = [

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import ProcessPfdWorkspace from './process-pfd/ProcessPfdWorkspace.vue'
+import ProcessPfdPage from './process-pfd/pages/ProcessPfdPage.vue'
 
 /**
  * Application composition root.
@@ -9,16 +9,16 @@ import ProcessPfdWorkspace from './process-pfd/ProcessPfdWorkspace.vue'
  * The editor currently exposes exactly one engineering view, so this shell owns
  * only application-level concerns: the application chrome (identity and the
  * active view) and the toolbar. The Process/PFD feature - projection state,
- * canvas, Inspector, semantic status - is owned by its workspace.
+ * canvas, Inspector, semantic status - is owned by its page.
  *
  * Nothing here knows about the transport contract, the graph framework, or the
  * Inspector model. The toolbar's *Fit view* action is a canvas view action, so
- * it is delegated to the feature workspace rather than reached into.
+ * it is delegated to the feature page rather than reached into.
  */
-const workspace = ref<InstanceType<typeof ProcessPfdWorkspace> | null>(null)
+const page = ref<InstanceType<typeof ProcessPfdPage> | null>(null)
 
 function fitView(): void {
-  workspace.value?.fitView()
+  page.value?.fitView()
 }
 </script>
 
@@ -39,7 +39,7 @@ function fitView(): void {
       </button>
     </header>
 
-    <ProcessPfdWorkspace ref="workspace" />
+    <ProcessPfdPage ref="page" />
   </div>
 </template>
 

@@ -220,17 +220,20 @@ standalone, pinned Vite application with its own dependency graph, while
   with no projection; it does not recast the loaded semantic model as invalid.
 - **Frontend.** `apps/editor/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA with
   UnoCSS as the canonical utility layer. `App.vue` is a thin application
-  composition root; the Process/PFD feature is owned by
-  `process-pfd/` (`ProcessPfdWorkspace.vue`, `ProcessPfdCanvas.vue`,
-  `useProcessPfd.ts`, `InspectorPanel.vue`, `ProcessNode.vue`, `api.ts`,
-  `projection-contract.ts`, `dto.ts`, `inspector-model.ts`,
-  `vue-flow-adapter.ts`). Vue Flow-specific code is confined to the explicit
-  Process/PFD canvas integration surface (`ProcessPfdCanvas.vue`,
-  `ProcessNode.vue`, `vue-flow-adapter.ts`), and its `Node`/`Edge` graph shapes
-  appear only in `vue-flow-adapter.ts`: a framework node/edge click is translated
-  to a DeepPlant semantic id before the feature resolves it, so the Inspector only
-  ever consumes projection objects. Selection is transient UI state and nothing is
-  persisted.
+  composition root; the Process/PFD feature is owned by `process-pfd/` and
+  separates its responsibilities: page composition (`pages/ProcessPfdPage.vue`),
+  components (`components/ProcessPfdCanvas.vue`, `components/ProcessNode.vue`,
+  `components/InspectorPanel.vue`), composables
+  (`composables/useProcessPfd.ts`), transport (`transport/api.ts`,
+  `transport/projection-contract.ts`, `transport/dto.ts`), view models
+  (`view-models/inspector.ts`), and the framework adapter
+  (`adapters/vue-flow.ts`). Vue Flow-specific code is confined to the explicit
+  Process/PFD canvas integration surface (`components/ProcessPfdCanvas.vue`,
+  `components/ProcessNode.vue`, `adapters/vue-flow.ts`), and its `Node`/`Edge`
+  graph shapes appear only in `adapters/vue-flow.ts`: a framework node/edge click
+  is translated to a DeepPlant semantic id before the feature resolves it, so the
+  Inspector only ever consumes projection objects. Selection is transient UI
+  state and nothing is persisted.
   Frontend engineering rules — feature ownership, Vue/TypeScript conventions,
   state ownership, styling ownership, accessibility, testing layers, and
   size/cohesion guardrails — are canonical in [frontend/](../frontend/index.md)

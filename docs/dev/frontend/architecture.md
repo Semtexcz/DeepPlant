@@ -50,27 +50,50 @@ DeepPlant application / core
 ```
 
 A future tree may resemble `app/`, `features/`, `shared/`, but matching that
-tree is **not** the goal. Issue #81 applied feature ownership inside the existing
-`process-pfd/` module and deliberately did **not** create `app/`, `shared/`, or
-`features/`, because no current responsibility required those directories:
+tree is **not** the goal. Issue #81 applied the durable rule **feature first,
+responsibility second** inside the existing `process-pfd/` module, and
+deliberately did **not** create global technical buckets (`app/`, `shared/`,
+`features/`, `components/`, `composables/`, `services/`, `view-models/`), because
+no current code is shared across more than one feature:
 
 ```text
 apps/editor/src/
-├── App.vue                        application composition root
+├── App.vue                        application composition root (shell + toolbar)
 ├── main.ts                        SPA entry + style layers
 ├── styles.css                     global only: tokens, reset, root sizing, typography
-└── process-pfd/                   the Process/PFD feature module
-    ├── ProcessPfdWorkspace.vue    feature composition + feature state wiring
-    ├── ProcessPfdCanvas.vue       canvas integration: lifecycle, events, viewport
-    ├── InspectorPanel.vue         read-only Inspector
-    ├── ProcessNode.vue            canvas integration: custom-node symbol rendering
-    ├── useProcessPfd.ts           feature state: projection, selection, derived Inspector
-    ├── api.ts                     transport access
-    ├── projection-contract.ts     unknown -> runtime narrowing -> DTO
-    ├── dto.ts                     read-only projection DTO contract
-    ├── inspector-model.ts         selection -> Inspector view model
-    └── vue-flow-adapter.ts        canvas integration: the only Node/Edge graph shapes
+└── process-pfd/                   the Process/PFD feature
+    ├── pages/
+    │   └── ProcessPfdPage.vue     page composition: feature state + screen composition
+    ├── components/
+    │   ├── ProcessPfdCanvas.vue   canvas integration: lifecycle, events, viewport
+    │   ├── ProcessNode.vue        canvas integration: custom-node symbol rendering
+    │   └── InspectorPanel.vue     read-only Inspector
+    ├── composables/
+    │   └── useProcessPfd.ts       feature state: projection, selection, derived Inspector
+    ├── transport/
+    │   ├── api.ts                 transport access
+    │   ├── projection-contract.ts unknown -> runtime narrowing -> DTO
+    │   └── dto.ts                 read-only projection DTO contract
+    ├── view-models/
+    │   └── inspector.ts           selection -> Inspector view model
+    └── adapters/
+        └── vue-flow.ts            canvas integration: the only Node/Edge graph shapes
 ```
+
+The durable rule is:
+
+> Feature-specific code stays inside its feature. Inside a feature, separate
+> page composition, reusable/visual components, composables, transport
+> contracts, view models, and external-framework adapters when those
+> responsibilities are real. Do not create global technical buckets unless code
+> is genuinely shared across multiple features.
+
+Create a responsibility directory inside a feature only when that responsibility
+actually exists. The `process-pfd/` layout above is the current set of real
+responsibilities, **not** a mandate that every future feature must have all six
+directories. Do not over-nest further (`components/canvas/`,
+`transport/contracts/`): the selected granularity is feature → responsibility →
+file.
 
 `apps/editor/src/` contains production application code only. Automated frontend
 tests and their fixtures live under `apps/editor/tests/` (their structure is
@@ -123,11 +146,11 @@ replaceable Vue Flow adapter
 ```
 
 The current transport contract is **hand-written and explicit**
-(`process-pfd/dto.ts` for the shape plus runtime narrowing in
-`process-pfd/projection-contract.ts`, reached through the transport in
-`process-pfd/api.ts`). That is the documented current state. Generated OpenAPI
-clients are deliberately not introduced; if they ever are, that is a separate,
-evidence-backed decision.
+(`process-pfd/transport/dto.ts` for the shape plus runtime narrowing in
+`process-pfd/transport/projection-contract.ts`, reached through the transport in
+`process-pfd/transport/api.ts`). That is the documented current state. Generated
+OpenAPI clients are deliberately not introduced; if they ever are, that is a
+separate, evidence-backed decision.
 
 ## Process/PFD Vue Flow integration surface
 
@@ -141,30 +164,30 @@ three members, not two.
 Process/PFD feature (process-pfd/)
 │
 ├── framework-independent feature layer
-│   ├── ProcessPfdWorkspace.vue     feature composition + feature state wiring
-│   ├── useProcessPfd.ts            feature state (projection, selection, derived)
-│   ├── InspectorPanel.vue          read-only Inspector
-│   ├── dto.ts                      projection DTO contract
-│   ├── api.ts                      transport access
-│   ├── projection-contract.ts      unknown -> narrowed DTO
-│   └── inspector-model.ts          selection -> Inspector view model
+│   ├── pages/ProcessPfdPage.vue            page composition + feature state wiring
+│   ├── composables/useProcessPfd.ts        feature state (projection, selection, derived)
+│   ├── components/InspectorPanel.vue       read-only Inspector
+│   ├── transport/dto.ts                    projection DTO contract
+│   ├── transport/api.ts                    transport access
+│   ├── transport/projection-contract.ts    unknown -> narrowed DTO
+│   └── view-models/inspector.ts            selection -> Inspector view model
 │
 └── Vue Flow integration surface (the only place framework code appears)
-    ├── ProcessPfdCanvas.vue        canvas lifecycle, events, viewport / fit-view
-    ├── ProcessNode.vue             custom-node framework props, Handle, Position
-    └── vue-flow-adapter.ts         Node/Edge graph shapes + DTO -> framework mapping
+    ├── components/ProcessPfdCanvas.vue     canvas lifecycle, events, viewport / fit-view
+    ├── components/ProcessNode.vue          custom-node framework props, Handle, Position
+    └── adapters/vue-flow.ts                Node/Edge graph shapes + DTO -> framework mapping
 ```
 
 The invariants are:
 
-- Vue Flow `Node`/`Edge` **graph shapes** belong only to `vue-flow-adapter.ts`.
+- Vue Flow `Node`/`Edge` **graph shapes** belong only to `adapters/vue-flow.ts`.
 - Vue Flow **framework objects/types** must not cross upward out of the surface
-  into `App.vue`, `ProcessPfdWorkspace.vue`, `useProcessPfd.ts`,
-  `InspectorPanel.vue`, `inspector-model.ts`, `dto.ts`,
-  `projection-contract.ts`, or `api.ts`.
-- `ProcessNode.vue` may depend on Vue Flow but never becomes semantic or domain
-  state: it renders a projected symbol node and declares its non-connectable
-  handles, and it carries no engineering truth of its own.
+  into `App.vue`, `pages/ProcessPfdPage.vue`, `composables/useProcessPfd.ts`,
+  `components/InspectorPanel.vue`, `view-models/inspector.ts`,
+  `transport/dto.ts`, `transport/projection-contract.ts`, or `transport/api.ts`.
+- `components/ProcessNode.vue` may depend on Vue Flow but never becomes semantic
+  or domain state: it renders a projected symbol node and declares its
+  non-connectable handles, and it carries no engineering truth of its own.
 - Framework interaction leaves the surface as DeepPlant-owned meaning:
 
 ```text
@@ -174,7 +197,7 @@ framework click  ->  DeepPlant semantic id  ->  feature selection action
 Never:
 
 ```text
-Vue Flow Node/Edge  ->  workspace / feature state / Inspector
+Vue Flow Node/Edge  ->  page / feature state / Inspector
 ```
 
 ## Module boundaries (current)
@@ -182,30 +205,45 @@ Vue Flow Node/Edge  ->  workspace / feature state / Inspector
 | Module | Owns | Must not |
 |---|---|---|
 | `src/App.vue` | application composition: shell, application chrome, active view, toolbar wiring | own projection, selection, Inspector, or framework state |
-| `src/process-pfd/ProcessPfdWorkspace.vue` | feature composition: binds feature state to the canvas, notices, Inspector, and status strip | reach into Vue Flow or parse transport data |
-| `src/process-pfd/useProcessPfd.ts` | feature state: remote/projection state, selection state, loading lifecycle, derived Inspector and status | hold Vue Flow state or perform I/O directly |
-| `src/process-pfd/ProcessPfdCanvas.vue` | Process/PFD integration surface: Vue Flow canvas, node-type registration, view projection, framework events, viewport / fit-view | emit Vue Flow `Node`/`Edge` or framework objects upwards |
-| `src/process-pfd/ProcessNode.vue` | Process/PFD integration surface: Vue Flow custom-node presentation (`NodeProps`, `Handle`, `Position`, engineering symbol node rendering) | own engineering truth or hold semantic state |
-| `src/process-pfd/dto.ts` | the read-only projection DTO contract | contain a domain model or framework shapes |
-| `src/process-pfd/api.ts` | transport access to the local boundary (projection route, symbol asset URL) | interpret or validate payload shape |
-| `src/process-pfd/projection-contract.ts` | `unknown` -> runtime narrowing -> typed DTO | define a second semantic model |
-| `src/process-pfd/vue-flow-adapter.ts` | Process/PFD integration surface: the only Vue Flow `Node`/`Edge` graph shapes, framework ids, handle ids, DTO -> graph conversion, and DeepPlant identity carried in framework `data` | leak `Node`/`Edge` or framework objects outside the integration surface |
-| `src/process-pfd/inspector-model.ts` | selection → read-only Inspector view mapping | inspect framework objects or labels |
-| `src/process-pfd/InspectorPanel.vue` | rendering the read-only Inspector view model | own engineering truth or touch framework objects |
+| `src/process-pfd/pages/ProcessPfdPage.vue` | page/screen composition: binds feature state to the canvas, notices, Inspector, and status strip | reach into Vue Flow or parse transport data |
+| `src/process-pfd/composables/useProcessPfd.ts` | feature state: remote/projection state, selection state, loading lifecycle, derived Inspector and status | hold Vue Flow state or perform I/O directly |
+| `src/process-pfd/components/ProcessPfdCanvas.vue` | Process/PFD integration surface: Vue Flow canvas, node-type registration, view projection, framework events, viewport / fit-view | emit Vue Flow `Node`/`Edge` or framework objects upwards |
+| `src/process-pfd/components/ProcessNode.vue` | Process/PFD integration surface: Vue Flow custom-node presentation (`NodeProps`, `Handle`, `Position`, engineering symbol node rendering) | own engineering truth or hold semantic state |
+| `src/process-pfd/components/InspectorPanel.vue` | rendering the read-only Inspector view model | own engineering truth or touch framework objects |
+| `src/process-pfd/transport/dto.ts` | the read-only projection DTO contract | contain a domain model or framework shapes |
+| `src/process-pfd/transport/api.ts` | transport access to the local boundary (projection route, symbol asset URL) | interpret or validate payload shape |
+| `src/process-pfd/transport/projection-contract.ts` | `unknown` -> runtime narrowing -> typed DTO | define a second semantic model |
+| `src/process-pfd/view-models/inspector.ts` | selection → read-only Inspector view mapping | inspect framework objects or labels, or become engineering truth |
+| `src/process-pfd/adapters/vue-flow.ts` | Process/PFD integration surface: the only Vue Flow `Node`/`Edge` graph shapes, framework ids, handle ids, DTO -> graph conversion, and DeepPlant identity carried in framework `data` | leak `Node`/`Edge` or framework objects outside the integration surface |
 | `src/styles.css` | semantic tokens, minimal reset, root sizing, global typography | own feature/component selectors |
 
-The application path is one-way:
+The dependency direction inside the feature is one-way:
 
 ```text
 App.vue
     ↓
-ProcessPfdWorkspace.vue  (feature state + feature UI)
-    ├── Vue Flow integration surface
-    │   ├── ProcessPfdCanvas.vue  (canvas lifecycle, events, viewport)
-    │   ├── ProcessNode.vue       (custom-node presentation)
-    │   └── vue-flow-adapter.ts   (Node/Edge shapes, DTO mapping)
-    └── InspectorPanel.vue
+pages/ProcessPfdPage.vue
+    │
+    ├── composables/useProcessPfd.ts
+    │   ├── transport/api.ts
+    │   │   └── transport/projection-contract.ts
+    │   │       └── transport/dto.ts
+    │   │
+    │   └── view-models/inspector.ts
+    │       └── transport/dto.ts
+    │
+    ├── components/ProcessPfdCanvas.vue
+    │   ├── adapters/vue-flow.ts
+    │   │   └── transport/dto.ts
+    │   └── components/ProcessNode.vue
+    │
+    └── components/InspectorPanel.vue
+        └── view-models/inspector.ts
 ```
+
+This direction is a documented invariant, not a separate enforcement system: no
+custom tooling validates directory imports. The structure and the current
+TypeScript boundaries are enough for this slice.
 
 Framework interaction is translated before it leaves the integration surface: a
 Vue Flow node/edge click becomes a DeepPlant semantic id, and the feature state

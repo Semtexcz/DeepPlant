@@ -62,17 +62,20 @@ future slices must follow and does not itself change editor product behavior.
 
 - **Implemented:** `apps/editor/` is a Vue 3 + TypeScript + Vite SPA with Vue Flow
   confined to the explicit Process/PFD canvas integration surface
-  (`ProcessPfdCanvas.vue`, `ProcessNode.vue`, `vue-flow-adapter.ts`), whose
-  `Node`/`Edge` graph shapes stay in `vue-flow-adapter.ts`; the transport contract
-  is a hand-written, explicitly validated DTO boundary (`process-pfd/dto.ts`,
-  `process-pfd/projection-contract.ts`, `process-pfd/api.ts`); feature state lives
-  in `process-pfd/useProcessPfd.ts` and ordinary UI uses the canonical UnoCSS
-  utility layer over semantic tokens. Production code lives under
+  (`components/ProcessPfdCanvas.vue`, `components/ProcessNode.vue`,
+  `adapters/vue-flow.ts`), whose `Node`/`Edge` graph shapes stay in
+  `adapters/vue-flow.ts`; the Process/PFD feature separates page composition
+  (`pages/ProcessPfdPage.vue`), components, composables, transport, view models,
+  and framework adapters, and the transport contract is a hand-written,
+  explicitly validated DTO boundary (`process-pfd/transport/dto.ts`,
+  `transport/projection-contract.ts`, `transport/api.ts`); feature state lives in
+  `process-pfd/composables/useProcessPfd.ts` and ordinary UI uses the canonical
+  UnoCSS utility layer over semantic tokens. Production code lives under
   `apps/editor/src/` and automated tests under `apps/editor/tests/` (`unit/`,
-  `component/`, `integration/`, `fixtures/`, with feature ownership below each
-  layer); Vitest covers the pure modules, the Vue components, and the Process/PFD
-  feature integration; ESLint (this contract), `vue-tsc`, Vitest, and a production
-  build are enforced.
+  `component/`, `integration/`, `fixtures/`, with feature ownership and the
+  verified responsibility below each layer); Vitest covers the pure modules, the
+  Vue components, and the Process/PFD feature integration; ESLint (this
+  contract), `vue-tsc`, Vitest, and a production build are enforced.
 - **Canonical rule:** everything below is binding for new frontend work.
 - **Deferred:** browser end-to-end tests (Playwright), owned by #82.
 

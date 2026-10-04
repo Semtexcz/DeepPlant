@@ -2,9 +2,9 @@
 import { Handle, Position, type NodeProps } from '@vue-flow/core'
 import { computed } from 'vue'
 
-import { symbolUrl } from './api'
-import type { ProcessAnchorDto } from './dto'
-import { stepHandleId, type DeepPlantNodeData } from './vue-flow-adapter'
+import { symbolUrl } from '../transport/api'
+import type { ProcessAnchorDto } from '../transport/dto'
+import { stepHandleId, type DeepPlantNodeData } from '../adapters/vue-flow'
 
 /**
  * Custom Vue Flow node for one projected DeepPlant `ProcessStep`.

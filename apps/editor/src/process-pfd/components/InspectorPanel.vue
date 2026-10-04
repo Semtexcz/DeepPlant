@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { InspectorView } from './inspector-model'
+import type { InspectorView } from '../view-models/inspector'
 
 /**
  * Read-only Inspector.
