@@ -27,8 +27,12 @@ superseded_by: null
 > giving up the local browser-based SPA, the FastAPI/Uvicorn boundary, or the
 > independence of DeepPlant Core?
 
-- **Status:** evidence, current for Issue #85. The resulting practice is
-  canonical in [workflow/packaging.md](../workflow/packaging.md).
+- **Status:** evidence, current for the first #85 implementation slice — the
+  self-contained **distribution foundation** (PR #92). The resulting practice is
+  canonical in [workflow/packaging.md](../workflow/packaging.md). The native
+  desktop-host requirement established later by
+  [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) is out of scope
+  for this evidence and is owned by that child slice.
 - **Inspection scope and date:** repository `main` at
   `719067b9c881435d15398987d272b2338560ba88`; the current runtime
   (Python 3.12.13, FastAPI 0.142.2, Uvicorn 0.54.0, Typer 0.27.2, Pydantic
@@ -48,8 +52,14 @@ superseded_by: null
      this application was not verified within the audit window.
   4. **Briefcase** was rejected for this slice on documented upstream evidence
      plus DeepPlant's own dependency profile.
-  5. No desktop shell, and no second runtime, is justified today: the product
-     direction is already a locally launched browser SPA.
+  5. No desktop shell, and no second runtime, is required for this
+     distribution-foundation slice: the immediate goal was to prove self-contained
+     Windows/Linux packaging without changing the product UI host. Using the
+     user's own browser was a deliberate trade-off for that slice, not a
+     shortcoming. It is **not** a rejection of a native desktop host for the final
+     product: [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) later
+     established that additional desktop-product requirement over the same Vue
+     SPA (see section 10).
   6. The frontend must become an *application-owned resource*. Package-relative
      `importlib.resources` resolution — the mechanism the canonical symbol pack
      already uses — removes the checkout and working-directory coupling without
@@ -196,17 +206,24 @@ build machines.
   explicitly warns against reorganizing the package to satisfy the wording of
   the Issue.
 
-### Why the webview/Tauri/Electron candidates are not selected
+### Why webview/Tauri/Electron were not selected for this slice
 
 The product direction already describes the editor as a local-first,
-browser-based SPA launched locally. A dedicated native shell would add a second
-runtime (WebView2/WKWebView, Chromium, Node, or Rust), a second process model,
-another application framework, and — for Electron/Tauri — a redistributed
-browser engine with its own licence and size consequences, without adding a
-capability the user asked for. Adding one "merely to make the product look more
-desktop" is exactly what #85 forbids. Using the user's own browser also avoids
-redistributing a browser runtime at all, which is a deliberate architectural
-trade-off rather than a shortcoming.
+browser-based SPA launched locally. For this distribution-foundation slice, a
+dedicated native shell would have added a second runtime (WebView2/WKWebView,
+Chromium, Node, or Rust), a second process model, another application framework,
+and — for Electron/Tauri — a redistributed browser engine with its own licence
+and size consequences, without adding a capability the slice asked for: the goal
+was self-contained Windows/Linux packaging, not a new host. Adding one "merely to
+make the product look more desktop" was not justified at that point. Using the
+user's own browser also avoids redistributing a browser runtime at all, which was
+a deliberate trade-off for this slice rather than a shortcoming.
+
+This is a scope decision, not a permanent verdict on the product host. The native
+desktop host was established as a separate requirement later by
+[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93), which owns the
+desktop-host technology investigation and implementation over the same Vue SPA
+(see section 10).
 
 ## 5. Selected architecture
 
@@ -226,7 +243,7 @@ user's default browser  (auto-opened; --no-browser suppresses it)
 | Runtime shape | frozen Python application; one process; loopback server; user's own browser |
 | Resource ownership | SPA staged into the bundle as `deepplant/editor/dist`, resolved by `importlib.resources` |
 | Application entry point | `deepplant-editor` console script, frozen by `tools/editor_entry.py`; the developer `deepplant ui` command shares the same launch path |
-| Browser/native-shell choice | user's browser, no shell |
+| Browser/native-shell choice (this slice) | user's browser, no shell; the target desktop host is [#93](https://github.com/Semtexcz/DeepPlant/issues/93) |
 | Windows package format | Inno Setup installer (`…-windows-x86_64-setup.exe`) |
 | Linux package format | AppImage (`…-linux-x86_64.AppImage`) |
 | Build entry point | `python tools/package_editor.py <phase>` (cross-platform, explicit phases) |
@@ -310,3 +327,36 @@ dependency level* and verifiable:
 - No `deepplant-core` distribution, no repository split, and no new `core/`
   package hierarchy was introduced: the dependency *direction* was the point,
   and the existing distribution preserves it.
+
+## 10. Host boundary (established by Issue #93)
+
+This evidence selects the packaging stack for the **distribution foundation**; it
+does not decide the final end-user host. The first slice kept the existing
+browser-hosted runtime, which remains the behavior of the artifact PR #92
+produces:
+
+```text
+current distribution foundation
+packaged executable → local FastAPI/Uvicorn → external browser
+```
+
+[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) establishes the
+additional desktop-product requirement and owns the desktop-host technology
+investigation and implementation. The target completion of #85 is:
+
+```text
+launch DeepPlant Editor
+        ↓
+native desktop window
+        ↓
+embedded shared Vue SPA
+        ↓
+native Open workflow
+        ↓
+no required terminal, no required external browser
+```
+
+The invariant preserved across both slices is that DeepPlant has **one**
+engineering frontend implemented in web technologies. Desktop and future web
+deployment are hosts of the same Vue SPA, not separate frontend codebases. #93
+must not fork or reimplement the SPA; it changes the host, not the frontend.

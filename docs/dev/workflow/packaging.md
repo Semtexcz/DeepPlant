@@ -46,6 +46,23 @@ user artifact: Inno Setup installer (Windows)
 The SPA is a resource of the **standalone application**, not of the Python
 wheel, and the packaged application serves it from its own bundle.
 
+This document covers the **distribution foundation** — the first child slice of
+Issue #85 (PR #92). The packaged runtime still hosts the SPA in the user's
+external browser:
+
+```text
+current distribution foundation
+packaged executable → local FastAPI/Uvicorn → external browser
+
+target completion of #85 (native desktop host)
+packaged executable → native desktop host → embedded shared Vue SPA
+```
+
+The final standalone desktop host — a native application window embedding the
+same Vue SPA — is a separate child slice owned by
+[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93); the packaging
+mechanics below are unchanged by that boundary.
+
 One entry point drives all of it:
 
 ```bash

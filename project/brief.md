@@ -36,10 +36,12 @@ models, the `deepplant validate` command, the `basic` process symbol-pack
 contract, a headless read-only process renderer, a narrow DEXPI 2.0.0 Process
 adapter, and the runnable, read-only Process/PFD editor slice
 (the `src/deepplant/editor/` application boundary plus the `apps/editor/` SPA,
-launched with `deepplant ui <path>`). The editor now also ships as a standalone
-`deepplant-editor` application packaged for Windows and Linux (Issue #85), with
-the editor HTTP transport behind an optional `deepplant[editor]` extra so the
-semantic Core stays installable without it.
+launched with `deepplant ui <path>`). The editor now also ships as a
+self-contained `deepplant-editor` application for Windows and Linux (the
+distribution-foundation slice of Issue #85), with the editor HTTP transport
+behind an optional `deepplant[editor]` extra so the semantic Core stays
+installable without it. The standalone desktop-product UX is not delivered yet;
+it is tracked by Issue #93.
 
 Current implementation facts are owned by the contracts and the architecture
 boundary map, not by this brief:
@@ -65,12 +67,15 @@ delivered: a read-only Process/PFD editor over the existing Python semantic core
 launched with `deepplant ui <path>`. Semantic editing, presentation persistence,
 and P&ID authoring remain unimplemented. The post-#82 roadmap re-evaluation gate
 selected independent DeepPlant Core and standalone editor distribution (Issue #85)
-as the sole next product capability; that slice is now delivered — the editor
-ships as a self-contained Windows installer and a Linux AppImage, the bundled SPA
-is an application-owned resource rather than a checkout dependency, and the Core
-stays independently usable without the editor transport. No successor capability
-is selected: the roadmap is at a re-evaluation gate before any further editor
-functionality is layered on.
+as the sole next product capability, and #85 is currently in progress. PR #92
+establishes the self-contained distribution foundation: the editor ships as a
+Windows installer and a Linux AppImage, the bundled SPA is an application-owned
+resource rather than a checkout dependency, and the Core stays independently
+usable without the editor transport. Issue #93 is the remaining desktop-host
+slice — a native application window embedding the same Vue SPA — and #85 is not
+complete until that is delivered. No successor capability is selected;
+[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) remains the
+authority for current operational priority.
 
 ### Deferred / out-of-scope capabilities
 

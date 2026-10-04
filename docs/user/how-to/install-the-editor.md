@@ -113,6 +113,14 @@ The editor serves itself only on `127.0.0.1` (your own machine). It is not
 reachable from the network, and there is no login because there is no remote
 surface to protect.
 
+> **Status — distribution foundation.** This is the current
+> *distribution-foundation* behavior: the packaged application starts the local
+> editor and opens it in your system browser. It is **not** the final standalone
+> desktop experience. A native desktop window that embeds the same Vue frontend —
+> requiring no terminal and no external browser for the normal workflow — is not
+> implemented yet and is tracked by
+> [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93).
+
 Useful options:
 
 | Option | Meaning |
@@ -130,6 +138,10 @@ printed again so you can open it yourself.
   save process steps, streams, or properties.
 - **No project format.** It opens a single `plant.yaml`. There is no
   `.deepplant` project directory or manifest.
+- **No native desktop window.** Today the packaged application opens your system
+  browser. A native desktop host embedding the same frontend — no terminal or
+  external browser required — is tracked by
+  [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93).
 - **No P&ID view.** Only the read-only Process/PFD projection exists.
 - **No automatic updates.** Download a newer artifact to upgrade.
 - **No macOS build.** Windows and Linux are the supported platforms.

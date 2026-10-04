@@ -271,6 +271,26 @@ source-checkout build. The base Python wheel deliberately never contains it. See
 [workflow/packaging.md](../workflow/packaging.md) and
 [research/standalone-editor-distribution.md](../research/standalone-editor-distribution.md).
 
+**Current host vs target host.** The delivered distribution foundation still runs
+the SPA in the user's external browser: the packaged executable starts the local
+FastAPI/Uvicorn server and opens the system browser. That is the
+distribution-foundation UX, not the final standalone desktop UX.
+[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) adds the native
+desktop host over the unchanged `EditorApplication`/transport/frontend boundary:
+
+```text
+current distribution foundation
+packaged executable → local FastAPI/Uvicorn → external browser
+
+target completion of #85 (native desktop host, #93)
+packaged executable → native desktop host → embedded shared Vue SPA
+```
+
+DeepPlant has **one** engineering frontend implemented in web technologies: the
+desktop host and any future web deployment are hosts of the same `apps/editor/`
+Vue SPA, not separate frontend codebases. The host boundary is owned by #93 and is
+not implemented here.
+
 ## Not implemented (directional only)
 
 Recorded here for orientation; none of it is authorized by appearing here (see
