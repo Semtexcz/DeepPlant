@@ -10,12 +10,6 @@ reads:
   - AGENTS.md
   - docs/dev/frontend/index.md
   - docs/dev/frontend/architecture.md
-  - docs/dev/frontend/vue.md
-  - docs/dev/frontend/typescript.md
-  - docs/dev/frontend/styling.md
-  - docs/dev/frontend/testing.md
-  - docs/dev/frontend/accessibility.md
-  - docs/dev/architecture/index.md
   - docs/dev/workflow/quality.md
 commands:
   - make frontend-lint
@@ -34,7 +28,7 @@ stop_conditions:
   - change would leak Vue Flow types outside the adapter boundary
   - change requires a new dependency without justification
   - change crosses a hard size limit without a centralized config change
-  - change belongs to the #81 refactor or the #82 browser E2E slice
+  - change exceeds the currently authorized Issue or roadmap scope
 ---
 
 # Frontend Engineering
@@ -76,6 +70,6 @@ make frontend-build
 
 ## Scope
 
-Do not use this skill to perform the #81 feature refactor, component/integration
-tests, the UnoCSS integration and CSS migration, or #82 browser E2E. Those are
-separate slices that must follow this contract.
+Apply this contract to all Engineering Editor frontend work. The active Issue and
+roadmap define what may be implemented. Do not absorb work from sibling, future,
+or unselected Issues without explicit authorization.

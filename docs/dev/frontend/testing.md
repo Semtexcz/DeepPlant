@@ -92,5 +92,9 @@ There is no component, integration, or browser layer yet. That is expected; it i
 - Frontend tests run through `make frontend-test` and are part of
   `make frontend-check` and `make check`.
 - A DTO/contract mismatch must have negative coverage (it fails clearly).
-- Tests must run offline, with no network access and no dependency on a running
-  DeepPlant boundary.
+- Pure unit, Vue component, and feature-integration tests run without external
+  network access and do not depend on a running DeepPlant server.
+- Browser E2E tests may start and use the real local loopback DeepPlant application
+  boundary, but must not depend on external network services and should remain
+  deterministic and self-contained. Local loopback application traffic is not an
+  external network dependency.
