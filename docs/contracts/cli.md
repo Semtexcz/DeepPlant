@@ -66,9 +66,11 @@ The command validates structural and reference rules only. Engineering rules
 
 ### `deepplant ui <path>`
 
-Launches the local, read-only Engineering Editor (Issue #75). It loads the
+Launches the local, read-only Engineering Editor (Issues #75, #79). It loads the
 project through the same DeepPlant loader as `validate`, so the browser never
-parses YAML and the semantic model stays authoritative.
+parses YAML and the semantic model stays authoritative. The local HTTP boundary
+is a thin FastAPI adapter served by Uvicorn (Issue #79); the served surface is
+unchanged.
 
 ```text
 DeepPlant Engineering Editor (read-only Process/PFD)
@@ -83,7 +85,7 @@ Options:
 |---|---|
 | `--symbol-role STEP=ROLE` | Repeatable transient presentation override for one `ProcessStep` id. Presentation only: it is never written to the model or YAML. The realistic fragment needs `--symbol-role PS-vessel=vessel` because `PS-vessel.function` is honestly `unspecified` (ADR-0009). |
 | `--port <n>` | Local port; `0` picks a free port. Defaults to `8765`. |
-| `--assets-dir <dir>` | Directory containing the built editor assets. Defaults to `./frontend/dist`. |
+| `--assets-dir <dir>` | Directory containing the built editor assets. Defaults to `./apps/editor/dist`. |
 
 Behavior:
 
@@ -92,9 +94,9 @@ Behavior:
   authentication and no production or server-security claim.
 - It serves exactly three read routes: the Process/PFD projection JSON
   (`/api/projection`), the canonical packaged symbol assets
-  (`/api/symbols/<role>.svg`), and the built frontend assets.
-- The built frontend must exist first: `make frontend-build` (or
-  `cd frontend && pnpm build`). If it is missing, the command exits 1 with a
+  (`/api/symbols/<role>.svg`), and the built editor assets.
+- The built editor application must exist first: `make frontend-build` (or
+  `cd apps/editor && pnpm build`). If it is missing, the command exits 1 with a
   concise message and no traceback.
 - Project path, YAML, and model errors reuse the `PlantLoadError` text from
   [yaml-format.md](yaml-format.md) and exit 1.

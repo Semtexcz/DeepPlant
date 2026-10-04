@@ -88,8 +88,11 @@ reuse-first frontend architecture by Issue #70
 ([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)).
 The first executable slice (**Issue #75**) is delivered: a local, read-only
 Process/PFD editor over the existing Python semantic core, using exactly that
-stack. No semantic editing, presentation persistence, or P&ID authoring is
-implemented, and the next slice is decided at the
+stack. Its foundation is being hardened by the explicitly sequenced slices
+[#79](roadmap.md) (application layout + FastAPI boundary) → #80 (frontend
+engineering contract) → #81 (frontend refactor) → #82 (browser E2E). No semantic
+editing, presentation persistence, or P&ID authoring is implemented, and the next
+product capability is selected only after that sequence, at the
 [re-evaluation gate](roadmap.md#re-evaluation-gate). Detailed view-projection rules
 remain deliberately undecided here.
 

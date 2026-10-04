@@ -12,11 +12,11 @@ PROD_FRONTEND_PORT ?= 3000
 BACKEND_IMAGE ?= $(PROJECT_SLUG)-backend:production
 FRONTEND_IMAGE ?= $(PROJECT_SLUG)-frontend:production
 COMPOSE ?= docker compose
-# The editor frontend pins its package manager in frontend/package.json
+# The editor application pins its package manager in apps/editor/package.json
 # (`packageManager`). `pnpm` is used directly; `corepack enable` makes the pinned
 # version available when only Corepack is installed.
 PNPM ?= pnpm
-FRONTEND_DIR ?= frontend
+FRONTEND_DIR ?= apps/editor
 FRONTEND_PNPM = cd $(FRONTEND_DIR) && $(PNPM)
 PNPM_INSTALL_FLAGS ?=
 OPENAPI_SCHEMA ?= artifacts/openapi.json

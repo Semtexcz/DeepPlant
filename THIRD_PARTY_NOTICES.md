@@ -32,10 +32,10 @@ states the variants and distribution terms.
 
 ## Engineering Editor frontend dependencies (Issue #75)
 
-The local editor SPA under [`frontend/`](frontend/) is built with the following
-direct dependencies. They are build/dev-time dependencies of the SPA; the Python
-wheel does not bundle or redistribute any JavaScript, and the built
-`frontend/dist` output is not committed.
+The local editor SPA under [`apps/editor/`](apps/editor/) is built with the
+following direct dependencies. They are build/dev-time dependencies of the SPA;
+the Python wheel does not bundle or redistribute any JavaScript, and the built
+`apps/editor/dist` output is not committed.
 
 | Dependency | Declared range | Licence | Why it is needed now |
 |---|---|---|---|
@@ -46,7 +46,7 @@ wheel does not bundle or redistribute any JavaScript, and the built
 | `vue-tsc` | `^3.3.12` | MIT | Type checking of `.vue` single-file components. |
 | `vitest` | `^5.0.3` | MIT | Frontend unit tests for the adapter and the selection → Inspector mapping. |
 | `@vitejs/plugin-vue` | `^6.0.9` | MIT | Vue SFC support for Vite. |
-| `pnpm` | pinned `10.20.0` in `frontend/package.json` | MIT | Package manager; a build-time tool, not distributed or linked. |
+| `pnpm` | pinned `10.20.0` in `apps/editor/package.json` | MIT | Package manager; a build-time tool, not distributed or linked. |
 
 Deliberately **not** added: Reka UI, Dockview, Monaco, ELK/elkjs, Pinia,
 shadcn-vue, Tailwind, jsdom, a browser E2E framework, or any third-party

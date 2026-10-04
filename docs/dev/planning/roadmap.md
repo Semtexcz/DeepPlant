@@ -55,10 +55,12 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
 - the first runnable, read-only Process/PFD editor slice
   ([architecture.md](../architecture/index.md#engineering-editor-slice-implemented)):
   a DeepPlant-owned Process/PFD projection (`src/deepplant/editor/projection.py`),
-  a small loopback-only local boundary (`src/deepplant/editor/app.py`), the
-  `deepplant ui <path>` launcher, and a Vue 3 + TypeScript + Vite + Vue Flow SPA
-  under `frontend/` that serves pan, zoom, fit view, single selection, a
-  read-only semantic Inspector, and the current validation status.
+  a framework-independent editor application
+  (`src/deepplant/editor/application.py`) with a thin, loopback-only FastAPI/Uvicorn
+  boundary (`src/deepplant/editor/api.py`), the `deepplant ui <path>` launcher,
+  and a Vue 3 + TypeScript + Vite + Vue Flow SPA under `apps/editor/` that serves
+  pan, zoom, fit view, single selection, a read-only semantic Inspector, and the
+  current validation status.
 
 Not implemented: semantic editing and any semantic mutation command, presentation
 persistence, undo/redo, P&ID rendering and physical/P&ID symbols, full DEXPI and
@@ -77,39 +79,47 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- [#75 — Engineering Editor: first interactive Process/PFD vertical slice](https://github.com/Semtexcz/DeepPlant/issues/75)
-  is **delivered**.
+- [#80 — Engineering Editor: frontend engineering contract and quality gates](https://github.com/Semtexcz/DeepPlant/issues/80)
+  is the next authorized executable slice.
 
-  What shipped is exactly the smallest runnable browser-based Process/PFD viewer
-  over the existing DeepPlant Python semantic core and the realistic process
-  fragment:
+  #75 delivered the first runnable read-only Process/PFD slice and #79 hardened
+  its foundation (the editor application layout and the FastAPI/Uvicorn boundary),
+  producing no new product capability and no evidence that changes the sequence.
+  The smallest next evidence-producing slice is therefore the frontend
+  engineering contract and quality gates, which the later refactor (#81) and
+  browser E2E (#82) depend on:
 
   ```text
-  ProcessModel
-      ↓
-  DeepPlant-owned Process/PFD projection
-      ↓
-  replaceable frontend adapter
-      ↓
-  Vue Flow interactive canvas
+  #75 read-only Process/PFD slice delivered
+          ↓
+  #79 application layout + FastAPI boundary hardening   (delivered)
+          ↓
+  #80 frontend engineering contract + quality gates      (selected)
+          ↓
+  #81 frontend refactor + component/integration tests
+          ↓
+  #82 browser end-to-end tests
+          ↓
+  re-evaluate the next product capability
   ```
 
-  It is read-only: pan / zoom / fit / single selection / semantic Inspector /
-  current validation status. It delivered no P&ID rendering, semantic editing,
-  presentation persistence, undo/redo, process ↔ physical realization
-  implementation, or broader frontend infrastructure. See
-  [history/implementation-slices.md](../history/implementation-slices.md).
+  No semantic-editing, presentation-persistence, P&ID, or process ↔ physical
+  realization slice is selected or promoted.
 
-- No other slice is currently selected. The next action is the re-evaluation
-  recorded under **Next**.
+- No other slice is currently selected. #81 and #82 are dependency-ordered
+  follow-ups, not parallel `Now` work (see **Next**).
 
 ### Next
 
-- Re-evaluate from the implementation evidence delivered by #75.
+- [#81 — Engineering Editor: frontend refactor and component/integration tests](https://github.com/Semtexcz/DeepPlant/issues/81),
+  after #80 delivers the frontend engineering contract and quality gates.
+- [#82 — Engineering Editor: browser end-to-end tests](https://github.com/Semtexcz/DeepPlant/issues/82),
+  after #81.
+- Re-evaluate the next product capability only after #80–#82, from the evidence
+  those slices produce.
 
   Do not mechanically promote semantic editing, presentation persistence, P&ID,
-  or another backlog item. Use the delivered slice to decide the next smallest
-  slice, especially:
+  or another backlog item. Re-evaluation criteria include:
 
   - whether the projection/view boundary is strong enough to authorize the first
     semantic-editing slice;
@@ -117,11 +127,11 @@ evidence-heavy slices, in the linked spike/decision documents.
     machinery Issue #69 describes, and where undo/redo belongs;
   - whether presentation state (positions, per-step overrides) now needs its own
     explicit, non-semantic home;
-  - what the editor's packaging/deployment story must be, given that the SPA
-    assets are currently read from the checkout.
+  - what the editor's packaging story must be, given the SPA assets are still
+    read from the checkout.
 
-  The re-evaluation outcome is not decided by this PR, and no successor Issue is
-  created here.
+  The re-evaluation outcome is deliberately not decided here, and no successor
+  Issue is created.
 
 ### Re-evaluation Gate
 
@@ -155,19 +165,42 @@ rules, and semantic diff remain unpromoted. No successor is preselected; selecti
 from the current repository state and the delivered evidence, not from a backlog
 row.
 
-A new re-evaluation is now required from the #75 implementation evidence; its
-outcome is deliberately not decided here (see **Next**).
+The re-evaluation from the #75 implementation evidence identified that the
+delivered read-only slice needed foundation hardening before more product
+functionality was layered on it. Its outcome selected
+[#79 — Bug: Engineering Editor architecture is inconsistent with the existing
+DeepPlant application structure](https://github.com/Semtexcz/DeepPlant/issues/79)
+as the next executable slice, followed by the dependency-ordered
+frontend-engineering work #80 → #81 → #82.
+
+The next re-evaluation gate opens only after #82. Its outcome is deliberately
+not decided here, and no successor Issue is created (see **Next**).
 
 ### Completed Context
 
+- **Issue #79 is delivered (foundation hardening):** the Engineering Editor
+  architecture now matches the repository structure. The browser editor is an
+  explicit standalone application under `apps/editor/` instead of an
+  unclassified root-level `frontend/` tree, and the custom `http.server` editor
+  adapter was replaced by a thin FastAPI application factory
+  (`create_editor_api`) served by Uvicorn on loopback only. Engineering behaviour
+  stayed in `EditorApplication` and below it — now factored into the
+  framework-independent `src/deepplant/editor/application.py` with the transport
+  in `src/deepplant/editor/api.py` — so the semantic core and the CLI
+  remain usable without the GUI, and no editor capability was added. See
+  [history/implementation-slices.md](../history/implementation-slices.md) and
+  [architecture.md](../architecture/index.md#engineering-editor-slice-implemented).
 - **Issue #75 is delivered:** the first runnable, read-only Process/PFD editor
   slice shipped — a DeepPlant-owned Process/PFD projection
-  (`src/deepplant/editor/projection.py`), a small loopback-only local
-  application boundary (`src/deepplant/editor/app.py`), the
-  `deepplant ui <path>` launcher, and a Vue 3 + TypeScript + Vite + Vue Flow SPA
-  under `frontend/`. It is read-only (pan/zoom/fit/selection/Inspector/validation
-  status) and delivered no semantic editing, presentation persistence, undo/redo,
-  P&ID rendering, or process ↔ physical realization. See
+  (`src/deepplant/editor/projection.py`), a loopback-only local application
+  boundary (`src/deepplant/editor/app.py`, later split into the
+  framework-independent `src/deepplant/editor/application.py` and the
+  FastAPI/Uvicorn `src/deepplant/editor/api.py` in Issue #79), the
+  `deepplant ui <path>` launcher, and a Vue 3 +
+  TypeScript + Vite + Vue Flow SPA under `apps/editor/`. It is read-only
+  (pan/zoom/fit/selection/Inspector/validation status) and delivered no semantic
+  editing, presentation persistence, undo/redo, P&ID rendering, or process ↔
+  physical realization. See
   [history/implementation-slices.md](../history/implementation-slices.md).
 - **Issue #68 is delivered:** the Engineering Editor MVP v0.1 is bounded in
   [product.md](product.md), including the PFD/P&ID subsets, semantic
@@ -218,12 +251,14 @@ outcome is deliberately not decided here (see **Next**).
   service, containers, or production server infrastructure before a concrete
   requirement justifies them.
 - A minimal local application/transport/API boundary is introduced only when the
-  selected standalone SPA vertical slice authorizes it. #75 introduced exactly
-  one: Python standard library `http.server`, loopback-only, read-only and
-  replaceable, with **no new Python runtime dependency**. It is not a hosted,
-  authenticated, or production service surface.
-- No empty architecture trees, frontend directories, or GUI dependencies before
-  a current executable slice requires them.
+  selected standalone SPA vertical slice authorizes it. #75 introduced exactly one
+  and #79 corrected it: an explicit FastAPI application factory run by Uvicorn,
+  loopback-only, read-only, and single-user. It is not a hosted, authenticated,
+  production, containerized, or database-backed service surface, and it adds no
+  WebSockets, authentication, background jobs, or persistence infrastructure.
+- No empty architecture trees, application directories, or GUI dependencies
+  before a current executable slice requires them. The only application tree is
+  `apps/editor/`, which Issue #79 created by relocating the delivered SPA.
 - No full instrumentation, simulation, 3D, complete DEXPI, HAZOP/SIS, or all
   EPC disciplines in the Engineering Editor MVP v0.1.
 - Semantic state remains distinct from presentation/layout state and
@@ -252,9 +287,13 @@ governs what may be built now.
 Concrete examples:
 
 - the simulation stage does not justify simulator interfaces now
-- GUI implementation, frontend structure, and dependencies are authorized only
-  within the explicit scope of Issue #75, the currently selected executable
-  slice; Issue #75 does not authorize broader Engineering Editor infrastructure
+- GUI implementation, editor application structure, and GUI dependencies are
+  authorized only within the explicitly selected Engineering Editor slices. The
+  current hardening sequence is #79 (delivered: application layout + FastAPI
+  boundary) → #80 (frontend engineering contract + quality gates) → #81
+  (frontend refactor + component/integration tests) → #82 (browser E2E); that
+  sequence does not authorize semantic editing, presentation persistence, a
+  GUI redesign, P&ID, or broader Engineering Editor infrastructure
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
 - the physical-piping realization question and the separate process ↔ physical

@@ -81,9 +81,9 @@ change_patterns:
     - docs/dev/architecture/index.md
     - docs/dev/workflow/quality.md
     - backend/tests/
-  "frontend/**/*":
+  "apps/editor/**/*":
     - docs/dev/workflow/quality.md
-    - frontend/src/
+    - apps/editor/src/
   "artifacts/openapi.json":
     - backend/src/app/main.py
     - frontend/shared/api/
@@ -135,7 +135,7 @@ checks:
     - make test
   "backend/**/*.py":
     - make test
-  "frontend/**/*":
+  "apps/editor/**/*":
     - make frontend-check
   "artifacts/openapi.json":
     - make api-check

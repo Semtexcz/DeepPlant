@@ -10,12 +10,8 @@ from typing import Annotated
 import typer
 
 from deepplant import __version__
-from deepplant.editor.app import (
-    DEFAULT_PORT,
-    EditorSetupError,
-    load_editor_application,
-    serve_editor,
-)
+from deepplant.editor.api import DEFAULT_PORT, serve_editor
+from deepplant.editor.application import EditorSetupError, load_editor_application
 from deepplant.io import PlantLoadError, load_plant
 
 app = typer.Typer(
@@ -74,7 +70,7 @@ def ui(
         Path | None,
         typer.Option(
             "--assets-dir",
-            help="Directory with built editor assets. Defaults to ./frontend/dist.",
+            help="Directory with built editor assets. Defaults to ./apps/editor/dist.",
         ),
     ] = None,
 ) -> None:
