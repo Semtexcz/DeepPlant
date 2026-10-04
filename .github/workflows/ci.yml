@@ -148,7 +148,7 @@ jobs:
         run: |
           choco install innosetup --version $env:INNO_SETUP_VERSION --no-progress -y
 
-      - name: Verify the pinned Inno Setup compiler
+      - name: Verify the pinned Inno Setup installation
         shell: pwsh
         run: |
           $expected = $env:INNO_SETUP_VERSION
@@ -181,45 +181,38 @@ jobs:
             throw "Inno Setup $expected was requested, but ISCC.exe was not found on this runner."
           }
 
-          # 3. The installed program version, from independent sources: the
-          #    compiler's own VERSIONINFO resource (Inno Setup 6.7.1 has no
-          #    `--version` option) and the Inno Setup 6 uninstall entry.
-          $info = (Get-Item $iscc).VersionInfo
-          $versionStrings = @($info.FileVersion, $info.ProductVersion)
-          $uninstallKeys = @(
-            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1',
-            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1',
-            'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Inno Setup 6_is1'
-          )
-          foreach ($key in $uninstallKeys) {
-            if (Test-Path $key) {
-              $versionStrings += (Get-ItemProperty $key -ErrorAction SilentlyContinue).DisplayVersion
-            }
-          }
-          $detected = $null
-          foreach ($value in $versionStrings) {
-            if (-not "$value") { continue }
-            $match = [regex]::Match("$value", '\d+(\.\d+)+')
-            if ($match.Success) { $detected = $match.Value; break }
-          }
-          Write-Host "Inno Setup compiler:             $iscc"
-          Write-Host "ISCC VERSIONINFO FileVersion:    $($info.FileVersion)"
-          Write-Host "ISCC VERSIONINFO ProductVersion: $($info.ProductVersion)"
-          Write-Host "Detected installed version:      $detected"
-
-          if (-not $detected) {
-            throw "Could not determine the Inno Setup version of '$iscc'; refusing to guess."
-          }
-          if (-not $detected.StartsWith($expected)) {
-            throw "Inno Setup version mismatch: expected $expected, detected '$detected' at '$iscc'."
-          }
-          Write-Host "Inno Setup $detected verified; the packaging driver will use exactly this compiler."
+          # 3. ISCC.exe cannot report its own version: its VERSIONINFO resource is
+          #    deliberately 0.0.0.0 and Inno Setup 6.7.1 has no `--version`
+          #    option. The version that actually built the artifact is asserted
+          #    from ISCC's own compiler-engine banner immediately after the build,
+          #    before anything is uploaded.
+          Write-Host "Inno Setup compiler: $iscc"
           "ISCC=$iscc" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - name: Build, package and verify the standalone Editor
         shell: pwsh
         run: |
           uv run --group package python tools/package_editor.py all *>&1 | Tee-Object -FilePath packaging.log
+
+      - name: Verify the compiler engine version ISCC reported
+        shell: pwsh
+        run: |
+          $expected = $env:INNO_SETUP_VERSION
+
+          # ISCC prints "Compiler engine version: <title> <version>" when it
+          # compiles, so the packaging log records the version of the compiler
+          # engine that actually built this installer.
+          $line = (Select-String -Path packaging.log -Pattern 'Compiler engine version:' |
+            Select-Object -First 1).Line
+          if (-not $line) {
+            throw "ISCC did not report a 'Compiler engine version:' line while building the installer."
+          }
+          Write-Host "ISCC reported: $line"
+          $detected = [regex]::Match($line, '\d+(\.\d+)+').Value
+          if ($detected -ne $expected) {
+            throw "Inno Setup version mismatch: expected $expected, ISCC reported '$detected'."
+          }
+          Write-Host "Inno Setup $detected was the compiler engine that built this installer."
 
       - name: Write artifact checksum
         shell: pwsh
