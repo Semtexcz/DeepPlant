@@ -70,9 +70,10 @@ Runtime and toolchain:
 - Dev toolchain: pytest + pytest-cov, Ruff, Pyright (strict), and `httpx2` for the
   FastAPI/Starlette test client.
 - Editor SPA toolchain (`apps/editor/`, ephemeral build output): Vue 3,
-  TypeScript, Vite, Vue Flow, Vitest, `vue-tsc`. The package manager is pinned by
-  `apps/editor/package.json` (`packageManager`) with a committed
-  `apps/editor/pnpm-lock.yaml`.
+  TypeScript, Vite, Vue Flow, Vitest, `vue-tsc`, and ESLint (flat config). The
+  package manager is pinned by `apps/editor/package.json` (`packageManager`) with
+  a committed `apps/editor/pnpm-lock.yaml`. The frontend engineering rules and
+  gates are canonical in [frontend/](../frontend/index.md).
 
 ## Module boundaries
 
@@ -87,7 +88,7 @@ Runtime and toolchain:
 | `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, or Uvicorn, or contain HTTP/runtime concerns |
 | `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport and loopback runtime | contain engineering logic, or claim production/server security |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
-| `apps/editor/` (TypeScript) | browser view state, the Vue Flow adapter, and the read-only Inspector | re-implement the semantic model, parse YAML, or become project truth |
+| `apps/editor/` (TypeScript) | browser view state, the Vue Flow adapter, and the read-only Inspector | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
 
 The dependency direction is one-way:
 
@@ -219,7 +220,10 @@ standalone, pinned Vite application with its own dependency graph, while
 - **Frontend.** `apps/editor/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA. The
   adapter (`process-pfd/vue-flow-adapter.ts`) is the only place Vue Flow shapes
   appear. Selection is transient UI state, translated back to DeepPlant identity
-  before the Inspector renders anything.
+  before the Inspector renders anything. Frontend engineering rules — feature
+  ownership, Vue/TypeScript conventions, state ownership, styling ownership,
+  accessibility, testing layers, and size/cohesion guardrails — are canonical in
+  [frontend/](../frontend/index.md) and enforced by `make frontend-lint`.
 
 Explicit non-goals of this slice (unchanged direction, not implemented):
 semantic editing, process step/stream creation, deletion, property editing,
@@ -258,7 +262,8 @@ make validate-docs
 make validate-agent-skills
 
 make check   # ruff format --check, ruff check, pyright, pytest, frontend-check
-make frontend-check  # pnpm install --frozen-lockfile, vue-tsc, vitest, vite build
+make frontend-check  # pnpm install --frozen-lockfile, eslint, vue-tsc, vitest, vite build
+make frontend-lint   # pnpm lint (ESLint correctness + hard size/cohesion limits)
 make build   # uv build
 ```
 

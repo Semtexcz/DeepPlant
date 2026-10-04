@@ -2,7 +2,7 @@
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { computed, markRaw, nextTick, onMounted, ref, shallowRef } from 'vue'
 
-import Inspector from './process-pfd/Inspector.vue'
+import InspectorPanel from './process-pfd/InspectorPanel.vue'
 import ProcessNode from './process-pfd/ProcessNode.vue'
 import { fetchProjection } from './process-pfd/api'
 import type { ProcessPfdProjectionDto, ValidationStatusDto } from './process-pfd/dto'
@@ -138,7 +138,7 @@ function fitViewAction(): void {
         </p>
       </section>
 
-      <Inspector :view="inspector" />
+      <InspectorPanel :view="inspector" />
     </main>
 
     <footer class="dp-status" :class="{ 'dp-status--invalid': !statusIsValid }">

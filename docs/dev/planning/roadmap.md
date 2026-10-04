@@ -60,7 +60,10 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   boundary (`src/deepplant/editor/api.py`), the `deepplant ui <path>` launcher,
   and a Vue 3 + TypeScript + Vite + Vue Flow SPA under `apps/editor/` that serves
   pan, zoom, fit view, single selection, a read-only semantic Inspector, and the
-  current validation status.
+  current validation status;
+- the canonical frontend engineering contract and quality gates for that SPA
+  ([dev/frontend/](../frontend/index.md)), enforced by an ESLint flat-config gate
+  as part of `make frontend-check` and `make check`.
 
 Not implemented: semantic editing and any semantic mutation command, presentation
 persistence, undo/redo, P&ID rendering and physical/P&ID symbols, full DEXPI and
@@ -79,24 +82,24 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- [#80 — Engineering Editor: frontend engineering contract and quality gates](https://github.com/Semtexcz/DeepPlant/issues/80)
+- [#81 — Engineering Editor: frontend refactor and component/integration tests](https://github.com/Semtexcz/DeepPlant/issues/81)
   is the next authorized executable slice.
 
-  #75 delivered the first runnable read-only Process/PFD slice and #79 hardened
-  its foundation (the editor application layout and the FastAPI/Uvicorn boundary),
-  producing no new product capability and no evidence that changes the sequence.
-  The smallest next evidence-producing slice is therefore the frontend
-  engineering contract and quality gates, which the later refactor (#81) and
-  browser E2E (#82) depend on:
+  #75 delivered the first runnable read-only Process/PFD slice, #79 hardened its
+  foundation (the editor application layout and the FastAPI/Uvicorn boundary), and
+  #80 established the canonical frontend engineering contract and its quality
+  gates. None produced a new product capability or evidence that changes the
+  sequence. The smallest next evidence-producing slice is therefore the frontend
+  refactor against that contract, which the browser E2E slice (#82) depends on:
 
   ```text
   #75 read-only Process/PFD slice delivered
           ↓
   #79 application layout + FastAPI boundary hardening   (delivered)
           ↓
-  #80 frontend engineering contract + quality gates      (selected)
+  #80 frontend engineering contract + quality gates      (delivered)
           ↓
-  #81 frontend refactor + component/integration tests
+  #81 frontend refactor + component/integration tests    (selected)
           ↓
   #82 browser end-to-end tests
           ↓
@@ -106,16 +109,15 @@ evidence-heavy slices, in the linked spike/decision documents.
   No semantic-editing, presentation-persistence, P&ID, or process ↔ physical
   realization slice is selected or promoted.
 
-- No other slice is currently selected. #81 and #82 are dependency-ordered
-  follow-ups, not parallel `Now` work (see **Next**).
+- No other slice is currently selected. #82 is a dependency-ordered follow-up,
+  not parallel `Now` work (see **Next**).
 
 ### Next
 
-- [#81 — Engineering Editor: frontend refactor and component/integration tests](https://github.com/Semtexcz/DeepPlant/issues/81),
-  after #80 delivers the frontend engineering contract and quality gates.
 - [#82 — Engineering Editor: browser end-to-end tests](https://github.com/Semtexcz/DeepPlant/issues/82),
-  after #81.
-- Re-evaluate the next product capability only after #80–#82, from the evidence
+  after #81 applies the frontend engineering contract and adds component and
+  feature-integration tests.
+- Re-evaluate the next product capability only after #81–#82, from the evidence
   those slices produce.
 
   Do not mechanically promote semantic editing, presentation persistence, P&ID,
@@ -171,13 +173,26 @@ functionality was layered on it. Its outcome selected
 [#79 — Bug: Engineering Editor architecture is inconsistent with the existing
 DeepPlant application structure](https://github.com/Semtexcz/DeepPlant/issues/79)
 as the next executable slice, followed by the dependency-ordered
-frontend-engineering work #80 → #81 → #82.
+frontend-engineering work #80 → #81 → #82. #79 and #80 are now delivered, so the
+remaining sequence is #81 → #82.
 
 The next re-evaluation gate opens only after #82. Its outcome is deliberately
 not decided here, and no successor Issue is created (see **Next**).
 
 ### Completed Context
 
+- **Issue #80 is delivered (frontend engineering contract and quality gates):**
+  the canonical, repository-owned frontend engineering contract now lives in
+  [docs/dev/frontend/](../frontend/index.md) (architecture and feature ownership,
+  Vue/component/composable conventions, state ownership, effects and watchers,
+  TypeScript safety, the selected UnoCSS styling direction, the testing pyramid,
+  and accessibility), with a single canonical review checklist. It is enforced by
+  a real ESLint flat-config gate (`apps/editor/eslint.config.js`, `make
+  frontend-lint`) that is part of `make frontend-check` and therefore `make
+  check`, and that implements the hard size/cohesion limits. A tool-neutral
+  `frontend-engineering` agent skill routes to the contract. No editor product
+  behaviour was intentionally changed and no #81 refactor was performed. See
+  [history/implementation-slices.md](../history/implementation-slices.md).
 - **Issue #79 is delivered (foundation hardening):** the Engineering Editor
   architecture now matches the repository structure. The browser editor is an
   explicit standalone application under `apps/editor/` instead of an
@@ -289,8 +304,8 @@ Concrete examples:
 - the simulation stage does not justify simulator interfaces now
 - GUI implementation, editor application structure, and GUI dependencies are
   authorized only within the explicitly selected Engineering Editor slices. The
-  current hardening sequence is #79 (delivered: application layout + FastAPI
-  boundary) → #80 (frontend engineering contract + quality gates) → #81
+  hardening sequence is #79 (delivered: application layout + FastAPI boundary) →
+  #80 (delivered: frontend engineering contract + quality gates) → #81
   (frontend refactor + component/integration tests) → #82 (browser E2E); that
   sequence does not authorize semantic editing, presentation persistence, a
   GUI redesign, P&ID, or broader Engineering Editor infrastructure

@@ -88,7 +88,7 @@ the Phase 6 split of the standards document into policy, registry, and evidence
 | Why a choice was made | [decisions/index.md](dev/decisions/index.md) |
 | Evidence, research, or a prototype | [research/index.md](dev/research/index.md) |
 | What shipped, in order | [history/implementation-slices.md](dev/history/implementation-slices.md) |
-| Governance (workflow, planning, quality, docs, standards) | [workflow.md](dev/workflow/index.md), [planning.md](dev/planning/index.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](dev/workflow/standards.md) |
+| Governance (workflow, planning, quality, docs, standards, frontend) | [workflow.md](dev/workflow/index.md), [planning.md](dev/planning/index.md), [quality.md](dev/workflow/quality.md), [conventions.md](dev/workflow/conventions.md), [standards.md](dev/workflow/standards.md), [frontend/index.md](dev/frontend/index.md) |
 | Current standards reference set (identifiers, roles, editions) | [standards-registry.md](dev/reference/standards-registry.md) |
 | Standards / symbol licensing investigation | [standards-licensing-evidence.md](dev/research/standards-licensing-evidence.md) |
 | Agent instructions | [AGENTS.md](../AGENTS.md) |

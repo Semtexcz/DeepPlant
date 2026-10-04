@@ -82,6 +82,8 @@ change_patterns:
     - docs/dev/workflow/quality.md
     - backend/tests/
   "apps/editor/**/*":
+    - docs/dev/frontend/index.md
+    - docs/dev/frontend/architecture.md
     - docs/dev/workflow/quality.md
     - apps/editor/src/
   "artifacts/openapi.json":
@@ -119,6 +121,10 @@ change_patterns:
   "docs/dev/decisions/**":
     - docs/dev/architecture/index.md
     - docs/dev/decisions/index.md
+  "docs/dev/frontend/**":
+    - docs/dev/frontend/index.md
+    - docs/dev/architecture/index.md
+    - docs/dev/workflow/quality.md
   ".agents/**":
     - .agents/README.md
     - docs/dev/index.md
