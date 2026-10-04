@@ -149,8 +149,14 @@ Issue #39 delivered its process ↔ physical realization boundary evidence and
 ADR-0016. With #39, #69, and #70 complete, the first read-only Process/PFD slice
 ([#75](roadmap.md)) was selected at the roadmap re-evaluation gate and delivered;
 its foundation was hardened by the sequenced slices #79 → #80 → #81 → #82 (all
-delivered). The next
-product capability is selected at the now-open re-evaluation gate.
+delivered). The post-#82 re-evaluation gate then selected independent DeepPlant
+Core and standalone editor distribution
+([Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85)) as the next
+product capability, so the editor is proven to ship as a self-contained
+Windows/Linux application — with the Core remaining independently usable — before
+more editor functionality is layered on it. The DeepPlant project format and
+portable package ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89))
+remains a strong later candidate decided at the next re-evaluation.
 
 ### Stage 5 — Git-native Engineering Workflow
 
