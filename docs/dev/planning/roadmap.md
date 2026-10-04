@@ -74,13 +74,16 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   product path: the production SPA build, the real `deepplant ui --port 0` CLI
   over loopback FastAPI/Uvicorn, and real pointer interaction in the browser.
 
-Not implemented: a DeepPlant project format (canonical project directory,
-manifest, or portable `.deepplant` package); semantic editing and any semantic
-mutation command; presentation persistence; undo/redo; P&ID rendering and
-physical/P&ID symbols; full DEXPI and Plant/P&ID import/export; other vendor
-adapters (COMOS, AVEVA); instrumentation and signal semantics; engineering rules;
-and the process ↔ physical realization mapping. The authoritative boundary map,
-including directional-but-unimplemented components, is
+Not implemented: a self-contained distributable desktop build (Windows/Linux
+package or installer) — the editor still runs from a development checkout and
+reads its built SPA assets from `apps/editor/dist` (`resolve_assets_dir()`); a
+DeepPlant project format (canonical project directory, manifest, or portable
+`.deepplant` package); semantic editing and any semantic mutation command;
+presentation persistence; undo/redo; P&ID rendering and physical/P&ID symbols;
+full DEXPI and Plant/P&ID import/export; other vendor adapters (COMOS, AVEVA);
+instrumentation and signal semantics; engineering rules; and the process ↔
+physical realization mapping. The authoritative boundary map, including
+directional-but-unimplemented components, is
 [architecture.md](../architecture/index.md).
 
 ## Completed
@@ -93,12 +96,16 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-- **#89 — Define the DeepPlant project format and portable package.** The
-  post-#82 re-evaluation gate is executed (see
+- **#85 — Establish independent DeepPlant Core and standalone editor
+  distribution.** The post-#82 re-evaluation gate is executed (see
   [Re-evaluation Gate](#re-evaluation-gate)) and selects exactly one product
-  capability: define what a DeepPlant project *is* — its canonical persistent
-  representation, its project-format version, and its portable package — before
-  the first write-capable editor slice defines persistence semantics by accident.
+  capability: prove that today's verified read-only editor can become a
+  self-contained, distributable desktop application on Windows and Linux while
+  DeepPlant Core stays independently usable — **before more editor functionality
+  is layered on it**. Issue #85 states this requirement itself: distribution is
+  part of the editor architecture and of the vertical slice, a solution that
+  works only from a development checkout is not a complete standalone editor
+  slice, and the Core boundary must hold "before the editor grows further".
 
   ```text
   #75 read-only Process/PFD slice delivered
@@ -111,71 +118,82 @@ evidence-heavy slices, in the linked spike/decision documents.
           ↓
   #82 browser end-to-end tests                           (delivered)
           ↓
-  re-evaluation after #82                                (executed → #89)
+  re-evaluation after #82                                (executed → #85)
           ↓
-  #89 project format + portable package                  ← selected product Now
+  #85 standalone distribution + preserve Core boundary   ← selected product Now
   ```
 
   Issue:
-  [#89 — Define the DeepPlant project format and portable package](https://github.com/Semtexcz/DeepPlant/issues/89).
+  [#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85).
 
-  #89 is one umbrella capability, not one mandatory PR. Its first executable
+  #85 is one umbrella capability, not one mandatory PR. Its first executable
   slice is deliberately smaller than its full acceptance criteria; the
   recommended implementation boundary is recorded in the
-  [Re-evaluation Gate](#re-evaluation-gate) section. Semantic editing and any
-  semantic mutation command, Save/persistence beyond that contract, presentation
-  persistence, P&ID, the process ↔ physical realization mapping, release
-  automation, and desktop packaging remain unauthorized.
+  [Re-evaluation Gate](#re-evaluation-gate) section. Selecting #85 authorizes
+  only that bounded standalone-distribution slice. Semantic editing and any
+  semantic mutation command, Save/persistence, the project format and portable
+  package, presentation persistence, P&ID, the process ↔ physical realization
+  mapping, release automation, automatic updates, code signing, store/package
+  publishing, repository separation, and complete public-API stabilization
+  remain unauthorized.
 
   This selection is a **product capability**. It is deliberately not a serial
-  chain over the other open Issues; the small independent work items below are
-  neither part of the product selection nor hard prerequisites of #89:
+  chain over the other open Issues; the independent work items below are neither
+  part of the product selection nor hard prerequisites of #85:
 
   ```text
   Product Now
   -----------
-  #89 project format + portable package
+  #85 independent Core boundary + standalone editor distribution
 
-  Independent / maintenance backlog (not a serial chain)
+  Independent governance / maintenance (not a serial chain)
   -----------
   #77 product philosophy            (governance / documentation)
   #84 Python engineering standards  (developer-quality maintenance)
   #88 release / version automation  (release infrastructure)
 
-  Strategic later capability
+  Strong later product candidate
   -----------
-  #85 standalone Core boundary / editor distribution
+  #89 project format + portable package
   ```
 
 ### Next
 
-- **Re-evaluate after #89.** No successor product capability is selected. Do not
-  preselect one and do not mechanically promote a backlog row; re-evaluate once
-  #89 delivers the project/persistence contract, using the evidence that slice
-  produces.
+- **Re-evaluate after #85.** No successor product capability is selected. Do not
+  preselect one — in particular do not preselect #89 — and do not mechanically
+  promote a backlog row; re-evaluate once #85 produces standalone build and
+  distribution evidence, using what that slice teaches.
 
-  Candidate evidence inputs (not commitments):
+  Candidate evidence inputs (strong future candidates, not commitments):
 
   ```text
+  #89 project format / portable package
   first semantic mutation
   save / persistence
   presentation state persistence
-  release / version automation
-  standalone packaging
+  #88 automated release infrastructure
   P&ID
   process ↔ physical realization
   ```
 
   Re-evaluation criteria include:
 
-  - whether the project contract is strong enough to authorize the first
-    semantic-mutation + Save slice;
-  - where the minimum application-command machinery Issue #69 describes belongs,
-    and where undo/redo belongs;
+  - what standalone packaging exposed about hidden coupling (checkout-relative
+    asset paths, Python runtime assumptions, package-data/resource discovery,
+    frontend asset location, subprocess/process lifecycle, current-working-
+    directory assumptions, platform-specific launcher behavior, desktop-shell
+    requirements, Windows/Linux runtime dependencies) and whether the Core
+    boundary needed any correction;
+  - whether the project/persistence contract (#89) is now the right next step
+    before richer Open/Save semantics, or whether a different evidence-supported
+    slice comes first;
+  - whether the first semantic-mutation + Save slice is now authorized, and where
+    the minimum application-command machinery Issue #69 describes and undo/redo
+    belong;
   - whether presentation state (diagram positions, per-view overrides) now needs
-    a concrete persisted schema inside the project;
-  - what standalone packaging and release automation consume from the project,
-    Core, and release/version contracts.
+    a concrete persisted schema;
+  - what release/version automation (#88) needs to consume from the now
+    distributable artifacts.
 
 ### Re-evaluation Gate
 
@@ -220,102 +238,177 @@ delivered, so the quality-hardening sequence is complete.
 
 #### Re-evaluation after #82 (executed)
 
-The gate that opened after #82 is now executed. It selected exactly one product
+The gate that opened after #82 is now executed. It selects exactly one product
 capability:
 
-[#89 — Define the DeepPlant project format and portable package](https://github.com/Semtexcz/DeepPlant/issues/89)
+[#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85)
+
+This outcome corrects an earlier draft of this same gate. That draft selected #89
+(project format + portable package) and classified #85 as a strategic later
+capability. Review found that this deferred #85 despite #85's explicit
+requirement that standalone distribution be proven before the editor grows
+further. The decision was therefore re-evaluated against Issue #85 itself and the
+current checkout-dependent editor runtime: the delivered editor is verified
+through `production SPA → real deepplant ui → FastAPI/Uvicorn → Chromium`, but it
+still runs from a development checkout (`uv run deepplant ui ...`) and resolves
+the built SPA assets from `apps/editor/dist` inside that checkout
+(`resolve_assets_dir()`; `src/deepplant/editor/api.py` records the same known
+limitation — bundling the assets into the Python wheel is not done yet). The
+strongest missing evidence is therefore standalone distributability, not project
+persistence.
 
 Reasoning: the delivered editor (#75 → #79 → #80 → #81 → #82) proves the read
 path `load → semantic model → application/projection boundary → FastAPI →
-production SPA → Vue Flow → browser interaction`. The next meaningful product
-step is `user action → semantic mutation → validation → save/persistence`. That
-step must not define persistence semantics by accident: before the editor writes
-project state, DeepPlant needs an explicit answer to what a DeepPlant project is,
-what canonical persistent state is, where semantic and presentation state may
-live, how a project grows beyond one `plant.yaml`, and what Open/Save operate on.
-Deciding that contract explicitly and in the open also matches the open-format,
-interoperability, and Engineering-as-Code direction recorded in
-[VISION.md](../../../VISION.md) and in the product-philosophy direction of
-[Issue #77](https://github.com/Semtexcz/DeepPlant/issues/77).
+production SPA → Vue Flow → browser interaction`. That establishes the
+application architecture well enough to test the next architectural claim: can
+this actually be shipped to an engineering user without a development checkout?
+The missing product path is
 
-#89 preserves the existing invariants: the semantic model stays the authoritative
-engineering state, YAML stays serialization rather than the domain model, the
-project directory is the canonical editable representation, and a `.deepplant`
-package is only a portable ZIP-based representation of the same project — not a
-second internal model.
+```text
+download
+  ↓
+install / launch
+  ↓
+open current supported model
+  ↓
+use editor
+  ↓
+close
+```
+
+without requiring the user to install Python, Node.js, pnpm/npm, uv/pip,
+compilers, or development SDKs. Packaging problems often expose hidden coupling —
+repository-relative frontend paths, Python runtime assumptions,
+package-data/resource discovery, frontend asset location, subprocess/process
+lifecycle assumptions, filesystem/current-working-directory assumptions,
+platform-specific launcher behavior, desktop-shell requirements, Windows process
+behavior, Linux runtime dependencies — and those problems are cheaper to
+discover while the application is still small, read-only, well tested, and
+architecturally bounded than after adding semantic mutation, persistent
+presentation state, multi-file projects, P&ID, and larger editor infrastructure.
+That is why #85 is selected now: packaging is an application-architecture test,
+not release polish.
+
+Issue #85 contains two related concerns, and the gate re-evaluates them
+separately against the current repository state:
+
+- **A. Independent Core boundary — verify and preserve, not redesign.** Much of
+  this is already supported by the delivered architecture: the semantic model
+  (`src/deepplant/`) stays usable from Python and CLI without the GUI, and the
+  dependency direction is `Vue → FastAPI transport → EditorApplication →
+  DeepPlant semantic/core code`. The #85 implementation must verify and preserve
+  that boundary (for example a test importing representative Core behavior
+  without the editor), **not** create a large Core refactor merely because #85
+  mentions Core independence.
+- **B. Standalone distribution — the major unresolved evidence gap.** The first
+  #85 implementation answers: can today's real read-only editor be built and run
+  as a self-contained Windows and Linux application? That is the capability that
+  justifies selecting #85.
+
+`deepplant ui <plant.yaml>` already gives the standalone distribution slice a
+sufficient input contract: it can open today's supported YAML model. The slice
+does not depend on the final project format, and standalone application
+packaging must not be made to depend on it merely because a later editor will
+need richer Open/Save semantics.
 
 Candidate classification (evidence-based; not issue number or recency):
 
-- **#89 project format + portable package — selected product Now.** Foundational
-  product contract: it defines the project/persistence boundary the first
-  mutation/save slice depends on.
+- **#85 independent Core boundary + standalone editor distribution — selected
+  product Now.** The repository now exposes a standalone-distributability
+  evidence gap that #85 explicitly requires closing early.
 - **#77 product philosophy — not product Now.** Valuable independent
   governance/documentation work and a decision framework; not a prerequisite for
-  #89 and not itself the next product capability.
+  #85 and not itself the next product capability.
 - **#84 Python engineering standards — not product Now.**
   Engineering-maintenance / developer-quality work; useful before substantial new
-  Python persistence/package code, but it answers a developer-quality question
-  rather than a user/product one and does not block #89.
+  Python code, but it answers a developer-quality question rather than a
+  user/product one and does not block #85.
 - **#88 versioning / changelog / releases — not product Now.** Release
-  infrastructure; it becomes important before distributable artifacts but is not
-  a product capability.
-- **#85 Core boundary + standalone distribution — strategic later capability.**
-  Strategically important but broad and dependency-heavy; not the immediate
-  product Now, and likely needs its own later scoping.
+  infrastructure; it becomes valuable before mature automated publishing of the
+  artifacts #85 makes possible, but it is not a prerequisite for the first
+  standalone build.
+- **#89 project format + portable package — strong later product candidate.**
+  Strategically important before richer mutation/Open/Save and persistence work,
+  but application distribution and project serialization produce evidence
+  independently; #89 is not a prerequisite for the first standalone build and is
+  not preselected as the successor.
 
 Dependencies supported by current evidence (not a fabricated serial chain):
 
 ```text
-#89 (project contract)
-      ↓
-first semantic mutation + Save
+#85 (standalone distribution)
+      proves standalone build / distribution architecture
+      preserves the already-established Core boundary
+      consumes today's supported input: plant.yaml
 
 #88 (release / version contract)
-      ↓
-future release artifacts / installer publishing
+      later provides automated release / version orchestration
+      for the distributable artifacts #85 makes possible
 
-#85 (standalone distribution)
-      consumes later packaging:
-        existing Core boundary
-      + release / version contract
-      + packaging technology
-      + project / open / save semantics
+#89 (project contract)
+      later defines the durable engineering project representation
+      that richer Open/Save operates on
+
+later editor capabilities
+      consume evidence from both #85 and #89
 ```
 
-#77 and #84 are **not** prerequisites of #89: no current evidence shows them
-blocking. Their independence from the product sequence is deliberate — see the
-maintenance/product split in **Now**.
+`#88 → #85` and `#89 → #85` are **not** hard dependencies: the repository already
+carries an application version (`0.1.0`) sufficient for versioned development
+artifacts, and today's `plant.yaml` input is sufficient to verify the standalone
+application architecture. #85 may later feed #88 (publishing the artifacts #85
+makes possible) and #89 may later define what richer Open/Save operates on, but
+neither blocks the first #85 implementation. #77 and #84 remain independent
+governance/maintenance work and are also not prerequisites of #85.
 
-Unresolved boundary recorded by this gate: a DeepPlant project will eventually
-need to store presentation state (diagram positions, layout, per-view overrides,
-possibly multiple diagrams/views), but presentation state is **not** semantic
-engineering state. #89 must create a project-level place where such state can
-later live **without** forcing the exact presentation schema now. The first #89
-slice does not implement that schema.
+Unresolved future concern recorded by this gate (belongs to #89/future
+persistence evidence, not to #85): a DeepPlant project will eventually need to
+store presentation state (diagram positions, layout, per-view overrides, possibly
+multiple diagrams/views). Presentation state is **not** semantic engineering
+state; that must not become a reason to block #85. #89 must create a
+project-level place where such state can later live **without** forcing the exact
+presentation schema now.
 
-#### #89 first executable slice (recommended implementation boundary)
+#### #85 first executable slice (recommended implementation boundary)
 
-#89 is one umbrella capability, not one mandatory PR, and its first
-implementation slice should be a vertical, testable subset rather than
-architecture-only scaffolding. Recommended first boundary, to be confirmed
-against the loader/model code at implementation time:
+Recorded for the #85 implementation; **not** implemented by this planning fix.
+#85 is one umbrella capability, not one mandatory PR, and its first slice should
+be a narrow vertical slice that produces executable evidence rather than
+architecture-only scaffolding. Recommended first boundary:
 
 ```text
-project directory contract
-+ minimal deepplant.yaml manifest
-+ open/load a project directory
-+ deterministic pack/unpack .deepplant
-+ round-trip + archive-security tests
+today's read-only Engineering Editor
++ existing DeepPlant Core (boundary verified, not redesigned)
++ existing FastAPI/Uvicorn editor application
++ production Vue SPA
+        ↓
+self-contained desktop distribution
+        ↓
+Windows runnable / installable artifact
++ Linux runnable / installable artifact
+        ↓
+no separately installed Python
+no Node.js
+no pnpm/npm
+no uv/pip
+no development checkout
 ```
 
-Deliberately excluded from the first slice: per-discipline schemas for every
-future capability, the exact presentation-state schema, and the full
-multi-document layout. This keeps the slice honest while preserving the #89
-invariants (filesystem structure is not semantic identity; the ZIP archive is not
-a new internal domain model; there is no GUI-only format and no hidden required
-database).
+The slice includes enough automated smoke/E2E evidence to prove the packaged
+product launches and serves the same current read-only editor.
 
-No successor product capability after #89 is preselected, and no successor Issue
+Deliberately excluded from the first slice (and from this selection): automatic
+updates, code signing, Microsoft Store / Flatpak / Snap publishing, PyPI
+publishing, commercial licensing, repository separation, complete public Python
+API stabilization, complete editor functionality, semantic editing, Save, and the
+project format. The product capability being selected is: *prove the standalone
+application architecture now, while the editor is still small.*
+
+The exact packaging technology is deliberately **not** selected here. No current
+repository evidence decides it; technology selection belongs to the #85
+implementation investigation (potential candidates may be evaluated there).
+
+No successor product capability after #85 is preselected, and no successor Issue
 is created by this gate (see **Now** and **Next**).
 
 ### Completed Context
@@ -452,11 +545,17 @@ is created by this gate (see **Now** and **Next**).
   frontend-framework state; YAML remains serialization, not the domain model.
 - `Connection` is topology only; do not attach pipe/stream/signal engineering
   semantics until a real requirement justifies them.
-- #89 authorizes a project/persistence contract, not a new internal domain model.
-  Filesystem structure must not become semantic identity, the `.deepplant` ZIP
-  archive must not become a new internal model, no GUI-only project format and no
-  hidden required database may be introduced, and Open/Save semantics must not be
-  defined by the first mutation slice before the project contract exists.
+- #85 authorizes a bounded standalone-distribution vertical slice and the
+  preservation of the Core boundary, not a Core redesign. DeepPlant Core must not
+  acquire desktop, GUI, FastAPI-application, or packaging dependencies; the
+  dependency direction stays `applications → Core`, and the CLI and editor
+  continue to consume the same Core. Packaging tooling (desktop framework,
+  bundlers, installers, CI packaging jobs) is introduced only within the #85
+  slice, not before it.
+- A future project/persistence contract (#89) will own the home for presentation
+  state (diagram positions, layout, per-view overrides, multiple views). That is
+  not semantic engineering state, it is not required for #85, and defining it must
+  not become a reason to block standalone distribution.
 
 ## Directional Capability Roadmap
 
@@ -486,15 +585,23 @@ Concrete examples:
   (delivered: frontend refactor + component/integration tests) → #82 (delivered:
   browser E2E); that sequence does not authorize semantic editing, presentation
   persistence, a GUI redesign, P&ID, or broader Engineering Editor infrastructure
+- desktop/packaging tooling (desktop framework, bundlers, installers, CI
+  packaging jobs) is authorized only within the selected #85
+  standalone-distribution slice (see **Now**) — not before it, and not as release
+  polish
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
 - the physical-piping realization question and the separate process ↔ physical
   realization question do not justify attaching pipe or process-stream semantics
   to `Connection` now — and the decided piping layer (ADR-0011) honours that by
   referencing identified connections instead of widening `Connection`
+- selecting #85 authorizes only the bounded standalone-distribution slice: it does
+  not authorize automatic updates, code signing, Microsoft Store / Flatpak / Snap
+  or PyPI publishing, commercial licensing, repository separation, complete public
+  Python API stabilization, complete editor functionality, semantic editing, Save,
+  or the project format
 - defining the project format (#89) does not authorize semantic editing,
-  Save/mutation, presentation persistence, a desktop shell, an installer, or
-  release automation; the first #89 slice is the smallest project/persistence
-  vertical slice, not the full project architecture
+  Save/mutation, or presentation persistence by itself; the first #89 slice is the
+  smallest project/persistence vertical slice, not the full project architecture
 
 Think broadly about the destination. Build narrowly in the current iteration.

@@ -85,9 +85,11 @@ editor product behavior.
 - **Canonical rule:** everything below is binding for new frontend work.
 - **Deferred:** none for the current frontend-engineering baseline; the #82
   browser E2E slice is delivered. The [roadmap](../planning/roadmap.md) post-#82
-  re-evaluation gate selected the DeepPlant project format and portable package
-  ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) as the next
-  product capability.
+  re-evaluation gate selected
+  [Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85) — independent
+  DeepPlant Core and standalone editor distribution — as the next product
+  capability. That selection is a product/application concern owned by the
+  roadmap and Issue #85; it does not change this frontend contract.
 
 ## Frontend review checklist
 

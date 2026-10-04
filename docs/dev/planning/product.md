@@ -94,10 +94,14 @@ engineering contract) → #81 (frontend refactor) → #82 (browser E2E), all
 delivered. No semantic
 editing, presentation persistence, or P&ID authoring is implemented. The post-#82
 [re-evaluation gate](roadmap.md#re-evaluation-gate) selected
-[Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89) — the DeepPlant
-project format and portable package — as the sole next product capability, so
-persistence semantics are decided before the first write-capable editor slice.
-Detailed view-projection rules remain deliberately undecided here.
+[Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85) — independent
+DeepPlant Core and standalone editor distribution — as the sole next product
+capability: prove the editor can ship as a self-contained Windows/Linux
+application while the Core stays independently usable, before more editor
+functionality is layered on it. The DeepPlant project format and portable package
+([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) remains a strong
+later candidate decided at the next re-evaluation. Detailed view-projection rules
+remain deliberately undecided here.
 
 ## Engineering Editor MVP v0.1
 
