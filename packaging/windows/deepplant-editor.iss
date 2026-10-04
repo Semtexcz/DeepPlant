@@ -21,7 +21,8 @@
   #define OutputBaseFilename "deepplant-editor-setup"
 #endif
 #ifndef LicenseFile
-  #define LicenseFile ""
+  ; The packaging driver always passes an absolute path to the project LICENSE.
+  #define LicenseFile "..\..\LICENSE"
 #endif
 
 [Setup]
@@ -46,9 +47,7 @@ Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayName=DeepPlant Editor
-#if Len(LicenseFile) > 0
 LicenseFile={#LicenseFile}
-#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

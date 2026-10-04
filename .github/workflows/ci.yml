@@ -218,7 +218,7 @@ jobs:
         run: |
           cd dist/editor
           for artifact in *.AppImage; do
-            sha256sum "$artifact" | sed "s|  |  |" > "$artifact.sha256"
+            sha256sum "$artifact" > "$artifact.sha256"
           done
 
       - name: Install Chromium for the packaged-application E2E
