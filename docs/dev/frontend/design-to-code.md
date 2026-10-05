@@ -15,7 +15,9 @@ depends_on:
   - docs/dev/frontend/index.md
   - docs/dev/frontend/architecture.md
   - docs/dev/frontend/styling.md
+  - docs/dev/frontend/accessibility.md
   - docs/dev/workflow/quality.md
+  - docs/dev/workflow/conventions.md
   - docs/dev/planning/roadmap.md
 decision:
   - docs/dev/decisions/ADR-0002-semantic-model-is-the-core.md
@@ -49,7 +51,8 @@ functionality.
 |---|---|
 | **Implemented** | Already true in the repository today. |
 | **Canonical rule** | Required for future frontend work, even where no artifact exists yet. |
-| **Future direction** | Direction decided here; it applies once the relevant artifact is actually created. |
+| **Future direction** | Direction this document commits to; it applies once the relevant artifact is actually created. |
+| **Candidate direction** | An option to evaluate later. This document deliberately does **not** decide it. |
 
 **Current reality (implemented).** DeepPlant has the authoritative engineering
 documents (see [architecture.md](../architecture/index.md),
@@ -84,8 +87,8 @@ Figma final design
         │
         ├──────────────┐
         ▼              ▼
-UX contract       design tokens
-in Git                 │
+UX contract      design-system
+in Git           primitives
         │              │
         └──────┬───────┘
                ▼
@@ -93,8 +96,8 @@ in Git                 │
                │
                ▼
          Coding agent
-      Figma MCP preferred
-      Dev Mode fallback
+   Figma MCP preferred
+   structured inspection
                │
                ▼
         Vue implementation
@@ -110,11 +113,49 @@ in Git                 │
 
 | Source | Owns | Must never own |
 |---|---|---|
-| Figma | the visual specification | domain semantics, behavior, architecture |
+| Figma | the approved visual intent — within repository governance only | domain semantics, behavior, architecture |
 | UX contract in Git | behavioral intent | visual detail, engineering meaning |
 | domain documentation / schemas | engineering semantics | presentation and UI layout |
 | API contracts | transport, commands, queries | UX intent, domain rules |
 | Vue implementation | implementation only | new UX or new domain semantics |
+
+### Precedence — repository governance constrains Figma
+
+Figma is authoritative for **approved visual intent only**, and only within
+repository contracts and governance. Repository contracts and governance constrain
+the Figma specification; Figma never overrides them.
+
+Figma cannot override:
+
+- domain contracts ([contracts/](../../contracts/index.md));
+- application and frontend architecture ([architecture.md](../architecture/index.md),
+  [architecture.md](architecture.md));
+- accepted ADRs ([decisions/index.md](../decisions/index.md)); or
+- frontend engineering governance ([frontend/index.md](index.md)),
+  accessibility requirements ([accessibility.md](accessibility.md)), and the
+  approved UX behavior contract.
+
+If the Figma design conflicts with domain semantics, architecture, accessibility,
+frontend rules, or the approved UX contract, the conflict must be reconciled
+before implementation. A coding agent must **not** silently choose one side or
+encode the conflict in code.
+
+Two illustrative conflicts:
+
+```text
+Figma shows selection by colour only
+    vs
+the accessibility contract requires non-colour cues
+    → follow the accessibility contract; correct the design
+
+Figma visually implies a 1:1 Process ↔ Equipment relationship
+    vs
+ADR-0016 explicitly rejects that assumption
+    → follow the domain boundary; correct the design
+```
+
+The detailed rules are not restated here; they live in the authoritative contracts
+linked above.
 
 ### Figma — the visual specification
 
@@ -181,20 +222,27 @@ new domain semantics: if the required behavior is not in the UX contract, or the
 required concept is not in the domain or API contracts, the gap is resolved in the
 owning document first (see [Reconciliation](#stage-j--reconciliation)).
 
-## UI behavior documentation (`docs/ui/`) — canonical rule
+## UI behavior documentation (`docs/dev/frontend/ux/`) — canonical rule
 
-Behavioral intent is documented in Git in a dedicated UI layer:
+Behavioral intent is documented in Git in a dedicated, developer-owned UX layer
+inside the existing frontend documentation section:
 
 ```text
-docs/ui/
+docs/dev/frontend/ux/
     pfd-editor/
         index.md
         equipment-inspector.md
 ```
 
-This is the **intended convention**, not a directory that exists today: no
-`docs/ui/` tree is created by this document, and none should be created until a
-real UI surface needs a behavior contract. One file per UI surface, named for the
+The location is deliberate. `docs/dev/workflow/conventions.md` establishes that
+developer/agent-owned canonical documentation belongs under `docs/dev/**`, and the
+root `docs/` hierarchy holds only `index.md` plus the `contracts/`, `dev/`, and
+`user/` trees. A `docs/ui/` root would conflict with that architecture, so this
+workflow does not introduce one.
+
+This is the **intended convention**, not a directory that exists today: this
+document creates no `docs/dev/frontend/ux/` tree, and none should be created until
+a real UI surface needs a behavior contract. One file per UI surface, named for the
 domain concept rather than for a screen position. Keep it small: a UX contract
 states behavior, not pixels, and it links to the domain and API contracts instead
 of restating them.
@@ -204,7 +252,7 @@ of restating them.
 | Stage | Output | Owner |
 |---|---|---|
 | A | user workflow / product requirement | product scope + the GitHub Issue |
-| B | UX contract draft | behavior documentation (`docs/ui/`) |
+| B | UX contract draft | behavior documentation (`docs/dev/frontend/ux/`) |
 | C | Figma wireframe | design |
 | D | design review | design + engineering review |
 | E | final Figma design (frames/states) | design |
@@ -313,19 +361,23 @@ DpTreeItem.vue
 DpPropertyRow.vue
 ```
 
-These are **future direction, not current implementation requirements**: none of
-these components exists today, and this document prescribes no component set. When
-an extraction does happen it follows the existing rules — feature-first ownership,
-a new component only when a second real use exists, and the styling ownership and
-size guardrails in [architecture.md](architecture.md), [styling.md](styling.md),
-and [frontend/index.md](index.md).
+These component names are **illustrative direction, not current implementation
+requirements**: none of these components exists today, and this document prescribes
+no component set. When an extraction does happen it follows the existing rules —
+feature-first ownership, a new component only when a second real use exists, and
+the styling ownership and size guardrails in [architecture.md](architecture.md),
+[styling.md](styling.md), and [frontend/index.md](index.md).
 
 ### Stage G — GitHub Issue
 
 The implementation Issue references:
 
-- the exact Figma frame/state;
-- the relevant UX contract;
+- the Figma file/frame or equivalent design artifact;
+- the **approved design revision** used for implementation — a stable design
+  revision identity (see
+  [Design revision traceability](#design-revision-traceability--canonical-rule));
+- the relevant **UX-contract revision** (path, and the commit/identifier where it
+  matters);
 - the relevant domain/API contracts;
 - implementation boundaries;
 - explicit acceptance criteria.
@@ -353,19 +405,27 @@ repository
 +
 UX contract
 +
-Figma frame
+approved design revision (Figma frame/state)
 +
-design tokens/components
+design-system primitives/components
 +
 domain/API contracts
 ```
 
-It consumes the design through:
+It consumes the design through, in order of preference:
 
-1. **Figma MCP**, when available;
-2. otherwise **Figma frame + Dev Mode + the UX contract**.
+1. **Figma MCP**, when available — structured design data;
+2. otherwise **the design artifact plus whatever structured inspection is
+   available** (inspectable properties, measurements, and assets; Dev Mode when it
+   is available) together with the UX contract;
+3. screenshot-only inspection is the weakest reference mode (see
+   [Figma MCP and inspection policy](#figma-mcp-and-inspection-policy)).
 
-The agent must not infer missing product behavior from visual appearance alone.
+The agent must not infer missing product behavior from visual appearance alone. If
+the design conflicts with repository contracts or governance, it must stop that
+part of the implementation and reconcile the conflict rather than silently choose
+one side (see
+[Precedence](#precedence--repository-governance-constrains-figma)).
 
 Before implementing, the agent inspects:
 
@@ -388,8 +448,9 @@ Review a frontend PR along at least two independent axes.
 **Behavioral conformance** — compared against the UX contract, the Issue
 acceptance criteria, and the domain/API contracts.
 
-**Visual conformance** — compared against the Figma frame, the design tokens, and
-the component variants/states.
+**Visual conformance** — compared against the approved design revision, the
+semantic token layer ([styling.md](styling.md)), and the component
+variants/states.
 
 A visually accurate implementation with wrong behavior is **not** complete. A
 behaviorally correct implementation that ignores the approved visual design is
@@ -416,7 +477,53 @@ agree. Depending on where the flaw is, that means updating the Figma frame, the
 behavior contract, the Issue acceptance criteria, or the code — never leaving code
 as the only place the real behavior is recorded.
 
-## Figma MCP and Dev Mode policy
+If implementation exposes a conflict between the Figma design and repository
+contracts or governance (domain semantics, architecture, accessibility, frontend
+rules, or the approved UX contract), reconcile the design or the contract — never
+encode the conflict in code (see
+[Precedence](#precedence--repository-governance-constrains-figma)).
+
+## Design revision traceability — canonical rule
+
+A live Figma frame is mutable: it can change after an Issue or PR is created, so a
+frame URL alone does not make historical implementation review reproducible. Every
+implementation Issue and PR must therefore record a **stable design revision
+identity**, not only a live design location. The same applies to the UX contract.
+
+```text
+live design location != sufficient historical revision identity
+```
+
+The workflow must carry enough information to answer later, deterministically:
+
+```text
+Which exact design was this implementation built against?
+```
+
+Every implementation Issue must identify:
+
+- the Figma file/frame or equivalent design artifact;
+- the approved design revision used for implementation;
+- the UX-contract revision relevant to the implementation.
+
+The implementing PR must record the design revision actually implemented.
+
+A stable design revision identity may be satisfied by a Figma version-history link,
+a named version, a revision identifier, or another durable mechanism, depending on
+the available plan and tooling; this document mandates no single vendor mechanism.
+The invariant is auditability:
+
+```text
+design revision
+↔
+UX behavior revision
+↔
+Issue
+↔
+implementation PR
+```
+
+## Figma MCP and inspection policy
 
 ### Preferred
 
@@ -431,12 +538,17 @@ screenshots.
 ### Supported fallback
 
 ```text
-Figma frame + Dev Mode + UX contract
+design frame/state
++ inspectable design properties / measurements / assets
++ UX contract
 ```
 
-This fallback must remain sufficient to implement a feature. The workflow must
-**not require** Figma MCP: no step in this document depends on an MCP server, and
-an Issue must stay implementable without one.
+This fallback must remain sufficient to implement a feature: the workflow is tool-
+and plan-tolerant and must not couple to one vendor capability. Use Dev Mode when
+it is available — it improves inspection — but Dev Mode is **not required**. The
+workflow must **not require** Figma MCP either: no step in this document depends on
+an MCP server, and an Issue must stay implementable using the design artifact plus
+whatever structured inspection is available.
 
 ### Screenshot-only workflow
 
@@ -454,17 +566,19 @@ interface. Screenshots lose:
 A screenshot can therefore never be the authoritative visual input when the frame
 is available.
 
-## Design tokens — future direction
+## Design tokens — candidate direction (undecided)
 
-Nothing below exists yet; there is no token pipeline, no `design/` directory, and
-no generated frontend variables in this repository today.
+Nothing below is decided, and nothing below exists yet: there is no token pipeline,
+no `design/` directory, and no generated frontend variables in this repository
+today. This section records a candidate direction to evaluate, not an architectural
+commitment.
 
 Current styling already uses semantic `--dp-*` tokens in
 `apps/editor/src/styles.css` plus the UnoCSS utility layer, with styling ownership
 canonical in [styling.md](styling.md). That is the existing semantic-token
-practice, not the design-token pipeline described here.
+practice, and it remains the only token layer.
 
-The desired direction is semantic tokens over arbitrary values:
+The principle — semantic tokens over arbitrary values — is not in doubt:
 
 ```text
 color/background/canvas
@@ -484,28 +598,26 @@ font/label
 font/code
 ```
 
-and a flow of the form:
+### Potential future token synchronization
+
+A future implementation **may** evaluate a flow such as:
 
 ```text
 Figma variables
-      │
-      ▼
+      ↕
 versioned design tokens
-      │
-      ▼
-generated/consumed frontend variables
+      ↕
+frontend semantic tokens
 ```
 
-Where it eventually lives, a future repository structure might contain:
-
-```text
-design/
-    tokens/
-```
-
-Do not create token infrastructure, a `design/` tree, or a generation step until a
-concrete requirement and its ownership are decided. Until then the existing
-`--dp-*` tokens in [styling.md](styling.md) are the only token layer.
+The exact source of truth, synchronization direction, format, generation
+mechanism, and ownership are intentionally **undecided**, and the eventual
+direction may be Git → Figma rather than Figma → Git. A concrete implementation
+slice must reconcile those questions with [styling.md](styling.md) before
+introducing token infrastructure. Do not create token infrastructure, a `design/`
+tree, or a generation step until a concrete requirement and its ownership are
+decided. Until then the existing `--dp-*` tokens in [styling.md](styling.md) are
+the only token layer.
 
 ## Naming and traceability — canonical rule
 
@@ -517,7 +629,7 @@ Figma:
 PFD Editor / Inspector / Equipment
 
 UX contract:
-docs/ui/pfd-editor/equipment-inspector.md
+docs/dev/frontend/ux/pfd-editor/equipment-inspector.md
 
 Vue:
 EquipmentInspector.vue
@@ -555,12 +667,18 @@ the Issue, and the component without guessing. Two constraints apply:
 Where a Figma or product name conflicts with an established repository name,
 reconcile the name deliberately instead of letting two vocabularies coexist.
 
-## Pilots — future direction
+## Candidate workflow-validation examples — non-planning
 
-The workflow is proven by real pilots. This document selects them; it does **not
-implement** them.
+The examples below illustrate how this workflow could be validated when
+the roadmap selects compatible frontend work.
 
-### First pilot — DeepPlant Application Shell
+This document does not select, prioritize, authorize, or schedule either
+example. Operational priority remains owned exclusively by the roadmap
+([roadmap.md](../planning/roadmap.md), [planning/index.md](../planning/index.md)),
+which decides whether and when either example is used. Neither is `Now`, `Next`, a
+first authorized slice, a successor, or an implementation ordering.
+
+### Example A — DeepPlant Application Shell
 
 ```text
 Activity Bar
@@ -572,7 +690,8 @@ Activity Bar
 + Status Bar
 ```
 
-This is the recommended first pilot because it:
+Application Shell would make a good workflow-validation example **if such work is
+selected**, because it:
 
 - establishes the major layout primitives;
 - exercises information architecture;
@@ -585,10 +704,10 @@ toolbar, and the Process/PFD page renders the canvas, notices, a read-only
 Inspector, and a status strip
 ([architecture.md](architecture.md)). Activity Bar, a full Engineering Explorer
 tree, document tabs, a Bottom Panel, and a real status bar are **not implemented**.
-The pilot's surface names must be reconciled with the current repository layout in
-Stage G before implementation starts.
+The example's surface names must be reconciled with the current repository layout
+in Stage G before any implementation starts.
 
-### Second slice — equipment selection through the whole model
+### Example B — equipment selection through the model
 
 ```text
 Equipment on canvas
@@ -606,7 +725,7 @@ model change
 validation state
 ```
 
-This slice is the one that eventually validates the entire path:
+This example would eventually exercise the entire path:
 
 ```text
 Figma
@@ -619,8 +738,8 @@ Figma
 
 It depends on semantic editing and save/mutation, which the current editor slice
 deliberately does not have (see [roadmap.md](../planning/roadmap.md)); it is
-therefore directional context here, not an authorized next task. The roadmap, not
-this document, decides when it becomes `Now`.
+therefore non-planning context here, not an authorized task. The roadmap, not this
+document, decides whether and when it is used.
 
 ## Relationship to Figma Make — canonical rule
 
@@ -644,29 +763,38 @@ Implement <feature>.
 Design:
 <Figma frame URL>
 
+Approved design revision:
+<stable revision identity>
+
 UX contract:
-<repo path>
+<repo path> (revision <commit/identifier> where it matters)
 
 Relevant domain/API contracts:
 <repo paths>
 
-Use the referenced Figma design as the authoritative visual specification.
+Use the approved Figma revision as the authoritative visual intent, subject to
+repository contracts and governance.
 Use the UX contract as the authoritative behavioral specification.
 
-Prefer Figma MCP when available.
-Otherwise use Figma Dev Mode / structured design inspection.
+Prefer Figma MCP when available. Otherwise inspect the referenced design using
+the structured design information available to you; use Dev Mode when available.
 
 Before implementation:
-1. inspect the referenced design,
+1. inspect the approved design revision,
 2. inspect existing frontend components and styles,
-3. inspect relevant domain/API contracts,
+3. inspect relevant domain/API contracts and repository governance,
 4. identify reusable components,
 5. identify missing primitives,
-6. identify any design/architecture conflict.
+6. identify any design/behavior/architecture conflict.
+
+If the design conflicts with repository contracts or governance, stop that part of
+the implementation and reconcile the conflict rather than silently choosing one
+side.
 
 Do not invent product behavior not defined by the UX contract.
 Do not redefine domain semantics in the frontend.
-Do not hard-code values that should come from existing design tokens/components.
+Do not hard-code values that should come from existing semantic tokens or
+reusable components.
 
 Implement the smallest coherent slice satisfying the acceptance criteria.
 ```
@@ -678,6 +806,10 @@ Implement the smallest coherent slice satisfying the acceptance criteria.
 - [architecture.md](architecture.md) — the current frontend composition and
   boundaries a design must fit.
 - [styling.md](styling.md) — the current semantic-token and styling ownership.
+- [accessibility.md](accessibility.md) — the accessibility baseline a design and
+  implementation must honor.
+- [conventions.md](../workflow/conventions.md) — the documentation architecture
+  that places the UX behavior contracts under `docs/dev/frontend/ux/`.
 - [engineering-editor-ux.md](../research/engineering-editor-ux.md) — the
   interaction authority and the permanent-surface vocabulary.
 - [engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)

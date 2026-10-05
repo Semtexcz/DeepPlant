@@ -83,7 +83,6 @@ change_patterns:
     - backend/tests/
   "apps/editor/**/*":
     - docs/dev/frontend/index.md
-    - docs/dev/frontend/design-to-code.md
     - docs/dev/frontend/architecture.md
     - docs/dev/workflow/quality.md
     - apps/editor/src/
