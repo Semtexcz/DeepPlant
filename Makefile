@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck typecheck-desktop frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -61,6 +61,16 @@ typecheck:
 	uv run pyright
 
 
+# Desktop-specific strict type check (Issue #93 review). The default `typecheck`
+# excludes src/deepplant/editor/desktop_qt.py because the fast `dev` environment
+# deliberately does not install PySide6. The native packaging jobs do install the
+# `desktop` group, so they run this config, which mirrors the canonical strict
+# settings but keeps every module (including desktop_qt.py) in scope.
+typecheck-desktop:
+
+	uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
+
+
 frontend-install:
 
 	$(FRONTEND_PNPM) install --frozen-lockfile $(PNPM_INSTALL_FLAGS)
@@ -107,15 +117,17 @@ frontend-e2e: frontend-build
 # Standalone Editor packaging (Issue #85). The canonical operation is the
 # cross-platform Python driver; these wrappers are developer convenience only,
 # because Windows CI calls the driver directly and must not need GNU Make.
-# Deliberately outside `check`: packaging is a slow, platform-specific gate.
+# The `desktop` group supplies PySide6/Qt WebEngine (Issue #93); it is never part
+# of `make setup`/`check`. Deliberately outside `check`: packaging is slow and
+# platform-specific.
 package-editor:
 
-	uv run --group package python tools/package_editor.py all
+	uv run --group package --group desktop python tools/package_editor.py all
 
 
 verify-packaged-editor:
 
-	uv run --group package python tools/package_editor.py verify
+	uv run --group package --group desktop python tools/package_editor.py verify
 
 
 api-schema:
@@ -218,6 +230,7 @@ validate-docs:
 	@test -f docs/dev/reference/standards-registry.md
 	@test -f docs/dev/research/standards-licensing-evidence.md
 	@test -f docs/dev/research/standalone-editor-distribution.md
+	@test -f docs/dev/research/editor-desktop-host.md
 	@test ! -e docs/standards.md
 	@test -f docs/dev/history/implementation-slices.md
 	@test -f docs/contracts/rendering.md

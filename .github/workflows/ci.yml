@@ -138,10 +138,16 @@ jobs:
         uses: astral-sh/setup-uv@v6
 
       - name: Install build dependencies
-        run: uv sync --group package
+        run: uv sync --group package --group desktop
 
       - name: Read the pinned packaging toolchain
         run: python tools/packaging_toolchain.py export
+
+      - name: Strict type-check the Qt desktop host
+        # The fast `check` gate excludes src/deepplant/editor/desktop_qt.py because
+        # it deliberately does not install PySide6. This job does, so the actual Qt
+        # module is type-checked in strict mode here (Issue #93 review).
+        run: uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
 
       - name: Install the pinned Inno Setup (build-time tool only)
         shell: pwsh
@@ -192,7 +198,7 @@ jobs:
       - name: Build, package and verify the standalone Editor
         shell: pwsh
         run: |
-          uv run --group package python tools/package_editor.py all *>&1 | Tee-Object -FilePath packaging.log
+          uv run --group package --group desktop python tools/package_editor.py all *>&1 | Tee-Object -FilePath packaging.log
 
       - name: Verify the compiler engine version ISCC reported
         shell: pwsh
@@ -233,6 +239,16 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+      - name: Upload the Windows desktop verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-package-windows-desktop-evidence
+          path: |
+            build/editor-package/verify/reports/*
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Upload Windows Editor artifact
         uses: actions/upload-artifact@v4
         with:
@@ -245,10 +261,18 @@ jobs:
 
 
   editor-package-linux:
-    # Native Linux distribution gate (Issue #85): AppImage built and verified on
-    # Linux, plus one real-browser workflow against the packaged application
-    # rather than the source CLI.
-    runs-on: ubuntu-latest
+    # Native Linux distribution gate (Issue #85/#93): the AppImage is built and
+    # verified on Linux. The product is a native desktop application, so the
+    # evidence is the real GUI: the packaging driver's desktop self-check runs
+    # inside `verify`, and an explicit window-discovery step below proves a real
+    # X11 window appears and closes on a virtual display.
+    #
+    # The image is pinned because the job owns a *reviewable* Linux runtime
+    # baseline: `packaging/linux-runtime-baseline.toml` records the exact host
+    # SONAMEs the packaged application may resolve, and the dependency audit fails
+    # when an undeclared host library appears. A floating `ubuntu-latest` label
+    # would silently move that baseline. (Issue #93 review)
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -266,11 +290,71 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
 
+      - name: Install the display and Qt WebEngine runtime libraries
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          # The application bundles its own Python, Qt, and Qt WebEngine/Chromium,
+          # so it needs no separately installed Python, Qt, webview, or browser.
+          # It *does* use the ordinary Linux desktop graphics/session libraries
+          # that any Qt application uses - that is the host-OS half of the
+          # supported baseline documented in docs/dev/workflow/packaging.md
+          # ("Supported Linux baseline"). The `lib*` packages below are that host
+          # userspace, installed so a real graphical session is emulated; the
+          # display/automation tools (xvfb, xdotool, x11-utils, openbox, wmctrl)
+          # are the CI harness only and are never end-user prerequisites.
+          #
+          # The canonical, machine-readable record of what this job is allowed to
+          # resolve from the host is `packaging/linux-runtime-baseline.toml`. The
+          # dependency audit fails if the packaged application resolves a host
+          # library that file does not declare, and this install list must provide
+          # everything it declares. (Issue #93 review)
+          sudo apt-get install -y --no-install-recommends \
+            xvfb xdotool x11-utils openbox wmctrl \
+            libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libxcursor1 \
+            libxi6 libxrender1 libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
+            libdbus-1-3 libfontconfig1 libxshmfence1 libgbm1 libxcb-cursor0 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+            libxcb-render-util0 libxcb-shape0 libxcb-xinerama0
+          # Ubuntu renamed the ALSA runtime package; accept either name.
+          sudo apt-get install -y --no-install-recommends libasound2t64 \
+            || sudo apt-get install -y --no-install-recommends libasound2
+
+      - name: Start a virtual display for the desktop verification
+        run: |
+          set -euo pipefail
+          Xvfb :99 -screen 0 1600x1000x24 > "$RUNNER_TEMP/xvfb.log" 2>&1 &
+          export DISPLAY=:99
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+          for _ in $(seq 1 30); do
+            if xdpyinfo -display :99 > /dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          # A window manager is part of a normal desktop: without one, X clients
+          # that ask to be closed through the EWMH protocol (which is what
+          # `xdotool windowclose` sends) have nobody to deliver the request.
+          # openbox makes the virtual display behave like an ordinary session, so
+          # the window-close assertion below tests the real application behaviour.
+          openbox --sm-disable > "$RUNNER_TEMP/openbox.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            if pgrep -x openbox > /dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          echo "openbox processes: $(pgrep -a openbox || echo none)"
+          echo "window manager: $(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null || echo 'not reported')"
+          cat "$RUNNER_TEMP/openbox.log"
+
       - name: Install build dependencies
-        run: uv sync --group package
+        run: uv sync --group package --group desktop
 
       - name: Read the pinned packaging toolchain
         run: python tools/packaging_toolchain.py export
+
+      - name: Strict type-check the Qt desktop host
+        # The fast `check` gate excludes src/deepplant/editor/desktop_qt.py because
+        # it deliberately does not install PySide6. This job does, so the actual Qt
+        # module is type-checked in strict mode here (Issue #93 review).
+        run: uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
 
       - name: Install pinned, integrity-verified appimagetool and AppImage runtime
         run: |
@@ -299,9 +383,9 @@ jobs:
           echo "APPIMAGETOOL=$tool" >> "$GITHUB_ENV"
           echo "APPIMAGE_RUNTIME=$runtime" >> "$GITHUB_ENV"
 
-      - name: Build, package and verify the standalone Editor
+      - name: Build, package and verify the standalone desktop Editor
         run: |
-          uv run --group package python tools/package_editor.py all 2>&1 | tee packaging.log
+          uv run --group package --group desktop python tools/package_editor.py all 2>&1 | tee packaging.log
 
       - name: Write artifact checksum
         run: |
@@ -310,42 +394,155 @@ jobs:
             sha256sum "$artifact" > "$artifact.sha256"
           done
 
-      - name: Install Chromium for the packaged-application E2E
-        run: cd apps/editor && pnpm exec playwright install --with-deps chromium
-
-      - name: Prepare the packaged application outside the repository
+      - name: Discover the real packaged window on the virtual display
         run: |
-          mkdir -p "$RUNNER_TEMP/editor-e2e/model"
-          cp examples/realistic-process-fragment/plant.yaml \
-            "$RUNNER_TEMP/editor-e2e/model/plant.yaml"
-          uv run --group package python tools/package_editor.py extract \
-            --extract-to "$RUNNER_TEMP/editor-e2e/install"
-          echo "DEEPLANT_EDITOR_EXECUTABLE=$RUNNER_TEMP/editor-e2e/install/squashfs-root/AppRun" >> "$GITHUB_ENV"
-          echo "DEEPLANT_EDITOR_PROJECT=$RUNNER_TEMP/editor-e2e/model/plant.yaml" >> "$GITHUB_ENV"
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/editor-window"
+          launcher="$(uv run --group package --group desktop python tools/package_editor.py extract \
+            --extract-to "$RUNNER_TEMP/editor-window/install" | tail -n 1)"
+          echo "packaged launcher: $launcher"
+          test -x "$launcher"
 
-      - name: Run the browser E2E against the packaged application
-        run: |
-          cd apps/editor
-          pnpm run e2e
+          # Launch exactly as an end user does: with NO model argument. This must
+          # open a graphical window, never demand a path or print help.
+          "$launcher" > "$RUNNER_TEMP/editor-window/app.log" 2>&1 &
+          app_pid=$!
 
-      - name: Upload packaged-application E2E failure artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: editor-packaged-e2e-failure-artifacts
-          path: |
-            apps/editor/test-results/
-            apps/editor/playwright-report/
-          retention-days: 7
-          if-no-files-found: ignore
+          found=0
+          for _ in $(seq 1 90); do
+            if xdotool search --name "DeepPlant Editor" > /dev/null 2>&1; then
+              found=1
+              break
+            fi
+            if ! kill -0 "$app_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$found" -ne 1 ]; then
+            echo "FAILED: no DeepPlant Editor window appeared on the virtual display"
+            cat "$RUNNER_TEMP/editor-window/app.log" || true
+            kill "$app_pid" 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "window(s) discovered:"
+          for wid in $(xdotool search --name "DeepPlant Editor"); do
+            echo "  $wid  $(xdotool getwindowname "$wid")"
+          done
+
+          # Prove the application exits when its window is closed, using only a
+          # real user/session close request (never a signal and never a kill).
+          #
+          # `xdotool windowclose` is NOT usable here: it destroys the X window out
+          # of band, which leaves the client's event loop running with no window -
+          # neither an ordinary user action nor a session close request. The
+          # canonical EWMH close request is `_NET_CLOSE_WINDOW` (wmctrl -c), which
+          # the session window manager turns into WM_DELETE_WINDOW for the client;
+          # the ordinary keyboard gesture through the window manager is alt+F4
+          # delivered by XTest (indistinguishable from real input).
+          wait_for_exit() {
+            local deadline=$1
+            for _ in $(seq 1 "$deadline"); do
+              if ! kill -0 "$app_pid" 2>/dev/null; then
+                return 0
+              fi
+              sleep 1
+            done
+            return 1
+          }
+
+          request_session_close() {
+            if command -v wmctrl > /dev/null 2>&1; then
+              wmctrl -c "DeepPlant Editor" || true
+            fi
+            for wid in $(xdotool search --name "DeepPlant Editor"); do
+              xdotool windowactivate --sync "$wid" 2>/dev/null || true
+              xdotool key --clearmodifiers alt+F4 || true
+            done
+          }
+
+          request_session_close
+          wait_for_exit 30 || true
+          if xdotool search --name "DeepPlant Editor" > /dev/null 2>&1; then
+            # The session may not have delivered the first request; ask once more
+            # before treating it as a product failure.
+            request_session_close
+            wait_for_exit 30 || true
+          fi
+
+          # Hard gate 1: the session close request must actually close the window.
+          if xdotool search --name "DeepPlant Editor" > /dev/null 2>&1; then
+            echo "FAILED: the session close request did not close the Editor window"
+            echo "--- diagnostics ---"
+            echo "remaining windows:"
+            xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
+              echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
+            done || true
+            pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
+            kill "$app_pid" 2>/dev/null || true
+            exit 1
+          fi
+          echo "the session close request closed the real DeepPlant Editor window"
+
+          # Hard gate (Issue #93 review): a window that disappears while the
+          # process stays alive is a FAILURE. There is no "window closed but the
+          # process lingers" NOTE path any more - forced cleanup runs only after
+          # the failure has been recorded, never as the reason the step passed.
+          if kill -0 "$app_pid" 2>/dev/null; then
+            echo "FAILED: the DeepPlant Editor window closed but the process is still alive"
+            echo "--- diagnostics ---"
+            echo "window manager: $(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null)"
+            echo "openbox: $(pgrep -a openbox || echo none)"
+            echo "remaining application processes:"
+            pgrep -af "$RUNNER_TEMP/editor-window/install" || echo "  none"
+            echo "remaining web engine helpers:"
+            pgrep -af QtWebEngineProcess || echo "  none"
+            echo "remaining windows:"
+            xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
+              echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
+            done || true
+            echo "--- application log ---"
+            cat "$RUNNER_TEMP/editor-window/app.log" || true
+            # Record the failure first, then leave the runner clean.
+            pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
+            kill "$app_pid" 2>/dev/null || true
+            exit 1
+          fi
+
+          # No owned application process may remain either.
+          if pgrep -f "$RUNNER_TEMP/editor-window/install" > /dev/null 2>&1; then
+            echo "FAILED: an application-owned process remains after the main process exited"
+            pgrep -af "$RUNNER_TEMP/editor-window/install" || true
+            pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "WINDOW LIFECYCLE VERIFIED: the packaged application opened a real"
+          echo "window with no model argument and the whole process exited when the"
+          echo "session closed it - no signal and no kill were used."
 
       - name: Upload packaging log on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: editor-package-linux-log
-          path: packaging.log
+          path: |
+            packaging.log
+            build/editor-package/**/*.log
           retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload the Linux desktop verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-package-linux-desktop-evidence
+          path: |
+            build/editor-package/verify/reports/*
+            build/editor-package/verify/dependency-inventory.json
+          retention-days: 14
           if-no-files-found: ignore
 
       - name: Upload Linux Editor artifact

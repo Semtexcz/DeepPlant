@@ -154,9 +154,13 @@ Core and standalone editor distribution
 ([Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85)) as the next
 product capability, so the editor is proven to ship as a self-contained
 Windows/Linux application — with the Core remaining independently usable — before
-more editor functionality is layered on it. The DeepPlant project format and
+more editor functionality is layered on it. That capability is now **delivered**
+through its two child slices: the self-contained distribution foundation (PR #92)
+and the native desktop host that turns the packaged runtime into a real graphical
+application over the same Vue frontend (PR #93). The DeepPlant project format and
 portable package ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89))
-remains a strong later candidate decided at the next re-evaluation.
+remains a strong later candidate decided at the next re-evaluation, which is
+required before any successor capability is selected.
 
 ### Stage 5 — Git-native Engineering Workflow
 

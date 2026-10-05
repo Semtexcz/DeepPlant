@@ -1,0 +1,138 @@
+# Redistribution compliance payload (Issue #93 review fix).
+#
+# DeepPlant's Windows installer and Linux AppImage redistribute:
+#
+#   PySide6 (Qt for Python), the Qt libraries, Qt WebEngine, the
+#   QtWebEngineProcess helper, the Chromium engine and its resource/ICU/locale
+#   data, and the CPython runtime.
+#
+# Repository documentation alone is not artifact evidence, so the applicable
+# licence and notice texts are staged INTO the installed application. The PySide6
+# wheels ship no licence text files at all (verified against the exact 6.11.2
+# wheels: only the METADATA `License:` expression is present), so the texts are
+# taken from the exact Qt source tag the wheels were built from and are pinned
+# here by immutable URL and SHA-256.
+#
+# This file is the single reviewed source of truth for that payload. It is
+# consumed by tools/package_editor.py, which verifies every digest before the
+# material is staged, and by tests/test_packaging_licenses.py. Mutable locators
+# (latest / continuous / main / master) are forbidden, so the staged material
+# always corresponds to the Qt version actually being redistributed.
+#
+# Bundled application side (project-owned, always present):
+#   licenses/README.md                 the compliance mechanism and source offer
+#   licenses/CORRESPONDING-SOURCE.md   the corresponding-source written offer
+#   licenses/BUILD-IDENTITY.md         generated version + source revision of the
+#                                      exact artifact covered by that offer
+#   licenses/DEEPLANT-AGPL-3.0.txt     DeepPlant's own licence
+#   licenses/THIRD_PARTY_NOTICES.md    the DeepPlant third-party provenance index
+#   licenses/Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt
+#                                      the generated, version-matched Chromium
+#                                      third-party notice set (see [chromium])
+#   licenses/Qt-WebEngine/Chromium-NOTICES.md
+#                                      how that notice set is generated/verified
+schema_version = 1
+
+# Must equal the PySide6 version resolved in uv.lock, and the release tag segment
+# of every `url` below. Enforced by tools/package_editor.py and
+# tests/test_packaging_licenses.py.
+pyside6_version = "6.11.2"
+qt_version = "6.11.2"
+qt_tag = "v6.11.2"
+
+[[file]]
+destination = "Qt/LGPL-3.0-only.txt"
+description = "Qt LGPL v3.0-only (qtbase v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtbase/v6.11.2/LICENSES/LGPL-3.0-only.txt"
+sha256 = "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+
+[[file]]
+destination = "Qt/LGPL-2.1-or-later.txt"
+description = "Qt LGPL v2.1-or-later (qtbase v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtbase/v6.11.2/LICENSES/LGPL-2.1-or-later.txt"
+sha256 = "1ccf09bf2f598308df4bed9cd8e9657dc5cd0973d2800318f2e241486e2edf3f"
+
+[[file]]
+destination = "Qt/GPL-2.0-only.txt"
+description = "GNU GPL v2.0-only (qtbase v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtbase/v6.11.2/LICENSES/GPL-2.0-only.txt"
+sha256 = "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+
+[[file]]
+destination = "Qt/GPL-3.0-only.txt"
+description = "GNU GPL v3.0-only (qtbase v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtbase/v6.11.2/LICENSES/GPL-3.0-only.txt"
+sha256 = "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+
+[[file]]
+destination = "Qt/Qt-GPL-exception-1.0.txt"
+description = "Qt GPL exception 1.0 (qtbase v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtbase/v6.11.2/LICENSES/Qt-GPL-exception-1.0.txt"
+sha256 = "40678d338ce53cd93f8b22b281a2ecbcaa3ee65ce60b25ffb0c462b0530846b2"
+
+[[file]]
+destination = "Qt-WebEngine/LGPL-3.0-only.txt"
+description = "Qt WebEngine LGPL v3.0-only (qtwebengine v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/LICENSES/LGPL-3.0-only.txt"
+sha256 = "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+
+[[file]]
+destination = "Qt-WebEngine/LGPL-2.0-or-later.txt"
+description = "Qt WebEngine LGPL v2.0-or-later (qtwebengine v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/LICENSES/LGPL-2.0-or-later.txt"
+sha256 = "0d816b54ffd9a6cf3bb78f2241c4e45f099b92d36d76c6944c184daa90f65a62"
+
+[[file]]
+destination = "Qt-WebEngine/GPL-2.0-only.txt"
+description = "GNU GPL v2.0-only (qtwebengine v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/LICENSES/GPL-2.0-only.txt"
+sha256 = "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+
+[[file]]
+destination = "Qt-WebEngine/GPL-3.0-only.txt"
+description = "GNU GPL v3.0-only (qtwebengine v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/LICENSES/GPL-3.0-only.txt"
+sha256 = "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+
+[[file]]
+destination = "Qt-WebEngine/Qt-GPL-exception-1.0.txt"
+description = "Qt GPL exception 1.0 (qtwebengine v6.11.2 LICENSES)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/LICENSES/Qt-GPL-exception-1.0.txt"
+sha256 = "40678d338ce53cd93f8b22b281a2ecbcaa3ee65ce60b25ffb0c462b0530846b2"
+
+[[file]]
+destination = "Qt-WebEngine/Chromium-VERSION.txt"
+description = "Chromium revision inside Qt WebEngine (qtwebengine v6.11.2 CHROMIUM_VERSION)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/CHROMIUM_VERSION"
+sha256 = "4032b467d870b0de439eda19dee7ef8b5e8126d9555b0dda1418563874bd7995"
+
+[[file]]
+destination = "Qt-WebEngine/Chromium-LICENSE-BSD.txt"
+description = "Chromium project BSD licence (qtwebengine v6.11.2 LICENSE.Chromium)"
+url = "https://raw.githubusercontent.com/qt/qtwebengine/v6.11.2/LICENSE.Chromium"
+sha256 = "f34787ef0342c614b667186a6ec2f5d6b9d650e30142a2788a589a89743e88e9"
+
+# The Chromium third-party notice set (Issue #93 review).
+#
+# Qt WebEngine compiles Chromium into Qt6WebEngineCore, so Chromium's third-party
+# licences apply to the distributed binaries too. Upstream does not publish that
+# notice set as a single immutable release file: Qt *generates* it at build time
+# with Chromium's own tools/licenses/licenses.py (credits mode) through
+# qtwebengine/cmake/QtGnCredits.cmake for the GN target :QtWebEngineCore, and
+# *publishes* the generated result as the qtwebengine-licensing documentation
+# group for the exact Qt release. The `publication` below is that generated set for
+# the exact Qt release the distributed wheels are built from.
+#
+# `bundle` is the static notice text shipped with DeepPlant. It is produced from
+# the publication by tools/chromium_notices.py (`generate`), and the packaging
+# job re-fetches the publication, verifies `publication_sha256`, and fails unless
+# the bundle enumerates *every* component upstream lists (`check`). A partial or
+# stale bundle therefore cannot ship.
+[chromium]
+version = "140.0.7339.264"
+source_tag = "v6.11.2"
+generator = "Chromium tools/licenses/licenses.py credits via qtwebengine cmake/QtGnCredits.cmake (GN target :QtWebEngineCore)"
+publication = "https://doc.qt.io/qt-6.11/qtwebengine-licensing.html"
+publication_sha256 = "dc3fc4a73cce79c1070d9b5f752907e629ddb3f1b5b828103a01dbc9ab99d1e7"
+components = 126
+bundle = "Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt"

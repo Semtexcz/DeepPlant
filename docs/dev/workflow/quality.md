@@ -21,7 +21,13 @@ superseded_by: null
 ## Baseline
 
 - Formatting and linting run through `make lint`.
-- Type checking runs through `make typecheck`.
+- Type checking runs through `make typecheck`. It deliberately excludes
+  `src/deepplant/editor/desktop_qt.py`, because the fast environment does not
+  install PySide6. The Qt module is still strictly type-checked: the native
+  packaging jobs run `make typecheck-desktop`
+  (`pyright --project pyrightconfig.desktop.json`), which mirrors the canonical
+  strict settings with PySide6 available and keeps every module in scope. There is
+  no blanket `type: ignore` for the Qt module.
 - Tests run through `make test`.
 - Frontend lint runs through `make frontend-lint`: ESLint (flat config in
   `apps/editor/eslint.config.js`) over the editor source (`src/**`), the automated
@@ -47,13 +53,17 @@ superseded_by: null
 - `make check` is the fast local/pre-review gate for DeepPlant. It includes
   `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
   are prerequisites of `make check`.
-- Standalone Editor packaging runs through `python tools/package_editor.py` (or
-  `make package-editor`): production SPA build, freeze, platform package, and a
-  packaged-artifact smoke test. It is deliberately **not** part of `check`,
-  because it is slow and platform-specific. It runs in CI as the native
-  `editor-package-windows` and `editor-package-linux` jobs, which install and
-  integrity-check the pinned external toolchain
-  (`packaging/toolchain.toml`) before building. Ownership and debugging are
+- Standalone Editor packaging runs through `uv run --group package --group desktop
+  python tools/package_editor.py` (or `make package-editor`): production SPA
+  build, freeze (PyInstaller + Qt WebEngine), platform package, and a packaged
+  **desktop** verification that launches the real native window. It is
+  deliberately **not** part of `check`, because it is slow and platform-specific.
+  It runs in CI as the native `editor-package-windows` and `editor-package-linux`
+  jobs, which install and integrity-check the pinned external toolchain
+  (`packaging/toolchain.toml`) before building; the Linux job also runs the
+  graphical verification on a virtual display. The Qt/desktop group is never part
+  of `make setup`/`check`, so the fast gate stays free of Qt and the Core, CLI,
+  and browser host stay provably independent of it. Ownership and debugging are
   canonical in [workflow/packaging.md](packaging.md).
 - Base-installation independence verification runs through
   `python tools/verify_base_install.py <wheel>` in the `check` job: it installs

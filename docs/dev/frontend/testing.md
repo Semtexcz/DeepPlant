@@ -71,12 +71,31 @@ so it is the slowest and most expensive layer. It exists to prove that the whole
 local product path works together, not to re-assert behaviour the unit,
 component, and integration layers already cover.
 
-The same two specs run against either launcher: the developer `deepplant ui`
-command (source run) or the packaged standalone application (Issue #85). The
-choice is one environment variable in `e2e/support/editor-server.ts`
-(`DEEPLANT_EDITOR_EXECUTABLE`, plus `DEEPLANT_EDITOR_PROJECT` for a model outside
-the checkout). Feature specs stay packaging-agnostic; see
-[workflow/packaging.md](../workflow/packaging.md).
+The specs always drive the developer/browser host: `uv run deepplant ui <path>
+--port 0` over the production build. `DEEPLANT_EDITOR_PROJECT` may point them at a
+model outside the checkout. They no longer target the packaged product, because
+since Issue #93 that product is a native desktop window rather than a browser
+target; the packaged product is verified by
+[workflow/packaging.md](../workflow/packaging.md). Feature specs stay
+packaging-agnostic.
+
+### Desktop host layer (Issue #93)
+
+The standalone product adds two layers that this browser suite does not cover:
+
+- **Host behaviour, without a GUI toolkit** - `tests/test_editor_desktop.py`
+  (command-line wiring, the optional-path/self-check hand-off, the initial-model
+  load, the embedded-navigation policy) and `tests/test_editor_server.py` (the
+  owned `EditorServer` lifecycle: loopback-only bind, real HTTP, and socket
+  release on stop).
+- **The packaged graphical product** - `tools/package_editor.py verify` launches
+  the real frozen application with no model argument and with the realistic
+  fragment, reads the real rendered page through Qt's own JavaScript engine, and
+  checks the window/server/socket lifecycle. On Linux the CI job additionally
+  discovers the real X11 window with `xdotool` on a virtual display.
+
+The layers are deliberately not duplicated: browser behaviour belongs to this
+Playwright suite, and the native window belongs to the packaging verification.
 
 ## Ownership of each layer
 

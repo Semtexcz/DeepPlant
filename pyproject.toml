@@ -26,6 +26,19 @@ editor = [
   "uvicorn>=0.34",
 ]
 
+# The standalone desktop Editor host (Issue #93). It adds the native window and
+# the embedded webview on top of the editor transport. PySide6 is chosen because
+# it ships the Qt WebEngine (Chromium) runtime itself, so the packaged
+# application needs no separately installed system webview. Like the `editor`
+# extra, this is never a dependency of the semantic Core, and it is deliberately
+# *not* part of `dev`: the fast `check` gate must stay free of the multi-hundred
+# megabyte Qt download.
+desktop = [
+  "fastapi>=0.115",
+  "uvicorn>=0.34",
+  "PySide6>=6.9",
+]
+
 [dependency-groups]
 # ``editor`` is repeated as a group (not only as an extra) because uv installs
 # dependency groups for a source checkout, while ``deepplant[editor]`` is the
@@ -33,6 +46,13 @@ editor = [
 editor = [
   "fastapi>=0.115",
   "uvicorn>=0.34",
+]
+
+# Mirrors the `desktop` extra. Installed only by the native packaging jobs
+# (`uv sync --group package --group desktop`), never by `make setup`.
+desktop = [
+  { include-group = "editor" },
+  "PySide6>=6.9",
 ]
 
 dev = [
@@ -55,7 +75,9 @@ package = [
 
 [project.scripts]
 deepplant = "deepplant.__main__:main"
-deepplant-editor = "deepplant.editor.launcher:main"
+# The standalone Editor is the native desktop host (Issue #93), not the general
+# DeepPlant CLI and not the developer browser host (`deepplant ui`).
+deepplant-editor = "deepplant.editor.desktop:main"
 
 
 [build-system]
@@ -85,3 +107,15 @@ select = ["E", "F", "I", "UP", "B"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 include = ["src", "tests", "tools"]
+# `desktop_qt.py` imports PySide6, which is deliberately *not* part of the `dev`
+# environment: the fast `check` gate must not download the multi-hundred megabyte
+# Qt runtime, and the semantic Core/CLI/browser host must stay provably free of
+# it. Without PySide6 installed, Pyright cannot resolve its stubs, so the file is
+# excluded from the default run instead of being silenced with blanket
+# suppressions. It is linted by Ruff like every other module and is exercised for
+# real by the native `editor-package-windows` / `editor-package-linux` jobs, which
+# install the `desktop` group. Those jobs also run the *desktop-specific* strict
+# check `pyrightconfig.desktop.json` (via `make typecheck-desktop`), which mirrors
+# this strict configuration but keeps `desktop_qt.py` in scope (Issue #93 review).
+# See docs/dev/workflow/packaging.md.
+exclude = ["src/deepplant/editor/desktop_qt.py"]
