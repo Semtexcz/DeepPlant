@@ -477,9 +477,13 @@ policy is `deepplant.editor.desktop.is_allowed_navigation`, covered by
 On Linux the packaging job additionally launches the packaged application with
 **no** model argument on a virtual display (Xvfb) under a session window manager
 (openbox) and discovers the real X11 window with `xdotool`, proving the graphical
-product exists outside the application's own report. It then closes that window
-through the session and **fails the job** if the process is still alive - a window
-that disappears while the process lingers is a failure, not a note.
+product exists outside the application's own report. It then requests an ordinary
+session close - the EWMH `_NET_CLOSE_WINDOW` request (`wmctrl -c`) and the
+standard `alt+F4` gesture delivered through the window manager - and **fails the
+job** if the process is still alive. `xdotool windowclose` is deliberately not
+used: it destroys the X window out of band and leaves the client running, which is
+neither a user action nor a session close request. A window that disappears while
+the process lingers is a failure, not a note.
 
 ### Browser E2E boundary
 
