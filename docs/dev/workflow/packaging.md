@@ -257,10 +257,11 @@ ci-gate                  stable aggregate required result (branch protection)
 The full routing matrix, and the surfaces that select each native job, are
 canonical in [quality.md](quality.md#change-aware-ci). For packaging those
 surfaces are the desktop host, `packaging/**`, the packaging tooling, the
-packaged brand assets, the desktop/package dependency groups, the desktop
-type-check configuration (`pyrightconfig.desktop.json`), the embedded SPA and
-editor application, and the bundled compliance payload
-(`THIRD_PARTY_NOTICES.md`). The packaged smoke test also loads the
+packaged brand assets, the canonical `src/deepplant/assets/**` symbols, the
+desktop/package dependency groups, the desktop type-check configuration
+(`pyrightconfig.desktop.json`), the embedded SPA and editor application, and the
+bundled compliance payload (`LICENSE`, `THIRD_PARTY_NOTICES.md`). The packaged
+smoke test also loads the
 `examples/realistic-process-fragment/plant.yaml` fixture at runtime, so changing
 that fixture selects both native jobs as well. Routing never weakens a step: when
 a packaging job runs, it still performs the complete verification listed below.

@@ -102,8 +102,8 @@ restating it.
 | Python / Core, tests, examples, tooling | `python-checks` (`make format-check`, `make lint`, `make typecheck`, `make test`) |
 | Python distribution boundary (`src/deepplant/**`, `pyproject.toml`, `uv.lock`, `LICENSE`, wheel tooling) | `wheel-verification` (wheel build, wheel contents, base-install independence) |
 | frontend source/config (`apps/editor/**`) | `frontend-checks` (`make frontend-check` **and** `make frontend-build`) |
-| editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
-| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/realistic-process-fragment/**` runtime fixture, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
+| editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the canonical `src/deepplant/assets/**` symbols, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
+| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, the canonical `src/deepplant/assets/**` symbols, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/realistic-process-fragment/**` runtime fixture, `LICENSE`, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
 | `push` to `main`, `workflow_dispatch`, `.github/**`, `Makefile`, the classifier itself | the full matrix above |
 
 The consequences that matter:
@@ -136,6 +136,20 @@ The consequences that matter:
 - **`pyrightconfig.desktop.json`** is a package-validation input: both native jobs
   run the strict desktop type check with it, so changing it selects
   `editor-package-windows` and `editor-package-linux`.
+- The **canonical `src/deepplant/assets/**` symbols** are runtime and
+  packaged-product inputs, not Python package metadata: the renderer reads them
+  through `importlib.resources` (`src/deepplant/render.py`), the Editor backend
+  serves them to the browser at `/api/symbols/<role>.svg`, the Playwright suite
+  drives that path, and `tools/package_editor.py` bundles and verifies a
+  canonical symbol (`REQUIRED_SYMBOL`). A change there selects `python-checks`,
+  `wheel-verification`, `frontend-e2e`, and both native packaging jobs. This is
+  scoped to the asset subtree: a generic `src/deepplant/**` Core change still
+  selects only the Python distribution boundary.
+- **`LICENSE`** is both a wheel input (declared in `license-files`) and a
+  packaged-product input (`tools/package_editor.py::stage_licenses` copies it
+  into the shipped compliance payload as `licenses/DEEPLANT-AGPL-3.0.txt`), like
+  `THIRD_PARTY_NOTICES.md`. Changing it selects `wheel-verification` and both
+  native packaging jobs.
 - A **rename or move preserves both sides**: changed-file discovery disables Git
   rename detection (`git diff --no-renames`), so the removed and added paths are
   each classified. Moving a file across validation surfaces cannot silently drop

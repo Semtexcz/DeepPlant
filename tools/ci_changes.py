@@ -35,8 +35,10 @@ Design rules
   confidence instead of being made cheaper.
 - A surface is a *reason for evidence*, not an implementation detail. A file
   that is an input to a distributed artifact belongs to that artifact's surface
-  (``LICENSE`` is a wheel input; ``THIRD_PARTY_NOTICES.md`` and ``assets/**``
-  are packaged-application inputs).
+  (``LICENSE`` is a wheel *and* packaged-application input;
+  ``THIRD_PARTY_NOTICES.md`` and ``assets/**`` are packaged-application inputs;
+  the canonical ``src/deepplant/assets/**`` runtime symbols are python,
+  distribution, E2E and packaged-application inputs).
 
 Canonical documentation of the resulting PR matrix:
 ``docs/dev/workflow/quality.md``.
@@ -119,10 +121,14 @@ _ROOT_DOC_FILES: frozenset[str] = frozenset(
 )
 
 #: Root documents that are inputs to a distributed artifact rather than prose.
-#: ``LICENSE`` is declared in ``license-files`` and therefore enters the wheel;
-#: ``THIRD_PARTY_NOTICES.md`` is a bundled compliance-payload document.
+#: ``LICENSE`` is declared in ``license-files`` and therefore enters the wheel,
+#: and ``tools/package_editor.py::stage_licenses`` also copies it into the
+#: packaged application's compliance payload (``licenses/DEEPLANT-AGPL-3.0.txt``,
+#: verified by ``REQUIRED_LICENSE_FILES``). ``THIRD_PARTY_NOTICES.md`` is the
+#: other bundled compliance-payload document. ``LICENSE`` is thus both a wheel
+#: and a packaged-product input, which the two sets below record.
 _WHEEL_ROOT_FILES: frozenset[str] = frozenset({"LICENSE"})
-_PACKAGE_ROOT_FILES: frozenset[str] = frozenset({"THIRD_PARTY_NOTICES.md"})
+_PACKAGE_ROOT_FILES: frozenset[str] = frozenset({"LICENSE", "THIRD_PARTY_NOTICES.md"})
 
 _DOC_PREFIXES: tuple[str, ...] = ("docs/", "project/")
 
@@ -161,6 +167,20 @@ _E2E_FILES: frozenset[str] = frozenset({"src/deepplant/__main__.py"})
 #: packaging jobs, not only the generic ``examples/**`` Python surface. Other
 #: ``examples/**`` subtrees stay Python-only.
 _RUNTIME_FIXTURE_PREFIXES: tuple[str, ...] = ("examples/realistic-process-fragment/",)
+
+#: The canonical DeepPlant symbol resources under ``src/deepplant/assets/**``.
+#: They are runtime and packaged-product inputs, not merely Python source or
+#: package metadata: the renderer reads them through ``importlib.resources``
+#: (``src/deepplant/render.py::read_process_symbol_svg``), the Editor backend
+#: serves them to the browser (``/api/symbols/<role>.svg``, ``editor/api.py``),
+#: the Playwright suite drives that browser path, and ``tools/package_editor.py``
+#: bundles and verifies a canonical symbol (``REQUIRED_SYMBOL``). A change here
+#: therefore selects the conservative complete runtime ownership (``python`` and
+#: ``distribution`` also come from the ``src/`` / ``src/deepplant/**`` rules):
+#: ``python``, ``distribution``, ``e2e`` and ``package``. This is deliberately
+#: scoped to the asset subtree - a generic ``src/deepplant/**`` Core change must
+#: not pull in browser E2E or native packaging.
+_RUNTIME_ASSET_PREFIXES: tuple[str, ...] = ("src/deepplant/assets/",)
 
 _PACKAGE_PREFIXES: tuple[str, ...] = (
     "apps/editor/",
@@ -391,6 +411,9 @@ def _surfaces_for(path: str) -> frozenset[str] | None:
     if path.startswith(_PACKAGE_PREFIXES) or path in _PACKAGE_FILES or path in _PACKAGE_ROOT_FILES:
         surfaces.add("package")
     if path.startswith(_RUNTIME_FIXTURE_PREFIXES):
+        surfaces.add("e2e")
+        surfaces.add("package")
+    if path.startswith(_RUNTIME_ASSET_PREFIXES):
         surfaces.add("e2e")
         surfaces.add("package")
     return frozenset(surfaces)

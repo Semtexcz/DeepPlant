@@ -221,6 +221,30 @@ def test_other_examples_remain_python_only() -> None:
     assert ci_changes.WINDOWS_PACKAGE_JOB not in jobs
 
 
+def test_canonical_runtime_asset_selects_python_wheel_e2e_and_native_packaging() -> None:
+    # `src/deepplant/assets/**` (here the real `pump.svg`) is a runtime input, not
+    # Python package metadata: the renderer reads it through `importlib.resources`,
+    # the Editor backend serves it to the browser at `/api/symbols/<role>.svg`, the
+    # Playwright suite drives that path, and `tools/package_editor.py` bundles and
+    # verifies a canonical symbol (`REQUIRED_SYMBOL`). A change here must therefore
+    # select python, wheel, browser E2E, and both native packaging jobs.
+    classification = ci_changes.classify_paths(
+        ["src/deepplant/assets/symbols/process/basic/pump.svg"]
+    )
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["python"] is True
+    assert classification.surfaces["distribution"] is True
+    assert classification.surfaces["e2e"] is True
+    assert classification.surfaces["package"] is True
+    assert classification.surfaces["frontend"] is False
+    assert ci_changes.PYTHON_JOB in jobs
+    assert ci_changes.WHEEL_JOB in jobs
+    assert ci_changes.E2E_JOB in jobs
+    assert ci_changes.WINDOWS_PACKAGE_JOB in jobs
+    assert ci_changes.LINUX_PACKAGE_JOB in jobs
+
+
 def test_desktop_typecheck_config_is_a_packaging_input() -> None:
     # Both native jobs run the strict desktop type check with
     # `pyright --project pyrightconfig.desktop.json`, so changing that project
@@ -257,6 +281,23 @@ def test_wheel_licence_file_is_a_distribution_input() -> None:
 
     assert classification.surfaces["docs"] is True
     assert classification.surfaces["distribution"] is True
+
+
+def test_licence_file_is_also_a_packaged_product_input() -> None:
+    # `tools/package_editor.py::stage_licenses` copies the root `LICENSE` into the
+    # distributed compliance payload (`licenses/DEEPLANT-AGPL-3.0.txt`, verified by
+    # `REQUIRED_LICENSE_FILES`), exactly like `THIRD_PARTY_NOTICES.md`. Routing the
+    # licence through the wheel surface alone would let a licence change skip the
+    # native packaging jobs that actually ship it.
+    classification = ci_changes.classify_paths(["LICENSE"])
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["docs"] is True
+    assert classification.surfaces["distribution"] is True
+    assert classification.surfaces["package"] is True
+    assert ci_changes.WHEEL_JOB in jobs
+    assert ci_changes.WINDOWS_PACKAGE_JOB in jobs
+    assert ci_changes.LINUX_PACKAGE_JOB in jobs
 
 
 @pytest.mark.parametrize(
