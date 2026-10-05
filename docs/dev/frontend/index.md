@@ -57,6 +57,7 @@ editor product behavior.
 | Styling architecture and ownership | [styling.md](styling.md) |
 | Frontend testing pyramid and its ownership | [testing.md](testing.md) |
 | Accessibility baseline | [accessibility.md](accessibility.md) |
+| Figma design → coding agent → Vue implementation workflow | [design-to-code.md](design-to-code.md) |
 | Commands and the enforced gates | [quality.md](../workflow/quality.md) |
 
 ## Current vs canonical vs deferred

@@ -243,6 +243,7 @@ validate-docs:
 	@test -f docs/dev/frontend/styling.md
 	@test -f docs/dev/frontend/testing.md
 	@test -f docs/dev/frontend/accessibility.md
+	@test -f docs/dev/frontend/design-to-code.md
 	@test -f .agents/skills/frontend-engineering/SKILL.md
 	@test -f docs/user/index.md
 	@test -f docs/user/getting-started.md
