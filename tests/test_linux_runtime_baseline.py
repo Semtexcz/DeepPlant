@@ -17,6 +17,7 @@ import sys
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -181,6 +182,51 @@ def test_audit_passes_with_declared_host_dependencies(
     assert isinstance(baseline, dict)
     assert baseline["unexpected"] == []
     assert baseline["stale"] == []
+
+
+def test_audit_runs_ldd_without_the_ambient_loader_environment(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The inventory must describe the artifact, not the machine running the audit.
+
+    ``ldd`` searches ``LD_LIBRARY_PATH`` before an object's own ``DT_RUNPATH``, so
+    an ambient value would make the audit report the build host's libraries (and
+    could mask a real host dependency). The audit therefore removes the loader
+    variables while keeping the rest of the environment intact.
+    """
+    app = _app_tree(tmp_path)
+    captured: dict[str, dict[str, str]] = {}
+
+    def _run(command: Sequence[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        env = kwargs.get("env")
+        assert isinstance(env, dict)
+        captured["env"] = cast("dict[str, str]", env)
+        return subprocess.CompletedProcess(
+            command, 0, stdout=_ldd_lines(app, ["libc.so.6"]), stderr=""
+        )
+
+    def _which(_name: str) -> str:
+        return "/usr/bin/ldd"
+
+    def _baseline(_path: Path | None = None) -> dict[str, str]:
+        return {"libc.so.6": "glibc"}
+
+    monkeypatch.setattr(pe.shutil, "which", _which)
+    monkeypatch.setattr(pe.subprocess, "run", _run)
+    monkeypatch.setattr(pe, "load_linux_runtime_baseline", _baseline)
+    monkeypatch.setenv("LD_LIBRARY_PATH", "/host/qt/lib")
+    monkeypatch.setenv("LD_PRELOAD", "/host/libpreload.so")
+    monkeypatch.setenv("LD_AUDIT", "/host/libaudit.so")
+    monkeypatch.setenv("DEEPLANT_AUDIT_MARKER", "kept")
+
+    pe.audit_linux_dependencies(app)
+
+    env = captured["env"]
+    assert "LD_LIBRARY_PATH" not in env
+    assert "LD_PRELOAD" not in env
+    assert "LD_AUDIT" not in env
+    # The rest of the environment is preserved (PATH etc. still reach the tool).
+    assert env.get("DEEPLANT_AUDIT_MARKER") == "kept"
 
 
 def test_audit_fails_on_an_undeclared_host_dependency(

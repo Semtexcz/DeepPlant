@@ -517,6 +517,18 @@ evidence. `tests/test_linux_runtime_baseline.py` covers the parser, the
 classifier, the baseline comparison, and every failure listed above with
 synthetic `ldd` output; the native job remains the system evidence.
 
+The analysis is deliberately run with `LD_LIBRARY_PATH`, `LD_PRELOAD` and
+`LD_AUDIT` removed from the environment. `ldd` searches `LD_LIBRARY_PATH` *before*
+an object's own `DT_RUNPATH`, so an ambient value (common in developer shells that
+source a platform SDK or a virtual environment) would make the audit report the
+build host's libraries instead of the artifact's own contract - and on a runner
+that happened to set one, it could mask a real host dependency. Removing them
+makes the inventory a property of the artifact and the pinned baseline image, so
+the same AppImage produces the same result on any machine; a difference that
+remains (for example a host library pulled in transitively by a different
+distribution's system libraries) is a real review signal, not an environment
+artefact.
+
 ### Exact-origin webview policy
 
 The embedded view is limited to the **exact origin** of the running

@@ -174,6 +174,16 @@ LINUX_AUDIT_TARGETS: tuple[tuple[str, str], ...] = (
     ("libqxcb.so", "prefix"),
 )
 
+#: Loader environment variables that must not leak into the dependency analysis.
+#: ``ldd`` searches ``LD_LIBRARY_PATH`` *before* an object's own ``DT_RUNPATH``, so
+#: an ambient value - common in developer shells that source a platform SDK or a
+#: virtual environment - makes the audit report the *build host's* libraries
+#: instead of the artifact's own dependency contract. On a runner that happened to
+#: set one of these it could even mask a real host dependency. The analysis is
+#: therefore run with these variables removed, so its result depends only on the
+#: artifact and the pinned baseline image, never on the ambient environment.
+_LDD_ENVIRONMENT_EXCLUDED: tuple[str, ...] = ("LD_LIBRARY_PATH", "LD_PRELOAD", "LD_AUDIT")
+
 
 class PackagingError(RuntimeError):
     """Raised when a packaging phase cannot proceed; the message is user-facing."""
@@ -727,6 +737,18 @@ def check_host_baseline(actual: set[str], declared: set[str]) -> tuple[list[str]
     return sorted(actual - declared), sorted(declared - actual)
 
 
+def _ldd_environment() -> dict[str, str]:
+    """Return the environment for ``ldd`` with loader variables removed.
+
+    Keeping ``LD_LIBRARY_PATH``/``LD_PRELOAD``/``LD_AUDIT`` out of the analysis is
+    what makes the reported inventory a property of the artifact instead of the
+    machine running the audit (see ``_LDD_ENVIRONMENT_EXCLUDED``).
+    """
+    return {
+        name: value for name, value in os.environ.items() if name not in _LDD_ENVIRONMENT_EXCLUDED
+    }
+
+
 def audit_linux_dependencies(app_dir: Path) -> dict[str, object]:
     """Audit the packaged Linux application's dynamic dependencies (Issue #93 review).
 
@@ -767,7 +789,11 @@ def audit_linux_dependencies(app_dir: Path) -> dict[str, object]:
         host: set[str] = set()
         for path in paths:
             completed = subprocess.run(
-                [ldd, str(path)], capture_output=True, text=True, check=False
+                [ldd, str(path)],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=_ldd_environment(),
             )
             for name, resolved in parse_ldd_output(completed.stdout):
                 if resolved is None:
