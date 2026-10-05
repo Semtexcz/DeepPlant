@@ -139,6 +139,11 @@ presentation model boundary, must change.
 
 #### Selected product capability — empty shared Editor workspace
 
+[#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97)
+is the selected product capability. The roadmap chain is now explicit: this `Now`
+section selects Issue #97, and the future implementation PR for #97 delivers the
+slice.
+
 The standalone Editor must launch directly into the ordinary shared Vue application
 with an explicit **`active project = none`** workspace state. A project is optional
 within an Editor session:
@@ -416,8 +421,42 @@ The exact packaging technology is deliberately **not** selected here. No current
 repository evidence decides it; technology selection belongs to the #85
 implementation investigation (potential candidates may be evaluated there).
 
-No successor product capability after #85 is preselected, and no successor Issue
-is created by this gate (see **Now** and **Next**).
+At that time — before #85 was delivered — this post-#82 gate preselected no
+successor product capability after #85 and created no successor Issue itself (see
+**Now** and **Next**); successor selection was deliberately deferred to the later
+post-#85 re-evaluation, which has since executed and selected
+[#97](https://github.com/Semtexcz/DeepPlant/issues/97).
+
+#### Re-evaluation after #85 (executed)
+
+The gate that opened after #85 completed is now executed. It selects exactly one
+product capability, preceded by immediate verification hardening. The chronology is
+explicit:
+
+```text
+Re-evaluation after #82 (executed)
+    ↓
+selected #85
+
+#85 delivered
+    ↓
+Re-evaluation after #85 (executed)
+    ↓
+selected #97
+```
+
+- **Immediate evidence hardening** (not a product capability):
+  [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98);
+- **Selected product capability:**
+  [#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97).
+
+**Next** stays unselected. A new re-evaluation opens only after **both** (1)
+packaged-smoke parity (#98) is restored through the ordinary GUI workflow and (2)
+the empty shared Editor workspace slice (#97) is delivered. The strong future
+candidates — the project format/portable package (#89), the first semantic
+mutation + Save, presentation-state persistence, semantic validity vs Process/PFD
+view availability (#99), release/version infrastructure (#88), P&ID, and
+process ↔ physical realization — remain candidates only and are not preselected.
 
 ### Completed Context
 
