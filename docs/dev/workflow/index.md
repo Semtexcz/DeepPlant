@@ -30,16 +30,24 @@ capabilities ahead of the slice that authorizes them.
 
 ## Change Loop
 
-Understand enough -> build the smallest useful vertical slice -> run checks ->
-learn -> refine durable project knowledge.
+Understand enough -> build the smallest useful vertical slice -> run focused
+checks -> learn -> refine durable project knowledge.
 
 Use executable guardrails before process gates:
 
 ```bash
 make setup
-make check
-make build
+make check     # the one canonical local confidence gate (run once before finalizing a PR)
+make build     # release wheel/sdist (not part of `make check`)
 ```
+
+While implementing, run only the focused checks for the changed surface
+(documentation, Python/Core, frontend, desktop, or packaging - see
+[quality.md](quality.md)). `make check` is the single broader local gate, run
+once before finalizing the pull request. After the PR is pushed the
+implementation session ends: do not wait for or poll GitHub Actions. CI is
+authoritative where required but asynchronous; if it later fails, repair it in a
+fresh focused session on the same branch/PR.
 
 `make check` is validation-only. It must not rewrite project files. Use
 `make format` for formatting changes.
@@ -92,7 +100,7 @@ context small:
   rules, when work touches standards material or distributed symbol assets
 
 Ordinary reversible implementation work can proceed when it fits that context
-and `make check` passes.
+and the canonical `make check` gate passes once before the PR is finalized.
 
 
 ## Human Approval
@@ -124,6 +132,10 @@ ordinary public behavior required by already-scoped work.
 workflow. Agents work on a non-`main` branch, commit their own changes, push to
 `origin`, and open a ready pull request. Direct pushes to `main` are not part of
 this workflow.
+
+After the PR is pushed the implementation session ends. Required GitHub Actions
+CI is asynchronous and must not be waited for or polled from that session; a
+later CI failure is repaired in a fresh focused session on the same branch/PR.
 
 
 ## Release and Post-Release

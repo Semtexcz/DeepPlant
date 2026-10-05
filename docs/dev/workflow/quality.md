@@ -34,14 +34,21 @@ superseded_by: null
   tests and their fixtures (`tests/**`), and the frontend configuration. It
   enforces Vue/TypeScript correctness, the explicit-`any` ban, and the hard
   size/cohesion limits from [frontend/architecture.md](../frontend/architecture.md).
-- Frontend checks run through `make frontend-check`: dependency install from the
-  committed lockfile, `frontend-lint`, `frontend-typecheck` (browser `vue-tsc`
-  over `tsconfig.json` plus Node/tooling `tsc` over `tsconfig.node.json`), Vitest
-  (pure unit plus Vue component and feature-integration suites), and a production
-  build. These are four independent gates; no gate replaces another, and hard
-  size-limit violations fail `frontend-lint`. The two TypeScript runtime
-  environments are canonical in
+- Default frontend checks run through `make frontend-check`: dependency install
+  from the committed lockfile, `frontend-lint`, `frontend-typecheck` (browser
+  `vue-tsc` over `tsconfig.json` plus Node/tooling `tsc` over
+  `tsconfig.node.json`), and Vitest (pure unit plus Vue component and
+  feature-integration suites). These are independent gates; no gate replaces
+  another, and hard size-limit violations fail `frontend-lint`. The two
+  TypeScript runtime environments are canonical in
   [frontend/typescript.md](../frontend/typescript.md).
+- The production SPA build runs through `make frontend-build` (`vite build`). It
+  is deliberately **not** part of `frontend-check`/`check`: it is a separate
+  production-build/artifact verification and is intentionally outside the fast
+  default local confidence gate. Beyond the TypeScript contract that
+  `frontend-typecheck` already proves, a production build can also catch build
+  configuration, module resolution, asset, plugin, or bundling failures. It is
+  exercised by `make frontend-e2e` and by the packaging jobs.
 - Browser system E2E runs through `make frontend-e2e`: it installs frontend
   dependencies from the committed lockfile, builds the production SPA, and runs
   the Playwright + Chromium suite against the real local `deepplant ui` CLI. It is
@@ -50,9 +57,16 @@ superseded_by: null
   `cd apps/editor && pnpm exec playwright install chromium`. Ownership, lifecycle,
   selector policy, and debugging are canonical in
   [frontend/testing.md](../frontend/testing.md).
-- `make check` is the fast local/pre-review gate for DeepPlant. It includes
-  `frontend-check`, so Node 22 and `pnpm` (pinned by `apps/editor/package.json`)
-  are prerequisites of `make check`.
+- `make check` is the single canonical local confidence gate. Run it once for the
+  final candidate repository state before finalizing a pull request (not after
+  every edit, and not once per skill). Reuse that successful result while the
+  candidate state is unchanged; run it again only when no valid local confidence
+  result exists for the current candidate state, or after review or repair changes
+  that state. It is a developer-confidence gate, not a release/distribution gate:
+  the production SPA build, browser E2E, packaging, the desktop type check, and
+  the wheel build stay outside it. It includes `frontend-check`, so Node 22 and
+  `pnpm` (pinned by `apps/editor/package.json`) are prerequisites of
+  `make check`.
 - Standalone Editor packaging runs through `uv run --group package --group desktop
   python tools/package_editor.py` (or `make package-editor`): production SPA
   build, freeze (PyInstaller + Qt WebEngine), platform package, and a packaged
@@ -72,6 +86,56 @@ superseded_by: null
 - The template repository has a separate full release-candidate gate across
   every generated profile and workflow.
 
+## Validation boundaries
+
+Ordinary implementation runs only the checks relevant to the changed surface. Do
+not run exhaustive validation after every edit. The broad gate is defined by the
+candidate repository state, not by how many skills were invoked: one final
+candidate state gets one broad local gate.
+
+| Changed surface | Focused check |
+|---|---|
+| documentation | `make validate-docs` |
+| agent skills / context map | `make validate-agent-skills` |
+| Python / Core | `make format-check`, `make lint`, `make typecheck`, then a targeted `uv run pytest <relevant test paths>` selection |
+| frontend | `make frontend-lint`, `make frontend-typecheck`, `make frontend-test` |
+| desktop host (PySide6) | `make typecheck-desktop` when relevant |
+| packaging / distribution | `make package-editor` / `make verify-packaged-editor` when relevant |
+
+Focused iteration selects only the tests a change can affect, for example
+`uv run pytest tests/test_cli.py` or a `-k` selection. `make test` always runs the
+complete Python suite, so it belongs to the broader gate rather than to per-edit
+iteration:
+
+```text
+focused iteration        -> targeted `uv run pytest <relevant test paths>`
+broader local confidence -> `make check` -> includes the full `make test` suite
+```
+
+Run the one canonical broad local confidence gate for the final candidate
+repository state before the pull request is finalized:
+
+```bash
+make check
+```
+
+This gate is owned by the `verify-change` skill. `implement-change` routes the
+final candidate through it, and `review-change` reuses its result while the
+candidate state is unchanged rather than running its own duplicate. Run it again
+only when no valid local confidence result exists for the current candidate
+state, or when review or repair changed that state - then run focused checks and
+one new `make check` for the new final candidate.
+
+After the PR is pushed the implementation session ends: do not wait for or poll
+GitHub Actions.
+
+> CI is authoritative where required but runs asynchronously. If CI later fails,
+> repair it in a fresh focused session on the same branch and pull request.
+
+The important identity is one final candidate state to one broad local gate, not
+one skill to one broad local gate. Do not follow focused checks with `make check`,
+another equivalent full local check, a push, and then CI polling.
+
 ## Test Expectations
 
 - Domain rules are unit-tested independently of the CLI and any transport.
@@ -90,7 +154,10 @@ superseded_by: null
 - Domain rules must be unit-tested independently of the CLI and any transport.
 - Validation behavior is exercised through the public Python API and the CLI
   entry point once the domain model exists.
-- `make check` is the local gate before every commit and pull request.
+- `make check` is the single canonical local confidence gate, run once for the
+  final candidate repository state before finalizing a pull request; it is
+  reusable while that state is unchanged, not repeated per commit or per skill,
+  and the GitHub Actions CI that runs afterwards is asynchronous.
 - The editor slice is tested at its architecture boundaries rather than by
   screenshots: the projection and the local boundary have Python tests, and the
   frontend has pure unit tests for the runtime DTO contract, the transport, the
@@ -106,8 +173,8 @@ superseded_by: null
   [frontend/index.md](../frontend/index.md): feature ownership, the DeepPlant/Vue
   Flow boundary, Vue and composable conventions, state ownership, TypeScript
   safety, styling ownership, accessibility, the testing pyramid, and the
-  size/cohesion guardrails. Lint, type checking, tests, and the production build
-  are separate gates.
+  size/cohesion guardrails. Lint, type checking, and tests are the default
+  frontend gates; the production build is a separate, higher-cost verification.
 
 ## Security Baseline
 

@@ -347,12 +347,18 @@ Do not create packages for speculative concerns until real code needs them.
 make validate-docs
 make validate-agent-skills
 
-make check   # ruff format --check, ruff check, pyright, pytest, frontend-check
-make frontend-check  # install, eslint, typecheck (vue-tsc + tsc), vitest, vite build
+make check   # ruff format --check, ruff check, pyright, pytest, frontend-check (one local confidence gate before finalizing a PR)
+make frontend-check  # install, eslint, typecheck (vue-tsc + tsc), vitest
+make frontend-build  # production SPA bundle (separate, higher-cost verification)
 make frontend-lint   # pnpm lint (ESLint correctness + hard size/cohesion limits)
 make frontend-e2e    # production build + Playwright/Chromium against the real `deepplant ui`
-make build   # uv build
+make build   # uv build (release wheel/sdist, outside `make check`)
 ```
+
+Run only the focused checks for the changed surface while implementing; run
+`make check` once before finalizing a pull request. CI runs the same gate plus the
+browser, packaging, and release jobs asynchronously: after the PR is pushed the
+implementation session ends and does not wait for or poll CI.
 
 [quality.md](../workflow/quality.md) owns what these gates are expected to prove.
 
