@@ -73,20 +73,24 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   frontend-e2e`) that proves the critical editor workflow across the real local
   product path: the production SPA build, the real `deepplant ui --port 0` CLI
   over loopback FastAPI/Uvicorn, and real pointer interaction in the browser;
-- a standalone Editor **distribution foundation** (Issue #85, first
-  implementation slice; the remaining native-desktop-host slice is
-  [#93](https://github.com/Semtexcz/DeepPlant/issues/93)): the `deepplant-editor`
-  application entry point, packaging of the unchanged editor as a self-contained
-  Windows installer and a Linux AppImage through the cross-platform
-  `tools/package_editor.py` driver, native packaged-artifact smoke verification
-  that runs outside the checkout with a sanitized environment, and native
-  Windows/Linux CI packaging jobs. The built SPA is an application-owned resource
-  (`deepplant/editor/dist` inside the bundle) rather than a checkout dependency,
-  and the editor transport (FastAPI/Uvicorn) is an optional `deepplant[editor]`
-  extra so the semantic Core stays installable without it. The packaged runtime
-  still hosts the SPA in the user's external browser; the native desktop host that
-  completes the standalone product is not implemented yet and belongs to #93, not
-  to this slice.
+- a standalone Editor **graphical desktop application** (Issue #85, delivered
+  through its two child slices): PR #92 established the self-contained
+  distribution foundation — the `deepplant-editor` entry point, packaging of the
+  unchanged editor as a self-contained Windows installer and a Linux AppImage
+  through the cross-platform `tools/package_editor.py` driver, native
+  packaged-artifact verification that runs outside the checkout with a sanitized
+  environment, native Windows/Linux CI packaging jobs, an application-owned built
+  SPA (`deepplant/editor/dist` inside the bundle) rather than a checkout
+  dependency, and the editor transport (FastAPI/Uvicorn) as an optional
+  `deepplant[editor]` extra so the semantic Core stays installable without it.
+  PR #93 (Issue #93) then delivered the native desktop host: PySide6 + Qt WebEngine
+  in the optional `deepplant[desktop]` extra, a native window embedding the same
+  `apps/editor/` SPA over the same loopback `EditorServer`, a native Open dialog
+  for `*.yaml`/`*.yml`, launch with no model argument, an optional model path, and
+  a window lifecycle that stops the owned server and releases the loopback socket.
+  The evidence and candidate comparison are in
+  [research/editor-desktop-host.md](../research/editor-desktop-host.md). The
+  browser host `deepplant ui` and the Python CLI remain separate surfaces.
 
 Not implemented: a DeepPlant project format (canonical project directory, manifest,
 or portable `.deepplant` package); semantic editing and any semantic mutation
@@ -108,21 +112,40 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
+**Re-evaluate after #85.** No product capability is currently selected.
+
 [#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85)
+is **complete**. Both of its child slices are delivered and recorded in
+[history/implementation-slices.md](../history/implementation-slices.md):
 
-#85 remains the sole Product `Now`.
+- the self-contained distribution foundation (PR #92) — Windows installer, Linux
+  AppImage, bundled SPA/runtime, Core independence; and
+- the native desktop host
+  ([#93](https://github.com/Semtexcz/DeepPlant/issues/93), PR #93) — the packaged
+  runtime is now a real graphical application embedding the same `apps/editor/`
+  Vue SPA.
 
-Its first implementation slice delivers the self-contained distribution
-foundation (Windows installer, Linux AppImage, bundled SPA/runtime, Core
-independence); that slice is complete and recorded in
-[history/implementation-slices.md](../history/implementation-slices.md).
+The #93 implementation then went through two focused reviews. The first hardened
+clean shutdown, exact-origin webview navigation, the packaged self-check evidence,
+the Linux window-lifecycle CI gate, artifact licence/compliance payloads, and the
+desktop static type-check. The second closed the two items it left open, with
+evidence rather than wording:
 
-The remaining child slice is
-[#93 — Engineering Editor: add a native desktop host for the shared Vue application](https://github.com/Semtexcz/DeepPlant/issues/93),
-which must turn that packaged runtime into a real desktop application host over
-the same Vue frontend. Re-evaluate only after #85 is complete; do not preselect a
-successor — in particular do not preselect #89 — and do not mechanically promote
-a backlog row.
+- the version-matched **Chromium third-party notice set** is now generated from the
+  exact-version upstream output, shipped inside the artifacts, and verified at
+  build and artifact time
+  ([THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)); and
+- the Linux **host-runtime baseline** is repository-owned, expressed by SONAME, and
+  the dependency audit now fails on an undeclared host library, inspects
+  `deepplant-editor` itself, and uploads the full dependency inventory as evidence.
+
+Both were compliance/verification work on the delivered slice, not new product
+capability, so they do not change the operational sequence below.
+
+Because #85 is complete, the next capability must come from an explicit
+re-evaluation against the current repository state. **Do not preselect a
+successor** — in particular do not preselect #89 — and do not mechanically
+promote a backlog row.
 
 Candidate evidence inputs (strong future candidates, not commitments):
 
@@ -138,12 +161,11 @@ process ↔ physical realization
 
 Re-evaluation criteria include:
 
-- what standalone packaging exposed about hidden coupling and whether the Core
-  boundary needed any correction (answered for the delivered slice: the
-  checkout-relative SPA path and the CLI-level transport import were the only
-  real coupling, and both are fixed and now covered by tests), and what the
-  desktop-host slice (#93) additionally exposes about the application/host
-  boundary;
+- what standalone packaging and the desktop-host slice exposed about hidden
+  coupling and the application/host/frontend boundary (answered for the delivered
+  slices: the checkout-relative SPA path, the CLI-level transport import, and the
+  absence of an owned server lifecycle were the real coupling, and all three are
+  fixed and covered by tests);
 - whether the project/persistence contract (#89) is now the right next step
   before richer Open/Save semantics, or whether a different evidence-supported
   slice comes first;
@@ -153,12 +175,13 @@ Re-evaluation criteria include:
 - whether presentation state (diagram positions, per-view overrides) now needs
   a concrete persisted schema;
 - what release/version automation (#88) needs to consume from the now
-  distributable artifacts.
+  distributable artifacts, and what the new desktop runtime means for artifact
+  size and release packaging.
 
 ### Next
 
-- **Unselected.** The next product capability must remain unselected until #85 is
-  complete and the subsequent re-evaluation produces evidence.
+- **Unselected pending the post-#85 re-evaluation.** No successor capability may
+  be selected until that re-evaluation produces evidence.
 
 ### Re-evaluation Gate
 
@@ -218,13 +241,11 @@ through `production SPA → real deepplant ui → FastAPI/Uvicorn → Chromium`,
 ran only from a development checkout (`uv run deepplant ui ...`) and resolved the
 built SPA assets from `apps/editor/dist` inside that checkout. The strongest
 missing evidence was therefore standalone distributability, not project
-persistence. The first #85 implementation slice — the self-contained distribution
-foundation — is now delivered (see
+persistence. Both #85 implementation slices are now delivered — the self-contained
+distribution foundation and the native desktop host (see
 [history/implementation-slices.md](../history/implementation-slices.md)); the
-checkout coupling described here was the gap it closed. #85 itself remains in
-progress until its remaining child slice
-([#93](https://github.com/Semtexcz/DeepPlant/issues/93), the native desktop host)
-is delivered.
+checkout coupling described here was the gap the first slice closed, and #85 is
+complete.
 
 Reasoning: the delivered editor (#75 → #79 → #80 → #81 → #82) proves the read
 path `load → semantic model → application/projection boundary → FastAPI →
@@ -356,7 +377,7 @@ child implementation slices:
   │     Linux AppImage
   │     native packaging CI
   │     packaged smoke/E2E
-  └── native desktop host            → #93 (remaining)
+  └── native desktop host            delivered by PR #93
         graphical application window
         embedded shared Vue frontend
         native Open workflow
@@ -364,21 +385,20 @@ child implementation slices:
         desktop lifecycle
 ```
 
-The first slice deliberately preserved the existing browser-hosted runtime,
-because the immediate goal was to prove self-contained Windows/Linux packaging
-without changing the product UI host:
+The first slice preserved the existing browser-hosted runtime, because its
+immediate goal was to prove self-contained Windows/Linux packaging without
+changing the product UI host. The second slice then changed only the host:
 
 ```text
-current packaged runtime (distribution foundation)
+distribution foundation (PR #92)
 packaged executable → local FastAPI/Uvicorn → external browser
 
-target completion of #85 (native desktop host, #93)
+delivered product (PR #93)
 packaged executable → native desktop host → embedded shared Vue SPA
 ```
 
-The first slice includes enough automated smoke/E2E evidence to prove the
-packaged product launches and serves the same current read-only editor. The final
-standalone desktop UX is delivered only by #93; #85 becomes complete only then.
+Both slices carry automated evidence proving the packaged product. #85 is
+complete.
 
 Deliberately excluded from the first slice (and from this selection): automatic
 updates, code signing, Microsoft Store / Flatpak / Snap publishing, PyPI
@@ -528,14 +548,15 @@ is created by this gate (see **Now** and **Next**).
   frontend-framework state; YAML remains serialization, not the domain model.
 - `Connection` is topology only; do not attach pipe/stream/signal engineering
   semantics until a real requirement justifies them.
-- #85 authorizes a bounded standalone-distribution and desktop-host vertical
+- #85 authorized a bounded standalone-distribution and desktop-host vertical
   slice and the preservation of the Core boundary, not a Core redesign. DeepPlant
   Core must not acquire desktop, GUI, FastAPI-application, or packaging
   dependencies; the dependency direction stays `applications → Core`, and the CLI
   and editor continue to consume the same Core. Packaging and desktop-host
-  tooling (desktop framework, webview host, bundlers, installers, CI packaging
-  jobs) is introduced only within the #85 child slices (PR #92 distribution
-  foundation; #93 native desktop host), not before them.
+  tooling was introduced only within the two #85 child slices (PR #92 distribution
+  foundation; PR #93 native desktop host) and is confined to the optional
+  `deepplant[editor]`/`deepplant[desktop]` extras, the `package`/`desktop` uv
+  groups, and the packaging stages — never the base Core installation.
 - A future project/persistence contract (#89) will own the home for presentation
   state (diagram positions, layout, per-view overrides, multiple views). That is
   not semantic engineering state, it is not required for #85, and defining it must
@@ -570,16 +591,17 @@ Concrete examples:
   browser E2E); that sequence does not authorize semantic editing, presentation
   persistence, a GUI redesign, P&ID, or broader Engineering Editor infrastructure
 - desktop/packaging tooling (desktop framework, webview host, bundlers,
-  installers, CI packaging jobs) is authorized only within the selected #85
-  child slices (PR #92 distribution foundation; #93 native desktop host) — not
-  before them, and not as release polish
+  installers, CI packaging jobs) was authorized only within the two #85 child
+  slices (PR #92 distribution foundation; PR #93 native desktop host) — it is
+  confined to those slices and the `package`/`desktop` build groups, and is not
+  release polish for other work
 - the multi-discipline stage does not justify generic entity hierarchies now
 - the DEXPI stage does not justify DEXPI-shaped domain objects now
 - the physical-piping realization question and the separate process ↔ physical
   realization question do not justify attaching pipe or process-stream semantics
   to `Connection` now — and the decided piping layer (ADR-0011) honours that by
   referencing identified connections instead of widening `Connection`
-- selecting #85 authorizes only the bounded standalone-distribution and
+- selecting #85 authorized only the bounded standalone-distribution and
   desktop-host slices: it does not authorize automatic updates, code signing,
   Microsoft Store / Flatpak / Snap or PyPI publishing, commercial licensing,
   repository separation, complete public Python API stabilization, complete

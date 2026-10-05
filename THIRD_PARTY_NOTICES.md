@@ -161,11 +161,121 @@ BSD-3-Clause, Apache-2.0 family) plus the CPython runtime (PSF-2.0). They were
 already declared project dependencies; freeze tooling changed only how they are
 distributed.
 
-Deliberately **not** added: Nuitka, Briefcase, Electron, Tauri, PySide/PyQt, or
-any desktop webview runtime, and no browser engine is redistributed. The
-standalone Editor uses the end user's own browser. The decision record and the
-measured comparison are in
+Deliberately **not** added: Nuitka, Briefcase, Electron, or Tauri. The decision
+record and the measured comparison are in
 [`docs/dev/research/standalone-editor-distribution.md`](docs/dev/research/standalone-editor-distribution.md).
+
+## Standalone Editor desktop host (Issue #93)
+
+Issue #93 turned the packaged Editor into a native graphical desktop application.
+It added one redistributed runtime stack, recorded here separately because it
+enters the shipped Windows and Linux artifacts.
+
+| Dependency | Pinned input | Licence | Contributes | Distributed with DeepPlant? |
+|---|---|---|---|---|
+| `PySide6` (Qt for Python) | `uv.lock` (optional extra `desktop`, uv dependency group `desktop`) | `LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only`, and additionally a commercial licence (PyPI project metadata; Qt describes LGPLv3 as its primary open-source licence, with some parts available only under GPL) | The native window, the native Open dialog, and the `QWebEngineView` that embeds the shared Vue SPA; a build/dev toolchain for `apps/editor/dist` is unaffected | Yes — the PySide6 wheels' Qt libraries and the Python bindings are frozen into the artifact |
+| Qt WebEngine (Chromium) | shipped inside the `PySide6` wheels (no separate pin) | Qt-specific parts: commercial, LGPL-3.0, GPL-3.0, or GPL-2.0. Chromium parts carry a large third-party set whose most restrictive licence is LGPL-2.1. Qt states that distributing Qt WebEngine requires complying with **both** the Qt WebEngine licences and Chromium's licences | The embedded webview engine and its multiprocess renderer | Yes — `QtWebEngineCore`, the `QtWebEngineProcess` helper, Chromium resource packs (`.pak`), ICU data (`icudtl.dat`), and the locale packs are all inside the artifact. They are redistributed unmodified, and the PyInstaller onedir layout keeps the Qt libraries as separate, replaceable files |
+| `PyInstaller` | *(see the packaging-tooling table above)* | | Also freezes the Qt/WebEngine runtime | Yes |
+
+Sources verified at the time of writing:
+[Qt WebEngine Licensing](https://doc.qt.io/qt-6/qtwebengine-licensing.html),
+[Obligations of the GPL and LGPL](https://www.qt.io/licensing/open-source-lgpl-obligations),
+and the [PySide6 PyPI project metadata](https://pypi.org/project/PySide6/).
+
+What this changed for distribution:
+
+- the base Python/Core installation still redistributes **no** desktop or GUI
+  dependency; PySide6 lives only in the optional `deepplant[desktop]` extra, the
+  `desktop` uv group, and the frozen application;
+- a webview engine and a Chromium-based renderer are now redistributed by
+  DeepPlant, which is why the artifact is roughly an order of magnitude larger
+  than the #92 browser-hosted artifact;
+- the obligations above (Qt/Qt WebEngine notices plus Chromium's third-party set)
+  apply to the shipped artifacts and must be honoured with the redistributed
+  components. Conformance that depends on the applicable upstream notices
+  requires checking them against the actual redistributed files, not inferring
+  them from this summary.
+
+### Redistribution compliance payload (Issue #93 review fix)
+
+This repository's documentation is not artifact evidence, so the applicable
+licence and notice texts are packaged **into** the installed application, in a
+`licenses/` directory next to the executable:
+
+- `licenses/DEEPLANT-AGPL-3.0.txt` — DeepPlant's own licence;
+- `licenses/THIRD_PARTY_NOTICES.md` — this file;
+- `licenses/README.md` — the compliance mechanism: the redistributed versions, the
+  separate onedir Qt libraries, the notice set, and the source offer;
+- `licenses/CORRESPONDING-SOURCE.md` — DeepPlant's distributor-controlled written
+  offer and the exact upstream revision of every redistributed library;
+- `licenses/BUILD-IDENTITY.md` — generated identifiers (DeepPlant version and
+  immutable source revision) for the exact artifact covered by that offer;
+- `licenses/Qt/*` and `licenses/Qt-WebEngine/*` — the LGPL/GPL/Qt-exception texts
+  taken from the exact `v6.11.2` Qt and Qt WebEngine source tags and pinned by
+  immutable URL and SHA-256 in `packaging/licenses.toml`;
+- `licenses/Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt` — the actual Chromium
+  third-party notice set for the exact engine (see below);
+- `licenses/Qt-WebEngine/Chromium-VERSION.txt` and
+  `licenses/Qt-WebEngine/Chromium-LICENSE-BSD.txt` — the Chromium revision inside
+  the shipped engine and Chromium's own licence, both from the exact Qt WebEngine
+  source tag;
+- `licenses/Qt-WebEngine/Chromium-NOTICES.md` — explanatory documentation for the
+  notice set above: how upstream generates it and how the packaging job verifies it.
+
+The PySide6 wheels ship **no** licence files (only the METADATA `License:`
+expression), which is why the Qt texts are staged from upstream at build time.
+`tools/package_editor.py` verifies every digest before staging, and the packaged
+verification fails if any required notice file is missing from the built artifact.
+
+#### Chromium third-party notice evidence
+
+Qt WebEngine compiles Chromium into `Qt6WebEngineCore`; the standard upstream
+statement of that relationship is
+[Qt WebEngine Licensing](https://doc.qt.io/qt-6/qtwebengine-licensing.html)
+("when distributing Qt WebEngine, users need to comply to both the licenses of the
+Qt WebEngine part … as well as the licenses that are part of Chromium").
+
+The exact version relationship for the redistributed engine is:
+
+| Fact | Value |
+|---|---|
+| PySide6 / Qt / Qt WebEngine | 6.11.2 — tag `v6.11.2` (`a33fa2a897e5ee58e385b3f88dc247d99fca56db`) |
+| Chromium inside that Qt WebEngine | **140.0.7339.264** (security-patched to 151.0.7922.71), from that tag's `CHROMIUM_VERSION` |
+| Upstream generator of the notice set | Chromium `tools/licenses/licenses.py credits`, driven by `qtwebengine/cmake/QtGnCredits.cmake` for the GN target `:QtWebEngineCore` |
+
+Upstream does not publish that notice set as a single immutable release file, so
+DeepPlant obtains it from the exact-version output of that generator and ships it:
+
+- `licenses/Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt` enumerates every
+  component upstream lists for the shipped engine, each with its licence
+  identifier, project homepage, and the full notice text upstream publishes;
+- the packaging job re-fetches the pinned publication
+  (`packaging/licenses.toml`, `[chromium]`, immutable versioned URL plus SHA-256),
+  and `tools/chromium_notices.py` fails the build unless the shipped bundle
+  enumerates **every** component that publication lists, with notice text;
+- artifact verification fails if the bundle is missing, empty, lacks its generated
+  provenance markers, or covers a different component count than the manifest
+  declares — a placeholder file of links cannot pass.
+
+The notices cannot be obtained from the running application instead: Qt WebEngine
+does not implement Chrome's `chrome://credits` page, and the redistributed PySide6
+6.11.2 `.pak` resources contain no credits payload. Shipping the plain-text bundle
+is therefore the mechanism, and it is accessible without a source checkout, a
+browser, or developer tooling.
+
+Corresponding source is handled by the distributor-controlled three-year written
+offer in `licenses/CORRESPONDING-SOURCE.md`. Generated `licenses/BUILD-IDENTITY.md`
+ties that offer to the received DeepPlant version and immutable source revision,
+and the document lists every redistributed library's immutable upstream revision.
+
+Evaluated and **not** adopted:
+[`pywebview`](https://pywebview.flowrl.com/guide/installation.html) (Windows needs
+the Microsoft WebView2 runtime; Linux needs system Qt or GTK/WebKitGTK, so the
+artifact would not be self-contained) and
+[Tauri v2](https://v2.tauri.app/start/prerequisites/) (adds the Rust toolchain and
+a Python sidecar, and still depends on `libwebkit2gtk-4.1`/WebView2). Electron was
+not added to the matrix. The full reasoning is in
+[`docs/dev/research/editor-desktop-host.md`](docs/dev/research/editor-desktop-host.md).
 
 ## Standards, vendors, and unresolved boundaries
 

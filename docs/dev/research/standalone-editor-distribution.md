@@ -31,8 +31,10 @@ superseded_by: null
   self-contained **distribution foundation** (PR #92). The resulting practice is
   canonical in [workflow/packaging.md](../workflow/packaging.md). The native
   desktop-host requirement established later by
-  [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) is out of scope
-  for this evidence and is owned by that child slice.
+  [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) is **delivered** by
+  the second and final #85 slice; its technology investigation and selection are
+  canonical in [editor-desktop-host.md](editor-desktop-host.md), and this
+  document's browser-hosted conclusions below describe the state before it.
 - **Inspection scope and date:** repository `main` at
   `719067b9c881435d15398987d272b2338560ba88`; the current runtime
   (Python 3.12.13, FastAPI 0.142.2, Uvicorn 0.54.0, Typer 0.27.2, Pydantic
@@ -283,7 +285,7 @@ runtime/bootstrap components.
 | Inno Setup | Windows installer compilation (build-time) | free-of-charge custom licence: free for commercial use, but binary redistributions must retain the existing copyright notices and web site addresses | the `ISCC.exe` compiler does not; the generated setup `.exe` contains Inno Setup installer/runtime components and stays subject to the applicable Inno Setup terms |
 | CPython | language runtime | PSF-2.0 | yes (bundled interpreter) |
 | FastAPI / Starlette / Uvicorn / Pydantic / PyYAML / Typer / Rich / Pygments / Click | application runtime dependencies | MIT / BSD-3 / Apache-2.0 family, all already recorded project dependencies | yes |
-| Chromium / WebView2 / Qt / Tauri / Electron | desktop shell runtime | — | **no**: deliberately not adopted |
+| Chromium / WebView2 / Qt / Tauri / Electron | desktop shell runtime | — | **no** for the #92 distribution foundation: no desktop shell was adopted. #93 later adopted **Qt WebEngine (Chromium)** as the desktop host; see [editor-desktop-host.md](editor-desktop-host.md) |
 
 No new runtime dependency was added to the *installed Python package* by #85.
 The DeepPlant project licence is unchanged (`AGPL-3.0-only`).
@@ -328,21 +330,21 @@ dependency level* and verifiable:
   package hierarchy was introduced: the dependency *direction* was the point,
   and the existing distribution preserves it.
 
-## 10. Host boundary (established by Issue #93)
+## 10. Host boundary (delivered by Issue #93)
 
-This evidence selects the packaging stack for the **distribution foundation**; it
-does not decide the final end-user host. The first slice kept the existing
-browser-hosted runtime, which remains the behavior of the artifact PR #92
-produces:
+This evidence selected the packaging stack for the **distribution foundation**;
+it did not decide the final end-user host. The first slice kept the existing
+browser-hosted runtime:
 
 ```text
-current distribution foundation
+distribution foundation (PR #92)
 packaged executable → local FastAPI/Uvicorn → external browser
 ```
 
-[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) establishes the
-additional desktop-product requirement and owns the desktop-host technology
-investigation and implementation. The target completion of #85 is:
+[Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) established the
+additional desktop-product requirement and delivered it. The technology
+investigation, the candidate comparison, and the measured evidence are canonical
+in [editor-desktop-host.md](editor-desktop-host.md); the delivered shape is:
 
 ```text
 launch DeepPlant Editor
@@ -359,4 +361,4 @@ no required terminal, no required external browser
 The invariant preserved across both slices is that DeepPlant has **one**
 engineering frontend implemented in web technologies. Desktop and future web
 deployment are hosts of the same Vue SPA, not separate frontend codebases. #93
-must not fork or reimplement the SPA; it changes the host, not the frontend.
+changed the host, not the frontend.

@@ -28,8 +28,8 @@ superseded_by: null
 - Console script: `deepplant`
 - Module execution: `python -m deepplant` (equivalent; `make run` / `make dev`
   use it)
-- Editor application: `deepplant-editor` — the same editor with an
-  application-oriented identity; see
+- Editor application: `deepplant-editor` — the standalone **native desktop host**
+  (a graphical window embedding the shared SPA); see
   [The standalone Editor application](#the-standalone-editor-application)
 
 Running with no arguments prints help.
@@ -128,25 +128,46 @@ Behavior:
 
 ### The standalone Editor application
 
-`deepplant-editor` is the same editor under the identity an end user runs. It is
-the entry point the frozen Windows/Linux artifact launches.
+`deepplant-editor` is the **native desktop host**: the graphical application an
+end user launches. It is the entry point the frozen Windows/Linux artifact runs,
+and it embeds the *same* frontend and the *same* application boundary as
+`deepplant ui`.
 
 ```text
-deepplant-editor <path> [--symbol-role STEP=ROLE] [--port <n>]
-                        [--assets-dir <dir>] [--browser | --no-browser]
+deepplant-editor [path] [--symbol-role STEP=ROLE] [--port <n>]
+                        [--assets-dir <dir>]
+                        [--self-check --self-check-report <path>]
 ```
 
-- It accepts the same `path`, `--symbol-role`, `--port`, and `--assets-dir`
-  arguments, resolves the project through the same
-  `EditorApplication`, serves through the same FastAPI/Uvicorn transport, and
-  prints the same launch message. There is no second editor implementation.
-- It additionally opens the user's default browser once the loopback server is
-  actually accepting connections (`--browser`, the default). `--no-browser`
-  suppresses that for automation and headless use; the URL is always printed, and
-  if no browser can be opened the URL is printed again.
-- It is installed by the base distribution but only *runs* with the editor
-  transport available; without it, it reports the same actionable message as
-  `deepplant ui`.
+- **The path is optional.** Running it with no argument opens the editor window
+  with a minimal start page and a native `File -> Open…` action; it never prints
+  help and never demands a path. Normal use therefore requires no terminal and no
+  command-line knowledge.
+- With a path it opens the same window directly on that model. This is the
+  advanced/diagnostic form, and it supports development, automated checks, and a
+  future OS *Open With* association.
+- It resolves the project through the same `EditorApplication`, serves it through
+  the same FastAPI/Uvicorn transport on `127.0.0.1` with the same ephemeral-port
+  behaviour, and renders the same production SPA. There is no second editor
+  implementation.
+- The native `Open` dialog only selects a `*.yaml`/`*.yml` filesystem path; the
+  desktop host never parses DeepPlant YAML. The selected path is loaded through
+  the ordinary application/model-loading boundary, exactly like `deepplant ui`.
+- It **never** opens an external browser, and it keeps the embedded view on its
+  own loopback origin.
+- It needs the desktop runtime (`PySide6`/Qt WebEngine, the `deepplant[desktop]`
+  extra, which includes the editor transport). Without it, it reports an
+  actionable message naming that extra instead of an `ImportError` traceback.
+  `deepplant version`, `deepplant validate`, and `deepplant ui` never need it.
+- `--self-check --self-check-report <path>` is the documented automation mode
+  used by the packaged-artifact verification: it loads the application, probes
+  the real rendered page, closes the window, writes a JSON verdict, and exits
+  with `0` only when every check passed. It adds no production protocol and is
+  never used in normal operation.
+
+Closing the window stops the local server, releases the loopback socket, and
+terminates the helper processes the application owns. Nothing outside the
+application is signalled.
 
 ## Deliberately not provided
 
@@ -154,8 +175,9 @@ A render command, a save/format command, a symbol-pack selector, machine-readabl
 (JSON) output, watch mode, browser auto-open **in `deepplant ui`**, daemon/service
 management, and any configuration file or environment-variable surface. Each
 needs its own evidence and Issue; the renderer and loader are currently
-library/API-level only. Browser auto-open exists only in the application entry
-point `deepplant-editor`, not in the developer command.
+library/API-level only. No host opens a browser automatically: `deepplant ui`
+prints the loopback URL for you to open, and `deepplant-editor` embeds the SPA in
+its own window.
 
 ## Related
 

@@ -9,18 +9,18 @@ import { fileURLToPath } from 'node:url'
  * The suite is evidence for the product path users actually receive, so this
  * helper always starts a real application boundary and its own loopback server.
  * It never starts a Vite dev/preview server, a test-only FastAPI app, or
- * `create_editor_api()` directly. Two launchers are supported, and the same
- * browser workflow (the specs) runs against either:
+ * `create_editor_api()` directly. It always drives the developer/browser host:
  *
- *     source     `uv run deepplant ui <path> --port 0`   developer checkout
- *     packaged   the standalone Editor launcher          Issue #85 artifact
+ *     `uv run deepplant ui <path> --port 0`   developer checkout
  *
- * The packaged launcher is selected through the environment:
+ * There is no longer a second launcher. Since Issue #93 the standalone product
+ * is a native desktop application whose window is not a browser target; that
+ * product is verified by `tools/package_editor.py verify`, which launches the
+ * real packaged GUI and reads the real rendered page.
  *
- *     DEEPLANT_EDITOR_EXECUTABLE   path to the installed/extracted launcher
- *     DEEPLANT_EDITOR_PROJECT      model path, so it can live outside the repo
- *
- * Packaging concerns stop here: the feature specs never mention them.
+ * `DEEPLANT_EDITOR_PROJECT` may point the specs at any model path (so a test
+ * fixture can live outside the repository). Packaging concerns stop here: the
+ * feature specs never mention them.
  *
  * Readiness is the application's own announcement of the loopback URL:
  *
@@ -94,26 +94,18 @@ interface LaunchSpec {
 }
 
 /**
- * Resolve the launcher: the packaged standalone application when
- * `DEEPLANT_EDITOR_EXECUTABLE` is set, otherwise the developer `deepplant ui`.
+ * Resolve the launcher: the developer/browser host `deepplant ui`.
  *
- * Both produce the identical launch message and the identical HTTP surface, so
- * the specs cannot tell them apart - which is exactly the point.
+ * These specs verify the *shared frontend* as a browser/web deployment (Issue
+ * #82), so they drive `deepplant ui` over the production build. The standalone
+ * product is a native desktop application since Issue #93, and it is verified by
+ * the packaging driver's own desktop self-check
+ * (`tools/package_editor.py verify`) rather than through Playwright - a GUI
+ * window is not a browser target, and pretending it were would prove less.
  */
 function resolveLaunchSpec(symbolRoles: readonly string[]): LaunchSpec {
   const project = process.env['DEEPLANT_EDITOR_PROJECT'] ?? REALISTIC_PROJECT
-  const executable = process.env['DEEPLANT_EDITOR_EXECUTABLE']
   const roleArgs = symbolRoles.flatMap((entry) => ['--symbol-role', entry])
-  if (executable !== undefined && executable !== '') {
-    return {
-      label: 'the packaged DeepPlant Editor',
-      command: executable,
-      args: [project, '--port', '0', '--no-browser', ...roleArgs],
-      // A packaged application is self-contained, so it runs from wherever the
-      // model lives - outside the checkout.
-      cwd: path.dirname(project),
-    }
-  }
   return {
     label: '`deepplant ui`',
     command: 'uv',
@@ -309,9 +301,8 @@ async function stopProcessTree(child: ChildProcess, tracker: ExitTracker): Promi
 }
 
 /**
- * Start the real application under test: the packaged standalone Editor when
- * `DEEPLANT_EDITOR_EXECUTABLE` is set, otherwise `deepplant ui` over the
- * production build.
+ * Start the real application under test: `deepplant ui` over the production
+ * build (the developer/browser host).
  *
  * Resolves once the application has announced its loopback URL and the server
  * answers. Rejects with the captured application log when startup fails for any
