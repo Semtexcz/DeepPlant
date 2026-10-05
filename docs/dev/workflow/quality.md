@@ -80,11 +80,94 @@ superseded_by: null
   and browser host stay provably independent of it. Ownership and debugging are
   canonical in [workflow/packaging.md](packaging.md).
 - Base-installation independence verification runs through
-  `python tools/verify_base_install.py <wheel>` in the `check` job: it installs
-  the base wheel into clean environments and proves the semantic Core works
-  without the editor transport while the editor extra still provides it.
+  `python tools/verify_base_install.py <wheel>` in the CI
+  `wheel-verification` job: it installs the base wheel into clean environments
+  and proves the semantic Core works without the editor transport while the
+  editor extra still provides it.
 - The template repository has a separate full release-candidate gate across
   every generated profile and workflow.
+
+## Change-aware CI
+
+Pull-request CI is proportional to the changed surface. A repository-owned,
+dependency-free classifier (`tools/ci_changes.py`, unit-tested by
+`tests/test_ci_changes.py`) maps the changed files to validation surfaces; only
+the jobs for those surfaces run, and one stable aggregate job reports the
+result. This table is canonical — other documents point here rather than
+restating it.
+
+| Changed surface | CI jobs that run |
+|---|---|
+| documentation, `project/`, governance, agent/context metadata | `docs-validation` (`make validate-docs`, `make validate-agent-skills`) |
+| Python / Core, tests, examples, tooling | `python-checks` (`make format-check`, `make lint`, `make typecheck`, `make test`) |
+| Python distribution boundary (`src/deepplant/**`, `pyproject.toml`, `uv.lock`, `LICENSE`, wheel tooling) | `wheel-verification` (wheel build, wheel contents, base-install independence) |
+| frontend source/config (`apps/editor/**`) | `frontend-checks` (`make frontend-check` **and** `make frontend-build`) |
+| editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the canonical `src/deepplant/assets/**` symbols, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
+| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, the canonical `src/deepplant/assets/**` symbols, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/realistic-process-fragment/**` runtime fixture, `LICENSE`, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
+| `push` to `main`, `workflow_dispatch`, `.github/**`, `.gitattributes`, `Makefile`, the classifier itself | the full matrix above |
+
+The consequences that matter:
+
+- A **documentation-only** pull request installs no Python dependency, Node
+  toolchain, browser, or packaging toolchain: it runs only the two static
+  documentation checks. It never runs the production frontend build, Playwright,
+  the wheel build, or native packaging.
+- A **Python/Core** change runs the full Python confidence set; CI never
+  reduces the Python suite to a targeted selection. The wheel and base-install
+  verification run only when the Python distribution boundary is touched.
+- Any change that can affect the **shipped SPA bundle** runs
+  `make frontend-build` in `frontend-checks` (or an equivalent production build
+  inside `frontend-e2e`); `frontend-build` stays outside the local `make check`
+  gate but is never absent from CI.
+- **Playwright/Chromium** runs only when the editor/browser workflow can be
+  affected, so README, planning, and packaging documentation never download a
+  browser.
+- **Windows/Linux packaging** runs only when the packaged desktop product can be
+  affected, and it keeps its full existing verification strength (installer and
+  AppImage generation, strict desktop type check, packaged GUI launch and window
+  lifecycle, Linux dependency audit, toolchain integrity, compliance payload,
+  artifact checksums). No step is weakened by routing.
+- The **`examples/realistic-process-fragment/**` runtime fixture** is E2E and
+  packaging test input, not ordinary prose: both the browser E2E suite
+  (`apps/editor/e2e/support/editor-server.ts`) and the packaged-artifact smoke
+  test (`tools/package_editor.py`) load its `plant.yaml` at runtime. A change to
+  it therefore selects `python-checks`, `frontend-e2e`, and both native packaging
+  jobs. Other `examples/**` subtrees stay Python-only.
+- **`pyrightconfig.desktop.json`** is a package-validation input: both native jobs
+  run the strict desktop type check with it, so changing it selects
+  `editor-package-windows` and `editor-package-linux`.
+- The **canonical `src/deepplant/assets/**` symbols** are runtime and
+  packaged-product inputs, not Python package metadata: the renderer reads them
+  through `importlib.resources` (`src/deepplant/render.py`), the Editor backend
+  serves them to the browser at `/api/symbols/<role>.svg`, the Playwright suite
+  drives that path, and `tools/package_editor.py` bundles and verifies a
+  canonical symbol (`REQUIRED_SYMBOL`). A change there selects `python-checks`,
+  `wheel-verification`, `frontend-e2e`, and both native packaging jobs. This is
+  scoped to the asset subtree: a generic `src/deepplant/**` Core change still
+  selects only the Python distribution boundary.
+- **`LICENSE`** is both a wheel input (declared in `license-files`) and a
+  packaged-product input (`tools/package_editor.py::stage_licenses` copies it
+  into the shipped compliance payload as `licenses/DEEPLANT-AGPL-3.0.txt`), like
+  `THIRD_PARTY_NOTICES.md`. Changing it selects `wheel-verification` and both
+  native packaging jobs.
+- A **rename or move preserves both sides**: changed-file discovery disables Git
+  rename detection (`git diff --no-renames`), so the removed and added paths are
+  each classified. Moving a file across validation surfaces cannot silently drop
+  the surface it left.
+- `main` and `workflow_dispatch` are never change-aware: they always select the
+  full matrix, so the primary branch and releases keep full distribution
+  confidence. Only pull-request feedback is optimized.
+- The routing decision is printed in the `classify-changes` job log and the
+  workflow step summary (changed surfaces, selected jobs, skipped-as-irrelevant
+  jobs, and the reason), so a reviewer can see why a job ran or did not.
+- Superseded pull-request runs are cancelled by `concurrency`; `main` and manual
+  runs are not.
+
+Two deliberate conservative rules apply. Build/repository/CI tooling
+(`.github/**`, `.gitattributes`, the `Makefile`, the classifier itself) and any
+**unrecognized** path select the full matrix, so a new file can never silently
+skip validation it might affect. A documented false positive is preferred over
+an unvalidated false negative.
 
 ## Validation boundaries
 

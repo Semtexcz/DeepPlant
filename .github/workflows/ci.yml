@@ -4,8 +4,70 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+
+# Validation is proportional to the changed surface: a documentation-only pull
+# request must not build an installer or download Chromium. Which jobs run is
+# decided by a repository-owned, unit-tested classifier (`tools/ci_changes.py`),
+# not by workflow `paths:` filters, so the required result never disappears and
+# never stays pending. `main`, `workflow_dispatch`, and any build/CI tooling
+# change keep the full matrix. See docs/dev/workflow/quality.md.
+#
+# A superseded pull-request run is cancelled when a new revision is pushed, so
+# reviewers only ever wait for the newest commit. `main` and manual runs are
+# never cancelled by this rule, so a full-confidence lifecycle run completes.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+
+  # ---------------------------------------------------------------------------
+  # Change classification. Runs for every event so the routing decision and its
+  # evidence are always visible in the log and the workflow summary.
+  # ---------------------------------------------------------------------------
+  classify-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      docs: ${{ steps.classify.outputs.docs }}
+      agents: ${{ steps.classify.outputs.agents }}
+      python: ${{ steps.classify.outputs.python }}
+      distribution: ${{ steps.classify.outputs.distribution }}
+      frontend: ${{ steps.classify.outputs.frontend }}
+      e2e: ${{ steps.classify.outputs.e2e }}
+      package: ${{ steps.classify.outputs.package }}
+      required-jobs: ${{ steps.classify.outputs.required-jobs }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The pull-request classification diffs against the merge base.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Classify the changed surface
+        id: classify
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            merge_base="$(git merge-base "${BASE_SHA}" "${HEAD_SHA}")"
+            echo "changed files between ${merge_base} and ${HEAD_SHA}:"
+            # Discovery lives in the tested classifier so a rename/move keeps both
+            # its removed and added path instead of losing the surface it left.
+            python tools/ci_changes.py changed-paths "${merge_base}" "${HEAD_SHA}" | tee changed-files.txt
+            python tools/ci_changes.py classify --event pull_request --paths-file changed-files.txt
+          else
+            echo "event '${EVENT_NAME}' selects the full validation matrix"
+            python tools/ci_changes.py classify --event "${EVENT_NAME}"
+          fi
+
 
   require-pr-for-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -35,29 +97,83 @@ jobs:
           fi
 
 
-  check:
+  docs-validation:
+    # Documentation and agent/context metadata only. Deliberately no Python
+    # dependency install, Node, browser, or packaging toolchain: a
+    # documentation-only pull request must not install runtime dependencies it
+    # cannot use.
+    needs: classify-changes
+    if: >-
+      needs.classify-changes.outputs.docs == 'true' ||
+      needs.classify-changes.outputs.agents == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+      - name: Validate documentation
+        if: needs.classify-changes.outputs.docs == 'true'
+        run: make validate-docs
 
-      - name: Enable Corepack for the pinned frontend package manager
-        run: corepack enable
+      - name: Validate agent skills and context metadata
+        if: needs.classify-changes.outputs.agents == 'true'
+        run: make validate-agent-skills
+
+
+  python-checks:
+    # Python/Core confidence: formatting, lint, strict type checking, and the
+    # full pytest suite. CI never reduces the full Python suite to save time.
+    needs: classify-changes
+    if: needs.classify-changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-      - name: Install dependencies
 
+      - name: Install dependencies
         run: make setup
 
-      - name: Check
-        run: make check
+      - name: Check formatting
+        run: make format-check
+
+      - name: Lint
+        run: make lint
+
+      - name: Type check
+        run: make typecheck
+
+      - name: Test
+        run: make test
+
+
+  wheel-verification:
+    # Python distribution boundary only: build the wheel and prove the packaged
+    # runtime resources and the base-installation independence contract. Not run
+    # for changes that cannot affect the Python distribution.
+    needs: classify-changes
+    if: needs.classify-changes.outputs.distribution == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: make setup
 
       - name: Build wheel
         run: uv build
@@ -69,10 +185,37 @@ jobs:
         run: uv run python tools/verify_base_install.py dist/deepplant-*.whl
 
 
+  frontend-checks:
+    # Frontend source/config changes. This is where the shipped SPA bundle is
+    # guaranteed to build in CI: `frontend-build` is deliberately outside the
+    # local `make check` gate, so change-aware routing must not lose it.
+    needs: classify-changes
+    if: needs.classify-changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable Corepack for the pinned frontend package manager
+        run: corepack enable
+
+      - name: Frontend gate (lint, type check, tests)
+        run: make frontend-check
+
+      - name: Build the production SPA bundle
+        run: make frontend-build
+
+
   frontend-e2e:
     # Real-browser system gate: production SPA build + real `deepplant ui` CLI +
     # real Chromium. Kept as its own job so an E2E failure is distinguishable
-    # from the fast `check` job, and so the default gate never downloads a browser.
+    # from the fast frontend gate, and so the fast gate never downloads a
+    # browser. Runs only when the change can affect the editor/browser workflow.
+    needs: classify-changes
+    if: needs.classify-changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -118,7 +261,10 @@ jobs:
     # Native Windows distribution gate (Issue #85): build the standalone Editor
     # on the OS it targets, produce a real installer, and verify the installed
     # application outside the repository. Kept out of `check` because packaging
-    # is slow and platform-specific.
+    # is slow and platform-specific, and routed so it runs only for changes that
+    # can affect the packaged desktop product.
+    needs: classify-changes
+    if: needs.classify-changes.outputs.package == 'true'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -272,6 +418,11 @@ jobs:
     # SONAMEs the packaged application may resolve, and the dependency audit fails
     # when an undeclared host library appears. A floating `ubuntu-latest` label
     # would silently move that baseline. (Issue #93 review)
+    #
+    # Routed like the Windows job: it runs only for changes that can affect the
+    # packaged desktop product.
+    needs: classify-changes
+    if: needs.classify-changes.outputs.package == 'true'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -554,4 +705,50 @@ jobs:
             dist/editor/*.AppImage.sha256
           retention-days: 14
           if-no-files-found: error
+
+
+  # ---------------------------------------------------------------------------
+  # The stable, always-present aggregate result. This is the single required
+  # status check a branch-protection rule should require: it exists on every
+  # pull request (no workflow-level `paths:` filter can make it disappear, so it
+  # can never stay pending), and it fails closed. It passes only when every job
+  # the classifier selected for this change succeeded - a required job that
+  # failed, was cancelled, or never ran fails the gate. Jobs the classifier did
+  # not select must be `skipped`; a skipped job can never mask a failure.
+  # ---------------------------------------------------------------------------
+  ci-gate:
+    if: always()
+    needs:
+      - require-pr-for-main
+      - classify-changes
+      - docs-validation
+      - python-checks
+      - wheel-verification
+      - frontend-checks
+      - frontend-e2e
+      - editor-package-windows
+      - editor-package-linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Enforce the change-aware CI gate
+        env:
+          REQUIRED_JOBS: ${{ needs.classify-changes.outputs.required-jobs }}
+          ENFORCE_PR_GUARD: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          RESULTS: |
+            classify-changes=${{ needs.classify-changes.result }}
+            require-pr-for-main=${{ needs.require-pr-for-main.result }}
+            docs-validation=${{ needs.docs-validation.result }}
+            python-checks=${{ needs.python-checks.result }}
+            wheel-verification=${{ needs.wheel-verification.result }}
+            frontend-checks=${{ needs.frontend-checks.result }}
+            frontend-e2e=${{ needs.frontend-e2e.result }}
+            editor-package-windows=${{ needs.editor-package-windows.result }}
+            editor-package-linux=${{ needs.editor-package-linux.result }}
+        run: python tools/ci_changes.py gate
 

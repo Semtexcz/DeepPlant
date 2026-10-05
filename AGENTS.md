@@ -137,7 +137,10 @@ the production frontend build, browser E2E, packaging, and the wheel build are
 deliberately outside it. Canonical detail is in
 [docs/dev/workflow/quality.md](docs/dev/workflow/quality.md).
 
-CI runs afterwards and is asynchronous:
+CI runs afterwards and is asynchronous. Pull-request CI is change-aware: a
+repository-owned classifier selects only the jobs the changed surface justifies,
+and one always-present aggregate job (`ci-gate`) is the stable required result;
+`main` and `workflow_dispatch` always run the full matrix.
 
 > After pushing/finalizing the PR, do not wait for or poll GitHub Actions. CI is
 > authoritative where required but runs asynchronously. If it later fails, repair

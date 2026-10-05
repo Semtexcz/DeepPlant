@@ -231,22 +231,40 @@ Two consequences are deliberate:
 
 ## CI jobs
 
-`.github/workflows/ci.yml` keeps packaging off the fast gate:
+`.github/workflows/ci.yml` keeps packaging off the fast gate and off
+unrelated pull requests. The native jobs run only when the change classifier
+decides the packaged desktop product can be affected, and they always run on
+`main` and `workflow_dispatch`:
 
 ```text
-check                    Python + frontend fast gates, wheel build, wheel resource
-                         check, base-install independence check
+docs-validation          documentation / agent metadata only (no build, no browser)
+python-checks            format, lint, typecheck, full pytest
+wheel-verification       wheel build, wheel resource check, base-install independence check
+frontend-checks          frontend lint/typecheck/tests + production SPA build
 frontend-e2e             production SPA + real `deepplant ui` + real Chromium (source run)
 editor-package-windows   native windows-latest: pinned Inno Setup, desktop group,
                          strict type-check of the Qt host, build, package, real-window
                          desktop verification, helper/notice/exit assertions, upload
-editor-package-linux     native ubuntu-latest: pinned + checksum-verified
+editor-package-linux     native ubuntu-24.04: pinned + checksum-verified
                          appimagetool and AppImage runtime, Xvfb + Qt WebEngine
                          host libraries, desktop group, strict type-check of the Qt
                          host, build, package, real-window desktop verification,
                          Linux dependency audit, xdotool window discovery and a
                          hard process-exit gate on the virtual display, upload
+ci-gate                  stable aggregate required result (branch protection)
 ```
+
+The full routing matrix, and the surfaces that select each native job, are
+canonical in [quality.md](quality.md#change-aware-ci). For packaging those
+surfaces are the desktop host, `packaging/**`, the packaging tooling, the
+packaged brand assets, the canonical `src/deepplant/assets/**` symbols, the
+desktop/package dependency groups, the desktop type-check configuration
+(`pyrightconfig.desktop.json`), the embedded SPA and editor application, and the
+bundled compliance payload (`LICENSE`, `THIRD_PARTY_NOTICES.md`). The packaged
+smoke test also loads the
+`examples/realistic-process-fragment/plant.yaml` fixture at runtime, so changing
+that fixture selects both native jobs as well. Routing never weakens a step: when
+a packaging job runs, it still performs the complete verification listed below.
 
 Each packaging job builds on its native runner because a frozen application is
 OS- and architecture-specific, and each reads `packaging/toolchain.toml` and
