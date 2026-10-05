@@ -57,12 +57,16 @@ superseded_by: null
   `cd apps/editor && pnpm exec playwright install chromium`. Ownership, lifecycle,
   selector policy, and debugging are canonical in
   [frontend/testing.md](../frontend/testing.md).
-- `make check` is the single canonical local confidence gate, run once before
-  finalizing a pull request (not after every edit). It is a
-  developer-confidence gate, not a release/distribution gate: the production SPA
-  build, browser E2E, packaging, the desktop type check, and the wheel build stay
-  outside it. It includes `frontend-check`, so Node 22 and `pnpm` (pinned by
-  `apps/editor/package.json`) are prerequisites of `make check`.
+- `make check` is the single canonical local confidence gate. Run it once for the
+  final candidate repository state before finalizing a pull request (not after
+  every edit, and not once per skill). Reuse that successful result while the
+  candidate state is unchanged; run it again only when no valid local confidence
+  result exists for the current candidate state, or after review or repair changes
+  that state. It is a developer-confidence gate, not a release/distribution gate:
+  the production SPA build, browser E2E, packaging, the desktop type check, and
+  the wheel build stay outside it. It includes `frontend-check`, so Node 22 and
+  `pnpm` (pinned by `apps/editor/package.json`) are prerequisites of
+  `make check`.
 - Standalone Editor packaging runs through `uv run --group package --group desktop
   python tools/package_editor.py` (or `make package-editor`): production SPA
   build, freeze (PyInstaller + Qt WebEngine), platform package, and a packaged
@@ -85,8 +89,9 @@ superseded_by: null
 ## Validation boundaries
 
 Ordinary implementation runs only the checks relevant to the changed surface. Do
-not run exhaustive validation after every edit; the broader gate is deliberately
-run once per finalization/review cycle.
+not run exhaustive validation after every edit. The broad gate is defined by the
+candidate repository state, not by how many skills were invoked: one final
+candidate state gets one broad local gate.
 
 | Changed surface | Focused check |
 |---|---|
@@ -107,12 +112,19 @@ focused iteration        -> targeted `uv run pytest <relevant test paths>`
 broader local confidence -> `make check` -> includes the full `make test` suite
 ```
 
-Then exactly one broader local confidence gate runs before the pull request is
-finalized:
+Run the one canonical broad local confidence gate for the final candidate
+repository state before the pull request is finalized:
 
 ```bash
 make check
 ```
+
+This gate is owned by the `verify-change` skill. `implement-change` routes the
+final candidate through it, and `review-change` reuses its result while the
+candidate state is unchanged rather than running its own duplicate. Run it again
+only when no valid local confidence result exists for the current candidate
+state, or when review or repair changed that state - then run focused checks and
+one new `make check` for the new final candidate.
 
 After the PR is pushed the implementation session ends: do not wait for or poll
 GitHub Actions.
@@ -120,9 +132,9 @@ GitHub Actions.
 > CI is authoritative where required but runs asynchronously. If CI later fails,
 > repair it in a fresh focused session on the same branch and pull request.
 
-There is one normal broader local gate per finalization/review cycle. Do not
-follow focused checks with `make check`, another equivalent full local check, a
-push, and then CI polling.
+The important identity is one final candidate state to one broad local gate, not
+one skill to one broad local gate. Do not follow focused checks with `make check`,
+another equivalent full local check, a push, and then CI polling.
 
 ## Test Expectations
 
@@ -142,9 +154,10 @@ push, and then CI polling.
 - Domain rules must be unit-tested independently of the CLI and any transport.
 - Validation behavior is exercised through the public Python API and the CLI
   entry point once the domain model exists.
-- `make check` is the single canonical local confidence gate, run once before
-  finalizing a pull request; it is not repeated per commit, and the GitHub Actions
-  CI that runs afterwards is asynchronous.
+- `make check` is the single canonical local confidence gate, run once for the
+  final candidate repository state before finalizing a pull request; it is
+  reusable while that state is unchanged, not repeated per commit or per skill,
+  and the GitHub Actions CI that runs afterwards is asynchronous.
 - The editor slice is tested at its architecture boundaries rather than by
   screenshots: the projection and the local boundary have Python tests, and the
   frontend has pure unit tests for the runtime DTO contract, the transport, the

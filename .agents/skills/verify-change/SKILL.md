@@ -43,10 +43,15 @@ finalizing the pull request. Examples:
 - Desktop change: `make typecheck-desktop`.
 - Packaging change: `make package-editor` / `make verify-packaged-editor`.
 
-Run `make check` exactly once as the broader confidence gate before finalizing
-the PR - not after every edit and not repeatedly. Do not treat GitHub Actions
-completion as part of this session: after the PR is pushed the session ends and
-CI runs asynchronously; a later CI failure is repaired in a fresh focused session
-on the same branch/PR.
+Run `make check` exactly once as the canonical broad local confidence gate for
+the current final candidate repository state - not after every edit and not once
+per skill. This skill owns that gate: `implement-change` routes the final
+candidate through this step, and `review-change` reuses its result while the
+candidate state is unchanged instead of running a duplicate. Run it again only
+when no valid local confidence result exists for the current candidate state, or
+when review or repair changed that state. Do not treat GitHub Actions completion
+as part of this session: after the PR is pushed the session ends and CI runs
+asynchronously; a later CI failure is repaired in a fresh focused session on the
+same branch/PR.
 
 Report commands run, results, and any risk that remains unverified.

@@ -127,11 +127,14 @@ focused iteration        -> targeted `uv run pytest <relevant test paths>`
 broader local confidence -> `make check` -> includes the full `make test` suite
 ```
 
-`make check` is the single broader local confidence gate. Run it **once** before
-finalizing the pull request - not after every edit, and not repeatedly. It is a
-developer-confidence gate, not a release/distribution gate: the production
-frontend build, browser E2E, packaging, and the wheel build are deliberately
-outside it. Canonical detail is in
+`make check` is the single broader local confidence gate. Run it **once** for the
+final candidate repository state before finalizing the pull request - not after
+every edit, and not once per skill. It is owned by the `verify-change` skill;
+reuse its result while the candidate state is unchanged, and rerun only when no
+valid result exists for the current candidate state or after review/repair changes
+that state. It is a developer-confidence gate, not a release/distribution gate:
+the production frontend build, browser E2E, packaging, and the wheel build are
+deliberately outside it. Canonical detail is in
 [docs/dev/workflow/quality.md](docs/dev/workflow/quality.md).
 
 CI runs afterwards and is asynchronous:
