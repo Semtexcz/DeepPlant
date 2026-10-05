@@ -152,7 +152,7 @@ The canonical asset copy ships inside the installed package
 (`src/deepplant/assets/symbols/process/basic/`) and is resolved at runtime
 through `importlib.resources`, so the renderer works from a source checkout
 and from an installed wheel. The built wheel is verified to contain the
-`basic` pack SVGs (a CI packaging check after `make check`). There is no
+`basic` pack SVGs (the CI `wheel-verification` job). There is no
 plugin/entry-point/pack-registry framework yet.
 
 At runtime the renderer validates the contract invariants it relies on before

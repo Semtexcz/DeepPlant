@@ -356,9 +356,12 @@ make build   # uv build (release wheel/sdist, outside `make check`)
 ```
 
 Run only the focused checks for the changed surface while implementing; run
-`make check` once before finalizing a pull request. CI runs the same gate plus the
-browser, packaging, and release jobs asynchronously: after the PR is pushed the
-implementation session ends and does not wait for or poll CI.
+`make check` once before finalizing a pull request. CI then runs change-aware
+pull-request validation - a repository-owned classifier selects only the jobs the
+changed surface justifies, with one stable aggregate result (`ci-gate`) - while
+`main` and `workflow_dispatch` run the full matrix. After the PR is pushed the
+implementation session ends and does not wait for or poll CI. The routing matrix
+is in [../workflow/quality.md](../workflow/quality.md#change-aware-ci).
 
 [quality.md](../workflow/quality.md) owns what these gates are expected to prove.
 

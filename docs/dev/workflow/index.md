@@ -49,6 +49,12 @@ implementation session ends: do not wait for or poll GitHub Actions. CI is
 authoritative where required but asynchronous; if it later fails, repair it in a
 fresh focused session on the same branch/PR.
 
+After that push, pull-request CI is change-aware: a repository-owned classifier
+selects only the jobs the changed surface can justify, and one always-present
+aggregate job (`ci-gate`) is the stable required result for branch protection.
+`main` and `workflow_dispatch` always run the full matrix. The canonical routing
+matrix is in [quality.md](quality.md#change-aware-ci).
+
 `make check` is validation-only. It must not rewrite project files. Use
 `make format` for formatting changes.
 
