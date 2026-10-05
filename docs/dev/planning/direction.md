@@ -157,10 +157,12 @@ Windows/Linux application — with the Core remaining independently usable — b
 more editor functionality is layered on it. That capability is now **delivered**
 through its two child slices: the self-contained distribution foundation (PR #92)
 and the native desktop host that turns the packaged runtime into a real graphical
-application over the same Vue frontend (PR #93). The DeepPlant project format and
-portable package ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89))
-remains a strong later candidate decided at the next re-evaluation, which is
-required before any successor capability is selected.
+application over the same Vue frontend (Issue #93, merged through PR #95). The
+post-#85 gate selects the empty shared Editor workspace / optional active project
+as the sole next product capability, after packaged-smoke parity hardening. The
+DeepPlant project format and portable package
+([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) is an especially
+strong candidate for the following gate, not a preselected successor.
 
 ### Stage 5 — Git-native Engineering Workflow
 

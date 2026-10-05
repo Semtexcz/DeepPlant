@@ -83,7 +83,7 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   SPA (`deepplant/editor/dist` inside the bundle) rather than a checkout
   dependency, and the editor transport (FastAPI/Uvicorn) as an optional
   `deepplant[editor]` extra so the semantic Core stays installable without it.
-  PR #93 (Issue #93) then delivered the native desktop host: PySide6 + Qt WebEngine
+  Issue #93, merged through PR #95, then delivered the native desktop host: PySide6 + Qt WebEngine
   in the optional `deepplant[desktop]` extra, a native window embedding the same
   `apps/editor/` SPA over the same loopback `EditorServer`, a native Open dialog
   for `*.yaml`/`*.yml`, launch with no model argument, an optional model path, and
@@ -112,76 +112,86 @@ evidence-heavy slices, in the linked spike/decision documents.
 
 ### Now
 
-**Re-evaluate after #85.** No product capability is currently selected.
-
 [#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85)
-is **complete**. Both of its child slices are delivered and recorded in
-[history/implementation-slices.md](../history/implementation-slices.md):
+is **complete**. Its two child slices are delivered: the self-contained
+Windows/Linux distribution foundation (PR #92), and Issue #93's native desktop
+host, merged through PR #95. The host keeps one shared Vue SPA, adds the native
+window/Open workflow and clean owned-server shutdown, and does not change the
+semantic Core.
 
-- the self-contained distribution foundation (PR #92) — Windows installer, Linux
-  AppImage, bundled SPA/runtime, Core independence; and
-- the native desktop host
-  ([#93](https://github.com/Semtexcz/DeepPlant/issues/93), PR #93) — the packaged
-  runtime is now a real graphical application embedding the same `apps/editor/`
-  Vue SPA.
+The post-#85 gate is now **executed**. It authorizes the following sequence,
+which contains exactly one selected product capability.
 
-The #93 implementation then went through two focused reviews. The first hardened
-clean shutdown, exact-origin webview navigation, the packaged self-check evidence,
-the Linux window-lifecycle CI gate, artifact licence/compliance payloads, and the
-desktop static type-check. The second closed the two items it left open, with
-evidence rather than wording:
+#### Immediate evidence hardening — packaged smoke parity
 
-- the version-matched **Chromium third-party notice set** is now generated from the
-  exact-version upstream output, shipped inside the artifacts, and verified at
-  build and artifact time
-  ([THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md)); and
-- the Linux **host-runtime baseline** is repository-owned, expressed by SONAME, and
-  the dependency audit now fails on an undeclared host library, inspects
-  `deepplant-editor` itself, and uploads the full dependency inventory as evidence.
+[#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
+is immediate verification hardening on the delivered #85 slice, **not** a competing
+product capability. The packaged desktop smoke workflow must use a self-contained
+fixture and path that an ordinary user can reproduce through `File → Open…`, with
+no hidden CLI-only presentation override.
 
-Both were compliance/verification work on the delivered slice, not new product
-capability, so they do not change the operational sequence below.
+The realistic fixture currently needs the transient presentation override
+`PS-vessel → vessel` because `PS-vessel.function: unspecified` is valid
+engineering semantics but has no default Process/PFD symbol role. That boundary is
+correct: do not invent a process function and do not add a global
+`unspecified → vessel` mapping. The fixture/workflow, rather than the semantic or
+presentation model boundary, must change.
 
-Because #85 is complete, the next capability must come from an explicit
-re-evaluation against the current repository state. **Do not preselect a
-successor** — in particular do not preselect #89 — and do not mechanically
-promote a backlog row.
+#### Selected product capability — empty shared Editor workspace
 
-Candidate evidence inputs (strong future candidates, not commitments):
+[#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97)
+is the selected product capability. The roadmap chain is now explicit: this `Now`
+section selects Issue #97, and the future implementation PR for #97 delivers the
+slice.
+
+The standalone Editor must launch directly into the ordinary shared Vue application
+with an explicit **`active project = none`** workspace state. A project is optional
+within an Editor session:
 
 ```text
-#89 project format / portable package
-first semantic mutation
-save / persistence
-presentation state persistence
-#88 automated release infrastructure
+Editor workspace/session
+  ├── no project open
+  └── project open
+```
+
+The Qt bootstrap/start page is temporary host bootstrap and should disappear as
+part of this slice. Qt remains a thin host; it must not acquire a second editor UI.
+This selection authorizes neither a project format, Save, mutation, nor persisted
+presentation state.
+
+Manual AppImage evidence also confirms that semantic validity and Process/PFD view
+availability are distinct: a model can remain `Model: Valid` while no current view
+can be produced. That is architecturally correct and is recorded as the near-term
+UX candidate [#99](https://github.com/Semtexcz/DeepPlant/issues/99), not as the
+selected capability.
+
+Strong candidates for the **following** gate, not commitments, are:
+
+```text
+#89 — DeepPlant project format and portable package
+first semantic mutation + Save
+presentation-state persistence
+semantic-validity vs view-availability UX (#99)
+#88 — release/version infrastructure
 P&ID
 process ↔ physical realization
 ```
 
-Re-evaluation criteria include:
-
-- what standalone packaging and the desktop-host slice exposed about hidden
-  coupling and the application/host/frontend boundary (answered for the delivered
-  slices: the checkout-relative SPA path, the CLI-level transport import, and the
-  absence of an owned server lifecycle were the real coupling, and all three are
-  fixed and covered by tests);
-- whether the project/persistence contract (#89) is now the right next step
-  before richer Open/Save semantics, or whether a different evidence-supported
-  slice comes first;
-- whether the first semantic-mutation + Save slice is now authorized, and where
-  the minimum application-command machinery Issue #69 describes and undo/redo
-  belong;
-- whether presentation state (diagram positions, per-view overrides) now needs
-  a concrete persisted schema;
-- what release/version automation (#88) needs to consume from the now
-  distributable artifacts, and what the new desktop runtime means for artifact
-  size and release packaging.
+#89 is an especially strong candidate: the workspace needs a first-class notion of
+what project/document it opens, future Save/Open needs a persistence contract, and
+manual testing confirms presentation state must eventually persist separately from
+process semantics. **Strong candidate != preselected successor.** The existing
+boundaries remain unchanged: `Process/PFD != Physical/P&ID != Simulation`,
+`ProcessStep != Equipment`, `ProcessPort != physical Port/Nozzle`,
+`ProcessStream != Connection/PipingLine`, and engineering semantics != presentation
+state.
 
 ### Next
 
-- **Unselected pending the post-#85 re-evaluation.** No successor capability may
-  be selected until that re-evaluation produces evidence.
+- **Unselected.** Do not preselect the successor to the empty-workspace slice.
+  Run another explicit re-evaluation only after **both** (1) packaged-smoke parity
+  is restored through the ordinary GUI workflow and (2) the empty shared Editor
+  workspace slice is delivered.
 
 ### Re-evaluation Gate
 
@@ -377,7 +387,7 @@ child implementation slices:
   │     Linux AppImage
   │     native packaging CI
   │     packaged smoke/E2E
-  └── native desktop host            delivered by PR #93
+  └── native desktop host            Issue #93, merged by PR #95
         graphical application window
         embedded shared Vue frontend
         native Open workflow
@@ -393,7 +403,7 @@ changing the product UI host. The second slice then changed only the host:
 distribution foundation (PR #92)
 packaged executable → local FastAPI/Uvicorn → external browser
 
-delivered product (PR #93)
+delivered product (Issue #93, merged by PR #95)
 packaged executable → native desktop host → embedded shared Vue SPA
 ```
 
@@ -411,8 +421,42 @@ The exact packaging technology is deliberately **not** selected here. No current
 repository evidence decides it; technology selection belongs to the #85
 implementation investigation (potential candidates may be evaluated there).
 
-No successor product capability after #85 is preselected, and no successor Issue
-is created by this gate (see **Now** and **Next**).
+At that time — before #85 was delivered — this post-#82 gate preselected no
+successor product capability after #85 and created no successor Issue itself (see
+**Now** and **Next**); successor selection was deliberately deferred to the later
+post-#85 re-evaluation, which has since executed and selected
+[#97](https://github.com/Semtexcz/DeepPlant/issues/97).
+
+#### Re-evaluation after #85 (executed)
+
+The gate that opened after #85 completed is now executed. It selects exactly one
+product capability, preceded by immediate verification hardening. The chronology is
+explicit:
+
+```text
+Re-evaluation after #82 (executed)
+    ↓
+selected #85
+
+#85 delivered
+    ↓
+Re-evaluation after #85 (executed)
+    ↓
+selected #97
+```
+
+- **Immediate evidence hardening** (not a product capability):
+  [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98);
+- **Selected product capability:**
+  [#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97).
+
+**Next** stays unselected. A new re-evaluation opens only after **both** (1)
+packaged-smoke parity (#98) is restored through the ordinary GUI workflow and (2)
+the empty shared Editor workspace slice (#97) is delivered. The strong future
+candidates — the project format/portable package (#89), the first semantic
+mutation + Save, presentation-state persistence, semantic validity vs Process/PFD
+view availability (#99), release/version infrastructure (#88), P&ID, and
+process ↔ physical realization — remain candidates only and are not preselected.
 
 ### Completed Context
 
@@ -554,7 +598,7 @@ is created by this gate (see **Now** and **Next**).
   dependencies; the dependency direction stays `applications → Core`, and the CLI
   and editor continue to consume the same Core. Packaging and desktop-host
   tooling was introduced only within the two #85 child slices (PR #92 distribution
-  foundation; PR #93 native desktop host) and is confined to the optional
+  foundation; Issue #93, merged by PR #95, native desktop host) and is confined to the optional
   `deepplant[editor]`/`deepplant[desktop]` extras, the `package`/`desktop` uv
   groups, and the packaging stages — never the base Core installation.
 - A future project/persistence contract (#89) will own the home for presentation
@@ -592,7 +636,7 @@ Concrete examples:
   persistence, a GUI redesign, P&ID, or broader Engineering Editor infrastructure
 - desktop/packaging tooling (desktop framework, webview host, bundlers,
   installers, CI packaging jobs) was authorized only within the two #85 child
-  slices (PR #92 distribution foundation; PR #93 native desktop host) — it is
+  slices (PR #92 distribution foundation; Issue #93, merged by PR #95, native desktop host) — it is
   confined to those slices and the `package`/`desktop` build groups, and is not
   release polish for other work
 - the multi-discipline stage does not justify generic entity hierarchies now

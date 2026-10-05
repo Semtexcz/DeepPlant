@@ -20,7 +20,7 @@ superseded_by: null
 - **Question investigated:** what shipped in DeepPlant's completed slices, and
   which earlier milestone framing describes that history?
 - **Status:** historical record.
-- **Inspection scope and date:** completed-slice record, reviewed 2026-10-04.
+- **Inspection scope and date:** completed-slice record, reviewed 2026-10-05.
 - **Conclusions:** validated YAML loading and reference validation shipped; the
   realistic fragment and basic headless renderer shipped; the first interactive
   read-only Process/PFD editor slice shipped (Issue #75); the delivered editor
@@ -31,7 +31,7 @@ superseded_by: null
   (Issue #81); a real-browser E2E layer was added (Issue #82); and Issue #85 then
   delivered independent DeepPlant Core and standalone editor distribution through
   its two child slices — the self-contained Windows/Linux distribution foundation
-  (PR #92) and the native desktop host (PR #93, Issue #93). P&ID-like coverage and
+  (PR #92) and the native desktop host (Issue #93, merged through PR #95). P&ID-like coverage and
   engineering-rule validation breadth did not ship and remain deferred context.
 - **Resulting ADRs:** see the linked ADRs and evidence in the slice record.
 - **Current contracts operationalizing the result:**

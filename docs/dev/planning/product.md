@@ -98,10 +98,12 @@ editing, presentation persistence, or P&ID authoring is implemented. The post-#8
 DeepPlant Core and standalone editor distribution — as the sole next product
 capability: prove the editor can ship as a self-contained Windows/Linux
 application while the Core stays independently usable, before more editor
-functionality is layered on it. The DeepPlant project format and portable package
-([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) remains a strong
-later candidate decided at the next re-evaluation. Detailed view-projection rules
-remain deliberately undecided here.
+functionality is layered on it. The post-#85 re-evaluation selects the empty shared Editor workspace / optional
+active project as the sole next product capability, following packaged-smoke parity
+hardening. The DeepPlant project format and portable package
+([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) is an especially
+strong candidate for the following gate, not a preselected successor. Detailed
+view-projection rules remain deliberately undecided here.
 
 ## Engineering Editor MVP v0.1
 
