@@ -39,8 +39,8 @@ adapter, and the runnable, read-only Process/PFD editor slice
 launched with `deepplant ui <path>`). The editor ships as a self-contained
 graphical application on Windows and Linux: `deepplant-editor` opens a native
 desktop window with an embedded webview rendering the same `apps/editor/` SPA
-(PR #92 established the distribution foundation; PR #93 delivered the native
-desktop host). The editor HTTP transport is an optional `deepplant[editor]` extra
+(PR #92 established the distribution foundation; Issue #93, merged through PR #95,
+delivered the native desktop host). The editor HTTP transport is an optional `deepplant[editor]` extra
 and the native host an optional `deepplant[desktop]` extra, so the semantic Core
 stays installable without either.
 
@@ -72,14 +72,16 @@ as the sole next product capability, and **#85 is now delivered** through its tw
 child slices. PR #92 established the self-contained distribution foundation: the
 editor ships as a Windows installer and a Linux AppImage, the bundled SPA is an
 application-owned resource rather than a checkout dependency, and the Core stays
-independently usable without the editor transport. PR #93 (Issue #93) delivered
-the native desktop host: `deepplant-editor` opens a real graphical window with an
+independently usable without the editor transport. Issue #93, merged through PR #95,
+delivered the native desktop host: `deepplant-editor` opens a real graphical window with an
 embedded webview rendering the same `apps/editor/` SPA, with a native **Open**
 workflow; the browser host `deepplant ui` and the Python CLI remain separate
-surfaces. `#85` is complete, and **no successor capability is selected**;
-[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) moves to an
-explicit evidence-based re-evaluation before any next capability, and remains
-the authority for current operational priority.
+surfaces. `#85` is complete. The post-#85 re-evaluation selects exactly one next
+product capability: an empty shared Editor workspace with `active project = none`,
+after immediate packaged-smoke parity hardening. Its successor remains unselected
+until both hardening and the empty-workspace slice are delivered;
+[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) remains the
+authority for current operational priority.
 
 ### Deferred / out-of-scope capabilities
 

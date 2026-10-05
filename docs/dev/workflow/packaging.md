@@ -62,7 +62,7 @@ Issue #93 replaced only the host:
 distribution foundation (PR #92)
 packaged executable → local FastAPI/Uvicorn → external browser
 
-delivered product (PR #93)
+delivered product (Issue #93, merged by PR #95)
 packaged executable → native desktop window → embedded shared Vue SPA
 ```
 

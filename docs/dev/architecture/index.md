@@ -294,7 +294,7 @@ deepplant-editor [path]      native desktop host     → embedded webview, no br
 delivered distribution foundation (PR #92)
 packaged executable → local FastAPI/Uvicorn → external browser
 
-delivered product (PR #93)
+delivered product (Issue #93, merged by PR #95)
 packaged executable → native desktop host → embedded shared Vue SPA
 ```
 
