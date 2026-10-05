@@ -295,10 +295,10 @@ jobs:
           # supported baseline documented in docs/dev/workflow/packaging.md
           # ("Supported Linux baseline"). The `lib*` packages below are that host
           # userspace, installed so a real graphical session is emulated; the
-          # display/automation tools (xvfb, xdotool, x11-utils, openbox) are the CI
-          # harness only and are never end-user prerequisites.
+          # display/automation tools (xvfb, xdotool, x11-utils, openbox, wmctrl)
+          # are the CI harness only and are never end-user prerequisites.
           sudo apt-get install -y --no-install-recommends \
-            xvfb xdotool x11-utils openbox \
+            xvfb xdotool x11-utils openbox wmctrl \
             libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libxcursor1 \
             libxi6 libxrender1 libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 \
             libdbus-1-3 libfontconfig1 libxshmfence1 libgbm1 libxcb-cursor0 \
@@ -420,10 +420,16 @@ jobs:
             echo "  $wid  $(xdotool getwindowname "$wid")"
           done
 
-          # Prove the application exits when its window is closed, using only real
-          # user-level close paths (never a signal and never a kill): first the
-          # window-manager close request, then, if the session does not act on it,
-          # the standard keyboard close gesture.
+          # Prove the application exits when its window is closed, using only a
+          # real user/session close request (never a signal and never a kill).
+          #
+          # `xdotool windowclose` is NOT usable here: it destroys the X window out
+          # of band, which leaves the client's event loop running with no window -
+          # neither an ordinary user action nor a session close request. The
+          # canonical EWMH close request is `_NET_CLOSE_WINDOW` (wmctrl -c), which
+          # the session window manager turns into WM_DELETE_WINDOW for the client;
+          # the ordinary keyboard gesture through the window manager is alt+F4
+          # delivered by XTest (indistinguishable from real input).
           wait_for_exit() {
             local deadline=$1
             for _ in $(seq 1 "$deadline"); do
@@ -435,32 +441,38 @@ jobs:
             return 1
           }
 
-          close_windows() {
-            for wid in $(xdotool search --name "DeepPlant Editor"); do
-              xdotool windowclose "$wid" || true
-            done
-          }
-
-          close_windows
-          wait_for_exit 20 || true
-
-          # Hard gate: the session's close request must actually close the window.
-          if xdotool search --name "DeepPlant Editor" > /dev/null 2>&1; then
-            echo "FAILED: the session close request did not close the Editor window"
-            exit 1
-          fi
-          echo "the session close request closed the real DeepPlant Editor window"
-
-          if kill -0 "$app_pid" 2>/dev/null; then
-            # XTest key events are indistinguishable from real input, unlike
-            # `xdotool key --window` (XSendEvent), so a session window manager
-            # really receives the standard close gesture.
+          request_session_close() {
+            if command -v wmctrl > /dev/null 2>&1; then
+              wmctrl -c "DeepPlant Editor" || true
+            fi
             for wid in $(xdotool search --name "DeepPlant Editor"); do
               xdotool windowactivate --sync "$wid" 2>/dev/null || true
               xdotool key --clearmodifiers alt+F4 || true
             done
-            wait_for_exit 20 || true
+          }
+
+          request_session_close
+          wait_for_exit 30 || true
+          if xdotool search --name "DeepPlant Editor" > /dev/null 2>&1; then
+            # The session may not have delivered the first request; ask once more
+            # before treating it as a product failure.
+            request_session_close
+            wait_for_exit 30 || true
           fi
+
+          # Hard gate 1: the session close request must actually close the window.
+          if xdotool search --name "DeepPlant Editor" > /dev/null 2>&1; then
+            echo "FAILED: the session close request did not close the Editor window"
+            echo "--- diagnostics ---"
+            echo "remaining windows:"
+            xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
+              echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
+            done || true
+            pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
+            kill "$app_pid" 2>/dev/null || true
+            exit 1
+          fi
+          echo "the session close request closed the real DeepPlant Editor window"
 
           # Hard gate (Issue #93 review): a window that disappears while the
           # process stays alive is a FAILURE. There is no "window closed but the
