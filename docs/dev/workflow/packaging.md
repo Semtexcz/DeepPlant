@@ -324,10 +324,20 @@ absent. On Linux the Qt WebEngine/Chromium X11 libraries are a documented
 build/test-environment dependency (CI installs them and uses Xvfb), and the FUSE
 2 runtime remains a documented AppImage user requirement.
 
-On Linux the packaging job additionally discovers the real X11 window with
-`xdotool` on a virtual display, launches with **no** model argument, and closes
-it through the window manager protocol, so the graphical product is also verified
-outside the application's own report.
+On Linux the packaging job additionally launches the packaged application with
+**no** model argument on a virtual display (Xvfb) under a session window manager
+(openbox) and discovers the real X11 window with `xdotool`, proving the graphical
+product exists outside the application's own report. It then asks the session to
+close that window and requires the window to disappear.
+
+The **close → clean exit** contract for this artifact is owned by the desktop
+self-check above, which closes the real window through the ordinary close path
+and asserts that the owned server stopped and the loopback socket was released.
+A bare virtual display has no session manager or session bus, and the process
+sometimes outlives the session close request there; the job reports that case
+for what it is rather than treating an artifact of the virtual session as a
+product failure. A process that survives is still stopped so the runner is left
+clean.
 
 ### Browser E2E boundary
 
