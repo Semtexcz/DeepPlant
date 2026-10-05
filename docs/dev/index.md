@@ -78,6 +78,7 @@ table, not an orchestration engine.
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the editor frontend or the local application boundary | [frontend/index.md](frontend/index.md), [architecture.md](architecture/index.md), [contracts/rendering.md](../contracts/rendering.md), [workflow/quality.md](workflow/quality.md) |
 | Change editor Vue components, composables, TypeScript, styling, tests, or accessibility | [frontend/index.md](frontend/index.md), then the matching topic document in [frontend/](frontend/index.md) |
+| Design a frontend change in Figma and implement it with a coding agent | [frontend/design-to-code.md](frontend/design-to-code.md), [frontend/index.md](frontend/index.md) |
 | Package, distribute, or release the standalone Editor | [workflow/packaging.md](workflow/packaging.md), [research/standalone-editor-distribution.md](research/standalone-editor-distribution.md) |
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
