@@ -25,9 +25,15 @@ superseded_by: null
 > **Question this page answers:** which file do I download for my computer, how do
 > I install and run it, how do I open a plant model, and what does not exist yet?
 
-The standalone DeepPlant Editor is a self-contained application. You do **not**
-need Python, Node.js, `pnpm`, `npm`, `uv`, `pip`, a compiler, or the DeepPlant
-source code.
+The standalone DeepPlant Editor is a self-contained application runtime: you do
+**not** need Python, Node.js, `pnpm`, `npm`, `uv`, `pip`, a compiler, a separately
+installed Qt or webview/Chromium runtime, or the DeepPlant source code.
+
+"Self-contained" means the application brings its own runtime; it does not mean a
+statically linked binary with no system dependencies. On Linux it uses the
+ordinary desktop graphics/session libraries that any graphical application uses
+(the same ones your file manager and browser already use). On Windows it uses the
+standard Windows runtime libraries.
 
 The editor is **read-only**. It displays the current Process/PFD view of a plant
 model and the validation status of that model. It never modifies your file.
@@ -150,6 +156,23 @@ Useful options (`deepplant-editor --help` lists them):
 
 The following are used by our automated packaging checks and are not needed in
 normal use: `--self-check`, `--self-check-report <path>`, `--assets-dir <dir>`.
+
+## Licences and third-party notices
+
+The Editor is a desktop application that embeds a Chromium-based webview, so it
+redistributes Qt, Qt WebEngine/Chromium and other third-party components. The
+applicable licence and notice material ships **inside the installed application**:
+
+- Windows: `<installation folder>\licenses\` (for example
+  `%LOCALAPPDATA%\Programs\DeepPlant Editor\licenses\` for a per-user install).
+- Linux (AppImage): `usr/bin/deepplant-editor/licenses/` inside the AppDir - run
+  `./deepplant-editor-<version>-linux-x86_64.AppImage --appimage-extract` and look
+  under `squashfs-root/usr/bin/deepplant-editor/licenses/`.
+
+That directory contains DeepPlant's own licence, the third-party notice index, the
+project-authored compliance documents, and the Qt / Qt WebEngine licence texts
+matching the exact redistributed versions. See
+[THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md) for the provenance index.
 
 ## What is not implemented yet
 

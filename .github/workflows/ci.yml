@@ -143,6 +143,12 @@ jobs:
       - name: Read the pinned packaging toolchain
         run: python tools/packaging_toolchain.py export
 
+      - name: Strict type-check the Qt desktop host
+        # The fast `check` gate excludes src/deepplant/editor/desktop_qt.py because
+        # it deliberately does not install PySide6. This job does, so the actual Qt
+        # module is type-checked in strict mode here (Issue #93 review).
+        run: uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
+
       - name: Install the pinned Inno Setup (build-time tool only)
         shell: pwsh
         run: |
@@ -282,10 +288,15 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          # Qt WebEngine is Chromium: it needs its usual X11/Graphical libraries,
-          # and the GUI needs a display. These are *test/CI* environment
-          # dependencies, not something the end user has to install - the
-          # application carries its own Qt (Issue #93).
+          # The application bundles its own Python, Qt, and Qt WebEngine/Chromium,
+          # so it needs no separately installed Python, Qt, webview, or browser.
+          # It *does* use the ordinary Linux desktop graphics/session libraries
+          # that any Qt application uses - that is the host-OS half of the
+          # supported baseline documented in docs/dev/workflow/packaging.md
+          # ("Supported Linux baseline"). The `lib*` packages below are that host
+          # userspace, installed so a real graphical session is emulated; the
+          # display/automation tools (xvfb, xdotool, x11-utils, openbox) are the CI
+          # harness only and are never end-user prerequisites.
           sudo apt-get install -y --no-install-recommends \
             xvfb xdotool x11-utils openbox \
             libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libxcursor1 \
@@ -326,6 +337,12 @@ jobs:
 
       - name: Read the pinned packaging toolchain
         run: python tools/packaging_toolchain.py export
+
+      - name: Strict type-check the Qt desktop host
+        # The fast `check` gate excludes src/deepplant/editor/desktop_qt.py because
+        # it deliberately does not install PySide6. This job does, so the actual Qt
+        # module is type-checked in strict mode here (Issue #93 review).
+        run: uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
 
       - name: Install pinned, integrity-verified appimagetool and AppImage runtime
         run: |
@@ -445,33 +462,42 @@ jobs:
             wait_for_exit 20 || true
           fi
 
+          # Hard gate (Issue #93 review): a window that disappears while the
+          # process stays alive is a FAILURE. There is no "window closed but the
+          # process lingers" NOTE path any more - forced cleanup runs only after
+          # the failure has been recorded, never as the reason the step passed.
           if kill -0 "$app_pid" 2>/dev/null; then
-            echo "NOTE: the session close request removed the window, but the"
-            echo "      application process is still alive on this bare virtual"
-            echo "      display (Xvfb + openbox, no session manager or session bus)."
-            echo "      The close -> server stop -> clean exit contract is proven for"
-            echo "      this same artifact by the packaged desktop self-check above,"
-            echo "      which closes the real window through the ordinary close path"
-            echo "      and asserts serverStopped/portReleased; that check gates this"
-            echo "      job, so this note is supplementary evidence, not a bypass."
+            echo "FAILED: the DeepPlant Editor window closed but the process is still alive"
             echo "--- diagnostics ---"
             echo "window manager: $(xprop -root _NET_SUPPORTING_WM_CHECK 2>/dev/null)"
             echo "openbox: $(pgrep -a openbox || echo none)"
             echo "remaining application processes:"
-            pgrep -af deepplant-editor || echo "  none"
+            pgrep -af "$RUNNER_TEMP/editor-window/install" || echo "  none"
             echo "remaining web engine helpers:"
             pgrep -af QtWebEngineProcess || echo "  none"
             echo "remaining windows:"
             xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
               echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
             done || true
-            # Leave the runner clean; this is teardown, not the assertion.
+            echo "--- application log ---"
+            cat "$RUNNER_TEMP/editor-window/app.log" || true
+            # Record the failure first, then leave the runner clean.
             pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
             kill "$app_pid" 2>/dev/null || true
-          else
-            echo "WINDOW LIFECYCLE VERIFIED: the packaged application opened a real"
-            echo "window with no model argument and exited when the session closed it."
+            exit 1
           fi
+
+          # No owned application process may remain either.
+          if pgrep -f "$RUNNER_TEMP/editor-window/install" > /dev/null 2>&1; then
+            echo "FAILED: an application-owned process remains after the main process exited"
+            pgrep -af "$RUNNER_TEMP/editor-window/install" || true
+            pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "WINDOW LIFECYCLE VERIFIED: the packaged application opened a real"
+          echo "window with no model argument and the whole process exited when the"
+          echo "session closed it - no signal and no kill were used."
 
       - name: Upload packaging log on failure
         if: failure()

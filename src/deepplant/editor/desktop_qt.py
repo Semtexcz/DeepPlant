@@ -31,11 +31,12 @@ import os
 import socket
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 
-from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtCore import QCoreApplication, QEvent, QObject, Qt, QTimer, QUrl
+from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
 from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
@@ -57,6 +58,7 @@ from deepplant.editor.desktop import (
     MODEL_FILE_FILTER,
     WINDOW_TITLE,
     ProjectLoader,
+    editor_origin,
     initial_open_directory,
     is_allowed_navigation,
 )
@@ -158,26 +160,40 @@ def _configure_webengine_for_this_process() -> None:
 
 
 class _LocalOnlyPage(QWebEnginePage):
-    """A page that may only navigate within the local DeepPlant application.
+    """A page that may only navigate within the active EditorServer origin.
 
-    The embedded view shows the privileged local application, so a link that
-    would replace it with an arbitrary external page is refused. The policy is
-    the pure, unit-tested :func:`deepplant.editor.desktop.is_allowed_navigation`.
+    The embedded view shows the privileged local application, so a navigation that
+    would replace it with another origin is refused. The policy is the pure,
+    unit-tested :func:`deepplant.editor.desktop.is_allowed_navigation`, and the
+    allowed origin is read *live* from the host so that opening another model -
+    which replaces the server and may bind a different ephemeral port - moves the
+    permitted origin to the new one (Issue #93 review).
     """
+
+    def __init__(self, parent: QObject, origin_provider: Callable[[], str | None]) -> None:
+        super().__init__(parent)
+        self._origin_provider = origin_provider
 
     def acceptNavigationRequest(  # noqa: N802 - Qt API name
         self,
-        url: QUrl,
+        url: QUrl | str,
         navigation_type: QWebEnginePage.NavigationType,
         is_main_frame: bool,
     ) -> bool:
-        return is_allowed_navigation(url.toString())
+        target = url.toString() if isinstance(url, QUrl) else url
+        return is_allowed_navigation(target, allowed_origin=self._origin_provider())
 
-    def createWindow(  # noqa: N802 - Qt API name
+    def createWindow(  # noqa: N802  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         window_type: QWebEnginePage.WebWindowType,
     ) -> QWebEnginePage | None:
-        """Refuse pop-ups: the desktop host is not a general-purpose browser."""
+        """Refuse pop-ups: the desktop host is not a general-purpose browser.
+
+        Qt's C++ contract lets ``createWindow`` return ``nullptr`` to refuse the
+        pop-up, which is exactly what this host wants; PySide6's stub types the
+        return as non-optional, so this single override is annotated narrowly
+        rather than the whole module being silenced.
+        """
         return None
 
 
@@ -222,12 +238,14 @@ class _MainWindow(QMainWindow):
         on_open: Callable[[], None],
         on_close: Callable[[], None],
         on_page_loaded: Callable[[bool], None],
+        origin_provider: Callable[[], str | None],
     ) -> None:
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
         self.resize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
         self._on_close = on_close
         self._on_page_loaded = on_page_loaded
+        self._origin_provider = origin_provider
         self._view: QWebEngineView | None = None
 
         self._stack = QStackedWidget(self)
@@ -254,7 +272,7 @@ class _MainWindow(QMainWindow):
         """Show the embedded SPA for an already-running local server."""
         if self._view is None:
             view = QWebEngineView(self)
-            view.setPage(_LocalOnlyPage(view))
+            view.setPage(_LocalOnlyPage(view, self._origin_provider))
             # Connected exactly once, at view creation, and before the first
             # `setUrl`, so no load can finish before the hook exists.
             view.loadFinished.connect(self._on_page_loaded)
@@ -264,6 +282,21 @@ class _MainWindow(QMainWindow):
         self.setWindowTitle(f"{project_label} — {WINDOW_TITLE}")
         self._view.setUrl(QUrl(base_url))
         return self._view
+
+    def clear_web_view(self) -> None:
+        """Drop the host's reference to the embedded view during teardown.
+
+        Deleting the view alone is not enough for a deterministic shutdown: Qt
+        WebEngine is multiprocess, and an interpreter that still holds the view (or
+        its page) at exit can block while Chromium's helper threads unwind.
+        Removing the reference here, together with the deferred deletion scheduled
+        by :func:`_teardown_qt`, lets the page and its profile be destroyed before
+        the interpreter starts to exit (Issue #93 review).
+        """
+        view = self._view
+        self._view = None
+        if view is not None:
+            self._stack.removeWidget(view)
 
     def ask_for_model(self, directory: str) -> str | None:
         """Run the operating system's native Open dialog (path selection only)."""
@@ -279,7 +312,7 @@ class _MainWindow(QMainWindow):
         """Report a model/asset failure without a traceback."""
         QMessageBox.critical(self, WINDOW_TITLE, message)
 
-    def closeEvent(self, event: object) -> None:  # noqa: N802 - Qt API name
+    def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802 - Qt API name
         """Stop owned resources and terminate the application.
 
         Closing the main window must end the application: it owns a local server
@@ -295,20 +328,19 @@ class _MainWindow(QMainWindow):
             instance.quit()
 
 
-def _initial_open_directory() -> str:
-    """Return a usable starting directory for the native Open dialog.
+@dataclass(frozen=True)
+class _ServerShutdown:
+    """Truthful outcome of stopping the owned server (Issue #93 review).
 
-    This must never raise. A graphical application has to start even when the
-    platform cannot report a home directory (a service or locked-down session, a
-    hardened CI runner); the Open dialog simply starts somewhere sensible.
-    ``Path.home()`` raises ``RuntimeError`` in exactly those cases.
+    ``requested``/``stopped``/``thread_alive`` are *measured* facts, so the
+    packaged self-check can distinguish "no server exists", "stop requested",
+    "stopped successfully", and "stop timed out / still alive" instead of treating
+    a cleared reference as proof that the serving thread exited.
     """
-    for candidate in (Path.home, Path.cwd):
-        try:
-            return str(candidate())
-        except (OSError, RuntimeError):
-            continue
-    return ""
+
+    requested: bool
+    stopped: bool
+    thread_alive: bool
 
 
 class _DesktopEditor:
@@ -338,6 +370,7 @@ class _DesktopEditor:
         self._host = host
         self._echo = echo
         self._server: EditorServer | None = None
+        self._server_shutdown = _ServerShutdown(requested=False, stopped=False, thread_alive=False)
         self._open_directory = initial_open_directory()
         #: Set by the self-check before the first load; harmless when unset.
         self.page_loaded_hook: Callable[[bool], None] | None = None
@@ -345,6 +378,7 @@ class _DesktopEditor:
             on_open=self.open_from_dialog,
             on_close=self.shutdown,
             on_page_loaded=self._dispatch_page_loaded,
+            origin_provider=self.current_origin,
         )
 
     @property
@@ -353,15 +387,43 @@ class _DesktopEditor:
 
     @property
     def server(self) -> EditorServer | None:
-        """The currently owned local server, if a project is open."""
+        """The currently owned local server, if a project is open.
+
+        A still-live server is deliberately retained after a failed stop, so this
+        never reports ``None`` for a server whose thread is still running.
+        """
         return self._server
+
+    def current_origin(self) -> str | None:
+        """The exact origin owned by the current server, or ``None``.
+
+        This is the single value the embedded webview's navigation policy compares
+        against, so opening another model - which starts a new server on a possibly
+        different ephemeral port - moves the permitted origin to the new one. It is
+        a method (not a property) because the page reads it live through a
+        callback.
+        """
+        server = self._server
+        if server is None:
+            return None
+        return editor_origin(server.host, server.port)
+
+    @property
+    def server_shutdown(self) -> _ServerShutdown:
+        """The measured outcome of the most recent ``_stop_server`` call."""
+        return self._server_shutdown
 
     def show(self) -> None:
         self._window.show()
 
     def open_project(self, application: EditorApplication) -> None:
         """Start the embedded server and show the shared SPA for one project."""
-        self._stop_server()
+        if not self._stop_server():
+            self._window.show_error(
+                "The previous local editor server did not stop, so this model was "
+                "not opened. Close the application and try again."
+            )
+            return
         server = EditorServer(application, host=self._host, port=self._port)
         server.start()
         self._server = server
@@ -390,11 +452,36 @@ class _DesktopEditor:
         """Stop the owned server (called once, from the window close handler)."""
         self._stop_server()
 
-    def _stop_server(self) -> None:
+    def _stop_server(self) -> bool:
+        """Stop the owned server and keep a truthful record of the outcome.
+
+        A cleared ``self._server`` is **not** evidence that the serving thread
+        exited. The reference is dropped only when :meth:`EditorServer.stop`
+        reports that the thread actually terminated; otherwise the still-live
+        server is retained so it stays discoverable and reportable, and ``False``
+        is returned (Issue #93 review).
+
+        Returns:
+            ``True`` when the owned server is not running any more.
+        """
         server = self._server
-        self._server = None
-        if server is not None and not server.stop():
-            self._echo("warning: the local editor server did not stop cleanly")
+        if server is None:
+            self._server_shutdown = _ServerShutdown(
+                requested=True, stopped=True, thread_alive=False
+            )
+            return True
+        stopped = server.stop()
+        thread_alive = server.running
+        self._server_shutdown = _ServerShutdown(
+            requested=server.stop_requested, stopped=stopped, thread_alive=thread_alive
+        )
+        if stopped:
+            self._server = None
+            return True
+        # Keep the owned server: it is still alive, and forgetting it would be the
+        # false positive this invariant exists to prevent.
+        self._echo("warning: the local editor server did not stop cleanly; it is still running")
+        return False
 
     def _dispatch_page_loaded(self, ok: bool) -> None:
         hook = self.page_loaded_hook
@@ -445,34 +532,35 @@ def _parse_probe(raw: object) -> dict[str, object]:
         return {}
     if not isinstance(parsed, dict):
         return {}
-    return {str(key): value for key, value in parsed.items()}
+    return dict(cast("dict[str, object]", parsed))
 
 
 def _self_check_verdict(
-    canvas: dict[str, object],
-    inspector: dict[str, object],
+    canvas: object,
+    inspector: object,
 ) -> tuple[bool, dict[str, object]]:
     """Decide whether the real embedded application matched the expectations.
 
     The checks are read from the *rendered* page via the webview's JavaScript
     engine - the production host and the production SPA, not a mock.
     """
-    fields_raw = inspector.get("fields")
-    fields: dict[str, object] = fields_raw if isinstance(fields_raw, dict) else {}
+    canvas_fields = _as_mapping(canvas)
+    inspector_fields = _as_mapping(inspector)
+    fields = _as_mapping(inspector_fields.get("fields"))
     checks: dict[str, object] = {
-        "validationValid": canvas.get("statusText") == "Valid",
-        "processSteps": canvas.get("processSteps") == _EXPECTED_STEPS,
-        "processStreams": canvas.get("processStreams") == _EXPECTED_STREAMS,
-        "pumpSelected": inspector.get("heading") == PROBE_STEP_ID,
+        "validationValid": canvas_fields.get("statusText") == "Valid",
+        "processSteps": canvas_fields.get("processSteps") == _EXPECTED_STEPS,
+        "processStreams": canvas_fields.get("processStreams") == _EXPECTED_STREAMS,
+        "pumpSelected": inspector_fields.get("heading") == PROBE_STEP_ID,
         "inspectorFunction": fields.get("Function") == "pumping",
-        "productionSpa": canvas.get("devEntryPoint") is False,
+        "productionSpa": canvas_fields.get("devEntryPoint") is False,
     }
     passed = all(value is True for value in checks.values())
     return passed, {
         "verdict": "pass" if passed else "fail",
         "checks": checks,
-        "canvas": canvas,
-        "inspector": inspector,
+        "canvas": canvas_fields,
+        "inspector": inspector_fields,
     }
 
 
@@ -483,7 +571,7 @@ def _start_self_check(
     echo: Callable[[str], None],
     finish: Callable[[int], None],
     has_project: bool,
-) -> None:
+) -> dict[str, object]:
     """Drive the packaged-desktop verification through the real application.
 
     Issue #93 requires the packaged Windows/Linux artifacts to prove the actual
@@ -491,12 +579,18 @@ def _start_self_check(
     documented test hook launches the ordinary application, shows the real native
     window, drives the real embedded SPA through Qt's own JavaScript engine, then
     closes the window through the same ``closeEvent`` a user triggers and records
-    whether the owned server and socket went away.
+    whether the owned server thread and the loopback socket went away.
 
-    It adds no production protocol: normal builds never enter it, and the state it
-    reads is the state the application already has.
+    The lifecycle facts are recorded as *measured* values, not bookkeeping flags:
+    ``serverStopped`` is true only when the owned server thread has actually
+    terminated, and the report is completed after the event loop returns (see
+    :func:`_finalize_self_check_after_loop`) so a forced exit can never make the
+    report appear clean (Issue #93 review).
+
+    Returns the mutable report so ``run_host`` can complete it after the loop.
     """
     results: dict[str, object] = {}
+    report: dict[str, object] = {}
     finished = False
 
     def finish_once(code: int) -> None:
@@ -531,34 +625,70 @@ def _start_self_check(
         _stage_log(report_path, "finalize: begin")
         window = editor.window
         visible_before_close = window.isVisible()
-        server = editor.server
-        port_before_close = server.port if server is not None else None
+        server_before_close = editor.server
+        port_before_close = server_before_close.port if server_before_close is not None else None
 
         # The real close path: `closeEvent` -> stop the owned server -> Qt quits.
         window.close()
         window_closed = not window.isVisible()
-        server_stopped = editor.server is None
+
+        # Measured after close, from the server object itself - never inferred
+        # from a cleared reference.
+        shutdown = editor.server_shutdown
+        server_after_close = editor.server
+        thread_alive_after_close = bool(
+            server_after_close is not None and server_after_close.running
+        )
+        server_stopped = bool(shutdown.requested and not thread_alive_after_close)
         port_released = port_before_close is None or not _port_accepts(port_before_close)
 
-        canvas = results.get("canvas")
-        inspector = results.get("inspector")
+        content_extra: dict[str, object] = {}
         if has_project:
-            content_passed, report = _self_check_verdict(canvas, inspector)
+            content_checks, content_extra = _self_check_verdict(
+                results.get("canvas"), results.get("inspector")
+            )
         else:
-            content_passed, report = True, {"checks": {}}
+            content_checks = True
 
-        checks: dict[str, object] = dict(report["checks"])
+        checks = _as_mapping(content_extra.get("checks"))
         checks["windowVisible"] = visible_before_close
         checks["windowClosed"] = window_closed
+        checks["serverStopRequested"] = bool(shutdown.requested)
         checks["serverStopped"] = server_stopped
+        checks["serverThreadTerminated"] = not thread_alive_after_close
         checks["portReleased"] = port_released
         lifecycle_passed = (
-            visible_before_close and window_closed and server_stopped and port_released
+            visible_before_close
+            and window_closed
+            and bool(shutdown.requested)
+            and server_stopped
+            and not thread_alive_after_close
+            and port_released
         )
-        passed = bool(content_passed and lifecycle_passed)
+        passed = bool(content_checks and lifecycle_passed)
+
+        report.clear()
         report["checks"] = checks
+        report["lifecycle"] = {
+            "windowVisible": visible_before_close,
+            "windowClosed": window_closed,
+            "serverStopRequested": bool(shutdown.requested),
+            "serverStopped": server_stopped,
+            "serverThreadAliveAfterClose": thread_alive_after_close,
+            "portReleased": port_released,
+            # Only knowable after QApplication.exec() returns; completed there.
+            "eventLoopReturned": False,
+        }
+        for key, value in content_extra.items():
+            if key not in {"checks", "verdict"}:
+                report[key] = value
         report["verdict"] = "pass" if passed else "fail"
         report["windowTitle"] = WINDOW_TITLE
+        _stage_log(
+            report_path,
+            f"finalize: serverStopped={server_stopped} "
+            f"threadAlive={thread_alive_after_close} portReleased={port_released}",
+        )
         _write_json(report_path, report)
         echo(f"self-check verdict: {report['verdict']}")
         finish_once(0 if passed else 1)
@@ -588,10 +718,11 @@ def _start_self_check(
         if view is None:
             fail("the embedded view disappeared")
             return
-        view.page().runJavaScript(
-            _INSPECTOR_PROBE_JS,
-            lambda raw: after_inspector(canvas, raw),
-        )
+
+        def handle_result(raw: object) -> None:
+            after_inspector(canvas, raw)
+
+        view.page().runJavaScript(_INSPECTOR_PROBE_JS, handle_result)
 
     def after_inspector(canvas: dict[str, object], raw: object) -> None:
         del canvas
@@ -623,9 +754,95 @@ def _start_self_check(
     if not has_project:
         # No model was supplied: the bootstrap window is the thing under test.
         QTimer.singleShot(POST_LOAD_SETTLE_MS, lambda: failed_guard("the window check", finalize))
-        return
+        return report
 
     editor.page_loaded_hook = on_loaded
+    return report
+
+
+def _as_mapping(value: object) -> dict[str, object]:
+    """Return ``value`` as a plain ``dict[str, object]`` (empty when it is not one)."""
+    if isinstance(value, dict):
+        return dict(cast("dict[str, object]", value))
+    return {}
+
+
+def _finalize_self_check_after_loop(
+    report_path: Path,
+    report: dict[str, object],
+    editor: _DesktopEditor,
+) -> None:
+    """Complete the self-check report once the event loop has returned.
+
+    ``eventLoopReturned`` and the final server-thread state are only knowable after
+    ``QApplication.exec()`` returns, so they are recorded here rather than guessed
+    inside the probe. This runs on the ordinary return path; the process is never
+    force-exited to make the report look clean, so a stalled teardown shows up as a
+    failed run instead of being hidden (Issue #93 review).
+    """
+    server = editor.server
+    thread_alive = bool(server is not None and server.running)
+    shutdown = editor.server_shutdown
+
+    if not report:
+        # The self-check failed before ``finalize()`` ran (a page-load or probe
+        # failure, or the watchdog). Leave the failure report exactly as written.
+        return
+
+    checks = _as_mapping(report.get("checks"))
+    lifecycle = _as_mapping(report.get("lifecycle"))
+    checks["eventLoopReturned"] = True
+    checks["serverThreadTerminated"] = not thread_alive
+    lifecycle["eventLoopReturned"] = True
+    lifecycle["serverThreadAliveAfterClose"] = thread_alive
+    report["checks"] = checks
+    report["lifecycle"] = lifecycle
+
+    # A still-live owned server after the loop returned can only downgrade the
+    # verdict; a failing verdict is never upgraded here.
+    if report.get("verdict") == "pass" and (thread_alive or not shutdown.stopped):
+        report["verdict"] = "fail"
+
+    _write_json(report_path, report)
+    _stage_log(
+        report_path,
+        f"host: report completed (eventLoopReturned=True, serverThreadAlive={thread_alive})",
+    )
+
+
+def _teardown_qt(editor: _DesktopEditor, qt_application: QApplication) -> None:
+    """Dispose the owned Qt/WebEngine objects before the interpreter exits.
+
+    Closing the window ends the event loop; the remaining job is to let the process
+    exit *naturally* instead of terminating it. Qt WebEngine is multiprocess and
+    keeps a profile and helper threads alive, so the embedded view is stopped,
+    detached from the now-closed server, and scheduled for deletion, and the
+    deferred deletion is flushed before ``run_host`` returns and Python unwinds.
+
+    This is deliberately small and destroys only what DeepPlant created. Qt owns its
+    own ``QtWebEngineProcess`` helpers and reaps them once the page and profile are
+    gone, so nothing is force-killed here.
+    """
+    window = editor.window
+    view = window.web_view
+    if view is not None:
+        try:
+            # Stop any in-flight load and detach from the closed server before the
+            # object is destroyed, so Chromium does not chase a socket that is gone.
+            view.stop()
+            view.setUrl(QUrl("about:blank"))
+        except RuntimeError:
+            # The C++ object may already be gone during a platform-driven close.
+            pass
+        view.deleteLater()
+    window.clear_web_view()
+    window.close()
+    qt_application.processEvents()
+    # Flush the deferred deletion now, while there is still an event loop to run it,
+    # rather than leaving the webview (and its engine profile) alive until the
+    # interpreter tears globals down in an arbitrary order.
+    QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+    qt_application.processEvents()
 
 
 def run_host(
@@ -652,12 +869,13 @@ def run_host(
     if report_path is not None:
         _stage_log(report_path, "host: Qt application created")
 
+    report: dict[str, object] | None = None
     try:
         editor = _DesktopEditor(loader=loader, port=port, host=host, echo=echo)
         if self_check:
             if report_path is None:
                 raise RuntimeError("the desktop self-check requires a report path")
-            _start_self_check(
+            report = _start_self_check(
                 editor,
                 Path(report_path),
                 echo=echo,
@@ -674,17 +892,22 @@ def run_host(
         exit_code = int(qt_application.exec())
         if report_path is not None:
             _stage_log(report_path, f"host: event loop returned {exit_code}")
-        # Terminate the process directly. Qt WebEngine keeps global state that can
-        # block interpreter shutdown even when no page was ever created, and a
-        # desktop application whose window has closed must not linger: the
-        # requirement is that closing the window ends the application and the
-        # helpers it owns, not that Python's finalizers happen to run.
-        os._exit(exit_code)
+
+        # Normal, successful lifecycle: the event loop has returned, so dispose the
+        # owned Qt objects explicitly and let the interpreter finish and exit
+        # naturally. The process is *not* force-terminated on this path - a close
+        # that cannot unwind is a real product defect and must surface as one
+        # (Issue #93 review).
+        _teardown_qt(editor, qt_application)
+        if report is not None and report_path is not None:
+            _finalize_self_check_after_loop(Path(report_path), report, editor)
+        return exit_code
     except BaseException as exc:
-        # A failure while the Qt application already exists must still be bounded
-        # and reported: tearing a half-constructed Qt application down at
-        # interpreter exit can block, which would leave an automated caller
-        # waiting instead of receiving the reason.
+        # Fatal/emergency fallback only. A failure while the Qt application already
+        # exists must still be bounded and reported: tearing a half-constructed Qt
+        # WebEngine application down at interpreter exit can block, which would
+        # leave an automated caller waiting instead of receiving the reason. This is
+        # never the successful close path - that path returns normally above.
         if report_path is None:
             raise
         _stage_log(report_path, f"host: fatal {type(exc).__name__}: {exc}")

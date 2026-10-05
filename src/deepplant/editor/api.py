@@ -173,6 +173,10 @@ class EditorServer:
         self._listener = _bind_loopback_socket(host, port)
         self._bound_port = int(self._listener.getsockname()[1])
         self._thread: threading.Thread | None = None
+        #: Whether a graceful stop has ever been requested. Kept separate from the
+        #: thread state so a caller can distinguish "no stop was asked for" from
+        #: "a stop was asked for and the thread is still alive" (Issue #93 review).
+        self._stop_requested = False
 
     @property
     def application(self) -> EditorApplication:
@@ -196,8 +200,18 @@ class EditorServer:
 
     @property
     def running(self) -> bool:
-        """Whether the serving thread is currently alive."""
+        """Whether the serving thread is currently alive.
+
+        This stays truthful after a failed or timed-out :meth:`stop`: while the
+        owned thread is alive it is still retained, so ``running`` reports ``True``
+        rather than silently forgetting a live server (Issue #93 review).
+        """
         return self._thread is not None and self._thread.is_alive()
+
+    @property
+    def stop_requested(self) -> bool:
+        """Whether a graceful stop has been requested at least once."""
+        return self._stop_requested
 
     def start(self, *, timeout: float = _LISTENING_TIMEOUT_S) -> None:
         """Start serving in a background thread and wait until it accepts.
@@ -229,26 +243,39 @@ class EditorServer:
             thread.join()
 
     def stop(self, *, timeout: float = _SHUTDOWN_TIMEOUT_S) -> bool:
-        """Ask Uvicorn to exit, join the thread, and close the loopback socket.
+        """Ask Uvicorn to exit, join the thread, and release the loopback socket.
 
         Deliberately non-raising: shutdown runs from a window-close handler and
         from ``finally`` blocks, so it must never mask the real reason the
         application is ending. It is idempotent - calling it twice, or on a
-        server that never started, is safe.
+        server that never started, is safe - and bounded by ``timeout`` so a
+        stalled server can never hang the caller.
+
+        The return value is the *measured* truth about the owned thread, not a
+        bookkeeping flag: ``True`` means the serving thread has actually
+        terminated (or never ran), ``False`` means it was still alive when
+        ``timeout`` elapsed. A timed-out stop deliberately **keeps** the thread
+        reference and leaves the listener open, so :attr:`running` stays ``True``
+        and a later ``stop()`` can still join the same owned thread instead of
+        leaking the evidence of a live server (Issue #93 review).
 
         Returns:
             ``True`` when the serving thread has exited (or never ran),
             ``False`` when it was still alive after ``timeout`` seconds.
         """
+        self._stop_requested = True
         self._server.should_exit = True
         thread = self._thread
-        stopped = True
         if thread is not None:
             thread.join(timeout=timeout)
-            stopped = not thread.is_alive()
-        self._thread = None
+            if thread.is_alive():
+                # Still ours and still running: retain the reference so `running`
+                # remains truthful and a later stop() can join it. The listener is
+                # left open because the live thread still owns it.
+                return False
+            self._thread = None
         self._listener.close()
-        return stopped
+        return True
 
 
 def serve_editor(

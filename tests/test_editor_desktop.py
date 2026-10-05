@@ -16,6 +16,7 @@ import pytest
 from deepplant.editor.application import EditorApplication
 from deepplant.editor.desktop import (
     DesktopHostError,
+    editor_origin,
     initial_open_directory,
     is_allowed_navigation,
     run_desktop_editor,
@@ -45,16 +46,45 @@ class _RecordingHost:
         return self._exit_code
 
 
-def test_navigation_policy_stays_on_the_local_application() -> None:
-    """The embedded view never replaces the application with an external page."""
-    assert is_allowed_navigation("http://127.0.0.1:53421/") is True
-    assert is_allowed_navigation("http://localhost:53421/assets/index-abc.js") is True
-    assert is_allowed_navigation("about:blank") is True
-    assert is_allowed_navigation("data:text/plain,hello") is True
+ORIGIN = editor_origin("127.0.0.1", 51843)
 
-    assert is_allowed_navigation("https://example.com/") is False
-    assert is_allowed_navigation("http://192.168.0.10:53421/") is False
-    assert is_allowed_navigation("file:///etc/passwd") is False
+
+def test_navigation_policy_is_the_exact_editor_origin() -> None:
+    """Only the active EditorServer origin, plus internal schemes, is allowed."""
+    assert is_allowed_navigation(f"{ORIGIN}/", allowed_origin=ORIGIN) is True
+    assert is_allowed_navigation(f"{ORIGIN}/assets/index-abc.js", allowed_origin=ORIGIN) is True
+
+    assert is_allowed_navigation("about:blank", allowed_origin=ORIGIN) is True
+    assert is_allowed_navigation("data:text/plain,hello", allowed_origin=ORIGIN) is True
+    assert is_allowed_navigation(f"blob:{ORIGIN}/abc", allowed_origin=ORIGIN) is True
+
+
+def test_navigation_policy_rejects_any_other_loopback_origin() -> None:
+    """A different port or a different loopback host name is a different origin."""
+    assert is_allowed_navigation("http://127.0.0.1:8080/", allowed_origin=ORIGIN) is False
+    assert is_allowed_navigation("http://localhost:51843/", allowed_origin=ORIGIN) is False
+    assert is_allowed_navigation("http://[::1]:51843/", allowed_origin=ORIGIN) is False
+
+
+def test_navigation_policy_rejects_external_and_file_urls() -> None:
+    assert is_allowed_navigation("https://example.com/", allowed_origin=ORIGIN) is False
+    assert is_allowed_navigation("http://192.168.0.10:51843/", allowed_origin=ORIGIN) is False
+    assert is_allowed_navigation("file:///etc/passwd", allowed_origin=ORIGIN) is False
+
+
+def test_navigation_policy_allows_only_internal_schemes_without_a_server() -> None:
+    """With no active server even the loopback origin is not the current one."""
+    assert is_allowed_navigation("about:blank", allowed_origin=None) is True
+    assert is_allowed_navigation(f"{ORIGIN}/", allowed_origin=None) is False
+
+
+def test_navigation_policy_follows_a_replaced_server_origin() -> None:
+    """Opening another model moves the permitted origin to the new port."""
+    first = editor_origin("127.0.0.1", 51843)
+    second = editor_origin("127.0.0.1", 51999)
+    assert is_allowed_navigation(f"{first}/", allowed_origin=first) is True
+    assert is_allowed_navigation(f"{first}/", allowed_origin=second) is False
+    assert is_allowed_navigation(f"{second}/", allowed_origin=second) is True
 
 
 def test_open_directory_falls_back_when_the_platform_reports_no_home(

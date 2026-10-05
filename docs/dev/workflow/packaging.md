@@ -93,8 +93,8 @@ One entry point drives all of it:
 python tools/package_editor.py <phase>
 ```
 
-with the explicit phases `frontend`, `stage`, `freeze`, `package`, `verify`,
-`extract`, and `all`. The driver is plain Python because Windows is a
+with the explicit phases `frontend`, `stage`, `licenses`, `freeze`, `package`,
+`verify`, `extract`, and `all`. The driver is plain Python because Windows is a
 first-class target: the canonical packaging logic must not depend on bash or GNU
 Make. `make package-editor` / `make verify-packaged-editor` are convenience
 wrappers only.
@@ -105,6 +105,7 @@ wrappers only.
 uv run --group package --group desktop python tools/package_editor.py all
 uv run --group package --group desktop python tools/package_editor.py frontend   # production SPA build (pnpm)
 uv run --group package --group desktop python tools/package_editor.py stage      # copy the SPA into the packaging tree
+uv run --group package --group desktop python tools/package_editor.py licenses   # assemble the compliance payload (digest-verified)
 uv run --group package --group desktop python tools/package_editor.py freeze     # PyInstaller onedir, native OS
 uv run --group package --group desktop python tools/package_editor.py package    # installer (Windows) / AppImage (Linux)
 uv run --group package --group desktop python tools/package_editor.py verify     # install/extract the artifact and verify the desktop product
@@ -136,11 +137,14 @@ Intermediate state lives under the git-ignored `build/editor-package/`
 |---|---|
 | Both | Python 3.12, `uv`, PyInstaller (the `package` dependency group), **PySide6 / Qt WebEngine** (the `desktop` dependency group), Node.js 22 + `pnpm` for the SPA build |
 | Windows | Inno Setup 6 (`ISCC.exe` on `PATH`, the default install locations, or `ISCC`). CI installs the pinned Chocolatey package version |
-| Linux | `appimagetool` (upstream release on `PATH` or `APPIMAGETOOL`). CI downloads the pinned, checksum-verified release. The **desktop verification** additionally needs a display (CI uses Xvfb) and the usual Qt WebEngine/Chromium X11 libraries |
+| Linux | `appimagetool` (upstream release on `PATH` or `APPIMAGETOOL`). CI downloads the pinned, checksum-verified release. The **desktop verification** additionally needs a display (CI uses Xvfb) and the ordinary Linux desktop graphics/session libraries Qt WebEngine/Chromium uses on an end user's machine (see "Supported Linux baseline" below) |
 
-These are **build-time** requirements. End users need none of them: the Qt
-WebEngine runtime is inside the artifact, and the packaged-artifact verification
-proves that by running it with a sanitized environment (see below).
+These are **build-time** requirements for the build machine. End users need none of
+them: the Python, Qt and Qt WebEngine/Chromium runtimes are inside the artifact,
+and the packaged-artifact verification proves that by running it with a sanitized
+environment (see below). The one thing the artifact does not bundle is the
+ordinary Linux desktop graphics/userspace stack, which every Qt application uses;
+that boundary is stated explicitly under "Supported Linux baseline".
 
 ## Packaging toolchain (pinned and integrity-checked)
 
@@ -234,11 +238,14 @@ check                    Python + frontend fast gates, wheel build, wheel resour
                          check, base-install independence check
 frontend-e2e             production SPA + real `deepplant ui` + real Chromium (source run)
 editor-package-windows   native windows-latest: pinned Inno Setup, desktop group,
-                         build, package, real-window desktop verification, upload
+                         strict type-check of the Qt host, build, package, real-window
+                         desktop verification, helper/notice/exit assertions, upload
 editor-package-linux     native ubuntu-latest: pinned + checksum-verified
                          appimagetool and AppImage runtime, Xvfb + Qt WebEngine
-                         libraries, build, package, real-window desktop verification,
-                         xdotool window discovery on the virtual display, upload
+                         host libraries, desktop group, strict type-check of the Qt
+                         host, build, package, real-window desktop verification,
+                         Linux dependency audit, xdotool window discovery and a
+                         hard process-exit gate on the virtual display, upload
 ```
 
 Each packaging job builds on its native runner because a frozen application is
@@ -248,6 +255,20 @@ artifact plus a `.sha256` companion for reviewer download, and both upload the
 desktop verification reports. Uploaded artifacts are development/CI artifacts: no
 GitHub Release, no tag, and no automatic version bumping is part of this
 workflow.
+
+Because the fast `check` gate deliberately does not install PySide6, it excludes
+`src/deepplant/editor/desktop_qt.py` from Pyright. Both native jobs therefore run
+the desktop-specific strict check as well:
+
+```bash
+uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
+make typecheck-desktop   # developer convenience wrapper
+```
+
+`pyrightconfig.desktop.json` mirrors the canonical strict settings in
+`[tool.pyright]` but keeps every module - including `desktop_qt.py` - in scope,
+with PySide6's stubs available. There is no blanket `type: ignore` for the Qt
+module.
 
 `frontend-e2e` stays a separate job and keeps verifying the *shared frontend* as
 a browser/web deployment through `deepplant ui`. It no longer targets the
@@ -299,7 +320,9 @@ What it does — and deliberately does **not** do:
 - it adds **no** production protocol, introduces no behavioural branch in normal
   use, and can be ignored by any normal build.
 
-The report is a small JSON object, for example:
+The report is a small JSON object. Every value in `checks` must be `true`;
+`lifecycle` records the raw measured facts (a `false` there is what makes the run
+fail):
 
 ```json
 {
@@ -307,37 +330,156 @@ The report is a small JSON object, for example:
     "validationValid": true, "processSteps": true, "processStreams": true,
     "pumpSelected": true, "inspectorFunction": true, "productionSpa": true,
     "windowVisible": true, "windowClosed": true,
-    "serverStopped": true, "portReleased": true
+    "serverStopRequested": true, "serverStopped": true,
+    "serverThreadTerminated": true, "portReleased": true,
+    "eventLoopReturned": true
+  },
+  "lifecycle": {
+    "windowVisible": true, "windowClosed": true,
+    "serverStopRequested": true, "serverStopped": true,
+    "serverThreadAliveAfterClose": false, "portReleased": true,
+    "eventLoopReturned": true
   },
   "verdict": "pass",
   "windowTitle": "DeepPlant Editor"
 }
 ```
 
-What this proves: the artifact runs outside the checkout, opens a model outside
-the checkout, renders the production SPA in a real native window, and releases
-its own server and socket when the window closes - without a separately
-installed Python/Node toolchain or webview runtime.
+The driver also rejects a report whose `checks` omit any required lifecycle key,
+so an older artifact cannot pass by sending a shorter report.
 
-What it does **not** prove: that system libraries outside the artifact are
-absent. On Linux the Qt WebEngine/Chromium X11 libraries are a documented
-build/test-environment dependency (CI installs them and uses Xvfb), and the FUSE
-2 runtime remains a documented AppImage user requirement.
+What this proves: the artifact runs outside the checkout, opens a model outside
+the checkout, renders the production SPA in a real native window, stops its owned
+server thread and releases the loopback socket when the window closes, and lets
+the application exit through the ordinary lifecycle. The process is **not**
+force-terminated to make the report look clean: `eventLoopReturned` is only
+recorded after `QApplication.exec()` returns in the normal path.
+
+### Shutdown is a hard invariant
+
+```text
+user closes the main window
+        ↓
+EditorServer stops  (the serving thread must actually terminate)
+        ↓
+loopback socket is released
+        ↓
+Qt event loop exits
+        ↓
+owned QtWebEngineProcess helpers exit
+        ↓
+DeepPlant Editor process exits naturally
+```
+
+Three pieces enforce it, and none trusts a bookkeeping flag:
+
+- `EditorServer.stop()` returns the *measured* thread state. A timed-out stop keeps
+  the thread reference instead of erasing it, so `EditorServer.running` stays
+  truthful (`False` only once the thread is really gone) and a later `stop()` can
+  still join the same owned thread. Unit coverage is in
+  `tests/test_editor_server.py` (success, idempotency, timeout/still-live,
+  eventual shutdown, socket release) using a controlled thread seam, not real
+  sleeps.
+- `_DesktopEditor` drops the owned server reference only when `stop()` reports it
+  stopped; otherwise the still-live server is retained and reported. The
+  self-check derives `serverStopped` from `EditorServer.running`, never from
+  `editor.server is None`.
+- the Linux packaging job launches the packaged application with no model
+  argument, closes the real window through the session close request (and the
+  standard `alt+F4` gesture), and **fails the job** if the process is still alive
+  afterwards. Forced cleanup runs only after that failure has been recorded.
+
+`os._exit()` remains only in the fatal error handler of
+`deepplant.editor.desktop_qt`: a half-constructed Qt/WebEngine application must
+not be allowed to hang an automated caller. The ordinary successful close path
+returns from `run_host()` and lets Python exit normally - nothing in the success
+path depends on `os._exit()`.
+
+### Owned Qt WebEngine helpers must not leak
+
+Qt WebEngine is multiprocess. Before each self-check launch the driver snapshots
+the running `QtWebEngineProcess` PIDs, and after the application exits it requires
+that none *added by that run* is still alive (within a bounded grace period). The
+evidence is tied to the application run: the assertion is not "the OS has zero
+`QtWebEngineProcess` processes", and it never uses a broad `pkill`.
+
+### Redistribution compliance payload
+
+The artifact redistributes PySide6, Qt, Qt WebEngine and Chromium. Repository
+documentation is not artifact evidence, so a `licenses/` directory is staged into
+the installed application (Windows: `<install dir>\licenses\`; Linux AppImage:
+`usr/bin/deepplant-editor/licenses/`). It carries DeepPlant's own licence, the
+third-party notice index, the project-authored compliance documents, and the
+Qt / Qt WebEngine licence texts matched to the exact redistributed Qt version.
+
+The Qt texts come from the exact Qt source tag the PySide6 wheels were built from
+and are pinned by immutable URL and SHA-256 in
+[`packaging/licenses.toml`](../../../packaging/licenses.toml) - the PySide6 wheels
+themselves ship **no** licence files, which is why the material is staged from
+upstream at build time. `tests/test_packaging_licenses.py` protects that contract,
+and `verify` fails if any required notice file is missing or empty in the built
+artifact. The LGPL mechanism (replaceable onedir Qt libraries, corresponding-source
+pointers, source offer) is recorded in `licenses/README.md`.
+
+**Open item:** the complete, version-matched Chromium third-party notice set is
+generated by upstream tooling and is not published as a single immutable file for
+a given Qt release. DeepPlant therefore ships the Qt WebEngine licence texts plus
+`licenses/Qt-WebEngine/Chromium-NOTICES.md` (authoritative upstream pointers and
+the source offer) instead of a hand-maintained partial list. Full Chromium
+third-party notice reproduction remains a tracked compliance action; see
+[THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md).
+
+### Supported Linux baseline
+
+```text
+bundled in the artifact   Python, DeepPlant, FastAPI/Uvicorn, PySide6, Qt,
+                          Qt WebEngine/Chromium, the production SPA, the canonical
+                          DeepPlant symbols, the compliance payload
+provided by the host OS   the kernel, the display/session environment, glibc and
+                          standard platform libraries, the X11/Wayland and
+                          graphics/audio/font/NSS libraries a normal desktop
+                          already provides, FUSE (or `--appimage-extract-and-run`)
+                          to mount the AppImage
+```
+
+"Self-contained" means the user needs **no** separately installed Python, Qt,
+webview/Chromium runtime, Node.js, package manager or source checkout. It does
+**not** mean the binary is statically linked with zero Linux system libraries: a
+Qt/PyInstaller/AppImage application legitimately depends on the ordinary Linux
+graphics/userspace stack. The Linux job installs those host libraries
+(`libnss3`, `libxkbcommon`, `libgl1`, …) because they are what a real desktop
+provides, not because they are "CI only"; `xvfb`, `xdotool`, `openbox` and
+`x11-utils` are the CI harness for the virtual display and scripted input.
+
+### Linux dynamic-dependency audit
+
+`verify` runs `ldd` over the packaged `QtWebEngineProcess`,
+`libQt6WebEngineCore`, and the Qt platform plugin (`libqxcb.so`) and classifies
+every resolved dependency as bundled (inside the application tree) or host (an
+ordinary system library). The build **fails** if a Qt library resolves outside the
+bundle, if a dependency is not found, or if any dependency resolves into the
+repository checkout or the uv environment - the mixed-host-Qt failure mode this
+repository hit before.
+
+### Exact-origin webview policy
+
+The embedded view is limited to the **exact origin** of the running
+`EditorServer` (`scheme://host:port`), plus the internal `data:`/`blob:`/`about:`/
+`qrc:` schemes the SPA and Qt use. A different loopback port, `localhost` versus
+`127.0.0.1`, an external HTTPS site and `file:` are all refused, and pop-ups are
+refused. When another model is opened the server is replaced - possibly on a
+different ephemeral port - and the permitted origin moves to the new one. This is
+a webview host policy, not authentication: the loopback server stays single-user
+and unauthenticated, and no tokens, sessions, CORS or TLS are introduced. The pure
+policy is `deepplant.editor.desktop.is_allowed_navigation`, covered by
+`tests/test_editor_desktop.py`.
 
 On Linux the packaging job additionally launches the packaged application with
 **no** model argument on a virtual display (Xvfb) under a session window manager
 (openbox) and discovers the real X11 window with `xdotool`, proving the graphical
-product exists outside the application's own report. It then asks the session to
-close that window and requires the window to disappear.
-
-The **close → clean exit** contract for this artifact is owned by the desktop
-self-check above, which closes the real window through the ordinary close path
-and asserts that the owned server stopped and the loopback socket was released.
-A bare virtual display has no session manager or session bus, and the process
-sometimes outlives the session close request there; the job reports that case
-for what it is rather than treating an artifact of the virtual session as a
-product failure. A process that survives is still stopped so the runner is left
-clean.
+product exists outside the application's own report. It then closes that window
+through the session and **fails the job** if the process is still alive - a window
+that disappears while the process lingers is a failure, not a note.
 
 ### Browser E2E boundary
 
@@ -360,6 +502,13 @@ On Linux, put `appimagetool` on `PATH` (or set `APPIMAGETOOL`); set
 of letting `appimagetool` fetch its own default. On Windows, install Inno Setup 6
 (or set `ISCC`). `python tools/packaging_toolchain.py show` prints the versions
 and digests CI pins, and `... export` exposes them as environment variables.
+
+The `licenses` phase downloads the pinned Qt / Qt WebEngine licence texts from
+their immutable upstream URLs and verifies each SHA-256 before staging, so it
+needs network access (or set `DEEPLANT_LICENSE_CACHE` to a directory of
+digest-named blobs). Nothing mutable is ever fetched: the manifest forbids a
+`latest`/`continuous`/`master`/`main` locator, and a digest mismatch fails the
+build.
 
 The Linux verification needs a display; without a desktop session use a virtual
 one (`Xvfb`). If the build machine has its own Qt 6 runtime installed, the freeze

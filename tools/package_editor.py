@@ -12,11 +12,12 @@ Phases stay explicit and separately runnable so a failure is diagnosable:
 
     frontend   build the production Vue SPA
     stage      collect the built SPA as application-owned resources
+    licenses   assemble the redistribution compliance payload (Issue #93 review)
     freeze     assemble the standalone application (PyInstaller, native OS)
     package    create the platform user artifact (installer / AppImage)
     verify     smoke-test the produced artifact from outside the checkout
     extract    install/extract an artifact and print its launcher path
-    all        frontend -> stage -> freeze -> package -> verify
+    all        frontend -> stage -> licenses -> freeze -> package -> verify
 
 Layout (all under git-ignored paths):
 
@@ -43,12 +44,15 @@ import importlib
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 import tomllib
+import urllib.error
+import urllib.request
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import cast
@@ -62,6 +66,8 @@ SPA_BUILD_DIR = REPO_ROOT / "apps" / "editor" / "dist"
 FRONTEND_DIR = REPO_ROOT / "apps" / "editor"
 INNO_SCRIPT = REPO_ROOT / "packaging" / "windows" / "deepplant-editor.iss"
 APP_ICON_SVG = REPO_ROOT / "assets" / "brand" / "logo" / "deepplant-master-icon.svg"
+LICENSES_MANIFEST = REPO_ROOT / "packaging" / "licenses.toml"
+LICENSES_STATIC_DIR = REPO_ROOT / "packaging" / "licenses"
 
 DEFAULT_BUILD_DIR = REPO_ROOT / "build" / "editor-package"
 DEFAULT_DIST_DIR = REPO_ROOT / "dist" / "editor"
@@ -93,6 +99,47 @@ QT_HIDDEN_IMPORTS: tuple[str, ...] = (
 #: differs (see `verify_bundle_contents`).
 REQUIRED_SPA_ENTRY: str = "deepplant/editor/dist/index.html"
 REQUIRED_SYMBOL: str = "deepplant/assets/symbols/process/basic/pump.svg"
+
+#: Directory, inside the installed application, holding the redistribution
+#: compliance payload (Issue #93 review). It sits next to the executable so a user
+#: can find it, and it is copied into both the Windows install tree and the Linux
+#: AppDir by the ordinary packaging flow.
+BUNDLE_LICENSES_DESTINATION: str = "licenses"
+
+#: The complete expected compliance payload, relative to
+#: ``BUNDLE_LICENSES_DESTINATION``. The project-owned files are always present;
+#: the Qt/Qt WebEngine texts come from ``packaging/licenses.toml``. Verification
+#: fails if any of these is absent from the built artifact.
+REQUIRED_LICENSE_FILES: tuple[str, ...] = (
+    "README.md",
+    "DEEPLANT-AGPL-3.0.txt",
+    "THIRD_PARTY_NOTICES.md",
+    "Qt/LGPL-3.0-only.txt",
+    "Qt/LGPL-2.1-or-later.txt",
+    "Qt/GPL-2.0-only.txt",
+    "Qt/GPL-3.0-only.txt",
+    "Qt/Qt-GPL-exception-1.0.txt",
+    "Qt-WebEngine/LGPL-3.0-only.txt",
+    "Qt-WebEngine/LGPL-2.0-or-later.txt",
+    "Qt-WebEngine/GPL-2.0-only.txt",
+    "Qt-WebEngine/GPL-3.0-only.txt",
+    "Qt-WebEngine/Qt-GPL-exception-1.0.txt",
+    "Qt-WebEngine/Chromium-NOTICES.md",
+)
+
+#: Name of the executable that must never leak after the application exits.
+_QT_WEBENGINE_HELPER: str = "QtWebEngineProcess"
+
+#: Dynamic dependencies that must resolve from inside the frozen payload on Linux.
+#: A Qt library resolving anywhere else means the bundle mixes in the build host's
+#: Qt, which is the mixed-Qt bug the freeze environment guards against.
+_LINUX_QT_LIBRARY_PREFIX: str = "libQt6"
+
+_LINUX_QT_ARTIFACTS: tuple[str, ...] = (
+    "QtWebEngineProcess",
+    "libQt6WebEngineCore.so",
+    "libqxcb.so",
+)
 
 
 class PackagingError(RuntimeError):
@@ -223,6 +270,286 @@ def _directory_size(path: Path) -> int:
     return sum(item.stat().st_size for item in path.rglob("*") if item.is_file())
 
 
+def load_licenses_manifest() -> dict[str, object]:
+    """Load and validate ``packaging/licenses.toml`` (Issue #93 review).
+
+    Raises:
+        PackagingError: If the manifest is missing, malformed, or pins a mutable
+            locator, so a build can never silently ship stale or unpinned notices.
+    """
+    if not LICENSES_MANIFEST.is_file():
+        raise PackagingError(f"no licence manifest at {LICENSES_MANIFEST}")
+    with LICENSES_MANIFEST.open("rb") as handle:
+        document: dict[str, object] = tomllib.load(handle)
+    version = document.get("pyside6_version")
+    if not isinstance(version, str) or not version:
+        raise PackagingError("packaging/licenses.toml must declare pyside6_version")
+    files_raw = document.get("file")
+    if not isinstance(files_raw, list) or not files_raw:
+        raise PackagingError("packaging/licenses.toml declares no [[file]] entries")
+    for entry in cast("list[object]", files_raw):
+        if not isinstance(entry, dict):
+            raise PackagingError("packaging/licenses.toml [[file]] entries must be tables")
+        table = cast("dict[str, object]", entry)
+        for key in ("destination", "url", "sha256"):
+            value = table.get(key)
+            if not isinstance(value, str) or not value:
+                raise PackagingError(f"packaging/licenses.toml entry is missing {key}: {table}")
+        url = cast("str", table["url"])
+        if any(segment in url for segment in ("/latest", "/continuous", "/master", "/main")):
+            raise PackagingError(f"packaging/licenses.toml must not pin a mutable locator: {url}")
+    return document
+
+
+def _verify_digest(url: str, data: bytes, expected_sha256: str) -> None:
+    """Raise unless ``data`` matches the pinned digest for ``url``."""
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != expected_sha256:
+        raise PackagingError(
+            f"licence digest mismatch for {url}: expected {expected_sha256}, got {actual}"
+        )
+
+
+def _fetch_pinned_bytes(url: str, expected_sha256: str) -> bytes:
+    """Return the digest-verified bytes at ``url`` (cached when a cache is set).
+
+    The URL is an immutable, version-matched upstream location and the content is
+    verified against a pinned SHA-256, so a build never stages mutable "latest"
+    licence text. ``DEEPLANT_LICENSE_CACHE`` (optional) points at a directory of
+    digest-named blobs so CI can avoid re-downloading.
+    """
+    cache = os.environ.get("DEEPLANT_LICENSE_CACHE")
+    if cache:
+        cached = Path(cache) / expected_sha256
+        if cached.is_file():
+            data = cached.read_bytes()
+            _verify_digest(url, data, expected_sha256)
+            return data
+    log(f"licenses: fetching {url}")
+    try:
+        with urllib.request.urlopen(url, timeout=60) as response:  # noqa: S310 - pinned https
+            data = response.read()
+    except urllib.error.URLError as exc:
+        raise PackagingError(f"could not fetch pinned licence material {url}: {exc}") from exc
+    _verify_digest(url, data, expected_sha256)
+    if cache:
+        cache_dir = Path(cache)
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        (cache_dir / expected_sha256).write_bytes(data)
+    return data
+
+
+def stage_licenses(build_dir: Path) -> Path:
+    """Phase: assemble the redistribution compliance payload (Issue #93 review).
+
+    The payload combines the project's own licence and notice index, the
+    project-authored compliance mechanism documents under ``packaging/licenses/``,
+    and the version-matched Qt / Qt WebEngine licence texts pinned in
+    ``packaging/licenses.toml`` (fetched from immutable URLs and SHA-256 verified).
+    The result is a ``licenses/`` tree that the packaging flow copies next to the
+    installed executable.
+    """
+    log("phase: licenses - assemble the redistribution compliance payload")
+    manifest = load_licenses_manifest()
+    staged = build_dir / BUNDLE_LICENSES_DESTINATION
+    if staged.exists():
+        shutil.rmtree(staged)
+    staged.mkdir(parents=True)
+
+    license_file = REPO_ROOT / "LICENSE"
+    if not license_file.is_file():
+        raise PackagingError(f"no project licence at {license_file}")
+    shutil.copy2(license_file, staged / "DEEPLANT-AGPL-3.0.txt")
+    shutil.copy2(REPO_ROOT / "THIRD_PARTY_NOTICES.md", staged / "THIRD_PARTY_NOTICES.md")
+    if not LICENSES_STATIC_DIR.is_dir():
+        raise PackagingError(f"no project compliance documents at {LICENSES_STATIC_DIR}")
+    shutil.copytree(LICENSES_STATIC_DIR, staged, dirs_exist_ok=True)
+
+    entries = cast("list[dict[str, object]]", manifest.get("file"))
+    verified = 0
+    for table in entries:
+        destination = cast("str", table["destination"])
+        url = cast("str", table["url"])
+        digest = cast("str", table["sha256"])
+        target = staged / destination
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(_fetch_pinned_bytes(url, digest))
+        verified += 1
+
+    missing = [name for name in REQUIRED_LICENSE_FILES if not (staged / name).is_file()]
+    if missing:
+        raise PackagingError("staged compliance payload is incomplete: " + ", ".join(missing))
+    log(
+        f"licenses: {staged} ({_directory_size(staged)} bytes, "
+        f"{verified} pinned files digest-verified)"
+    )
+    return staged
+
+
+def _install_licenses(frozen_app: Path, build_dir: Path) -> None:
+    """Copy the staged compliance payload next to the installed executable."""
+    staged = build_dir / BUNDLE_LICENSES_DESTINATION
+    if not (staged / "README.md").is_file():
+        raise PackagingError(
+            f"no staged compliance payload at {staged}; run the licenses phase first"
+        )
+    destination = frozen_app / BUNDLE_LICENSES_DESTINATION
+    if destination.exists():
+        shutil.rmtree(destination)
+    shutil.copytree(staged, destination)
+    log(f"licenses: installed {destination}")
+
+
+def verify_license_payload(app_dir: Path) -> dict[str, object]:
+    """Assert the installed application really carries its compliance payload.
+
+    Repository documentation is not artifact evidence, so this inspects the built
+    Windows install tree / extracted Linux AppImage and fails if any required
+    licence or notice file is missing or empty (Issue #93 review).
+    """
+    root = app_dir / BUNDLE_LICENSES_DESTINATION
+    if not root.is_dir():
+        raise PackagingError(f"the packaged application carries no licenses/ directory at {root}")
+    missing: list[str] = []
+    empty: list[str] = []
+    for name in REQUIRED_LICENSE_FILES:
+        path = root / name
+        if not path.is_file():
+            missing.append(name)
+        elif path.stat().st_size == 0:
+            empty.append(name)
+    if missing:
+        raise PackagingError(
+            "the packaged application is missing licence material: " + ", ".join(missing)
+        )
+    if empty:
+        raise PackagingError(
+            "the packaged application has empty licence material: " + ", ".join(empty)
+        )
+    return {
+        "licenses_dir": str(root),
+        "license_files": len(REQUIRED_LICENSE_FILES),
+        "license_bytes": _directory_size(root),
+    }
+
+
+def _is_audited_artifact(name: str) -> bool:
+    """Whether ``name`` is one of the Linux binaries the dependency audit inspects."""
+    if name == _QT_WEBENGINE_HELPER:
+        return True
+    return any(name.startswith(prefix) for prefix in ("libQt6WebEngineCore.so", "libqxcb.so"))
+
+
+def _classify_linux_dependency(resolved: Path, app_dir: Path) -> str:
+    """Classify a resolved dependency path as bundled / host / checkout / uv-env."""
+    try:
+        target = resolved.resolve()
+    except OSError:
+        target = resolved
+    app = app_dir.resolve()
+    if target == app or app in target.parents:
+        return "bundled"
+    repo = REPO_ROOT.resolve()
+    if target == repo or repo in target.parents:
+        return "checkout"
+    prefix = Path(sys.prefix).resolve()
+    if target == prefix or prefix in target.parents:
+        return "uv-env"
+    return "host"
+
+
+def audit_linux_dependencies(app_dir: Path) -> dict[str, object]:
+    """Audit the packaged Linux application's dynamic dependencies (Issue #93 review).
+
+    ``ldd`` is run on the toolchain-critical binaries: the ``QtWebEngineProcess``
+    helper, the Qt WebEngine Core library, and the Qt platform plugin. Each
+    resolved dependency is classified as bundled (inside the application tree) or
+    host (an ordinary Linux system library). A Qt library that resolves **outside**
+    the bundle, or any dependency that resolves into the repository checkout or the
+    uv environment, fails the build - that is exactly the mixed-Qt / accidental
+    checkout artifact the freeze guards against.
+    """
+    if platform_slug() != "linux":
+        return {"platform": platform_slug(), "audited": False}
+    ldd = shutil.which("ldd")
+    if ldd is None:
+        raise PackagingError("ldd is required for the Linux dynamic-dependency audit")
+    targets = [
+        path for path in app_dir.rglob("*") if path.is_file() and _is_audited_artifact(path.name)
+    ]
+    if not targets:
+        raise PackagingError(f"no Qt/WebEngine binary found to audit under {app_dir}")
+
+    bundled: set[str] = set()
+    host: set[str] = set()
+    problems: list[str] = []
+    for target in targets:
+        completed = subprocess.run([ldd, str(target)], capture_output=True, text=True, check=False)
+        for line in completed.stdout.splitlines():
+            match = re.match(r"\s*(\S+)\s+=>\s+(\S+)", line)
+            if match is None:
+                continue
+            name, resolved = match.group(1), match.group(2)
+            if resolved == "not found":
+                problems.append(f"{target.name}: {name} is not found")
+                continue
+            kind = _classify_linux_dependency(Path(resolved), app_dir)
+            if kind == "bundled":
+                bundled.add(name)
+            elif kind == "host":
+                if name.startswith(_LINUX_QT_LIBRARY_PREFIX):
+                    problems.append(f"{target.name}: {name} resolves to host {resolved}")
+                host.add(name)
+            else:
+                problems.append(f"{target.name}: {name} resolves into the {kind} ({resolved})")
+    if problems:
+        raise PackagingError("Linux dependency audit failed:\n  " + "\n  ".join(problems))
+    log(
+        f"dependency audit: {len(bundled)} bundled / {len(host)} host libraries across "
+        f"{len(targets)} binaries"
+    )
+    return {
+        "audited_artifacts": sorted(path.name for path in targets),
+        "bundled_dependencies": len(bundled),
+        "host_dependencies": len(host),
+    }
+
+
+def _qtwebengine_helper_pids() -> set[int]:
+    """Return the PIDs of currently running Qt WebEngine helper processes.
+
+    Deliberately narrow: the packaged self-check compares the before/after
+    snapshots of this set, so it proves the application did not leak the helpers it
+    started - not that the operating system contains zero unrelated ones.
+    """
+    pids: set[int] = set()
+    if os.name == "nt":
+        completed = subprocess.run(
+            ["tasklist", "/FI", f"IMAGENAME eq {_QT_WEBENGINE_HELPER}.exe", "/FO", "CSV", "/NH"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        for line in completed.stdout.splitlines():
+            match = re.match(r'\s*"[^"]+","(\d+)"', line)
+            if match is not None:
+                pids.add(int(match.group(1)))
+        return pids
+    proc = Path("/proc")
+    if not proc.is_dir():
+        return pids
+    for entry in proc.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            cmdline = (entry / "cmdline").read_bytes()
+        except OSError:
+            continue
+        if _QT_WEBENGINE_HELPER.encode() in cmdline:
+            pids.add(int(entry.name))
+    return pids
+
+
 def qt_build_environment() -> dict[str, str]:
     """Return build-environment overrides that keep the frozen Qt consistent.
 
@@ -311,8 +638,14 @@ def frozen_launcher(frozen_app: Path) -> Path:
 
 
 def create_package(build_dir: Path, frozen_app: Path, dist_dir: Path, version: str) -> Path:
-    """Phase 4: turn the frozen application into a user-consumable artifact."""
+    """Phase 4: turn the frozen application into a user-consumable artifact.
+
+    The staged redistribution compliance payload is installed into the frozen tree
+    first, so both the Windows installer and the Linux AppImage carry it (Issue #93
+    review).
+    """
     slug = platform_slug()
+    _install_licenses(frozen_app, build_dir)
     dist_dir.mkdir(parents=True, exist_ok=True)
     artifact = dist_dir / artifact_name(version)
     if artifact.exists():
@@ -582,6 +915,11 @@ def sanitized_environment() -> dict[str, str]:
 #: reports why instead of being killed by the caller.
 _DESKTOP_SELF_CHECK_TIMEOUT_S = 150.0
 
+#: How long the Qt WebEngine helper processes may take to disappear after the main
+#: process has exited. Qt reaps them as the page/profile are destroyed; a helper
+#: still present after this grace period means the application leaked it.
+_HELPER_EXIT_GRACE_S = 10.0
+
 
 def frozen_app_dir_of(launcher: Path) -> Path:
     """Return the directory that contains the frozen executable.
@@ -737,6 +1075,10 @@ def run_desktop_self_check(
     # channel that nothing can close, which is a well-known way to hang an
     # automated GUI check. A file handle has no such coupling.
     console_log = report.with_name(report.name + ".console.log")
+    # Snapshot the Qt WebEngine helpers that already exist before this run, so the
+    # post-exit check can prove *this* application did not leak the helpers *it*
+    # started (never "the OS has zero QtWebEngineProcess processes").
+    helpers_before = _qtwebengine_helper_pids()
     timed_out = False
     return_code: int | None = None
     try:
@@ -781,9 +1123,40 @@ def run_desktop_self_check(
     checks = cast("dict[str, object]", checks_raw)
     if not checks:
         raise PackagingError(f"the packaged desktop self-check reported no checks: {payload}")
+    required_lifecycle = (
+        "windowVisible",
+        "windowClosed",
+        "serverStopRequested",
+        "serverStopped",
+        "serverThreadTerminated",
+        "portReleased",
+        "eventLoopReturned",
+    )
+    missing_lifecycle = [name for name in required_lifecycle if name not in checks]
+    if missing_lifecycle:
+        raise PackagingError(
+            "the packaged desktop self-check did not report required lifecycle facts: "
+            + ", ".join(missing_lifecycle)
+            + f" -> {payload}"
+        )
     failed = sorted(name for name, value in checks.items() if value is not True)
     if failed:
         raise PackagingError(f"the packaged desktop self-check failed: {failed} -> {payload}")
+
+    # The application exited and the event loop returned; Qt now reaps its own
+    # helper processes. Give it a bounded moment, then require that no helper this
+    # run started is still alive.
+    deadline = time.monotonic() + _HELPER_EXIT_GRACE_S
+    leaked = sorted(_qtwebengine_helper_pids() - helpers_before)
+    while leaked and time.monotonic() < deadline:
+        time.sleep(0.25)
+        leaked = sorted(_qtwebengine_helper_pids() - helpers_before)
+    if leaked:
+        raise PackagingError(
+            f"the packaged desktop application leaked Qt WebEngine helper processes: {leaked}\n"
+            f"{diagnostics}"
+        )
+    payload["qtwebengineHelpersLeaked"] = leaked
     return payload
 
 
@@ -819,6 +1192,12 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
     launcher = install_or_extract(artifact, work_dir / "install")
     evidence["launcher"] = str(launcher)
     evidence["bundle"] = verify_bundle_contents(bundle_dir(launcher))
+    app_dir = frozen_app_dir_of(launcher)
+    # Redistribution compliance payload and (on Linux) the dynamic-dependency
+    # audit are asserted against the *installed/extracted artifact*, not the source
+    # checkout (Issue #93 review).
+    evidence["licenses"] = verify_license_payload(app_dir)
+    evidence["dependencies"] = audit_linux_dependencies(app_dir)
 
     # The checkout's built SPA is moved out of the way so a packaged application
     # that secretly read `apps/editor/dist` would fail here. It is moved into the
@@ -863,7 +1242,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument(
         "phase",
-        choices=("frontend", "stage", "freeze", "package", "verify", "extract", "all"),
+        choices=("frontend", "stage", "licenses", "freeze", "package", "verify", "extract", "all"),
         help="packaging phase to run",
     )
     parser.add_argument("--build-dir", type=Path, default=DEFAULT_BUILD_DIR)
@@ -898,6 +1277,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             build_frontend()
         if phase in {"stage", "all"}:
             stage_spa(build_dir)
+        if phase in {"licenses", "all"}:
+            stage_licenses(build_dir)
         if phase in {"freeze", "all"}:
             freeze(build_dir, staged_spa_dir(build_dir))
         if phase in {"package", "all"}:

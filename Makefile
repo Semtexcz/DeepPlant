@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck typecheck-desktop frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -59,6 +59,16 @@ format-check:
 typecheck:
 
 	uv run pyright
+
+
+# Desktop-specific strict type check (Issue #93 review). The default `typecheck`
+# excludes src/deepplant/editor/desktop_qt.py because the fast `dev` environment
+# deliberately does not install PySide6. The native packaging jobs do install the
+# `desktop` group, so they run this config, which mirrors the canonical strict
+# settings but keeps every module (including desktop_qt.py) in scope.
+typecheck-desktop:
+
+	uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
 
 
 frontend-install:

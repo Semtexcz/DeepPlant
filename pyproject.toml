@@ -114,5 +114,8 @@ include = ["src", "tests", "tools"]
 # excluded from the default run instead of being silenced with blanket
 # suppressions. It is linted by Ruff like every other module and is exercised for
 # real by the native `editor-package-windows` / `editor-package-linux` jobs, which
-# install the `desktop` group. See docs/dev/workflow/packaging.md.
+# install the `desktop` group. Those jobs also run the *desktop-specific* strict
+# check `pyrightconfig.desktop.json` (via `make typecheck-desktop`), which mirrors
+# this strict configuration but keeps `desktop_qt.py` in scope (Issue #93 review).
+# See docs/dev/workflow/packaging.md.
 exclude = ["src/deepplant/editor/desktop_qt.py"]

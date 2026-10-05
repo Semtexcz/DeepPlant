@@ -64,6 +64,7 @@ __all__ = [
     "MODEL_FILE_FILTER",
     "WINDOW_TITLE",
     "app",
+    "editor_origin",
     "initial_open_directory",
     "is_allowed_navigation",
     "main",
@@ -77,12 +78,15 @@ WINDOW_TITLE: str = "DeepPlant Editor"
 #: The native Open dialog only *selects a path*; it never parses DeepPlant YAML.
 MODEL_FILE_FILTER: str = "DeepPlant plant models (*.yaml *.yml);;All files (*)"
 
-#: Hosts the embedded webview may navigate to. The desktop host is bound to its
-#: own loopback origin and never replaces the application with an external page.
-_LOOPBACK_HOSTS: frozenset[str] = frozenset({"127.0.0.1", "localhost", "::1"})
-
-#: Schemes the SPA and Qt itself legitimately use inside the view.
+#: Schemes the SPA and Qt itself legitimately use inside the view. They carry no
+#: remote authority, so they are allowed alongside the exact active origin. They
+#: are the only non-``http(s)`` schemes accepted; ``file:`` is deliberately not one
+#: of them.
 _INTERNAL_SCHEMES: frozenset[str] = frozenset({"data", "blob", "about", "qrc"})
+
+#: Default ports used when a ``http(s)`` URL omits its port, so origin comparison
+#: is exact rather than "any loopback port".
+_DEFAULT_PORTS: dict[str, int] = {"http": 80, "https": 443}
 
 #: Native host runner. A small protocol so the command-line wiring stays testable
 #: without a GUI toolkit.
@@ -113,23 +117,59 @@ def initial_open_directory() -> str:
     return ""
 
 
-def is_allowed_navigation(url: str) -> bool:
-    """Whether the embedded webview may navigate to ``url`` (Issue #93).
+def editor_origin(host: str, port: int) -> str:
+    """Return the exact ``scheme://host:port`` origin an EditorServer owns.
 
-    The native window embeds a privileged view of the DeepPlant application, so
-    it stays on the local origin: a link that would replace the application with
-    an arbitrary external page is refused. ``data:``/``blob:``/``about:``/``qrc:``
-    URLs (used by the SPA and by Qt itself) and the loopback origin are allowed.
-    This is a navigation policy, not a security boundary: the embedded server is
-    already loopback-only and unauthenticated.
+    The embedded webview is limited to this single origin (Issue #93 review), so
+    the value is built in exactly one place and compared as a whole - never by the
+    weaker "is this loopback?" test.
+    """
+    return f"http://{host.lower()}:{int(port)}"
+
+
+def _origin_of(url: str) -> str | None:
+    """Return the normalized ``scheme://host:port`` origin of ``url``, or ``None``.
+
+    Only ``http``/``https`` have a web origin here. A missing port is normalized to
+    the scheme default, and the host is lower-cased, so comparison is exact.
     """
     parts = urlsplit(url)
     scheme = parts.scheme.lower()
+    if scheme not in _DEFAULT_PORTS:
+        return None
+    host = (parts.hostname or "").lower()
+    if not host:
+        return None
+    port = parts.port if parts.port is not None else _DEFAULT_PORTS[scheme]
+    return f"{scheme}://{host}:{port}"
+
+
+def is_allowed_navigation(url: str, *, allowed_origin: str | None) -> bool:
+    """Whether the embedded webview may navigate to ``url`` (Issue #93 review).
+
+    The policy is *exact origin*: only the ``scheme://host:port`` origin of the
+    currently running :class:`~deepplant.editor.api.EditorServer`
+    (:func:`editor_origin`) is accepted, plus the internal schemes the SPA and Qt
+    themselves use. A different loopback port, a different loopback host name
+    (``localhost`` versus ``127.0.0.1``), an external HTTPS site, and ``file:``
+    URLs are all refused.
+
+    This is a webview **host policy**, not authentication: the embedded server is
+    already loopback-only, single-user, and unauthenticated, and nothing here adds
+    tokens, sessions, or CORS.
+
+    Args:
+        url: The candidate navigation target.
+        allowed_origin: The origin of the active EditorServer, or ``None`` when no
+            server is running (only the internal schemes are then accepted).
+    """
+    scheme = urlsplit(url).scheme.lower()
     if scheme in _INTERNAL_SCHEMES:
         return True
-    if scheme in {"http", "https"}:
-        return (parts.hostname or "").lower() in _LOOPBACK_HOSTS
-    return False
+    if allowed_origin is None:
+        return False
+    origin = _origin_of(url)
+    return origin is not None and origin == allowed_origin.lower()
 
 
 def _load_qt_host_runner() -> HostRunner:

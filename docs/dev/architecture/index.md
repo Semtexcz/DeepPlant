@@ -105,7 +105,7 @@ Runtime and toolchain:
 | `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, Uvicorn, or a GUI toolkit, or contain HTTP/runtime concerns |
 | `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport, the owned `EditorServer` lifecycle, and loopback binding | contain engineering logic, or claim production/server security |
 | `editor/launcher.py` | the shared launch primitives both hosts use (`run_editor`, symbol-role parsing, help text) | import FastAPI, Uvicorn, or a GUI toolkit at import time |
-| `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-project load, and the embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
+| `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-project load, and the exact-origin embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
 | `editor/desktop_qt.py` | the native window, the embedded webview, the native Open dialog, and the Qt window/server lifecycle | parse DeepPlant YAML, own the semantic model, or become a second frontend |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
 | `apps/editor/` (TypeScript) | application composition, the Process/PFD feature (projection state, selection, canvas/adapter, Inspector), transport and runtime contract narrowing, and styling | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
@@ -306,6 +306,17 @@ through a desktop-only bridge. It loads the ordinary production build of
 `apps/editor/`, which a future web deployment would serve unchanged; the
 technology evidence is in
 [research/editor-desktop-host.md](../research/editor-desktop-host.md).
+
+Two host policies are deliberately strict (Issue #93 review):
+
+- **Exact-origin navigation.** The embedded view may only navigate within the
+  specific `scheme://host:port` origin of the running `EditorServer` (plus the
+  internal `data:`/`blob:`/`about:`/`qrc:` schemes), never an arbitrary loopback
+  port, an external site, or `file:`. This is a webview host policy, not
+  authentication.
+- **Owned lifecycle.** Closing the window must stop the owned server thread,
+  release the loopback socket, exit the Qt event loop, and let the process exit
+  naturally; the packaged verification treats a surviving process as a failure.
 
 `deepplant-editor` is the desktop application; it is deliberately not the general
 DeepPlant CLI, and `deepplant ui` was deliberately not turned into the desktop

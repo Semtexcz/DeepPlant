@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import socket
+import threading
 from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
@@ -128,3 +129,81 @@ def test_replacing_a_server_releases_the_previous_port(application: EditorApplic
         assert _port_accepts("127.0.0.1", second.port) is True
     finally:
         second.stop()
+
+
+class _NeverEndingThread(threading.Thread):
+    """A serving-thread stand-in that terminates only when released (Issue #93).
+
+    The real serving thread runs Uvicorn and cannot be made to hang on demand, so
+    the timeout/retained-state contract is exercised with a controlled thread
+    instead of a real multi-second sleep.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(name="test-editor-server", daemon=True)
+        self._released = threading.Event()
+        self.joins = 0
+
+    def release(self) -> None:
+        """Allow the stand-in to terminate, as a real server eventually would."""
+        self._released.set()
+
+    def run(self) -> None:
+        # Never started in these tests; present so this really is a Thread.
+        self._released.wait()
+
+    def join(self, timeout: float | None = None) -> None:
+        self.joins += 1
+        self._released.wait(timeout)
+
+    def is_alive(self) -> bool:
+        return not self._released.is_set()
+
+
+class _ControllableServer(EditorServer):
+    """An EditorServer whose serving thread is a controlled stand-in (Issue #93)."""
+
+    def __init__(self, application: EditorApplication) -> None:
+        super().__init__(application, port=0)
+        self.serving = _NeverEndingThread()
+        self._thread = self.serving
+
+
+def test_stop_is_truthful_while_the_owned_thread_is_still_alive(
+    application: EditorApplication,
+) -> None:
+    """A timed-out stop must not erase a still-live owned server (Issue #93).
+
+    The previous implementation cleared the thread reference even when the thread
+    was still alive, so a caller could infer "stopped" from a cleared reference
+    instead of from the actual thread state. The reference is now retained, so
+    ``running`` stays truthful and a later ``stop()`` can still join it.
+    """
+    server = _ControllableServer(application)
+    try:
+        assert server.running is True
+        assert server.stop(timeout=0.0) is False
+        assert server.running is True
+        assert server.stop_requested is True
+        # A second bounded stop re-joins the same owned thread, not a forgotten one.
+        assert server.stop(timeout=0.0) is False
+        assert server.serving.joins == 2
+    finally:
+        server.serving.release()
+        assert server.stop(timeout=1.0) is True
+    assert server.running is False
+
+
+def test_a_timed_out_stop_completes_once_the_owned_thread_ends(
+    application: EditorApplication,
+) -> None:
+    """An earlier timeout must not prevent the server from eventually stopping."""
+    server = _ControllableServer(application)
+    assert server.stop(timeout=0.0) is False
+    assert server.running is True
+
+    server.serving.release()
+
+    assert server.stop(timeout=1.0) is True
+    assert server.running is False
+    assert _port_accepts("127.0.0.1", server.port) is False
