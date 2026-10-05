@@ -1,0 +1,121 @@
+# Repository-owned Linux host-runtime baseline (Issue #93 review fix).
+#
+# `tools/package_editor.py` audits the dynamic dependencies of the packaged Linux
+# application (`deepplant-editor`, `QtWebEngineProcess`, `libQt6WebEngineCore.so*`,
+# `libqxcb.so*`). Everything that resolves from inside the bundle is expected;
+# everything that resolves from the host must be *declared here by SONAME*.
+#
+# The audit fails when the packaged application resolves a host library this file
+# does not declare, so a new system dependency cannot appear silently:
+#
+#   dependency change -> CI reports the new SONAME -> maintainer reviews it
+#                     -> baseline deliberately updated here
+#
+# CI never rewrites this file. Declared-but-unused entries are reported as evidence
+# (not a failure), which is how platform variation between images shows up.
+#
+# The list below is the measured union for the frozen application on the supported
+# baseline (`ubuntu-24.04` with the documented runtime packages installed). It is
+# deliberately expressed as SONAMEs - stable library identities - rather than as
+# machine-specific paths such as /usr/lib/x86_64-linux-gnu/..., which differ
+# between distributions and runners and are not the runtime contract. The audit
+# still records the resolved path of each host library as diagnostic evidence.
+schema_version = 1
+baseline_image = "ubuntu-24.04"
+
+[host]
+
+# --- C runtime and compiler support -----------------------------------------
+"libc.so.6" = "glibc: C runtime"
+"libm.so.6" = "glibc: math library"
+"libdl.so.2" = "glibc: dynamic loader interface"
+"libpthread.so.0" = "glibc: POSIX threads"
+"libresolv.so.2" = "glibc: resolver (NSS/Kerberos path)"
+"libgcc_s.so.1" = "GCC runtime unwinder"
+"libstdc++.so.6" = "GCC C++ runtime (Qt/Chromium are C++ libraries)"
+
+# --- X11, xcb and keyboard ------------------------------------------------
+"libX11.so.6" = "X11 client library (Qt platform plugin)"
+"libX11-xcb.so.1" = "X11/xcb glue"
+"libXau.so.6" = "X11 authorization"
+"libXdmcp.so.6" = "X11 display manager control protocol"
+"libXext.so.6" = "X11 extensions"
+"libXfixes.so.3" = "X11 fixes extension"
+"libXrandr.so.2" = "X11 RandR extension (screen layout)"
+"libXrender.so.1" = "X11 render extension"
+"libXtst.so.6" = "X11 test extension (input synthesis)"
+"libXcomposite.so.1" = "X11 composite extension"
+"libXdamage.so.1" = "X11 damage extension"
+"libxcb.so.1" = "X protocol C binding"
+"libxcb-cursor.so.0" = "xcb cursor plugin (Qt xcb platform plugin)"
+"libxcb-dri3.so.0" = "xcb DRI3 extension (GPU buffer sharing)"
+"libxcb-icccm.so.4" = "xcb ICCCM window-manager interop"
+"libxcb-image.so.0" = "xcb image helper"
+"libxcb-keysyms.so.1" = "xcb keysym table (keyboard input)"
+"libxcb-randr.so.0" = "xcb RandR extension"
+"libxcb-render.so.0" = "xcb render extension"
+"libxcb-render-util.so.0" = "xcb render helper"
+"libxcb-shape.so.0" = "xcb shape extension"
+"libxcb-shm.so.0" = "xcb shared memory"
+"libxcb-sync.so.1" = "xcb sync extension"
+"libxcb-util.so.1" = "xcb utility library"
+"libxcb-xfixes.so.0" = "xcb xfixes extension"
+"libxcb-xkb.so.1" = "xcb XKB extension (keyboard layout)"
+"libxkbcommon.so.0" = "keyboard layout handling"
+"libxkbcommon-x11.so.0" = "keyboard layout handling over X11"
+"libxkbfile.so.1" = "XKB keymap files"
+
+# --- Fonts and text -------------------------------------------------------
+"libfontconfig.so.1" = "font configuration and matching"
+"libfreetype.so.6" = "TrueType/OpenType glyph rendering"
+
+# --- OpenGL / EGL / GPU ---------------------------------------------------
+"libGL.so.1" = "OpenGL loader"
+"libGLX.so.0" = "GLX vendor-neutral dispatch"
+"libGLdispatch.so.0" = "GL dispatch"
+"libEGL.so.1" = "EGL windowing/context interface"
+"libgbm.so.1" = "Generic Buffer Management (GPU/software compositing)"
+"libdrm.so.2" = "Direct Rendering Manager"
+
+# --- TLS / NSS (Chromium network stack) -----------------------------------
+"libnss3.so" = "NSS TLS implementation (Chromium)"
+"libnssutil3.so" = "NSS utilities"
+"libsmime3.so" = "NSS S/MIME"
+"libnspr4.so" = "NSPR platform runtime (NSS)"
+"libplc4.so" = "NSPR portability layer"
+"libplds4.so" = "NSPR data structures"
+
+# --- Session / IPC --------------------------------------------------------
+"libdbus-1.so.3" = "D-Bus client (desktop integration)"
+"libsystemd.so.0" = "sd-bus/event loop (D-Bus implementations)"
+"libcap.so.2" = "capability handling (pulled in by libsystemd)"
+"libudev.so.1" = "device enumeration (GBM/DRM path)"
+
+# --- Crypto and authentication (NSS/Kerberos chain) -----------------------
+"libgcrypt.so.20" = "GnuPG crypto primitives (system NSS build)"
+"libgpg-error.so.0" = "libgcrypt error codes"
+"libgssapi_krb5.so.2" = "Kerberos GSSAPI (NSS TLS path)"
+"libkrb5.so.3" = "Kerberos 5 runtime (NSS TLS path)"
+"libk5crypto.so.3" = "Kerberos 5 crypto"
+"libkrb5support.so.0" = "Kerberos 5 support"
+"libkeyutils.so.1" = "kernel keyring helpers (Kerberos)"
+"libcom_err.so.2" = "error-code library (Kerberos/ext2 chain)"
+
+# --- Compression and data formats -----------------------------------------
+"libz.so.1" = "zlib (HTTP/content decoding)"
+"libbz2.so.1.0" = "bzip2"
+"liblzma.so.5" = "XZ/LZMA"
+"liblz4.so.1" = "LZ4 (systemd/ELF)"
+"libzstd.so.1" = "Zstandard"
+"libbrotlicommon.so.1" = "Brotli common (HTTP content encoding)"
+"libbrotlidec.so.1" = "Brotli decoder"
+
+# --- General-purpose runtime helpers used by Qt/Chromium ------------------
+"libexpat.so.1" = "Expat XML parser (fontconfig chain)"
+"libglib-2.0.so.0" = "GLib (Qt/platform-integration path)"
+"libgthread-2.0.so.0" = "GLib threads"
+"libpcre2-8.so.0" = "PCRE2 regex engine (GLib chain)"
+"libpng16.so.16" = "PNG image codec"
+"libbsd.so.0" = "libbsd helpers (X11/GLib chain)"
+"libmd.so.0" = "message digest helpers (libbsd)"
+"libasound.so.2" = "ALSA audio (Qt Multimedia/Chromium audio path)"

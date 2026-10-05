@@ -32,8 +32,13 @@ installed Qt or webview/Chromium runtime, or the DeepPlant source code.
 "Self-contained" means the application brings its own runtime; it does not mean a
 statically linked binary with no system dependencies. On Linux it uses the
 ordinary desktop graphics/session libraries that any graphical application uses
-(the same ones your file manager and browser already use). On Windows it uses the
-standard Windows runtime libraries.
+(the same ones your file manager and browser already use). That set is recorded,
+and verified, in the DeepPlant source repository
+(`packaging/linux-runtime-baseline.toml`): glibc, the X11/xcb keyboard-and-window
+libraries, OpenGL/EGL, fonts, NSS (for TLS), D-Bus, and a few compression and
+helper libraries. In practice this is the same base your Linux distribution already
+provides for a normal desktop session. On Windows it uses the standard Windows
+runtime libraries.
 
 The editor is **read-only**. It displays the current Process/PFD view of a plant
 model and the validation status of that model. It never modifies your file.
@@ -170,8 +175,11 @@ applicable licence and notice material ships **inside the installed application*
   under `squashfs-root/usr/bin/deepplant-editor/licenses/`.
 
 That directory contains DeepPlant's own licence, the third-party notice index, the
-project-authored compliance documents, and the Qt / Qt WebEngine licence texts
-matching the exact redistributed versions. See
+project-authored compliance documents, the Qt / Qt WebEngine licence texts
+matching the exact redistributed versions, and the complete Chromium third-party
+notice set (`Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt`) with the Chromium
+revision it belongs to. The corresponding-source mechanism is recorded in
+`CORRESPONDING-SOURCE.md`. See
 [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md) for the provenance index.
 
 ## What is not implemented yet

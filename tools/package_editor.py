@@ -59,6 +59,20 @@ from typing import cast
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# The packaging driver runs both as ``python tools/package_editor.py`` (CI, where
+# only ``tools/`` is on ``sys.path``) and as the imported ``tools.package_editor``
+# module (tests). Adding the repository root keeps the shared Chromium notice
+# tooling importable in both cases without a second copy of its logic.
+if str(REPO_ROOT) not in sys.path:  # pragma: no cover - import bridge
+    sys.path.append(str(REPO_ROOT))
+
+from tools.chromium_notices import (  # noqa: E402 - needs the path bridge above
+    REQUIRED_PROVENANCE_MARKERS,
+    bundle_component_names,
+    bundle_components_without_text,
+    check_bundle,
+)
+
 APP_NAME = "deepplant-editor"
 APP_DISPLAY_NAME = "DeepPlant Editor"
 ENTRY_SCRIPT = REPO_ROOT / "tools" / "editor_entry.py"
@@ -68,6 +82,14 @@ INNO_SCRIPT = REPO_ROOT / "packaging" / "windows" / "deepplant-editor.iss"
 APP_ICON_SVG = REPO_ROOT / "assets" / "brand" / "logo" / "deepplant-master-icon.svg"
 LICENSES_MANIFEST = REPO_ROOT / "packaging" / "licenses.toml"
 LICENSES_STATIC_DIR = REPO_ROOT / "packaging" / "licenses"
+
+#: Repository-owned, reviewable Linux host-runtime baseline (Issue #93 review).
+#: The audit fails when the packaged application resolves a host library that is
+#: not declared here, so a new system dependency cannot appear silently.
+LINUX_RUNTIME_BASELINE = REPO_ROOT / "packaging" / "linux-runtime-baseline.toml"
+
+#: A pinned content digest, as stored in the packaging manifests.
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
 DEFAULT_BUILD_DIR = REPO_ROOT / "build" / "editor-package"
 DEFAULT_DIST_DIR = REPO_ROOT / "dist" / "editor"
@@ -112,6 +134,7 @@ BUNDLE_LICENSES_DESTINATION: str = "licenses"
 #: fails if any of these is absent from the built artifact.
 REQUIRED_LICENSE_FILES: tuple[str, ...] = (
     "README.md",
+    "CORRESPONDING-SOURCE.md",
     "DEEPLANT-AGPL-3.0.txt",
     "THIRD_PARTY_NOTICES.md",
     "Qt/LGPL-3.0-only.txt",
@@ -124,6 +147,9 @@ REQUIRED_LICENSE_FILES: tuple[str, ...] = (
     "Qt-WebEngine/GPL-2.0-only.txt",
     "Qt-WebEngine/GPL-3.0-only.txt",
     "Qt-WebEngine/Qt-GPL-exception-1.0.txt",
+    "Qt-WebEngine/Chromium-VERSION.txt",
+    "Qt-WebEngine/Chromium-LICENSE-BSD.txt",
+    "Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt",
     "Qt-WebEngine/Chromium-NOTICES.md",
 )
 
@@ -135,10 +161,16 @@ _QT_WEBENGINE_HELPER: str = "QtWebEngineProcess"
 #: Qt, which is the mixed-Qt bug the freeze environment guards against.
 _LINUX_QT_LIBRARY_PREFIX: str = "libQt6"
 
-_LINUX_QT_ARTIFACTS: tuple[str, ...] = (
-    "QtWebEngineProcess",
-    "libQt6WebEngineCore.so",
-    "libqxcb.so",
+#: The Linux binaries the dynamic-dependency audit inspects (Issue #93 review).
+#: ``deepplant-editor`` itself is included: it is the launcher the user runs, so
+#: its own host dependencies are part of the runtime contract. The ``prefix``
+#: form matches the versioned shared objects (``libQt6WebEngineCore.so.6``,
+#: ``libqxcb.so``). Each entry is required: a missing target fails the audit.
+LINUX_AUDIT_TARGETS: tuple[tuple[str, str], ...] = (
+    ("deepplant-editor", "exact"),
+    ("QtWebEngineProcess", "exact"),
+    ("libQt6WebEngineCore.so", "prefix"),
+    ("libqxcb.so", "prefix"),
 )
 
 
@@ -298,6 +330,28 @@ def load_licenses_manifest() -> dict[str, object]:
         url = cast("str", table["url"])
         if any(segment in url for segment in ("/latest", "/continuous", "/master", "/main")):
             raise PackagingError(f"packaging/licenses.toml must not pin a mutable locator: {url}")
+    chromium = document.get("chromium")
+    if not isinstance(chromium, dict):
+        raise PackagingError("packaging/licenses.toml must declare a [chromium] table")
+    for key in (
+        "version",
+        "source_tag",
+        "generator",
+        "publication",
+        "publication_sha256",
+        "bundle",
+    ):
+        value = cast("dict[str, object]", chromium).get(key)
+        if not isinstance(value, str) or not value:
+            raise PackagingError(f"packaging/licenses.toml [chromium] is missing {key}")
+    publication_hash = cast("dict[str, object]", chromium)["publication_sha256"]
+    if not isinstance(publication_hash, str) or not _SHA256.match(publication_hash):
+        raise PackagingError(
+            "packaging/licenses.toml [chromium] publication_sha256 is not a digest"
+        )
+    components = cast("dict[str, object]", chromium).get("components")
+    if not isinstance(components, int) or components <= 0:
+        raise PackagingError("packaging/licenses.toml [chromium] must declare a component count")
     return document
 
 
@@ -339,11 +393,100 @@ def _fetch_pinned_bytes(url: str, expected_sha256: str) -> bytes:
     return data
 
 
+def verify_chromium_notices(manifest: Mapping[str, object], payload: Path) -> dict[str, object]:
+    """Prove the shipped Chromium notice bundle matches the pinned upstream set.
+
+    ``stage_licenses`` calls this with the staged payload, so a build fails when
+    the bundle is missing, empty, partial, or built from a different upstream
+    publication than ``packaging/licenses.toml`` pins (Issue #93 review fix). The
+    upstream publication is fetched from the pinned URL and digest-verified, which
+    is what ties the shipped notice text to the exact engine version.
+    """
+    chromium = manifest.get("chromium")
+    if not isinstance(chromium, dict):
+        raise PackagingError("packaging/licenses.toml declares no [chromium] table")
+    table = cast("Mapping[str, object]", chromium)
+    bundle = payload / cast("str", table["bundle"])
+    if not bundle.is_file():
+        raise PackagingError(
+            f"the compliance payload carries no Chromium notice bundle at {bundle}"
+        )
+    bundle_text = bundle.read_text(encoding="utf-8")
+    list_html = _fetch_pinned_bytes(
+        cast("str", table["publication"]), cast("str", table["publication_sha256"])
+    ).decode("utf-8")
+    problems = check_bundle(bundle_text, list_html)
+    if problems:
+        raise PackagingError(
+            "the Chromium notice bundle is not complete:\n  " + "\n  ".join(problems)
+        )
+    components = len(set(bundle_component_names(bundle_text)))
+    declared = cast("int", table["components"])
+    if components != declared:
+        raise PackagingError(
+            f"the Chromium notice bundle covers {components} components but "
+            f"packaging/licenses.toml declares {declared}"
+        )
+    log(
+        f"chromium notices: {components} components verified against "
+        f"{cast('str', table['publication'])}"
+    )
+    return {
+        "chromium_version": cast("str", table["version"]),
+        "chromium_components": components,
+        "chromium_publication": cast("str", table["publication"]),
+        "chromium_publication_sha256": cast("str", table["publication_sha256"]),
+        "chromium_bundle_bytes": len(bundle_text.encode("utf-8")),
+    }
+
+
+def verify_chromium_notices_presence(app_dir: Path) -> dict[str, object]:
+    """Assert the installed artifact carries real Chromium notice content.
+
+    Offline companion to :func:`verify_chromium_notices` for artifact
+    verification: it proves the shipped bundle is present, carries the generated
+    provenance markers, enumerates the declared number of components, and has
+    non-empty notice text for each of them, so a placeholder file listing URLs
+    cannot satisfy the artifact gate (Issue #93 review fix).
+    """
+    chromium = load_licenses_manifest().get("chromium")
+    if not isinstance(chromium, dict):
+        raise PackagingError("packaging/licenses.toml declares no [chromium] table")
+    table = cast("Mapping[str, object]", chromium)
+    bundle = app_dir / BUNDLE_LICENSES_DESTINATION / cast("str", table["bundle"])
+    if not bundle.is_file():
+        raise PackagingError(
+            f"the packaged application carries no Chromium notice bundle at {bundle}"
+        )
+    bundle_text = bundle.read_text(encoding="utf-8")
+    for marker in REQUIRED_PROVENANCE_MARKERS:
+        if marker not in bundle_text:
+            raise PackagingError(f"the packaged Chromium notice bundle is missing {marker!r}")
+    components = sorted(set(bundle_component_names(bundle_text)))
+    declared = cast("int", table["components"])
+    if len(components) != declared:
+        raise PackagingError(
+            f"the packaged Chromium notice bundle covers {len(components)} components, "
+            f"expected {declared}"
+        )
+    empty = bundle_components_without_text(bundle_text)
+    if empty:
+        raise PackagingError(
+            "the packaged Chromium notice bundle has entries without notice text: "
+            + ", ".join(sorted(empty)[:10])
+        )
+    return {
+        "chromium_components": len(components),
+        "chromium_bundle_bytes": len(bundle_text.encode("utf-8")),
+    }
+
+
 def stage_licenses(build_dir: Path) -> Path:
     """Phase: assemble the redistribution compliance payload (Issue #93 review).
 
     The payload combines the project's own licence and notice index, the
-    project-authored compliance mechanism documents under ``packaging/licenses/``,
+    project-authored compliance mechanism documents under ``packaging/licenses/``
+    (including the generated, version-matched Chromium third-party notice bundle),
     and the version-matched Qt / Qt WebEngine licence texts pinned in
     ``packaging/licenses.toml`` (fetched from immutable URLs and SHA-256 verified).
     The result is a ``licenses/`` tree that the packaging flow copies next to the
@@ -375,6 +518,8 @@ def stage_licenses(build_dir: Path) -> Path:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(_fetch_pinned_bytes(url, digest))
         verified += 1
+
+    verify_chromium_notices(manifest, staged)
 
     missing = [name for name in REQUIRED_LICENSE_FILES if not (staged / name).is_file()]
     if missing:
@@ -433,85 +578,193 @@ def verify_license_payload(app_dir: Path) -> dict[str, object]:
     }
 
 
-def _is_audited_artifact(name: str) -> bool:
-    """Whether ``name`` is one of the Linux binaries the dependency audit inspects."""
-    if name == _QT_WEBENGINE_HELPER:
-        return True
-    return any(name.startswith(prefix) for prefix in ("libQt6WebEngineCore.so", "libqxcb.so"))
+def select_audited_artifacts(app_dir: Path) -> dict[str, list[Path]]:
+    """Return the required Linux audit targets and the files that satisfy them.
+
+    Every target in ``_LINUX_AUDIT_TARGETS`` must be present in the packaged
+    application; a missing one is a packaging failure, not a warning, because the
+    audit can only prove what it actually inspected (Issue #93 review).
+    """
+    found: dict[str, list[Path]] = {}
+    for label, form in LINUX_AUDIT_TARGETS:
+        if form == "exact":
+            matches = [path for path in app_dir.rglob("*") if path.is_file() and path.name == label]
+        else:
+            matches = [
+                path
+                for path in app_dir.rglob("*")
+                if path.is_file() and path.name.startswith(label)
+            ]
+        if not matches:
+            raise PackagingError(f"the packaged application carries no {label} to audit")
+        found[label] = sorted(matches)
+    return found
 
 
-def _classify_linux_dependency(resolved: Path, app_dir: Path) -> str:
+def parse_ldd_output(output: str) -> list[tuple[str, str | None]]:
+    """Parse ``ldd`` output into (library name, resolved path or None) pairs.
+
+    ``None`` means the loader reported ``not found``. The dynamic-loader line
+    (``/lib64/ld-linux-x86-64.so.2``) and ``linux-vdso.so.1`` carry no ``=>``
+    mapping and are skipped: they are not reviewable library dependencies.
+    """
+    entries: list[tuple[str, str | None]] = []
+    for line in output.splitlines():
+        match = re.match(r"\s*(?P<name>\S+)\s+=>\s+(?P<resolved>.+)$", line)
+        if match is None:
+            continue
+        resolved = re.sub(r"\s*\(0x[0-9a-fA-F]+\)\s*$", "", match.group("resolved")).strip()
+        entries.append((match.group("name"), None if resolved == "not found" else resolved))
+    return entries
+
+
+def classify_linux_dependency(
+    resolved: Path,
+    app_dir: Path,
+    *,
+    repo_root: Path | None = None,
+    python_prefix: Path | None = None,
+) -> str:
     """Classify a resolved dependency path as bundled / host / checkout / uv-env."""
     try:
         target = resolved.resolve()
-    except OSError:
+    except OSError:  # pragma: no cover - unreadable path
         target = resolved
     app = app_dir.resolve()
     if target == app or app in target.parents:
         return "bundled"
-    repo = REPO_ROOT.resolve()
-    if target == repo or repo in target.parents:
-        return "checkout"
-    prefix = Path(sys.prefix).resolve()
+    # The uv environment is checked before the checkout as a whole, because its own
+    # path normally lives inside the repository and a developer-environment leak is
+    # the more specific diagnosis.
+    prefix = (python_prefix or Path(sys.prefix)).resolve()
     if target == prefix or prefix in target.parents:
         return "uv-env"
+    repo = (repo_root or REPO_ROOT).resolve()
+    if target == repo or repo in target.parents:
+        return "checkout"
     return "host"
+
+
+def load_linux_runtime_baseline(path: Path | None = None) -> dict[str, str]:
+    """Load the repository-owned Linux host-runtime baseline (Issue #93 review).
+
+    The baseline names the host libraries the packaged application is allowed to
+    resolve, by SONAME (stable library identity) rather than by machine-specific
+    path, so the contract is reviewable and portable. A new host library must be
+    reviewed and added deliberately; CI never auto-updates this file.
+    """
+    baseline_path = path or LINUX_RUNTIME_BASELINE
+    if not baseline_path.is_file():
+        raise PackagingError(f"no Linux runtime baseline at {baseline_path}")
+    with baseline_path.open("rb") as handle:
+        document: dict[str, object] = tomllib.load(handle)
+    if document.get("schema_version") != 1:
+        raise PackagingError(f"{baseline_path} must declare schema_version = 1")
+    host = document.get("host")
+    if not isinstance(host, dict) or not host:
+        raise PackagingError(f"{baseline_path} declares no [host] dependencies")
+    baseline: dict[str, str] = {}
+    for name, reason in cast("dict[str, object]", host).items():
+        if not isinstance(reason, str) or not reason:
+            raise PackagingError(f"{baseline_path} must give a reason for {name!r}")
+        baseline[name] = reason
+    return baseline
+
+
+def check_host_baseline(actual: set[str], declared: set[str]) -> tuple[list[str], list[str]]:
+    """Return (unexpected, stale) host dependencies relative to the baseline."""
+    return sorted(actual - declared), sorted(declared - actual)
 
 
 def audit_linux_dependencies(app_dir: Path) -> dict[str, object]:
     """Audit the packaged Linux application's dynamic dependencies (Issue #93 review).
 
-    ``ldd`` is run on the toolchain-critical binaries: the ``QtWebEngineProcess``
-    helper, the Qt WebEngine Core library, and the Qt platform plugin. Each
-    resolved dependency is classified as bundled (inside the application tree) or
-    host (an ordinary Linux system library). A Qt library that resolves **outside**
-    the bundle, or any dependency that resolves into the repository checkout or the
-    uv environment, fails the build - that is exactly the mixed-Qt / accidental
-    checkout artifact the freeze guards against.
+    ``ldd`` runs on the launcher the user actually executes (``deepplant-editor``)
+    and on the toolchain-critical Qt binaries: the ``QtWebEngineProcess`` helper,
+    the Qt WebEngine Core library, and the Qt platform plugin. Every resolved
+    dependency is classified as bundled (inside the application tree), host (an
+    ordinary Linux system library), checkout, or uv-environment.
+
+    The audit fails on all of the following, so it is fail-closed rather than
+    merely descriptive:
+
+    - a required audited target is missing from the artifact;
+    - a dependency is ``not found``;
+    - a dependency resolves into the repository checkout or the uv environment;
+    - a Qt library resolves from the host instead of the bundle;
+    - a host library is resolved that the repository-owned baseline
+      (``packaging/linux-runtime-baseline.toml``) does not declare.
+
+    Declared-but-unused baseline entries are reported as evidence, not treated as
+    a failure: they are how platform variation shows up for a maintainer to review.
     """
     if platform_slug() != "linux":
         return {"platform": platform_slug(), "audited": False}
     ldd = shutil.which("ldd")
     if ldd is None:
         raise PackagingError("ldd is required for the Linux dynamic-dependency audit")
-    targets = [
-        path for path in app_dir.rglob("*") if path.is_file() and _is_audited_artifact(path.name)
-    ]
-    if not targets:
-        raise PackagingError(f"no Qt/WebEngine binary found to audit under {app_dir}")
+    targets = select_audited_artifacts(app_dir)
+    baseline = load_linux_runtime_baseline()
 
-    bundled: set[str] = set()
-    host: set[str] = set()
+    inventory: dict[str, dict[str, list[str]]] = {}
+    resolved_host: dict[str, str] = {}
+    actual_host: set[str] = set()
+    bundled_total: set[str] = set()
     problems: list[str] = []
-    for target in targets:
-        completed = subprocess.run([ldd, str(target)], capture_output=True, text=True, check=False)
-        for line in completed.stdout.splitlines():
-            match = re.match(r"\s*(\S+)\s+=>\s+(\S+)", line)
-            if match is None:
-                continue
-            name, resolved = match.group(1), match.group(2)
-            if resolved == "not found":
-                problems.append(f"{target.name}: {name} is not found")
-                continue
-            kind = _classify_linux_dependency(Path(resolved), app_dir)
-            if kind == "bundled":
-                bundled.add(name)
-            elif kind == "host":
-                if name.startswith(_LINUX_QT_LIBRARY_PREFIX):
-                    problems.append(f"{target.name}: {name} resolves to host {resolved}")
-                host.add(name)
-            else:
-                problems.append(f"{target.name}: {name} resolves into the {kind} ({resolved})")
+    for label, paths in targets.items():
+        bundled: set[str] = set()
+        host: set[str] = set()
+        for path in paths:
+            completed = subprocess.run(
+                [ldd, str(path)], capture_output=True, text=True, check=False
+            )
+            for name, resolved in parse_ldd_output(completed.stdout):
+                if resolved is None:
+                    problems.append(f"{label}: {name} is not found")
+                    continue
+                kind = classify_linux_dependency(Path(resolved), app_dir)
+                if kind == "bundled":
+                    bundled.add(name)
+                    bundled_total.add(name)
+                elif kind == "host":
+                    if name.startswith(_LINUX_QT_LIBRARY_PREFIX):
+                        problems.append(
+                            f"{label}: Qt library {name} resolves to the host ({resolved})"
+                        )
+                    host.add(name)
+                    actual_host.add(name)
+                    resolved_host[name] = resolved
+                else:
+                    problems.append(f"{label}: {name} resolves into the {kind} ({resolved})")
+        inventory[label] = {"bundled": sorted(bundled), "host": sorted(host)}
+
+    unexpected, stale = check_host_baseline(actual_host, set(baseline))
+    for name in unexpected:
+        problems.append(
+            f"undeclared host dependency {name} resolved from {resolved_host.get(name)}; "
+            "review it and add it to packaging/linux-runtime-baseline.toml"
+        )
     if problems:
         raise PackagingError("Linux dependency audit failed:\n  " + "\n  ".join(problems))
+
     log(
-        f"dependency audit: {len(bundled)} bundled / {len(host)} host libraries across "
-        f"{len(targets)} binaries"
+        f"dependency audit: {len(targets)} binaries, {len(bundled_total)} bundled / "
+        f"{len(actual_host)} host libraries ({len(baseline)} declared in the baseline)"
     )
+    if stale:
+        log(f"dependency audit: declared but unused baseline entries: {stale}")
     return {
-        "audited_artifacts": sorted(path.name for path in targets),
-        "bundled_dependencies": len(bundled),
-        "host_dependencies": len(host),
+        "audited_targets": sorted(targets),
+        "targets": inventory,
+        "bundled_dependencies": len(bundled_total),
+        "host_dependencies": len(actual_host),
+        "host_baseline": {
+            "source": "packaging/linux-runtime-baseline.toml",
+            "declared": sorted(baseline),
+            "unexpected": unexpected,
+            "stale": stale,
+        },
+        "resolved_host_paths": dict(sorted(resolved_host.items())),
     }
 
 
@@ -1160,6 +1413,19 @@ def run_desktop_self_check(
     return payload
 
 
+def _write_dependency_inventory(work_dir: Path, inventory: Mapping[str, object]) -> Path:
+    """Persist the full Linux dependency inventory as CI evidence (Issue #93 review).
+
+    Counts alone are not reviewable, so the exact per-target bundled/host library
+    inventory is written as deterministic JSON and uploaded with the desktop
+    evidence artifact, letting a reviewer inspect what the AppImage requires.
+    """
+    path = work_dir / "dependency-inventory.json"
+    path.write_text(json.dumps(inventory, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    log(f"dependency inventory: {path}")
+    return path
+
+
 def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> dict[str, object]:
     """Verify the packaged **desktop** application outside the checkout.
 
@@ -1196,8 +1462,12 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
     # Redistribution compliance payload and (on Linux) the dynamic-dependency
     # audit are asserted against the *installed/extracted artifact*, not the source
     # checkout (Issue #93 review).
-    evidence["licenses"] = verify_license_payload(app_dir)
-    evidence["dependencies"] = audit_linux_dependencies(app_dir)
+    licenses_evidence = verify_license_payload(app_dir)
+    licenses_evidence.update(verify_chromium_notices_presence(app_dir))
+    evidence["licenses"] = licenses_evidence
+    inventory = audit_linux_dependencies(app_dir)
+    evidence["dependencies"] = inventory
+    _write_dependency_inventory(work_dir, inventory)
 
     # The checkout's built SPA is moved out of the way so a packaged application
     # that secretly read `apps/editor/dist` would fail here. It is moved into the

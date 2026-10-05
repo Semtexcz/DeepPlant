@@ -266,7 +266,13 @@ jobs:
     # evidence is the real GUI: the packaging driver's desktop self-check runs
     # inside `verify`, and an explicit window-discovery step below proves a real
     # X11 window appears and closes on a virtual display.
-    runs-on: ubuntu-latest
+    #
+    # The image is pinned because the job owns a *reviewable* Linux runtime
+    # baseline: `packaging/linux-runtime-baseline.toml` records the exact host
+    # SONAMEs the packaged application may resolve, and the dependency audit fails
+    # when an undeclared host library appears. A floating `ubuntu-latest` label
+    # would silently move that baseline. (Issue #93 review)
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -297,6 +303,12 @@ jobs:
           # userspace, installed so a real graphical session is emulated; the
           # display/automation tools (xvfb, xdotool, x11-utils, openbox, wmctrl)
           # are the CI harness only and are never end-user prerequisites.
+          #
+          # The canonical, machine-readable record of what this job is allowed to
+          # resolve from the host is `packaging/linux-runtime-baseline.toml`. The
+          # dependency audit fails if the packaged application resolves a host
+          # library that file does not declare, and this install list must provide
+          # everything it declares. (Issue #93 review)
           sudo apt-get install -y --no-install-recommends \
             xvfb xdotool x11-utils openbox wmctrl \
             libnss3 libxcomposite1 libxdamage1 libxrandr2 libxtst6 libxcursor1 \
@@ -529,6 +541,7 @@ jobs:
           name: editor-package-linux-desktop-evidence
           path: |
             build/editor-package/verify/reports/*
+            build/editor-package/verify/dependency-inventory.json
           retention-days: 14
           if-no-files-found: ignore
 

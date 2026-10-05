@@ -82,15 +82,95 @@ def test_pinned_destinations_cover_the_required_payload() -> None:
     destinations = {cast("str", table["destination"]) for table in _entries()}
     assert destinations <= required, sorted(destinations - required)
     # The verification must also demand the project-owned compliance documents.
-    assert {"README.md", "DEEPLANT-AGPL-3.0.txt", "THIRD_PARTY_NOTICES.md"} <= required
-    assert "Qt-WebEngine/Chromium-NOTICES.md" in required
+    assert {
+        "README.md",
+        "CORRESPONDING-SOURCE.md",
+        "DEEPLANT-AGPL-3.0.txt",
+        "THIRD_PARTY_NOTICES.md",
+    } <= required
+    # ...and the real Chromium notice evidence, not just an explanatory pointer.
+    assert {
+        "Qt-WebEngine/Chromium-NOTICES.md",
+        "Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt",
+        "Qt-WebEngine/Chromium-VERSION.txt",
+        "Qt-WebEngine/Chromium-LICENSE-BSD.txt",
+    } <= required
+
+
+def test_chromium_notice_mechanism_is_declared_and_version_matched() -> None:
+    manifest = load_licenses_manifest()
+    chromium = cast("dict[str, object]", manifest["chromium"])
+    assert chromium["version"] == "140.0.7339.264"
+    assert chromium["source_tag"] == manifest["qt_tag"]
+    assert "licenses.py" in cast("str", chromium["generator"])
+    assert ":QtWebEngineCore" in cast("str", chromium["generator"])
+    assert cast("str", chromium["publication"]).startswith("https://")
+    assert SHA256.match(cast("str", chromium["publication_sha256"]))
+    assert cast("int", chromium["components"]) > 0
+    # The bundle is shipped from the project-owned payload, not fetched at build.
+    destinations = {cast("str", table["destination"]) for table in _entries()}
+    assert cast("str", chromium["bundle"]) not in destinations
+
+
+def test_manifest_requires_the_chromium_notice_mechanism(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest = tmp_path / "licenses.toml"
+    manifest.write_text(
+        "\n".join(
+            [
+                "schema_version = 1",
+                'pyside6_version = "6.11.2"',
+                'qt_version = "6.11.2"',
+                'qt_tag = "v6.11.2"',
+                "[[file]]",
+                'destination = "Qt/x.txt"',
+                'url = "https://example.com/v6.11.2/x.txt"',
+                f'sha256 = "{"0" * 64}"',
+            ]
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("tools.package_editor.LICENSES_MANIFEST", manifest)
+    try:
+        load_licenses_manifest()
+    except Exception as exc:  # noqa: BLE001 - the message is the assertion
+        assert "[chromium]" in str(exc)
+    else:  # pragma: no cover - the guard must fail closed
+        raise AssertionError("a manifest without the Chromium notice mechanism was accepted")
 
 
 def test_project_compliance_documents_exist_and_name_the_versions() -> None:
-    for relative in ("README.md", "Qt-WebEngine/Chromium-NOTICES.md"):
+    for relative in (
+        "README.md",
+        "CORRESPONDING-SOURCE.md",
+        "Qt-WebEngine/Chromium-NOTICES.md",
+    ):
         assert (STATIC_DIR / relative).is_file(), relative
     readme = (STATIC_DIR / "README.md").read_text(encoding="utf-8")
     assert _pyside6_version() in readme
+
+
+def test_corresponding_source_document_records_the_mechanism_and_revisions() -> None:
+    text = (STATIC_DIR / "CORRESPONDING-SOURCE.md").read_text(encoding="utf-8")
+    # The operative licence option and the exact upstream revisions it refers to.
+    assert "4(d)(1)" in text
+    assert "shared library mechanism" in text
+    for revision in (
+        "a33fa2a897e5ee58e385b3f88dc247d99fca56db",
+        "5170777d28bee1ce92cc693a0dbf2ad01492e5cf",
+    ):
+        assert revision in text
+    assert "three years" in text
+
+
+def test_chromium_notice_document_states_what_is_actually_shipped() -> None:
+    text = (STATIC_DIR / "Qt-WebEngine" / "Chromium-NOTICES.md").read_text(encoding="utf-8")
+    assert "Chromium-THIRD-PARTY-NOTICES.txt" in text
+    assert "140.0.7339.264" in text
+    assert "licenses.py" in text
+    # The previous round's incorrect claim about about:credits must be gone.
+    assert "can display the aggregated" not in text
 
 
 def test_manifest_rejects_a_mutable_locator(
