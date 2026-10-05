@@ -464,7 +464,7 @@ jobs:
             echo "remaining windows:"
             xdotool search --name "DeepPlant Editor" 2>/dev/null | while read -r wid; do
               echo "  $wid $(xdotool getwindowname "$wid" 2>/dev/null)"
-            done
+            done || true
             # Leave the runner clean; this is teardown, not the assertion.
             pkill -f "$RUNNER_TEMP/editor-window/install" 2>/dev/null || true
             kill "$app_pid" 2>/dev/null || true
