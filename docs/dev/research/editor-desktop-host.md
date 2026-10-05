@@ -222,6 +222,13 @@ frozen onedir application (same checks) ................. pass
 AppImage 0.1.0 (extracted AppRun, no model / with model)  pass / pass
 ```
 
+> The values above are the measured #93 evidence against the then-current smoke
+> model. Since Issue #98 the canonical packaged smoke fixture is the
+> self-contained `examples/process-graph/plant.yaml` (three `ProcessStep`s, two
+> `ProcessStream`s, `PUMP` selected), so the current packaged output differs while
+> the checks are unchanged — see
+> [workflow/packaging.md](../workflow/packaging.md#the-canonical-packaged-smoke-fixture).
+
 The AppImage produced during this investigation was
 `deepplant-editor-0.1.0-linux-x86_64.AppImage`, 231,950,840 bytes,
 SHA-256 `8ffebf9e6351dc924a67497a1ccd3bd5380a9405a97cafc6cc3ba36da7b0616b`.

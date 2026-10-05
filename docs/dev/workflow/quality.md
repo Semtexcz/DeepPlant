@@ -103,7 +103,7 @@ restating it.
 | Python distribution boundary (`src/deepplant/**`, `pyproject.toml`, `uv.lock`, `LICENSE`, wheel tooling) | `wheel-verification` (wheel build, wheel contents, base-install independence) |
 | frontend source/config (`apps/editor/**`) | `frontend-checks` (`make frontend-check` **and** `make frontend-build`) |
 | editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the canonical `src/deepplant/assets/**` symbols, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
-| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, the canonical `src/deepplant/assets/**` symbols, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/realistic-process-fragment/**` runtime fixture, `LICENSE`, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
+| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, the canonical `src/deepplant/assets/**` symbols, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/process-graph/**` self-contained smoke fixture, `LICENSE`, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
 | `push` to `main`, `workflow_dispatch`, `.github/**`, `.gitattributes`, `Makefile`, the classifier itself | the full matrix above |
 
 The consequences that matter:
@@ -127,12 +127,16 @@ The consequences that matter:
   AppImage generation, strict desktop type check, packaged GUI launch and window
   lifecycle, Linux dependency audit, toolchain integrity, compliance payload,
   artifact checksums). No step is weakened by routing.
-- The **`examples/realistic-process-fragment/**` runtime fixture** is E2E and
-  packaging test input, not ordinary prose: both the browser E2E suite
-  (`apps/editor/e2e/support/editor-server.ts`) and the packaged-artifact smoke
-  test (`tools/package_editor.py`) load its `plant.yaml` at runtime. A change to
-  it therefore selects `python-checks`, `frontend-e2e`, and both native packaging
-  jobs. Other `examples/**` subtrees stay Python-only.
+- The **`examples/realistic-process-fragment/**` runtime fixture** is browser E2E
+  input, not ordinary prose: the browser E2E suite
+  (`apps/editor/e2e/support/editor-server.ts`) loads its `plant.yaml` at runtime,
+  so a change to it selects `python-checks` and `frontend-e2e`. The packaged
+  smoke test no longer loads it - its `PS-vessel` step is honestly
+  `function: unspecified` and needs a presentation choice an ordinary user cannot
+  supply (Issue #98). Since #98 that path opens the self-contained
+  **`examples/process-graph/**`** fixture (`tools/package_editor.py`
+  `SMOKE_MODEL`), so a change to *that* fixture selects `python-checks` and both
+  native packaging jobs. Other `examples/**` subtrees stay Python-only.
 - **`pyrightconfig.desktop.json`** is a package-validation input: both native jobs
   run the strict desktop type check with it, so changing it selects
   `editor-package-windows` and `editor-package-linux`.

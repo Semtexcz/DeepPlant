@@ -261,10 +261,12 @@ packaged brand assets, the canonical `src/deepplant/assets/**` symbols, the
 desktop/package dependency groups, the desktop type-check configuration
 (`pyrightconfig.desktop.json`), the embedded SPA and editor application, and the
 bundled compliance payload (`LICENSE`, `THIRD_PARTY_NOTICES.md`). The packaged
-smoke test also loads the
-`examples/realistic-process-fragment/plant.yaml` fixture at runtime, so changing
-that fixture selects both native jobs as well. Routing never weakens a step: when
-a packaging job runs, it still performs the complete verification listed below.
+smoke test also loads the self-contained `examples/process-graph/plant.yaml`
+fixture at runtime, so changing that fixture selects both native jobs as well.
+The `examples/realistic-process-fragment/**` browser E2E fixture is **not** used
+by the packaged path, so it selects only the browser E2E job. Routing never
+weakens a step: when a packaging job runs, it still performs the complete
+verification listed below.
 
 Each packaging job builds on its native runner because a frozen application is
 OS- and architecture-specific, and each reads `packaging/toolchain.toml` and
@@ -300,8 +302,9 @@ does not trust the packaging tool's exit code. It:
 
 1. installs the Windows installer silently into a temporary directory, or
    extracts the AppImage with `--appimage-extract`;
-2. copies `examples/realistic-process-fragment/plant.yaml` to a directory
-   outside the repository;
+2. copies the canonical **self-contained smoke fixture**
+   (`examples/process-graph/plant.yaml`, `SMOKE_MODEL` in the driver) to a
+   directory outside the repository;
 3. **moves the checkout's `apps/editor/dist` out of the way**, so a packaged
    application that secretly relied on it cannot pass;
 4. asserts the frozen bundle actually carries the built SPA, the canonical
@@ -313,10 +316,44 @@ does not trust the packaging tool's exit code. It:
    kept) **twice**:
    - **no model argument** - proves the primary end-user workflow opens a real
      window instead of demanding a path;
-   - `plant.yaml --symbol-role PS-vessel=vessel` - proves the packaged editor
-     workflow;
+   - `plant.yaml` - proves the packaged editor workflow renders the
+     self-contained fixture, selects a known step, and shows its semantics, with
+     **no** `--symbol-role` or other hidden presentation override;
 6. reads each launch's JSON report and requires every check to be true;
 7. restores the checkout SPA and removes the temporary installation.
+
+### The canonical packaged smoke fixture
+
+The packaged verification must reproduce what an ordinary user reaches through
+`File -> Open…`, so the fixture it opens is **self-contained**: it loads,
+validates, projects and renders through the ordinary application boundary with no
+`--symbol-role`, no environment-variable presentation injection, no test-only
+application state, and no source-checkout dependency.
+
+```text
+examples/process-graph/plant.yaml     (driver constant `SMOKE_MODEL`)
+```
+
+It is the smallest example that still exercises meaningful Editor behaviour -
+three `ProcessStep`s, two `ProcessStream`s, and a step (`PUMP`, `function:
+pumping`) that resolves to a symbol role through the ordinary engineering
+`function` -> role policy - so the packaged path proves semantic validation,
+Process/PFD projection, real rendering, node selection, and Inspector content end
+to end. `tests/test_packaging_smoke.py` holds the regression: it proves the
+fixture renders with no overrides, that the driver's default model is that
+fixture, and that the launch command never injects a presentation override.
+
+`examples/realistic-process-fragment/plant.yaml` is deliberately **not** the
+packaged smoke fixture. Its `PS-vessel` step is honestly `function: unspecified`
+(ADR-0009): the drawing shows a vessel, but that is a presentation choice, and the
+fragment carries no engineering evidence for the vessel's process function.
+Rendering it therefore requires an explicit per-step presentation override that an
+ordinary user never receives, so it stays unrenderable through the plain
+`File -> Open…` path. It remains useful evidence of a semantically valid model
+whose current presentation role cannot be resolved (`tests/test_render.py`,
+`tests/test_editor_projection.py`), and it stays the browser E2E fixture; this
+packaging slice must not falsify it by inventing a process function or adding a
+global `unspecified -> vessel` mapping.
 
 ### The desktop self-check hook
 
@@ -331,8 +368,9 @@ What it does — and deliberately does **not** do:
   the real production SPA from the real loopback server;
 - it reads the real rendered page through Qt's own JavaScript engine
   (`QWebEnginePage.runJavaScript`), not a mock: validation status, the rendered
-  `ProcessStep`/`ProcessStream` counts, the selection of `PS-pump`, and the
-  Inspector's semantic fields;
+  `ProcessStep`/`ProcessStream` counts, the selection of `PUMP`, and the
+  Inspector's semantic fields (the canonical self-contained smoke fixture; see
+  "The canonical packaged smoke fixture" above);
 - it then closes the window through the ordinary `closeEvent` a user triggers and
   records whether the owned server stopped and the loopback socket was released;
 - it adds **no** production protocol, introduces no behavioural branch in normal

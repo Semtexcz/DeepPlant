@@ -62,6 +62,9 @@ from deepplant.io import PlantLoadError
 __all__ = [
     "DesktopHostError",
     "MODEL_FILE_FILTER",
+    "SMOKE_EXPECTED_STEPS",
+    "SMOKE_EXPECTED_STREAMS",
+    "SMOKE_PROBE_STEP_ID",
     "WINDOW_TITLE",
     "app",
     "editor_origin",
@@ -77,6 +80,17 @@ WINDOW_TITLE: str = "DeepPlant Editor"
 
 #: The native Open dialog only *selects a path*; it never parses DeepPlant YAML.
 MODEL_FILE_FILTER: str = "DeepPlant plant models (*.yaml *.yml);;All files (*)"
+
+#: The packaged desktop self-check's expected fixture graph (Issue #98). They
+#: describe the canonical, self-contained smoke fixture the packaged verification
+#: opens - ``tools/package_editor.py``'s ``SMOKE_MODEL``
+#: (``examples/process-graph/plant.yaml``): a small model the ordinary
+#: ``File -> Open…`` workflow renders with **no** presentation override. They live
+#: in this Qt-free half of the host so the fixture and the self-check's
+#: expectations can be checked together without a GUI toolkit.
+SMOKE_PROBE_STEP_ID: str = "PUMP"
+SMOKE_EXPECTED_STEPS: int = 3
+SMOKE_EXPECTED_STREAMS: int = 2
 
 #: Schemes the SPA and Qt itself legitimately use inside the view. They carry no
 #: remote authority, so they are allowed alongside the exact active origin. They

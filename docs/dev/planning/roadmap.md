@@ -108,6 +108,12 @@ Delivered slices are recorded in
 [history/implementation-slices.md](../history/implementation-slices.md) and, for
 evidence-heavy slices, in the linked spike/decision documents.
 
+- **#98 packaged-smoke parity** ([Issue #98](https://github.com/Semtexcz/DeepPlant/issues/98)):
+  the packaged desktop verification opens a self-contained fixture
+  (`examples/process-graph/plant.yaml`) through the ordinary `File -> Open…`
+  boundary with no hidden `--symbol-role` presentation override, so the automated
+  packaged evidence matches the end-user workflow.
+
 ## Operational Roadmap
 
 ### Now
@@ -122,20 +128,19 @@ semantic Core.
 The post-#85 gate is now **executed**. It authorizes the following sequence,
 which contains exactly one selected product capability.
 
-#### Immediate evidence hardening — packaged smoke parity
+#### Immediate evidence hardening — packaged smoke parity (delivered)
 
 [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
-is immediate verification hardening on the delivered #85 slice, **not** a competing
-product capability. The packaged desktop smoke workflow must use a self-contained
-fixture and path that an ordinary user can reproduce through `File → Open…`, with
-no hidden CLI-only presentation override.
+is **delivered**: the packaged desktop verification now opens a self-contained
+fixture (`examples/process-graph/plant.yaml`) through the ordinary
+`File -> Open…` boundary, with no hidden CLI-only presentation override.
 
-The realistic fixture currently needs the transient presentation override
+The realistic fixture still needs the transient presentation override
 `PS-vessel → vessel` because `PS-vessel.function: unspecified` is valid
 engineering semantics but has no default Process/PFD symbol role. That boundary is
-correct: do not invent a process function and do not add a global
-`unspecified → vessel` mapping. The fixture/workflow, rather than the semantic or
-presentation model boundary, must change.
+correct and was preserved: no process function was invented and no global
+`unspecified → vessel` mapping was added. The fixture/workflow changed, not the
+semantic or presentation model boundary.
 
 #### Selected product capability — empty shared Editor workspace
 
@@ -189,9 +194,9 @@ state.
 ### Next
 
 - **Unselected.** Do not preselect the successor to the empty-workspace slice.
-  Run another explicit re-evaluation only after **both** (1) packaged-smoke parity
-  is restored through the ordinary GUI workflow and (2) the empty shared Editor
-  workspace slice is delivered.
+  Packaged-smoke parity (#98) is delivered, so a new explicit re-evaluation opens
+  only after the remaining selected capability - the empty shared Editor workspace
+  slice (#97) - is delivered.
 
 ### Re-evaluation Gate
 
@@ -443,16 +448,23 @@ selected #85
 Re-evaluation after #85 (executed)
     ↓
 selected #97
+    (preceded by #98 packaged-smoke parity)
+
+#98 delivered
+    ↓
+#97 remains the selected product capability
 ```
 
 - **Immediate evidence hardening** (not a product capability):
-  [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98);
+  [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
+  is **delivered**;
 - **Selected product capability:**
   [#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97).
 
-**Next** stays unselected. A new re-evaluation opens only after **both** (1)
-packaged-smoke parity (#98) is restored through the ordinary GUI workflow and (2)
-the empty shared Editor workspace slice (#97) is delivered. The strong future
+**Next** stays unselected. A new re-evaluation opens only after the remaining
+selected capability - the empty shared Editor workspace slice (#97) - is delivered.
+Packaged-smoke parity (#98) is already delivered through the ordinary GUI workflow.
+The strong future
 candidates — the project format/portable package (#89), the first semantic
 mutation + Save, presentation-state persistence, semantic validity vs Process/PFD
 view availability (#99), release/version infrastructure (#88), P&ID, and
