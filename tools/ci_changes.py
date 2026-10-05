@@ -108,7 +108,6 @@ _PULL_REQUEST_TEMPLATE = ".github/pull_request_template.md"
 _ROOT_DOC_FILES: frozenset[str] = frozenset(
     {
         ".copier-answers.yml",
-        ".gitattributes",
         ".gitignore",
         ".template-version",
         "CLA.md",

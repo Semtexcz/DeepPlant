@@ -104,7 +104,7 @@ restating it.
 | frontend source/config (`apps/editor/**`) | `frontend-checks` (`make frontend-check` **and** `make frontend-build`) |
 | editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the canonical `src/deepplant/assets/**` symbols, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
 | packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, the canonical `src/deepplant/assets/**` symbols, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/realistic-process-fragment/**` runtime fixture, `LICENSE`, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
-| `push` to `main`, `workflow_dispatch`, `.github/**`, `Makefile`, the classifier itself | the full matrix above |
+| `push` to `main`, `workflow_dispatch`, `.github/**`, `.gitattributes`, `Makefile`, the classifier itself | the full matrix above |
 
 The consequences that matter:
 
@@ -163,10 +163,11 @@ The consequences that matter:
 - Superseded pull-request runs are cancelled by `concurrency`; `main` and manual
   runs are not.
 
-Two deliberate conservative rules apply. Build/CI tooling (`.github/**`, the
-`Makefile`, the classifier itself) and any **unrecognized** path select the full
-matrix, so a new file can never silently skip validation it might affect. A
-documented false positive is preferred over an unvalidated false negative.
+Two deliberate conservative rules apply. Build/repository/CI tooling
+(`.github/**`, `.gitattributes`, the `Makefile`, the classifier itself) and any
+**unrecognized** path select the full matrix, so a new file can never silently
+skip validation it might affect. A documented false positive is preferred over
+an unvalidated false negative.
 
 ## Validation boundaries
 

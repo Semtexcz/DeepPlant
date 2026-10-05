@@ -305,6 +305,7 @@ def test_licence_file_is_also_a_packaged_product_input() -> None:
     [
         ".github/workflows/ci.yml",
         ".github/actions/local/action.yml",
+        ".gitattributes",
         "Makefile",
         "tools/ci_changes.py",
         "new/unclassified-file.bin",
