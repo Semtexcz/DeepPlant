@@ -95,20 +95,27 @@ frontend-test: frontend-install
 	$(FRONTEND_PNPM) run test
 
 
+# Production SPA bundle (`vite build`). This is a higher-cost production-artifact
+# verification, not part of the default frontend confidence gate:
+# `frontend-typecheck` already proves the TypeScript contract, and the E2E and
+# packaging jobs exercise the built bundle. Run it explicitly (or through
+# `make frontend-e2e`) when a change concerns the shipped SPA.
 frontend-build: frontend-install
 
 	$(FRONTEND_PNPM) run build
 
 
-# Complete current frontend baseline: lint, typecheck, tests, production build.
-frontend-check: frontend-lint frontend-typecheck frontend-test frontend-build
+# Default frontend confidence gate: lint, typecheck, tests. Fast enough for the
+# normal inner loop. It deliberately excludes the production build, which is the
+# separate `frontend-build` target above.
+frontend-check: frontend-lint frontend-typecheck frontend-test
 
 
 # Browser/system E2E: the real local `deepplant ui` CLI serving the production
 # build, driven by a real Chromium browser (see docs/dev/frontend/testing.md).
-# Kept out of `frontend-check`/`check` so the fast default gate never downloads a
-# browser; install Chromium once with
-# `cd apps/editor && pnpm exec playwright install chromium`.
+# Separate from `frontend-check`/`check`: it builds the production SPA and needs a
+# Chromium binary, so it is kept out of the fast default gate. Install Chromium
+# once with `cd apps/editor && pnpm exec playwright install chromium`.
 frontend-e2e: frontend-build
 
 	$(FRONTEND_PNPM) run e2e
@@ -156,6 +163,17 @@ e2e-production:
 
 
 
+# The single canonical local confidence gate. Run it once before finalizing a
+# pull request, not after every edit. It is deliberately a developer-confidence
+# gate, not a release/distribution gate: the heavy or platform-specific checks
+# stay outside it --
+#   frontend-build           production SPA bundle
+#   frontend-e2e             Playwright/Chromium system tests over the real CLI
+#   package-editor           Windows installer / Linux AppImage + desktop verify
+#   verify-packaged-editor   native packaged-app verification
+#   typecheck-desktop        strict PySide6 type check (desktop group)
+#   build                    release wheel/sdist (`uv build`)
+# CI runs this gate plus those stronger jobs asynchronously.
 check: validate-docs validate-agent-skills format-check lint typecheck test frontend-check
 
 

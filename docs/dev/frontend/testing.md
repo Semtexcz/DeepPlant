@@ -326,15 +326,16 @@ make frontend-e2e
 
 `make frontend-e2e` installs frontend dependencies from the committed lockfile,
 builds the production SPA, and runs the Playwright suite. It does not install
-browser binaries on every run, and `make check` deliberately never downloads a
-browser:
+browser binaries on every run, and neither `make frontend-check` nor `make check`
+downloads a browser or runs the production build:
 
 ```text
-make check         → lint/type/unit/component/integration/build baseline (fast)
-make frontend-e2e  → production build + real-browser system tests (slow)
+make frontend-check → lint/type/unit/component/integration baseline (fast)
+make frontend-build → production SPA bundle (separate, higher-cost verification)
+make frontend-e2e   → production build + real-browser system tests (slow)
 ```
 
-Both run in CI. Running the suite directly is equivalent to
+All run in CI. Running the suite directly is equivalent to
 `cd apps/editor && pnpm e2e` after a build.
 
 ### Debugging and failure artifacts
@@ -377,6 +378,9 @@ component test exists.
 
 - Frontend tests run through `make frontend-test` and are part of
   `make frontend-check` and `make check`.
+- The production SPA build runs through `make frontend-build` and is deliberately
+  outside `frontend-check`/`make check`: it is a production-artifact
+  verification, not part of the fast default gate.
 - Browser E2E runs through `make frontend-e2e` (or `pnpm e2e` after a build) and
   is deliberately outside `make check`, so the fast default gate never downloads
   a browser.

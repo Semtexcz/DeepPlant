@@ -107,6 +107,29 @@ make validate-agent-skills
 
 ```
 
+## Development Checks and CI
+
+While implementing, run only the checks relevant to the changed surface. The
+focused mapping is: documentation `->` `make validate-docs`; agent skills/context
+map `->` `make validate-agent-skills`; Python/Core `->` `make format-check`,
+`make lint`, `make typecheck`, then the impacted `make test` tests; frontend
+`->` `make frontend-lint`, `make frontend-typecheck`, `make frontend-test`;
+desktop `->` `make typecheck-desktop`; packaging `->` `make package-editor` /
+`make verify-packaged-editor`. Do not run exhaustive validation after every edit.
+
+`make check` is the single broader local confidence gate. Run it **once** before
+finalizing the pull request - not after every edit, and not repeatedly. It is a
+developer-confidence gate, not a release/distribution gate: the production
+frontend build, browser E2E, packaging, and the wheel build are deliberately
+outside it. Canonical detail is in
+[docs/dev/workflow/quality.md](docs/dev/workflow/quality.md).
+
+CI runs afterwards and is asynchronous:
+
+> After pushing/finalizing the PR, do not wait for or poll GitHub Actions. CI is
+> authoritative where required but runs asynchronously. If it later fails, repair
+> it in a fresh focused session on the same branch/PR.
+
 ## Approval Boundaries
 
 - Ordinary reversible implementation work can proceed autonomously when it is already scoped and automated checks pass.
@@ -118,7 +141,8 @@ make validate-agent-skills
 
 Workflow mode is `pr`: agents must work on a non-`main` branch, commit their own
 changes, push to `origin`, and open a ready pull request. Do not push directly
-to `main`.
+to `main`. After the PR is pushed the implementation session ends: do not wait
+for or poll GitHub Actions (see Development Checks and CI).
 
 
 General reusable skills are in `.agents/skills/`. Codex adapter notes are in
@@ -127,8 +151,9 @@ General reusable skills are in `.agents/skills/`. Codex adapter notes are in
 
 
 Project-specific context is in `project/brief.md`, `docs/`, and ADRs under
-`docs/dev/decisions/`. Keep changes small, run `make check`, and update the brief or
-ADRs when implementation teaches something durable.
+`docs/dev/decisions/`. Keep changes small, run `make check` once before
+finalizing the PR, and update the brief or ADRs when implementation teaches
+something durable.
 
 ## Roadmap Reconciliation
 

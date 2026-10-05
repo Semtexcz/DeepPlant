@@ -77,7 +77,8 @@ editor product behavior.
   `component/`, `integration/`, `fixtures/`, with feature ownership and the
   verified responsibility below each layer); Vitest covers the pure modules, the
   Vue components, and the Process/PFD feature integration; ESLint (this
-  contract), `vue-tsc`, Vitest, and a production build are enforced. Browser
+  contract), `vue-tsc`, and Vitest are enforced, while the production SPA build is
+  a separate verification (`make frontend-build`). Browser
   system tests live in the separate `apps/editor/e2e/` root and run the real
   local product (production build + real `deepplant ui` CLI + real Chromium). The
   browser application + Vitest code and the Node-executed tooling + Playwright E2E

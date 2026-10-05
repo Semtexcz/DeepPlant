@@ -39,6 +39,8 @@ the requested intent, architecture invariants, unnecessary complexity,
 regressions, test coverage, documentation impact, security and risk
 implications, and accidental unrelated changes.
 
-Report findings before summaries or readiness statements. In managed projects,
-task acceptance criteria may add context, but lifecycle transitions remain
-outside this core review skill.
+Report findings before summaries or readiness statements. Run the one canonical
+local confidence gate (`make check`) once for the review cycle; do not wait for or
+poll GitHub Actions, which are authoritative but run asynchronously after the
+push. In managed projects, task acceptance criteria may add context, but lifecycle
+transitions remain outside this core review skill.

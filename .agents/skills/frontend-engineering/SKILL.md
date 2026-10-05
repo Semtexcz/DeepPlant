@@ -69,10 +69,12 @@ in `docs/dev/frontend/index.md`:
 make frontend-lint
 make frontend-typecheck
 make frontend-test
-make frontend-build
 ```
 
-`make frontend-check` runs all four and `make check` includes it.
+`make frontend-check` runs those three and `make check` includes it. The
+production build (`make frontend-build`) is a separate, higher-cost verification:
+run it when the change concerns the shipped SPA bundle, or rely on the E2E and
+packaging jobs that build it in CI.
 
 ## Scope
 

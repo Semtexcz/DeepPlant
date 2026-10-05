@@ -37,6 +37,12 @@ requested change. In managed projects, include active-task context when it is
 available, but do not make implementation depend on a task id.
 
 Choose the smallest coherent implementation that preserves architecture
-invariants. Prefer existing patterns and helpers over new abstractions. Run
-focused checks while working, then finish with the relevant repository checks.
-Do not mutate task state from this skill.
+invariants. Prefer existing patterns and helpers over new abstractions.
+
+Run only the focused checks for the changed surface while iterating (see
+`docs/dev/workflow/quality.md`). Run the single canonical local confidence gate
+`make check` once before finalizing the pull request - not after every edit and
+not repeatedly. Then follow this repository's `pr` workflow: push the branch and
+open a ready pull request. CI is required but asynchronous: do not wait for or
+poll it from the implementation session. If CI later fails, repair it in a fresh
+focused session on the same branch/PR. Do not mutate task state from this skill.

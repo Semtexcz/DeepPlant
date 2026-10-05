@@ -33,11 +33,20 @@ Use this skill to route a change to existing deterministic checks. Do not
 duplicate validation logic inside the skill when a Make target or executable
 guardrail already exists.
 
-Choose focused checks first, then broader checks. Examples:
+Choose focused checks first, then the one broader local confidence gate before
+finalizing the pull request. Examples:
 
-- Python change: focused tests, lint/typecheck, `make check`.
-- API contract change: backend tests, OpenAPI/client checks, `make check`.
-- Docker/runtime change: build, inspect, smoke test, `make check`.
-- Documentation-only change: documentation validation, `make check`.
+- Python/Core change: `make format-check`, `make lint`, `make typecheck`, then the impacted `make test` tests.
+- Frontend change: `make frontend-lint`, `make frontend-typecheck`, `make frontend-test`.
+- Documentation-only change: `make validate-docs`.
+- Agent skill / context map change: `make validate-agent-skills`.
+- Desktop change: `make typecheck-desktop`.
+- Packaging change: `make package-editor` / `make verify-packaged-editor`.
+
+Run `make check` exactly once as the broader confidence gate before finalizing
+the PR - not after every edit and not repeatedly. Do not treat GitHub Actions
+completion as part of this session: after the PR is pushed the session ends and
+CI runs asynchronously; a later CI failure is repaired in a fresh focused session
+on the same branch/PR.
 
 Report commands run, results, and any risk that remains unverified.
