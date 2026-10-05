@@ -43,10 +43,12 @@ superseded_by: null
   TypeScript runtime environments are canonical in
   [frontend/typescript.md](../frontend/typescript.md).
 - The production SPA build runs through `make frontend-build` (`vite build`). It
-  is deliberately **not** part of `frontend-check`/`check`: it is a
-  production-artifact verification rather than a correctness gate, and
-  `frontend-typecheck` already proves the TypeScript contract. It is exercised by
-  `make frontend-e2e` and by the packaging jobs.
+  is deliberately **not** part of `frontend-check`/`check`: it is a separate
+  production-build/artifact verification and is intentionally outside the fast
+  default local confidence gate. Beyond the TypeScript contract that
+  `frontend-typecheck` already proves, a production build can also catch build
+  configuration, module resolution, asset, plugin, or bundling failures. It is
+  exercised by `make frontend-e2e` and by the packaging jobs.
 - Browser system E2E runs through `make frontend-e2e`: it installs frontend
   dependencies from the committed lockfile, builds the production SPA, and runs
   the Playwright + Chromium suite against the real local `deepplant ui` CLI. It is
@@ -90,10 +92,20 @@ run once per finalization/review cycle.
 |---|---|
 | documentation | `make validate-docs` |
 | agent skills / context map | `make validate-agent-skills` |
-| Python / Core | `make format-check`, `make lint`, `make typecheck`, then the impacted `make test` tests |
+| Python / Core | `make format-check`, `make lint`, `make typecheck`, then a targeted `uv run pytest <relevant test paths>` selection |
 | frontend | `make frontend-lint`, `make frontend-typecheck`, `make frontend-test` |
 | desktop host (PySide6) | `make typecheck-desktop` when relevant |
 | packaging / distribution | `make package-editor` / `make verify-packaged-editor` when relevant |
+
+Focused iteration selects only the tests a change can affect, for example
+`uv run pytest tests/test_cli.py` or a `-k` selection. `make test` always runs the
+complete Python suite, so it belongs to the broader gate rather than to per-edit
+iteration:
+
+```text
+focused iteration        -> targeted `uv run pytest <relevant test paths>`
+broader local confidence -> `make check` -> includes the full `make test` suite
+```
 
 Then exactly one broader local confidence gate runs before the pull request is
 finalized:

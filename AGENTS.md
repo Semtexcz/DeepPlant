@@ -112,10 +112,20 @@ make validate-agent-skills
 While implementing, run only the checks relevant to the changed surface. The
 focused mapping is: documentation `->` `make validate-docs`; agent skills/context
 map `->` `make validate-agent-skills`; Python/Core `->` `make format-check`,
-`make lint`, `make typecheck`, then the impacted `make test` tests; frontend
-`->` `make frontend-lint`, `make frontend-typecheck`, `make frontend-test`;
-desktop `->` `make typecheck-desktop`; packaging `->` `make package-editor` /
-`make verify-packaged-editor`. Do not run exhaustive validation after every edit.
+`make lint`, `make typecheck`, then a targeted `uv run pytest <relevant test
+paths>` selection; frontend `->` `make frontend-lint`, `make frontend-typecheck`,
+`make frontend-test`; desktop `->` `make typecheck-desktop`; packaging
+`->` `make package-editor` / `make verify-packaged-editor`. Do not run exhaustive
+validation after every edit.
+
+Focused iteration selects only the tests a change can affect. `make test` always
+runs the complete Python suite, so it belongs to the one broader gate rather than
+to per-edit iteration:
+
+```text
+focused iteration        -> targeted `uv run pytest <relevant test paths>`
+broader local confidence -> `make check` -> includes the full `make test` suite
+```
 
 `make check` is the single broader local confidence gate. Run it **once** before
 finalizing the pull request - not after every edit, and not repeatedly. It is a

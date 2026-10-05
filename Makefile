@@ -95,11 +95,13 @@ frontend-test: frontend-install
 	$(FRONTEND_PNPM) run test
 
 
-# Production SPA bundle (`vite build`). This is a higher-cost production-artifact
-# verification, not part of the default frontend confidence gate:
-# `frontend-typecheck` already proves the TypeScript contract, and the E2E and
-# packaging jobs exercise the built bundle. Run it explicitly (or through
-# `make frontend-e2e`) when a change concerns the shipped SPA.
+# Production SPA bundle (`vite build`). This is a separate production-build
+# verification and is intentionally outside the fast default local confidence
+# gate (`frontend-check`/`check`). Beyond the TypeScript contract that
+# `frontend-typecheck` already proves, a production build can also catch build
+# configuration, module resolution, asset, plugin, or bundling failures. It is
+# exercised by `make frontend-e2e` and the packaging jobs; run it explicitly
+# (or through `make frontend-e2e`) when a change concerns the shipped SPA.
 frontend-build: frontend-install
 
 	$(FRONTEND_PNPM) run build

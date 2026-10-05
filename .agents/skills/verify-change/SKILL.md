@@ -36,7 +36,7 @@ guardrail already exists.
 Choose focused checks first, then the one broader local confidence gate before
 finalizing the pull request. Examples:
 
-- Python/Core change: `make format-check`, `make lint`, `make typecheck`, then the impacted `make test` tests.
+- Python/Core change: `make format-check`, `make lint`, `make typecheck`, then a targeted `uv run pytest <relevant test paths>` selection (`make test` is the full suite, reserved for the one broader gate).
 - Frontend change: `make frontend-lint`, `make frontend-typecheck`, `make frontend-test`.
 - Documentation-only change: `make validate-docs`.
 - Agent skill / context map change: `make validate-agent-skills`.
