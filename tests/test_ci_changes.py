@@ -20,6 +20,7 @@ guarantees the classifier expresses cannot drift away from ``ci.yml``.
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -51,6 +52,49 @@ def _results(**overrides: str) -> dict[str, str]:
 
 def _workflow_text() -> str:
     return WORKFLOW.read_text(encoding="utf-8")
+
+
+def _git(repo: Path, *args: str) -> str:
+    """Run git in a throwaway repository with a deterministic identity."""
+    completed = subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.email=ci@example.invalid",
+            "-c",
+            "user.name=CI",
+            *args,
+        ],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout
+
+
+def _repo_with_rename(tmp_path: Path) -> tuple[Path, str, str]:
+    """Create a repository whose only change is moving an editor module.
+
+    Returns the repository, the base commit and the head commit. Moving
+    ``src/deepplant/editor/api.py`` to ``src/deepplant/api.py`` crosses from the
+    editor/packaging surface into the distribution surface, so a lossy discovery
+    would drop the editor boundary the file left.
+    """
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _git(repo, "init", "-q")
+    original = repo / "src" / "deepplant" / "editor" / "api.py"
+    original.parent.mkdir(parents=True)
+    original.write_text("value = 1\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "add editor api")
+    base = _git(repo, "rev-parse", "HEAD").strip()
+
+    _git(repo, "mv", "src/deepplant/editor/api.py", "src/deepplant/api.py")
+    _git(repo, "commit", "-q", "-m", "move editor api")
+    head = _git(repo, "rev-parse", "HEAD").strip()
+    return repo, base, head
 
 
 def test_documentation_only_selects_only_documentation_validation() -> None:
@@ -145,6 +189,51 @@ def test_packaging_tooling_change_triggers_native_packaging() -> None:
     assert classification.surfaces["python"] is True
 
 
+def test_realistic_fragment_fixture_runs_e2e_and_both_native_packaging_jobs() -> None:
+    # The browser E2E suite (`editor-server.ts` REALISTIC_PROJECT) and the
+    # packaged-artifact smoke test (`tools/package_editor.py` default `--model`)
+    # both load `examples/realistic-process-fragment/plant.yaml` at runtime, so a
+    # change to the fixture must select E2E and both native packaging jobs - not
+    # only the generic `examples/**` Python surface.
+    classification = ci_changes.classify_paths(["examples/realistic-process-fragment/plant.yaml"])
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["python"] is True
+    assert classification.surfaces["e2e"] is True
+    assert classification.surfaces["package"] is True
+    assert classification.surfaces["frontend"] is False
+    assert ci_changes.PYTHON_JOB in jobs
+    assert ci_changes.E2E_JOB in jobs
+    assert ci_changes.WINDOWS_PACKAGE_JOB in jobs
+    assert ci_changes.LINUX_PACKAGE_JOB in jobs
+
+
+def test_other_examples_remain_python_only() -> None:
+    # Only the fixture the runtime actually loads owns the E2E/package surface;
+    # the broader rule is not silently widened to every example.
+    classification = ci_changes.classify_paths(["examples/minimal-process/plant.yaml"])
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["python"] is True
+    assert classification.surfaces["e2e"] is False
+    assert classification.surfaces["package"] is False
+    assert ci_changes.E2E_JOB not in jobs
+    assert ci_changes.WINDOWS_PACKAGE_JOB not in jobs
+
+
+def test_desktop_typecheck_config_is_a_packaging_input() -> None:
+    # Both native jobs run the strict desktop type check with
+    # `pyright --project pyrightconfig.desktop.json`, so changing that project
+    # file must run the jobs that consume it.
+    classification = ci_changes.classify_paths(["pyrightconfig.desktop.json"])
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["python"] is True
+    assert classification.surfaces["package"] is True
+    assert ci_changes.WINDOWS_PACKAGE_JOB in jobs
+    assert ci_changes.LINUX_PACKAGE_JOB in jobs
+
+
 def test_dependency_metadata_is_treated_conservatively() -> None:
     classification = ci_changes.classify_paths(["pyproject.toml", "uv.lock"])
     jobs = classification.required_jobs
@@ -200,6 +289,31 @@ def test_changed_paths_are_normalized() -> None:
 
     assert classification.surfaces["docs"] is True
     assert classification.full is False
+
+
+def test_changed_paths_reports_both_sides_of_a_rename(tmp_path: Path) -> None:
+    # This tests the changed-file discovery contract itself, not classify_paths()
+    # with a hand-written list: the bug is in how Git produces the path list. Git
+    # rename detection reports only the destination, so discovery must disable it
+    # and keep the removed path too.
+    repo, base, head = _repo_with_rename(tmp_path)
+
+    paths = ci_changes.changed_paths(base, head, repo=repo)
+
+    assert "src/deepplant/editor/api.py" in paths
+    assert "src/deepplant/api.py" in paths
+
+
+def test_rename_across_validation_surfaces_keeps_the_removed_surface(tmp_path: Path) -> None:
+    # End to end: discovery feeds classification, and the surface the file left
+    # (the editor boundary: browser E2E + native packaging) must survive the move.
+    repo, base, head = _repo_with_rename(tmp_path)
+
+    classification = ci_changes.classify_paths(ci_changes.changed_paths(base, head, repo=repo))
+
+    assert classification.surfaces["e2e"] is True
+    assert classification.surfaces["package"] is True
+    assert classification.surfaces["distribution"] is True
 
 
 def test_every_surface_is_owned_by_a_job() -> None:
@@ -310,6 +424,16 @@ def test_workflow_routes_conditional_jobs_on_classifier_outputs() -> None:
     assert "needs.classify-changes.outputs.frontend == 'true'" in text
     assert "needs.classify-changes.outputs.e2e == 'true'" in text
     assert "needs.classify-changes.outputs.package == 'true'" in text
+
+
+def test_workflow_discovers_changed_paths_through_the_classifier() -> None:
+    # The tested classifier owns rename-safe discovery; the workflow must not
+    # re-add a raw `git diff --name-only` that can lose a moved file's original
+    # path (and therefore the validation surface it left).
+    text = _workflow_text()
+
+    assert "ci_changes.py changed-paths" in text
+    assert "git diff --name-only" not in text
 
 
 def test_workflow_cancels_superseded_pull_request_runs() -> None:

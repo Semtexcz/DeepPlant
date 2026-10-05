@@ -59,7 +59,9 @@ jobs:
           if [ "${EVENT_NAME}" = "pull_request" ]; then
             merge_base="$(git merge-base "${BASE_SHA}" "${HEAD_SHA}")"
             echo "changed files between ${merge_base} and ${HEAD_SHA}:"
-            git diff --name-only "${merge_base}" "${HEAD_SHA}" | tee changed-files.txt
+            # Discovery lives in the tested classifier so a rename/move keeps both
+            # its removed and added path instead of losing the surface it left.
+            python tools/ci_changes.py changed-paths "${merge_base}" "${HEAD_SHA}" | tee changed-files.txt
             python tools/ci_changes.py classify --event pull_request --paths-file changed-files.txt
           else
             echo "event '${EVENT_NAME}' selects the full validation matrix"

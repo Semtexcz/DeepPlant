@@ -11,6 +11,9 @@ here as a small, dependency-free, deterministic module with two subcommands:
 ``classify``
     map the changed repository paths of a pull request to validation surfaces
     and the evidence jobs those surfaces require;
+``changed-paths``
+    discover the changed repository paths between two commits, keeping both the
+    removed and added path of a rename/move;
 ``gate``
     decide whether the always-present aggregate required CI result may pass.
 
@@ -20,6 +23,11 @@ Design rules
 - A path is matched by explicit, reviewable rules. An **unrecognized** path is
   not ignored: it selects the conservative full matrix, so a file nobody has
   classified yet can never silently skip validation it might affect.
+- A **rename or move preserves both sides**: changed-file discovery runs
+  ``git diff --no-renames``, so the removed and added paths are each classified
+  as a delete plus an add. A move across validation surfaces must not drop the
+  surface the file left (Git's rename detection would report only the
+  destination).
 - ``.github/**`` (except the pull-request template), the ``Makefile`` and this
   module itself are build/CI tooling: they always select the full matrix.
 - A non-``pull_request`` event (``push`` to ``main``, ``workflow_dispatch``) is
@@ -38,6 +46,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import subprocess
 import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -146,6 +155,13 @@ _E2E_PREFIXES: tuple[str, ...] = ("apps/editor/", "src/deepplant/editor/")
 #: ``deepplant ui`` is the serving path the Playwright suite drives.
 _E2E_FILES: frozenset[str] = frozenset({"src/deepplant/__main__.py"})
 
+#: Runtime fixture loaded by both the browser E2E suite
+#: (``apps/editor/e2e/support/editor-server.ts``) and the packaged-artifact smoke
+#: test (``tools/package_editor.py``). Changing it must select E2E and both native
+#: packaging jobs, not only the generic ``examples/**`` Python surface. Other
+#: ``examples/**`` subtrees stay Python-only.
+_RUNTIME_FIXTURE_PREFIXES: tuple[str, ...] = ("examples/realistic-process-fragment/",)
+
 _PACKAGE_PREFIXES: tuple[str, ...] = (
     "apps/editor/",
     "assets/",
@@ -155,6 +171,7 @@ _PACKAGE_PREFIXES: tuple[str, ...] = (
 _PACKAGE_FILES: frozenset[str] = frozenset(
     {
         "pyproject.toml",
+        "pyrightconfig.desktop.json",
         "uv.lock",
         "tools/chromium_notices.py",
         "tools/editor_entry.py",
@@ -210,6 +227,26 @@ def jobs_for(surfaces: Mapping[str, bool]) -> tuple[str, ...]:
 def full_classification(reason: str) -> Classification:
     """Select the conservative full matrix for a lifecycle boundary."""
     return Classification(surfaces=dict.fromkeys(SURFACES, True), reason=reason)
+
+
+def changed_paths(base: str, head: str, repo: str | os.PathLike[str] = ".") -> list[str]:
+    """Return the changed repository-relative paths between two commits.
+
+    Rename/move detection is deliberately disabled (``--no-renames``) so a move is
+    reported as its removed **and** added path. Git's rename detection would
+    otherwise report only the destination and silently drop the original path's
+    validation surface: moving ``src/deepplant/editor/api.py`` to
+    ``src/deepplant/api.py`` must still select the editor boundary it left.
+    """
+    command = ["git", "diff", "--no-renames", "--name-only", base, head]
+    completed = subprocess.run(
+        command,
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [line.strip() for line in completed.stdout.splitlines() if line.strip()]
 
 
 def classify_paths(paths: Iterable[str]) -> Classification:
@@ -353,6 +390,9 @@ def _surfaces_for(path: str) -> frozenset[str] | None:
         surfaces.add("e2e")
     if path.startswith(_PACKAGE_PREFIXES) or path in _PACKAGE_FILES or path in _PACKAGE_ROOT_FILES:
         surfaces.add("package")
+    if path.startswith(_RUNTIME_FIXTURE_PREFIXES):
+        surfaces.add("e2e")
+        surfaces.add("package")
     return frozenset(surfaces)
 
 
@@ -405,7 +445,7 @@ def _write_step_summary(summary: str) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the ``classify`` / ``gate`` command-line parser."""
+    """Build the ``classify`` / ``changed-paths`` / ``gate`` command-line parser."""
     parser = argparse.ArgumentParser(
         prog="ci_changes",
         description="Change-aware CI impact classification and aggregate gate.",
@@ -427,6 +467,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Read the changed paths from this file instead of standard input.",
     )
     classify.add_argument("paths", nargs="*")
+
+    changed = subparsers.add_parser(
+        "changed-paths",
+        help="Print the changed paths between two commits (rename-safe).",
+    )
+    changed.add_argument("base")
+    changed.add_argument("head")
+    changed.add_argument("--repo", default=".")
 
     gate = subparsers.add_parser(
         "gate",
@@ -460,6 +508,15 @@ def _run_classify(arguments: argparse.Namespace) -> int:
     outputs["reason"] = classification.reason
     outputs["required-jobs"] = ",".join(classification.required_jobs)
     _write_github_output(outputs)
+    return 0
+
+
+def _run_changed_paths(arguments: argparse.Namespace) -> int:
+    base = cast(str, arguments.base)
+    head = cast(str, arguments.head)
+    repo = cast(str, arguments.repo)
+    for path in changed_paths(base, head, repo=repo):
+        print(path)
     return 0
 
 
@@ -507,11 +564,13 @@ def _run_gate(arguments: argparse.Namespace) -> int:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the ``classify`` or ``gate`` subcommand."""
+    """Run the ``classify``, ``changed-paths``, or ``gate`` subcommand."""
     arguments = build_parser().parse_args(None if argv is None else list(argv))
     command = cast(str, arguments.command)
     if command == "classify":
         return _run_classify(arguments)
+    if command == "changed-paths":
+        return _run_changed_paths(arguments)
     return _run_gate(arguments)
 
 

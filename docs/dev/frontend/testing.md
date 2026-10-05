@@ -340,8 +340,9 @@ All three run in CI. `make frontend-check` and `make frontend-build` run in the
 production SPA build is never absent from CI even though it stays outside
 `make check`. Browser E2E runs in its own `frontend-e2e` job only when the
 change can affect the editor/browser workflow (frontend source or config, the
-editor transport/application/projection, or the `deepplant ui` serving path);
-documentation, planning, and packaging-only changes never download Chromium.
+editor transport/application/projection, the `deepplant ui` serving path, or the
+`examples/realistic-process-fragment` runtime fixture); documentation, planning,
+and packaging-only changes never download Chromium.
 `main` and `workflow_dispatch` always run it. The canonical routing matrix is in
 [../workflow/quality.md](../workflow/quality.md#change-aware-ci). Running the
 suite directly is equivalent to `cd apps/editor && pnpm e2e` after a build.

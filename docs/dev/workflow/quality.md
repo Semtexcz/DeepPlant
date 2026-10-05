@@ -102,8 +102,8 @@ restating it.
 | Python / Core, tests, examples, tooling | `python-checks` (`make format-check`, `make lint`, `make typecheck`, `make test`) |
 | Python distribution boundary (`src/deepplant/**`, `pyproject.toml`, `uv.lock`, `LICENSE`, wheel tooling) | `wheel-verification` (wheel build, wheel contents, base-install independence) |
 | frontend source/config (`apps/editor/**`) | `frontend-checks` (`make frontend-check` **and** `make frontend-build`) |
-| editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the `deepplant ui` serving path) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
-| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, desktop/package dependency groups, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
+| editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
+| packaged desktop product (desktop host, `packaging/**`, package tooling, `assets/**`, desktop/package dependency groups, `pyrightconfig.desktop.json` desktop type-check config, the `examples/realistic-process-fragment/**` runtime fixture, `THIRD_PARTY_NOTICES.md`) | `editor-package-windows`, `editor-package-linux` |
 | `push` to `main`, `workflow_dispatch`, `.github/**`, `Makefile`, the classifier itself | the full matrix above |
 
 The consequences that matter:
@@ -127,6 +127,19 @@ The consequences that matter:
   AppImage generation, strict desktop type check, packaged GUI launch and window
   lifecycle, Linux dependency audit, toolchain integrity, compliance payload,
   artifact checksums). No step is weakened by routing.
+- The **`examples/realistic-process-fragment/**` runtime fixture** is E2E and
+  packaging test input, not ordinary prose: both the browser E2E suite
+  (`apps/editor/e2e/support/editor-server.ts`) and the packaged-artifact smoke
+  test (`tools/package_editor.py`) load its `plant.yaml` at runtime. A change to
+  it therefore selects `python-checks`, `frontend-e2e`, and both native packaging
+  jobs. Other `examples/**` subtrees stay Python-only.
+- **`pyrightconfig.desktop.json`** is a package-validation input: both native jobs
+  run the strict desktop type check with it, so changing it selects
+  `editor-package-windows` and `editor-package-linux`.
+- A **rename or move preserves both sides**: changed-file discovery disables Git
+  rename detection (`git diff --no-renames`), so the removed and added paths are
+  each classified. Moving a file across validation surfaces cannot silently drop
+  the surface it left.
 - `main` and `workflow_dispatch` are never change-aware: they always select the
   full matrix, so the primary branch and releases keep full distribution
   confidence. Only pull-request feedback is optimized.
