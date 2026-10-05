@@ -325,9 +325,9 @@ with notice text. The previously claimed `about:credits` route was **disproved**
 for this distribution: Qt WebEngine does not implement Chrome's credits page and
 the redistributed PySide6 6.11.2 `.pak` resources contain no credits payload, so
 shipping real notice text is the mechanism. Corresponding source is handled by
-`licenses/CORRESPONDING-SOURCE.md`, which relies on the LGPL v3 section 4(d)(1)
-shared-library option this onedir distribution satisfies and additionally makes a
-three-year written offer (LGPL v2.1 section 6(c)) for the LGPL-2.1 Chromium parts.
+`licenses/CORRESPONDING-SOURCE.md` through a three-year distributor-controlled
+written offer; generated `licenses/BUILD-IDENTITY.md` records the exact DeepPlant
+version and immutable source revision of each received artifact.
 
 **Linux runtime baseline.** The audit now inspects `deepplant-editor` itself
 alongside `QtWebEngineProcess`, `libQt6WebEngineCore.so*` and `libqxcb.so*`; every

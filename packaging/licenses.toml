@@ -21,7 +21,9 @@
 #
 # Bundled application side (project-owned, always present):
 #   licenses/README.md                 the compliance mechanism and source offer
-#   licenses/CORRESPONDING-SOURCE.md   the corresponding-source mechanism
+#   licenses/CORRESPONDING-SOURCE.md   the corresponding-source written offer
+#   licenses/BUILD-IDENTITY.md         generated version + source revision of the
+#                                      exact artifact covered by that offer
 #   licenses/DEEPLANT-AGPL-3.0.txt     DeepPlant's own licence
 #   licenses/THIRD_PARTY_NOTICES.md    the DeepPlant third-party provenance index
 #   licenses/Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt

@@ -135,6 +135,7 @@ BUNDLE_LICENSES_DESTINATION: str = "licenses"
 REQUIRED_LICENSE_FILES: tuple[str, ...] = (
     "README.md",
     "CORRESPONDING-SOURCE.md",
+    "BUILD-IDENTITY.md",
     "DEEPLANT-AGPL-3.0.txt",
     "THIRD_PARTY_NOTICES.md",
     "Qt/LGPL-3.0-only.txt",
@@ -223,6 +224,48 @@ def project_version() -> str:
     if not isinstance(version, str) or not version:
         raise PackagingError("pyproject.toml [project] version is missing")
     return version
+
+
+def source_revision() -> str:
+    """Return the immutable DeepPlant revision packaged into this artifact."""
+    completed = subprocess.run(
+        ["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    revision = completed.stdout.strip()
+    if completed.returncode != 0 or re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise PackagingError("could not determine the immutable DeepPlant source revision")
+    return revision
+
+
+def build_identity_text(*, version: str, revision: str) -> str:
+    """Return the deterministic identity for this artifact's source offer."""
+    if re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+        raise PackagingError(f"invalid DeepPlant source revision for build identity: {revision!r}")
+    return (
+        "# DeepPlant Editor build identity for corresponding-source requests\n\n"
+        "This file identifies the exact DeepPlant build covered by the adjacent "
+        "source offer in `CORRESPONDING-SOURCE.md`. Include it, or its two "
+        "identifiers, in a request to the maintainer through the repository named "
+        "in `THIRD_PARTY_NOTICES.md`.\n\n"
+        f"- DeepPlant version: `{version}`\n"
+        f"- DeepPlant source revision: `{revision}`\n"
+        "- PySide6 / Qt / Qt WebEngine: `6.11.2` (`v6.11.2`)\n"
+        "- Qt WebEngine source revision: `a33fa2a897e5ee58e385b3f88dc247d99fca56db`\n"
+        "- Qt WebEngine Chromium gitlink: `5170777d28bee1ce92cc693a0dbf2ad01492e5cf` "
+        "(Chromium `140.0.7339.264`)\n"
+    )
+
+
+def write_build_identity(payload: Path) -> Path:
+    """Write the source-offer identity record into a staged package payload."""
+    target = payload / "BUILD-IDENTITY.md"
+    target.write_text(
+        build_identity_text(version=project_version(), revision=source_revision()), encoding="utf-8"
+    )
+    return target
 
 
 def platform_slug() -> str:
@@ -507,6 +550,7 @@ def stage_licenses(build_dir: Path) -> Path:
     if not LICENSES_STATIC_DIR.is_dir():
         raise PackagingError(f"no project compliance documents at {LICENSES_STATIC_DIR}")
     shutil.copytree(LICENSES_STATIC_DIR, staged, dirs_exist_ok=True)
+    write_build_identity(staged)
 
     entries = cast("list[dict[str, object]]", manifest.get("file"))
     verified = 0
@@ -570,6 +614,13 @@ def verify_license_payload(app_dir: Path) -> dict[str, object]:
     if empty:
         raise PackagingError(
             "the packaged application has empty licence material: " + ", ".join(empty)
+        )
+    identity_text = (root / "BUILD-IDENTITY.md").read_text(encoding="utf-8")
+    if f"DeepPlant version: `{project_version()}`" not in identity_text:
+        raise PackagingError("the packaged build identity does not match the packaged version")
+    if re.search(r"DeepPlant source revision: `[0-9a-f]{40}`", identity_text) is None:
+        raise PackagingError(
+            "the packaged build identity has no immutable DeepPlant source revision"
         )
     return {
         "licenses_dir": str(root),

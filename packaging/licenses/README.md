@@ -42,36 +42,25 @@ The exact redistributed versions are recorded below and in
   tag, plus `Chromium-THIRD-PARTY-NOTICES.txt` — the generated, version-matched
   Chromium third-party notice set — and `Chromium-NOTICES.md`, which records how
   that set is generated and verified.
-- `CORRESPONDING-SOURCE.md` — how the corresponding-source obligations of those
-  licences are met, quoting the licence clause relied on, with the exact upstream
-  revisions of every redistributed library.
+- `CORRESPONDING-SOURCE.md` — DeepPlant's distributor-controlled written offer and
+  the exact upstream revisions of every redistributed library.
+- `BUILD-IDENTITY.md` — generated identifiers for the exact received DeepPlant
+  artifact covered by that offer.
 
 Every file under `Qt/` and `Qt-WebEngine/` is fetched from an immutable upstream
 URL and verified against a pinned SHA-256 digest before it is staged into the
 application (`packaging/licenses.toml`, `tools/package_editor.py`).
 
-## LGPL compliance mechanism used by DeepPlant
+## Corresponding-source request mechanism
 
-Qt and Qt WebEngine are used under the **LGPL v3** (the primary open-source
-option); DeepPlant does not statically link them and does not modify them. The
-selected mechanism is:
-
-1. **Notice texts.** The applicable Qt LGPL/GPL texts and the Qt GPL exception are
-   shipped in this directory (above), together with attribution.
-2. **Replaceability / relinking.** The application is distributed as a PyInstaller
-   **onedir** tree, so the Qt shared libraries remain separate, ordinary `.so`/`.dll`
-   files inside the installation. A user may substitute a compatible modified build
-   of an LGPL-covered Qt library (or of PySide6) by replacing that file in the
-   installed application; no relinking of DeepPlant code is required. The dynamic
-   loader resolves the replaced library at start-up.
-3. **Corresponding source.** DeepPlant relies on the shared-library option of
-   LGPL v3 section 4(d)(1) — the redistributed libraries are dynamically loaded
-   and can be replaced by the user — and additionally makes a written offer valid
-   for three years for the corresponding source of the exact binaries, following
-   LGPL v2.1 section 6(c) for the Chromium parts (the most restrictive licence
-   inside Qt WebEngine is LGPL 2.1). The clause text relied on, the resulting
-   obligations, and the immutable upstream revision of every redistributed library
-   are recorded in `CORRESPONDING-SOURCE.md` in this directory.
+`BUILD-IDENTITY.md` is generated into each artifact. It records the DeepPlant
+version and immutable source revision for the received binary together with the
+Qt/Qt WebEngine/Chromium revisions. `CORRESPONDING-SOURCE.md` provides DeepPlant's
+three-year written offer for any corresponding source required by applicable
+redistributed-component licences. A recipient includes that identity file when
+requesting source through the project maintainer named in
+`THIRD_PARTY_NOTICES.md`; this is a DeepPlant-controlled request path, not merely a
+pointer to upstream downloads.
 
 ## Chromium / Qt WebEngine third-party notices
 

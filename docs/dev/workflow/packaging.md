@@ -451,8 +451,10 @@ that the shipped bundle is real notice material.
 Chrome's `chrome://credits` page is not a substitute: Qt WebEngine does not
 implement it and the redistributed PySide6 resources contain no credits payload,
 so the notices are shipped as a plain-text file instead. The corresponding-source
-mechanism (LGPL v3 section 4(d)(1) shared-library option plus a three-year written
-offer) is recorded in `licenses/CORRESPONDING-SOURCE.md`.
+mechanism is a three-year distributor-controlled written offer recorded in
+`licenses/CORRESPONDING-SOURCE.md`; every artifact also carries generated
+`licenses/BUILD-IDENTITY.md` with its DeepPlant version and immutable source revision
+so a request is tied to the received build.
 
 ### Supported Linux baseline
 

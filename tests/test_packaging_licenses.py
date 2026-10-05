@@ -22,7 +22,12 @@ from typing import cast
 
 import pytest
 
-from tools.package_editor import REQUIRED_LICENSE_FILES, load_licenses_manifest
+from tools.package_editor import (
+    REQUIRED_LICENSE_FILES,
+    PackagingError,
+    build_identity_text,
+    load_licenses_manifest,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "packaging" / "licenses.toml"
@@ -85,6 +90,7 @@ def test_pinned_destinations_cover_the_required_payload() -> None:
     assert {
         "README.md",
         "CORRESPONDING-SOURCE.md",
+        "BUILD-IDENTITY.md",
         "DEEPLANT-AGPL-3.0.txt",
         "THIRD_PARTY_NOTICES.md",
     } <= required
@@ -151,17 +157,27 @@ def test_project_compliance_documents_exist_and_name_the_versions() -> None:
     assert _pyside6_version() in readme
 
 
-def test_corresponding_source_document_records_the_mechanism_and_revisions() -> None:
+def test_corresponding_source_document_records_the_offer_and_revisions() -> None:
     text = (STATIC_DIR / "CORRESPONDING-SOURCE.md").read_text(encoding="utf-8")
-    # The operative licence option and the exact upstream revisions it refers to.
-    assert "4(d)(1)" in text
-    assert "shared library mechanism" in text
+    assert "BUILD-IDENTITY.md" in text
+    assert "three years" in text
+    assert "DeepPlant will provide on request" in text
+    assert "4(d)(1)" not in text
     for revision in (
         "a33fa2a897e5ee58e385b3f88dc247d99fca56db",
         "5170777d28bee1ce92cc693a0dbf2ad01492e5cf",
     ):
         assert revision in text
-    assert "three years" in text
+
+
+def test_build_identity_ties_a_source_offer_to_one_immutable_build() -> None:
+    revision = "a" * 40
+    identity = build_identity_text(version="0.1.0", revision=revision)
+    assert "DeepPlant version: `0.1.0`" in identity
+    assert f"DeepPlant source revision: `{revision}`" in identity
+    assert "a33fa2a897e5ee58e385b3f88dc247d99fca56db" in identity
+    with pytest.raises(PackagingError):
+        build_identity_text(version="0.1.0", revision="not-a-commit")
 
 
 def test_chromium_notice_document_states_what_is_actually_shipped() -> None:

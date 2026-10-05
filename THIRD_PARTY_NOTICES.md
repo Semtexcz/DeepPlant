@@ -205,10 +205,11 @@ licence and notice texts are packaged **into** the installed application, in a
 - `licenses/DEEPLANT-AGPL-3.0.txt` — DeepPlant's own licence;
 - `licenses/THIRD_PARTY_NOTICES.md` — this file;
 - `licenses/README.md` — the compliance mechanism: the redistributed versions, the
-  replaceable onedir Qt libraries, the notice set, and the source offer;
-- `licenses/CORRESPONDING-SOURCE.md` — the corresponding-source mechanism, the
-  licence clause relied on, and the exact upstream revision of every redistributed
-  library;
+  separate onedir Qt libraries, the notice set, and the source offer;
+- `licenses/CORRESPONDING-SOURCE.md` — DeepPlant's distributor-controlled written
+  offer and the exact upstream revision of every redistributed library;
+- `licenses/BUILD-IDENTITY.md` — generated identifiers (DeepPlant version and
+  immutable source revision) for the exact artifact covered by that offer;
 - `licenses/Qt/*` and `licenses/Qt-WebEngine/*` — the LGPL/GPL/Qt-exception texts
   taken from the exact `v6.11.2` Qt and Qt WebEngine source tags and pinned by
   immutable URL and SHA-256 in `packaging/licenses.toml`;
@@ -262,10 +263,10 @@ does not implement Chrome's `chrome://credits` page, and the redistributed PySid
 is therefore the mechanism, and it is accessible without a source checkout, a
 browser, or developer tooling.
 
-Corresponding source is handled by `licenses/CORRESPONDING-SOURCE.md`, which quotes
-LGPL v3 section 4(d)(1) (the shared-library mechanism this onedir distribution
-uses), records the three-year written offer made for the exact binaries, and lists
-the immutable upstream revision of every redistributed library.
+Corresponding source is handled by the distributor-controlled three-year written
+offer in `licenses/CORRESPONDING-SOURCE.md`. Generated `licenses/BUILD-IDENTITY.md`
+ties that offer to the received DeepPlant version and immutable source revision,
+and the document lists every redistributed library's immutable upstream revision.
 
 Evaluated and **not** adopted:
 [`pywebview`](https://pywebview.flowrl.com/guide/installation.html) (Windows needs

@@ -178,8 +178,9 @@ That directory contains DeepPlant's own licence, the third-party notice index, t
 project-authored compliance documents, the Qt / Qt WebEngine licence texts
 matching the exact redistributed versions, and the complete Chromium third-party
 notice set (`Qt-WebEngine/Chromium-THIRD-PARTY-NOTICES.txt`) with the Chromium
-revision it belongs to. The corresponding-source mechanism is recorded in
-`CORRESPONDING-SOURCE.md`. See
+revision it belongs to. `BUILD-IDENTITY.md` identifies the exact DeepPlant build,
+and `CORRESPONDING-SOURCE.md` records the distributor-controlled source-request
+mechanism for that build. See
 [THIRD_PARTY_NOTICES.md](../../../THIRD_PARTY_NOTICES.md) for the provenance index.
 
 ## What is not implemented yet
