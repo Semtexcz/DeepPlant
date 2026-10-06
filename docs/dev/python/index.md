@@ -152,27 +152,42 @@ into artificially small units.
 
 [Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108) implements the
 deterministic checker. To avoid it inventing policy, **logical LOC** is defined
-here precisely as:
+here in terms of **Python lexical tokens**, not raw text. The definition is
+implementable with the standard library (`ast` and `tokenize`); the checker
+itself belongs to #108.
 
-- a source line that contains executable or declarative code, **excluding** blank
-  lines and lines whose first non-whitespace characters begin a comment (`#`);
-- **docstrings and string statements count** as lines of their defining scope
-  (they are real, maintained source), except the module-level docstring, which is
-  not attributed to any sized scope;
-- a **decorator line** is attributed to the definition it decorates
-  (function/method/class), not to the enclosing scope;
-- a **file-level scope** (module) counts the whole file's logical LOC, including
-  all nested definitions;
-- a **function/method** counts only its own body, **excluding** the bodies of
-  nested definitions (a nested function or class is measured in its own scope);
-- a **class** counts its own body, **excluding** the bodies of its methods and of
-  nested classes (each is measured in its own scope); a class's own body includes
-  its non-method statements, class-body assignments, and annotations;
-- the **test-module** scope applies the module rule to files under `tests/`.
-
-Multi-line expressions count each physical line that carries code, consistent
-with how a reviewer reads length. Continuation lines that still carry tokens are
-part of the statement they belong to.
+- **Blank lines are excluded.** A line that carries no token (only whitespace or
+  a newline) is not counted.
+- **Genuine comment-only lines are excluded.** A line whose only token is a
+  `COMMENT` is not counted. This must be decided from tokens, not from a textual
+  test such as `line.strip().startswith("#")`, because `#` inside a string
+  literal is string content, not a comment.
+- **Code lines are counted.** Any line that contributes a non-comment token
+  (name, number, keyword, operator, or string) is a logical line.
+- **String and docstring content is counted** as part of the scope that defines
+  it, including the interior source lines of a multi-line string. The single
+  exception is the **module-level docstring**, which is excluded and attributed to
+  no sized scope.
+- **Decorators are counted consistently with the definition they decorate**
+  (function, method, or class): a decorator's lines belong to the decorated
+  definition, never to the enclosing scope.
+- **Multi-line expressions are counted by the source lines they occupy.** Every
+  physical line that still carries a token — including bracket/backslash
+  continuations — counts once, matching how a reviewer reads length.
+- **Scopes count their complete logical source content, and overlapping scopes
+  are intentional.** A scope includes every nested definition it contains:
+  - a **module** (and therefore a **test module**, which applies the module rule
+    to files under `tests/`) counts the whole file's logical content, including
+    all nested definitions, minus the module-level docstring;
+  - a **class** counts its **complete** body, **including its methods and nested
+    classes**;
+  - a **function/method** counts its **complete** body, **including nested
+    functions and classes**.
+  Each nested definition (nested class, nested function, or method) is **also**
+  measured independently against its own limit. Overlap is therefore expected: a
+  method contributes to its own size, to its enclosing class's size, and to the
+  module's size; a nested function contributes to its own size, to its enclosing
+  function's size, and to the module's size.
 
 ### Enforcement scope
 
@@ -191,17 +206,44 @@ refactor.
 
 ### Current evidence
 
-Measured against the repository at Issue #106:
+Measured against the repository at Issue #106, using the token-aware logical-LOC
+definition above (module-level docstrings excluded). The figures below are
+measured with `ast`/`tokenize`; #108's checker is the authoritative
+implementation and must reproduce them.
 
-- the largest production modules are `adapters/dexpi/importer.py` (490 physical
-  lines), `render/layout.py` (480), and `render/symbols.py` (447), all below the
-  500 hard limit, so the production limits are consistent with the current code;
-- existing test modules `tests/adapters/dexpi/test_dexpi_adapter.py` (970),
-  `tests/test_io.py` (911), and `tests/render/test_render.py` (838) exceed the
-  proposed 800 hard test-module limit. This is recorded as **existing technical
-  debt for #108**, not refactored here, because a test reorganization is outside
-  Issue #107's scope. #108 decides whether to split those modules or record a
-  centralized, justified exception.
+**Production modules** (hard limit 500): the largest are
+`adapters/dexpi/importer.py` (419 logical LOC), `render/layout.py` (412), and
+`render/symbols.py` (361) — all below the hard limit. (Their physical line counts
+are 490 / 480 / 447; physical length is not the limit.) The production module
+limit is consistent with the current code.
+
+**Test modules** (hard limit 800): the largest are `tests/adapters/dexpi/test_dexpi_adapter.py`
+(746 logical LOC), `tests/test_io.py` (750), and `tests/render/test_render.py`
+(639) — **all below the 800 hard limit**. (Their physical line counts are
+970 / 911 / 838; an earlier draft of this contract compared those *physical* line
+counts against the *logical* limit and wrongly concluded the modules exceeded it.
+They do not.) No test module requires splitting or an exemption.
+
+**Classes** (soft 150 / hard 300). The rule above counts a class's complete body,
+including its methods, so the class limit is genuinely measured. The largest
+production classes are `editor/desktop_qt/runtime.py` `DesktopEditor` (130 logical
+LOC), `editor/api.py` `EditorServer` (117), and `editor/desktop_qt/window.py`
+`MainWindow` (86); the largest semantic-model classes are `model/plant.py`
+`PlantModel` (74) and `model/process.py` `ProcessModel` (50). **No production
+class approaches the 300 hard limit, and none even reaches the 150 soft limit.**
+Decision: the class limits (150 / 300 logical LOC) are **kept unchanged** — they
+are realistic with substantial headroom, so #108 needs no class exception.
+
+**Functions/methods** (soft 40 / hard 80). Under the same complete-content rule,
+the function/method limits are exceeded by several large module-level production
+procedures — the largest are `render/svg.py` `render_process_svg` (211 logical
+LOC), `editor/desktop_qt/self_check.py` `start_self_check` (165),
+`render/symbols.py` `parse_symbol_variant` (119), `render/layout.py`
+`place_steps_and_assign` (99), `render/layout.py` `compute_process_pfd_layout`
+(92), and `editor/projection.py` `project_process_pfd` (88). The function/method
+limits are **kept unchanged** by this contract; this is recorded as measured
+evidence of the current repository state so #108 can see it rather than
+re-derive it.
 
 ## Ruff rule review
 

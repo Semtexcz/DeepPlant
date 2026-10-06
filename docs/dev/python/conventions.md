@@ -56,8 +56,16 @@ correctly.
   and functions that return new values over mutating inputs.
 - Mutate deliberately and locally. Avoid hidden mutation of an argument a caller
   did not pass in to be mutated.
-- Pydantic models are mutable by default only because the framework requires it
-  for construction; treat a validated model as a value once built.
+- Pydantic v2 models are **mutable by default**; mutability is the framework
+  default, not a requirement that construction imposes. Pydantic supports
+  immutable models through configuration (`model_config = ConfigDict(frozen=True)`).
+- DeepPlant currently uses **mutable** Pydantic semantic models (`PlantModel`,
+  `ProcessStep`, `PipingModel`, and the rest). Do not add frozen configuration
+  without a concrete requirement and a compatibility analysis of the code that
+  sets or adjusts fields in place.
+- Treat a validated semantic object as a **value** where the API allows it: prefer
+  building a new, corrected model over mutating one that a caller also holds, and
+  avoid surprising mutation of a model you did not create.
 
 ## Public versus private APIs
 

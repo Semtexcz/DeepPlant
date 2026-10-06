@@ -196,12 +196,18 @@ This is the default shape; abstraction here would be premature.
 ### Two engineering concepts that must remain distinct
 
 `ProcessPort` and the physical `Port` are structurally similar — both are named
-connection points with an id — but they are **not** interchangeable (ADR-0009).
-A `ProcessPort` belongs to a `ProcessStep` in the process graph; a physical `Port`
-belongs to `Equipment`. Reusing one type for both, or letting either substitute
-for the other, would silently collapse two engineering layers (LSP/ISP applied to
-semantics). They stay distinct types with distinct owners, even though the
-compiler would accept a shared base.
+connection points with an id — but they are **not** interchangeable. The boundary
+between the process graph and the physical realization is owned by
+[ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md)
+(Process ↔ Physical Realization Boundary); the process-side objects are owned by
+the [process-model contract](../../contracts/process-model.md) and the
+physical/plant-side objects by the
+[plant-model contract](../../contracts/plant-model.md). A `ProcessPort` belongs to
+a `ProcessStep` in the process graph; a physical `Port` belongs to `Equipment`.
+Reusing one type for both, or letting either substitute for the other, would
+silently collapse two engineering layers (LSP/ISP applied to semantics). They stay
+distinct types with distinct owners, even though the compiler would accept a
+shared base.
 
 ## Related
 
