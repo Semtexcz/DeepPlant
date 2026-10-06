@@ -91,10 +91,19 @@ Detailed slice provenance is in
 
 **Outcome.** An engineer works inside one coherent, professional desktop
 application: a project/engineering explorer, editor tabs that move between the
-Process/PFD view and the physical/P&ID view, a YAML editing surface, a
-contextual Inspector, and a Problems/diagnostics area — with explicit
-application, project, document, and view states. The editor reads and feels like
-one application, not a graph widget beside a text box.
+Process/PFD view and the physical/P&ID view, a YAML surface, a contextual
+Inspector, and a Problems/diagnostics area — with explicit application, project,
+document, and view states. The editor reads and feels like one application, not
+a graph widget beside a text box.
+
+This milestone delivers the **integrated application shell and navigation**,
+including the intended PFD/P&ID/YAML workspace structure. It does **not** deliver
+a working P&ID or YAML editor. The existing read-only Process/PFD view remains
+available; the physical/P&ID and YAML surfaces appear in the shell as explicitly
+unavailable or non-editable placeholders whose unsupported capabilities are
+clearly communicated. No functional P&ID or YAML authoring is implied or
+required, and no premature semantic model, synchronization, or
+project-persistence implementation is authorized here.
 
 **User value.** Today the editor exposes a single read-only Process/PFD
 projection. Before authoring capability is layered on, the user needs a real
@@ -107,8 +116,10 @@ authoring would be added to a screen that cannot yet present them coherently.
 application, not inferred from merged Issues):
 
 1. The application presents a coherent shell with an engineering explorer,
-   editor tabs, a Process/PFD view, a physical/P&ID view surface, a YAML
-   editing surface, an Inspector, and a Problems area.
+   editor tabs, the existing Process/PFD view, a physical/P&ID view surface, a
+   YAML surface, an Inspector, and a Problems area. The physical/P&ID and YAML
+   surfaces are present as explicit placeholders that state they are not yet
+   editable — they are not working editors.
 2. Navigation between surfaces keeps one active project/document context; the
    user can tell what project and what document are open.
 3. Application, project, and view states are explicit: empty/no project, loading,
@@ -120,10 +131,12 @@ application, not inferred from merged Issues):
    no surface becomes a second engineering model.
 
 **Status of the criteria.** None of these are implemented today; they describe
-the outcome the milestone must demonstrate. The surfaces required for criterion
-1 already exist in part — the Process/PFD canvas, the Inspector, and the status
-strip exist, and the YAML and physical/P&ID surfaces do not yet exist as editing
-surfaces.
+the outcome the milestone must demonstrate. The Process/PFD canvas, the
+Inspector, and the status strip already exist. The physical/P&ID and YAML
+surfaces do not yet exist even as placeholders, and this milestone adds them only
+as explicitly unavailable/non-editable surfaces: criterion 1 requires the
+placeholder to be present and to communicate that it is not yet editable, not
+that it works.
 
 **Genuine dependencies.** The delivered read-only editor slice, its
 `EditorWorkspace`/`EditorServer` session model, the frontend engineering contract
@@ -145,9 +158,10 @@ redone; the milestone applies them.
 - The professional application shell and its states are not yet designed; the
   visual specification is a separate implementation concern (the design-to-code
   workflow is the route, not this milestone).
-- Whether the YAML and physical/P&ID surfaces should be present (even read-only)
-  in this milestone or deferred to the milestones that make them editable is an
-  open refinement question, not decided here.
+- The physical/P&ID and YAML surfaces are in scope as explicit placeholders only.
+  This milestone fixes that boundary: they are present in the shell and clearly
+  marked as not yet editable. Making them functional is authorized only by the
+  later authoring milestones.
 - Presentation-state persistence is explicitly out of this milestone; it belongs
   to the persistence milestone.
 
@@ -175,6 +189,13 @@ and reopened without losing supported semantic or presentation state; and YAML
 and the graphical editors are two views of one accepted model, where a YAML edit
 updates the accepted graph and a graphical edit is reflected in YAML.
 
+The synchronization and persistence architecture is proven with **one real
+vertical workflow**: one supported Process/PFD semantic mutation, performed
+graphically, represented in YAML, propagated bidirectionally through the accepted
+canonical `ProcessModel`, and verified by save/reload. This milestone proves the
+mechanism with that single command; it does **not** claim the full PFD/P&ID
+editing set, which the next milestone expands.
+
 **User value.** This is what makes the "one model, many surfaces" proposition
 real and Git-reviewable. It is the core strategic bet of the MVP.
 
@@ -185,6 +206,11 @@ real and Git-reviewable. It is the core strategic bet of the MVP.
   presentation state).
 - A YAML edit that is accepted updates the graphical view of the accepted model.
 - A graphical engineering change is reflected in YAML.
+- The single bounded vertical slice is demonstrated end to end: creating one
+  supported process step — a `ProcessStep` with an authored `id` and a supported
+  `function` — is performed through the UI, appears as the corresponding
+  `process.steps` entry in YAML, propagates bidirectionally through the accepted
+  `ProcessModel`, and survives save/reload.
 - Invalid YAML can exist as a temporary editing draft and does **not** corrupt
   the last accepted model.
 - Unsaved state and synchronization conflicts are communicated clearly.
@@ -192,7 +218,9 @@ real and Git-reviewable. It is the core strategic bet of the MVP.
 
 **Genuine dependencies.** Project Persistence and Bidirectional Authoring
 depends on the Integrated Engineering Workspace (the surfaces it authorizes) and
-on a project/persistence contract.
+on a project/persistence contract. It does **not** depend on Functional PFD/P&ID
+Authoring: it introduces the one bounded graphical mutation it needs directly, so
+the two milestones are not circular.
 
 **Relevant existing Issues.**
 
@@ -209,13 +237,28 @@ framework is designed here.
 
 ### Functional PFD/P&ID Authoring
 
-**Outcome.** An engineer can create, connect, select, modify, validate, and
-persist bounded ProcessModel objects in the PFD and a small supported physical
-subset (equipment, ports, connections, piping, a minimal valve concept) in the
-P&ID, without collapsing process intent into physical realization.
+**Outcome.** Building on the single Process/PFD command demonstrated by Project
+Persistence and Bidirectional Authoring, an engineer can create, connect, select,
+modify, validate, and persist bounded `ProcessModel` objects in the PFD and a
+small supported physical subset (equipment, ports, connections, piping, a minimal
+valve concept) in the P&ID, without collapsing process intent into physical
+realization. This milestone **expands** the demonstrated mutation → YAML →
+save/reload mechanism into the bounded MVP editing set; it does not retroactively
+supply a prerequisite the earlier milestone lacked.
 
 **User value.** This is the editing capability the product thesis promises; it
 turns the workspace into a real engineering editor.
+
+**Scope.** On top of the single mutation proven by the persistence milestone,
+this milestone adds:
+
+- additional Process/PFD commands (create/delete steps, connect/disconnect
+  streams, edit properties);
+- physical equipment editing;
+- physical ports and connections;
+- basic piping;
+- bounded P&ID interactions;
+- the relevant validation and persistence.
 
 **Demonstrable success criteria.**
 
@@ -228,8 +271,10 @@ turns the workspace into a real engineering editor.
   (`ProcessStep != Equipment`, `ProcessStream != physical piping`,
   `ProcessPort != physical Port/Nozzle`), with no merged source of truth.
 
-**Genuine dependencies.** Project Persistence and Bidirectional Authoring
-(so edits can be persisted and reflected in YAML) and the workspace.
+**Genuine dependencies.** Project Persistence and Bidirectional Authoring, which
+demonstrates the mutation → YAML → save/reload mechanism with one command, and
+the integrated workspace. This milestone expands that demonstrated mechanism; it
+is not a prerequisite the earlier milestone waits on.
 
 **Relevant existing Issues.**
 
@@ -314,8 +359,10 @@ Concrete examples:
 - the DEXPI direction does not justify DEXPI-shaped domain objects now;
 - the physical-piping and process ↔ physical realization questions do not justify
   widening `Connection` — ADR-0011 and ADR-0016 define the boundaries;
-- a project/persistence milestone does not authorize semantic editing,
-  Save/mutation, or presentation persistence by itself;
+- the persistence milestone authorizes only the single bounded semantic mutation
+  that proves bidirectional synchronization, together with the persistence it
+  requires; it does not authorize general semantic editing or a generic
+  synchronization framework;
 - the MVP containing a P&ID editing outcome does not authorize full
   instrumentation, control loops, or advanced P&ID engineering.
 

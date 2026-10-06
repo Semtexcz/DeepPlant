@@ -222,30 +222,29 @@ Configuring GitHub Milestones, labels, and Projects is a separate operational
 action; this document defines the workflow, not a one-time setup step performed
 by a planning change.
 
-## Issue creation rule
+## Idea capture and implementation readiness
 
-A GitHub Issue should normally be created only when the work is bounded enough to
-reasonably end in a PR, a concrete research conclusion, or another explicit
-deliverable.
+Capturing an idea and authorizing implementation are two distinct stages; the
+[workflow above](#idea-to-delivery-workflow) keeps them apart.
 
-Good Issue:
+**Idea capture.** Anyone may create an Issue to record a relevant idea,
+opportunity, problem, or feature proposal. The Issue may be incomplete:
+architecture, acceptance criteria, implementation boundaries, and milestone
+assignment are **not** prerequisites for capture, and capture must stay
+lightweight. Search for duplicates where practical, and reference the canonical
+Issue instead of maintaining two. A captured Issue is a candidate only — it does
+not authorize implementation.
 
-```text
-Spike DEXPI Plant/P&ID mapping
-```
+**Implementation readiness.** Before implementation, a selected Issue must
+undergo refinement ([Refinement and Ready](#refinement-and-ready) above).
+Refinement defines the objective, bounded scope, acceptance criteria,
+dependencies, architectural constraints, and verification expectations; the
+`ready` label is assigned only when those are satisfied. An open Issue —
+including one inside the active milestone — does **not** authorize implementation
+until it is refined and Ready.
 
-because it has a bounded evidence question.
-
-Premature Issue:
-
-```text
-Implement complete P&ID model
-```
-
-because the architecture is not yet known.
-
-Do not create Issues merely to populate a GitHub Project, to fill a Milestone, or
-to look busy. Do not create retrospective Issues for already completed work — Git
+Do not create Issues merely to populate a GitHub Project or a Milestone, or to
+look busy. Do not record retrospective Issues for already completed work — Git
 history and the [slice history](../history/implementation-slices.md) record it.
 
 ## Project content

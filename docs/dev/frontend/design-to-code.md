@@ -390,9 +390,11 @@ good: Implement application shell with empty engineering canvas.
 good: Implement Equipment selection and Inspector synchronization.
 ```
 
-Issue creation follows the planning rules in
-[planning/index.md](../planning/index.md): bounded enough to end in a PR or a
-concrete deliverable, and never created merely to fill a milestone.
+Issue handling follows the planning rules in
+[planning/index.md](../planning/index.md): an idea may be captured freely, but
+work is implemented only from a refined, Ready Issue that is bounded enough to
+end in a PR or a concrete deliverable, and Issues are never created merely to
+fill a milestone.
 
 ### Stage H — coding-agent implementation
 
