@@ -253,7 +253,7 @@ function/method 80, class 300.
 
 **Production modules** (hard 500): the largest are `render/layout.py` (439 logical
 LOC), `adapters/dexpi/importer.py` (419), `render/symbols.py` (410),
-`editor/desktop_qt/self_check.py` (342), and `render/svg.py` (297) — all below the
+`editor/desktop_qt/self_check.py` (346), and `render/svg.py` (297) — all below the
 hard limit. Several exceed the 250 soft limit; those are cohesive review signals,
 not failures, and are deliberately not split for line count alone.
 
