@@ -55,7 +55,8 @@ The current → target mapping is in
 - **Governance** — [quality.md](workflow/quality.md): checks and test expectations.
 - **Governance** — [python/index.md](python/index.md): the canonical Python
   engineering contract (architecture, conventions, typing, errors, scientific
-  computation, testing, size guardrails).
+  computation, testing, and the size/import-boundary guardrails enforced by
+  `make architecture-check`).
 - **Governance** — [frontend/index.md](frontend/index.md): the Engineering Editor
   frontend engineering contract (architecture, feature ownership, Vue, TypeScript,
   styling, testing, accessibility, size guardrails).
@@ -77,7 +78,7 @@ table, not an orchestration engine.
 |---|---|
 | Orient in the repository | [architecture.md](architecture/index.md), [roadmap.md](planning/roadmap.md) |
 | Plan or pick the next slice | [planning/roadmap.md](planning/roadmap.md), [planning/index.md](planning/index.md) |
-| Change Python source or tests | [python/index.md](python/index.md), then the matching topic document in [python/](python/index.md) |
+| Change Python source or tests | [python/index.md](python/index.md), then the matching topic document in [python/](python/index.md); run `make architecture-check` for the size and import-boundary guardrails |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the editor frontend or the local application boundary | [frontend/index.md](frontend/index.md), [architecture.md](architecture/index.md), [contracts/rendering.md](../contracts/rendering.md), [workflow/quality.md](workflow/quality.md) |

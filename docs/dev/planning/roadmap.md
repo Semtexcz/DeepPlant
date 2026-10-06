@@ -61,6 +61,12 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   and a Vue 3 + TypeScript + Vite + Vue Flow SPA under `apps/editor/` that serves
   pan, zoom, fit view, single selection, a read-only semantic Inspector, and the
   current validation status;
+- the canonical Python engineering contract and its deterministic guardrails
+  ([dev/python/](../python/index.md)) delivered by the #84 umbrella: the
+  capability-oriented Core/editor packages, the size/cohesion policy, and
+  `make architecture-check` (`tools/architecture_check.py`), which enforces the
+  logical-LOC hard limits and the semantic-Core import boundaries as part of
+  `make check` and the CI `python-checks` job;
 - the canonical frontend engineering contract and quality gates for that SPA
   ([dev/frontend/](../frontend/index.md)), enforced by an ESLint flat-config gate
   as part of `make frontend-check` and `make check`, and applied to the existing
@@ -589,6 +595,19 @@ process ↔ physical realization — remain candidates only and are not preselec
   and [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md).
 - **Issue #21 is closed:** its `StoringMaterial` topic remains historical or
   deferred strategic/evidence context, not an open executable Issue.
+- **Issue #84 (Python engineering standards and quality guardrails) — all three
+  child slices delivered:** the structural refactor into capability packages
+  (#106), the canonical Python engineering contract (#107), and the deterministic
+  guardrails (#108). The guardrail is `make architecture-check`
+  (`tools/architecture_check.py`), run as part of `make check` and the CI
+  `python-checks` job: it enforces the logical-LOC hard limits and the
+  semantic-Core import boundaries, reports soft-limit findings as non-blocking
+  warnings, and needed no legacy exemptions. This is developer-quality
+  engineering-maintenance work, not a product capability, so it is **not** a
+  product `Now`/`Next` item and it does not change the selected product slice
+  (the empty shared Editor workspace, #97). The umbrella Issue #84 itself is
+  closed only once all three child slices are verified complete; this
+  implementation closes only child slice #108.
 
 ### Scope Discipline
 

@@ -29,6 +29,12 @@ superseded_by: null
   strict settings with PySide6 available and keeps every module in scope. There is
   no blanket `type: ignore` for the Qt module.
 - Tests run through `make test`.
+- Python architecture and size guardrails run through `make architecture-check`
+  (`tools/architecture_check.py`, Issue #108). It enforces the logical-LOC hard
+  limits and the semantic-Core import boundaries from
+  [python/index.md](../python/index.md); soft-limit findings are reported as
+  warnings and never fail. It is part of `make check` and the CI `python-checks`
+  job.
 - Frontend lint runs through `make frontend-lint`: ESLint (flat config in
   `apps/editor/eslint.config.js`) over the editor source (`src/**`), the automated
   tests and their fixtures (`tests/**`), and the frontend configuration. It
@@ -99,7 +105,7 @@ restating it.
 | Changed surface | CI jobs that run |
 |---|---|
 | documentation, `project/`, governance, agent/context metadata | `docs-validation` (`make validate-docs`, `make validate-agent-skills`) |
-| Python / Core, tests, examples, tooling | `python-checks` (`make format-check`, `make lint`, `make typecheck`, `make test`) |
+| Python / Core, tests, examples, tooling | `python-checks` (`make format-check`, `make lint`, `make typecheck`, `make test`, `make architecture-check`) |
 | Python distribution boundary (`src/deepplant/**`, `pyproject.toml`, `uv.lock`, `LICENSE`, wheel tooling) | `wheel-verification` (wheel build, wheel contents, base-install independence) |
 | frontend source/config (`apps/editor/**`) | `frontend-checks` (`make frontend-check` **and** `make frontend-build`) |
 | editor/browser workflow (`apps/editor/**`, `src/deepplant/editor/**`, the canonical `src/deepplant/assets/**` symbols, the `deepplant ui` serving path, the `examples/realistic-process-fragment/**` runtime fixture) | `frontend-e2e` (production build + real CLI + Playwright/Chromium) |
@@ -184,7 +190,7 @@ candidate state gets one broad local gate.
 |---|---|
 | documentation | `make validate-docs` |
 | agent skills / context map | `make validate-agent-skills` |
-| Python / Core | `make format-check`, `make lint`, `make typecheck`, then a targeted `uv run pytest <relevant test paths>` selection |
+| Python / Core | `make format-check`, `make lint`, `make typecheck`, `make architecture-check`, then a targeted `uv run pytest <relevant test paths>` selection |
 | frontend | `make frontend-lint`, `make frontend-typecheck`, `make frontend-test` |
 | desktop host (PySide6) | `make typecheck-desktop` when relevant |
 | packaging / distribution | `make package-editor` / `make verify-packaged-editor` when relevant |

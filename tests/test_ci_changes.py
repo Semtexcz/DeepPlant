@@ -135,6 +135,22 @@ def test_python_core_change_runs_python_validation_and_the_wheel_boundary() -> N
     assert ci_changes.LINUX_PACKAGE_JOB not in jobs
 
 
+def test_architecture_guardrail_files_select_the_python_job() -> None:
+    # The guardrail is owned by the Python surface: its checker, its regression
+    # tests, and the Python source it protects must all route to `python-checks`.
+    # A `tools/**` checker is deliberately not a conservative full-matrix trigger
+    # (unlike the `Makefile`/`.github/**` tooling that invokes it).
+    classification = ci_changes.classify_paths(
+        ["tools/architecture_check.py", "tests/test_architecture_check.py"]
+    )
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["python"] is True
+    assert classification.full is False
+    assert ci_changes.PYTHON_JOB in jobs
+    assert classification.surfaces["package"] is False
+
+
 def test_frontend_change_runs_frontend_checks_e2e_and_native_packaging() -> None:
     classification = ci_changes.classify_paths(["apps/editor/src/process-pfd/transport/api.ts"])
     jobs = classification.required_jobs

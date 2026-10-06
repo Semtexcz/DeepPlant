@@ -16,6 +16,7 @@ import json
 import socket
 import time
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -112,6 +113,227 @@ def _self_check_verdict(
     }
 
 
+@dataclass
+class _SelfCheckRun:
+    """Mutable state carried across one packaged-desktop self-check run.
+
+    The probe chain is callback-driven and asynchronous (Qt timers and the
+    webview's JavaScript engine), so the run's accumulated probe results, the
+    report being built, and the one-shot finish guard must be shared by several
+    helpers. This is genuine run state, not a service object.
+    """
+
+    editor: DesktopEditor
+    report_path: Path
+    echo: Callable[[str], None]
+    finish: Callable[[int], None]
+    has_project: bool
+    results: dict[str, object] = field(default_factory=dict[str, object])
+    report: dict[str, object] = field(default_factory=dict[str, object])
+    finished: bool = False
+
+
+def _finish_once(run: _SelfCheckRun, code: int) -> None:
+    """Finish exactly once, so a late timer cannot restart the loop exit."""
+    if run.finished:
+        return
+    run.finished = True
+    stage_log(run.report_path, f"finish: exit code {code}")
+    run.finish(code)
+
+
+def _fail(run: _SelfCheckRun, message: str) -> None:
+    """Record and report a self-check failure, then finish the run."""
+    stage_log(run.report_path, f"fail: {message}")
+    write_json(run.report_path, {"verdict": "fail", "error": message})
+    run.echo(f"self-check failed: {message}")
+    _finish_once(run, 1)
+
+
+def _failed_guard(run: _SelfCheckRun, step: str, work: Callable[[], None]) -> None:
+    """Run one probe step, reporting an unexpected error instead of hanging.
+
+    An exception raised inside a Qt callback would otherwise be printed to a
+    stream a GUI build may not have and would leave the event loop running
+    forever, which is exactly the failure mode automated callers cannot
+    diagnose.
+    """
+    try:
+        work()
+    except Exception as exc:  # noqa: BLE001 - reported, never swallowed
+        _fail(run, f"{step} raised {type(exc).__name__}: {exc}")
+
+
+@dataclass(frozen=True)
+class _CloseMeasurement:
+    """Measured lifecycle facts taken before and after the real close path."""
+
+    window_visible: bool
+    window_closed: bool
+    stop_requested: bool
+    server_stopped: bool
+    thread_alive_after_close: bool
+    port_released: bool
+
+
+def _measure_close(editor: DesktopEditor) -> _CloseMeasurement:
+    """Close the real window and measure the owned-server lifecycle."""
+    window = editor.window
+    visible_before_close = window.isVisible()
+    server_before_close = editor.server
+    port_before_close = server_before_close.port if server_before_close is not None else None
+
+    # The real close path: `closeEvent` -> stop the owned server -> Qt quits.
+    window.close()
+    window_closed = not window.isVisible()
+
+    # Measured after close, from the server object itself - never inferred from a
+    # cleared reference.
+    shutdown = editor.server_shutdown
+    server_after_close = editor.server
+    thread_alive_after_close = bool(server_after_close is not None and server_after_close.running)
+    return _CloseMeasurement(
+        window_visible=visible_before_close,
+        window_closed=window_closed,
+        stop_requested=bool(shutdown.requested),
+        server_stopped=bool(shutdown.requested and not thread_alive_after_close),
+        thread_alive_after_close=thread_alive_after_close,
+        port_released=port_before_close is None or not _port_accepts(port_before_close),
+    )
+
+
+def _compose_report(
+    run: _SelfCheckRun, measurement: _CloseMeasurement
+) -> tuple[dict[str, object], bool]:
+    """Build the self-check report payload and the overall verdict."""
+    content_extra: dict[str, object] = {}
+    if run.has_project:
+        content_checks, content_extra = _self_check_verdict(
+            run.results.get("canvas"), run.results.get("inspector")
+        )
+    else:
+        content_checks = True
+
+    checks = _as_mapping(content_extra.get("checks"))
+    checks["windowVisible"] = measurement.window_visible
+    checks["windowClosed"] = measurement.window_closed
+    checks["serverStopRequested"] = measurement.stop_requested
+    checks["serverStopped"] = measurement.server_stopped
+    checks["serverThreadTerminated"] = not measurement.thread_alive_after_close
+    checks["portReleased"] = measurement.port_released
+    lifecycle_passed = (
+        measurement.window_visible
+        and measurement.window_closed
+        and measurement.stop_requested
+        and measurement.server_stopped
+        and not measurement.thread_alive_after_close
+        and measurement.port_released
+    )
+    passed = bool(content_checks and lifecycle_passed)
+
+    report: dict[str, object] = {}
+    report["checks"] = checks
+    report["lifecycle"] = {
+        "windowVisible": measurement.window_visible,
+        "windowClosed": measurement.window_closed,
+        "serverStopRequested": measurement.stop_requested,
+        "serverStopped": measurement.server_stopped,
+        "serverThreadAliveAfterClose": measurement.thread_alive_after_close,
+        "portReleased": measurement.port_released,
+        # Only knowable after QApplication.exec() returns; completed there.
+        "eventLoopReturned": False,
+    }
+    for key, value in content_extra.items():
+        if key not in {"checks", "verdict"}:
+            report[key] = value
+    report["verdict"] = "pass" if passed else "fail"
+    report["windowTitle"] = WINDOW_TITLE
+    return report, passed
+
+
+def _finalize(run: _SelfCheckRun) -> None:
+    """Complete the self-check: measure the close, write the report, finish."""
+    stage_log(run.report_path, "finalize: begin")
+    measurement = _measure_close(run.editor)
+    report, passed = _compose_report(run, measurement)
+    run.report.clear()
+    run.report.update(report)
+    stage_log(
+        run.report_path,
+        f"finalize: serverStopped={measurement.server_stopped} "
+        f"threadAlive={measurement.thread_alive_after_close} "
+        f"portReleased={measurement.port_released}",
+    )
+    write_json(run.report_path, run.report)
+    run.echo(f"self-check verdict: {run.report['verdict']}")
+    _finish_once(run, 0 if passed else 1)
+
+
+def _probe_canvas(run: _SelfCheckRun) -> None:
+    """Ask the embedded webview for the rendered process canvas facts."""
+    stage_log(run.report_path, "probe: canvas")
+    view = run.editor.window.web_view
+    if view is None:
+        _fail(run, "the native window never created an embedded view")
+        return
+
+    def handle_result(raw: object) -> None:
+        _after_canvas(run, raw)
+
+    view.page().runJavaScript(CANVAS_PROBE_JS, handle_result)
+
+
+def _after_canvas(run: _SelfCheckRun, raw: object) -> None:
+    """Consume the canvas probe result and schedule the inspector probe."""
+
+    def handle() -> None:
+        canvas = _parse_probe(raw)
+        stage_log(run.report_path, f"probe: canvas result {bool(canvas)}")
+        if not canvas:
+            _fail(run, "the canvas probe returned no usable result")
+            return
+        run.results["canvas"] = canvas
+        QTimer.singleShot(POST_SELECTION_SETTLE_MS, lambda: _probe_inspector(run))
+
+    _failed_guard(run, "the canvas probe", handle)
+
+
+def _probe_inspector(run: _SelfCheckRun) -> None:
+    """Ask the embedded webview for the read-only Inspector facts."""
+    view = run.editor.window.web_view
+    if view is None:
+        _fail(run, "the embedded view disappeared")
+        return
+
+    def handle_result(raw: object) -> None:
+        _after_inspector(run, raw)
+
+    view.page().runJavaScript(INSPECTOR_PROBE_JS, handle_result)
+
+
+def _after_inspector(run: _SelfCheckRun, raw: object) -> None:
+    """Consume the inspector probe result and finalize the run."""
+
+    def handle() -> None:
+        run.results["inspector"] = _parse_probe(raw)
+        stage_log(run.report_path, "probe: inspector done")
+        _finalize(run)
+
+    _failed_guard(run, "the inspector probe", handle)
+
+
+def _on_loaded(run: _SelfCheckRun, ok: bool) -> None:
+    """React to the embedded page finishing (or failing) its load."""
+    stage_log(run.report_path, f"page loaded: {ok}")
+    if not ok:
+        _fail(run, "the embedded page did not finish loading")
+        return
+    QTimer.singleShot(
+        POST_LOAD_SETTLE_MS,
+        lambda: _failed_guard(run, "the canvas probe", lambda: _probe_canvas(run)),
+    )
+
+
 def start_self_check(
     editor: DesktopEditor,
     report_path: Path,
@@ -137,175 +359,32 @@ def start_self_check(
 
     Returns the mutable report so ``run_host`` can complete it after the loop.
     """
-    results: dict[str, object] = {}
-    report: dict[str, object] = {}
-    finished = False
-
-    def finish_once(code: int) -> None:
-        """Finish exactly once, so a late timer cannot restart the loop exit."""
-        nonlocal finished
-        if finished:
-            return
-        finished = True
-        stage_log(report_path, f"finish: exit code {code}")
-        finish(code)
-
-    def fail(message: str) -> None:
-        stage_log(report_path, f"fail: {message}")
-        write_json(report_path, {"verdict": "fail", "error": message})
-        echo(f"self-check failed: {message}")
-        finish_once(1)
-
-    def failed_guard(step: str, work: Callable[[], None]) -> None:
-        """Run one probe step, reporting an unexpected error instead of hanging.
-
-        An exception raised inside a Qt callback would otherwise be printed to a
-        stream a GUI build may not have and would leave the event loop running
-        forever, which is exactly the failure mode automated callers cannot
-        diagnose.
-        """
-        try:
-            work()
-        except Exception as exc:  # noqa: BLE001 - reported, never swallowed
-            fail(f"{step} raised {type(exc).__name__}: {exc}")
-
-    def finalize() -> None:
-        stage_log(report_path, "finalize: begin")
-        window = editor.window
-        visible_before_close = window.isVisible()
-        server_before_close = editor.server
-        port_before_close = server_before_close.port if server_before_close is not None else None
-
-        # The real close path: `closeEvent` -> stop the owned server -> Qt quits.
-        window.close()
-        window_closed = not window.isVisible()
-
-        # Measured after close, from the server object itself - never inferred
-        # from a cleared reference.
-        shutdown = editor.server_shutdown
-        server_after_close = editor.server
-        thread_alive_after_close = bool(
-            server_after_close is not None and server_after_close.running
-        )
-        server_stopped = bool(shutdown.requested and not thread_alive_after_close)
-        port_released = port_before_close is None or not _port_accepts(port_before_close)
-
-        content_extra: dict[str, object] = {}
-        if has_project:
-            content_checks, content_extra = _self_check_verdict(
-                results.get("canvas"), results.get("inspector")
-            )
-        else:
-            content_checks = True
-
-        checks = _as_mapping(content_extra.get("checks"))
-        checks["windowVisible"] = visible_before_close
-        checks["windowClosed"] = window_closed
-        checks["serverStopRequested"] = bool(shutdown.requested)
-        checks["serverStopped"] = server_stopped
-        checks["serverThreadTerminated"] = not thread_alive_after_close
-        checks["portReleased"] = port_released
-        lifecycle_passed = (
-            visible_before_close
-            and window_closed
-            and bool(shutdown.requested)
-            and server_stopped
-            and not thread_alive_after_close
-            and port_released
-        )
-        passed = bool(content_checks and lifecycle_passed)
-
-        report.clear()
-        report["checks"] = checks
-        report["lifecycle"] = {
-            "windowVisible": visible_before_close,
-            "windowClosed": window_closed,
-            "serverStopRequested": bool(shutdown.requested),
-            "serverStopped": server_stopped,
-            "serverThreadAliveAfterClose": thread_alive_after_close,
-            "portReleased": port_released,
-            # Only knowable after QApplication.exec() returns; completed there.
-            "eventLoopReturned": False,
-        }
-        for key, value in content_extra.items():
-            if key not in {"checks", "verdict"}:
-                report[key] = value
-        report["verdict"] = "pass" if passed else "fail"
-        report["windowTitle"] = WINDOW_TITLE
-        stage_log(
-            report_path,
-            f"finalize: serverStopped={server_stopped} "
-            f"threadAlive={thread_alive_after_close} portReleased={port_released}",
-        )
-        write_json(report_path, report)
-        echo(f"self-check verdict: {report['verdict']}")
-        finish_once(0 if passed else 1)
-
-    def probe_canvas() -> None:
-        stage_log(report_path, "probe: canvas")
-        view = editor.window.web_view
-        if view is None:
-            fail("the native window never created an embedded view")
-            return
-        view.page().runJavaScript(CANVAS_PROBE_JS, after_canvas)
-
-    def after_canvas(raw: object) -> None:
-        def handle() -> None:
-            canvas = _parse_probe(raw)
-            stage_log(report_path, f"probe: canvas result {bool(canvas)}")
-            if not canvas:
-                fail("the canvas probe returned no usable result")
-                return
-            results["canvas"] = canvas
-            QTimer.singleShot(POST_SELECTION_SETTLE_MS, lambda: probe_inspector(canvas))
-
-        failed_guard("the canvas probe", handle)
-
-    def probe_inspector(canvas: dict[str, object]) -> None:
-        view = editor.window.web_view
-        if view is None:
-            fail("the embedded view disappeared")
-            return
-
-        def handle_result(raw: object) -> None:
-            after_inspector(canvas, raw)
-
-        view.page().runJavaScript(INSPECTOR_PROBE_JS, handle_result)
-
-    def after_inspector(canvas: dict[str, object], raw: object) -> None:
-        del canvas
-
-        def handle() -> None:
-            results["inspector"] = _parse_probe(raw)
-            stage_log(report_path, "probe: inspector done")
-            finalize()
-
-        failed_guard("the inspector probe", handle)
-
-    def on_loaded(ok: bool) -> None:
-        stage_log(report_path, f"page loaded: {ok}")
-        if not ok:
-            fail("the embedded page did not finish loading")
-            return
-        QTimer.singleShot(
-            POST_LOAD_SETTLE_MS, lambda: failed_guard("the canvas probe", probe_canvas)
-        )
+    run = _SelfCheckRun(
+        editor=editor,
+        report_path=report_path,
+        echo=echo,
+        finish=finish,
+        has_project=has_project,
+    )
 
     # The watchdog is armed before anything else, so no probe, dialog, or stalled
     # webview can keep the process alive past the caller's patience.
     stage_log(report_path, "self-check: watchdog armed")
     QTimer.singleShot(
         SELF_CHECK_TIMEOUT_MS,
-        lambda: fail(f"the self-check did not finish within {SELF_CHECK_TIMEOUT_MS} ms"),
+        lambda: _fail(run, f"the self-check did not finish within {SELF_CHECK_TIMEOUT_MS} ms"),
     )
 
     if not has_project:
         # No model was supplied: the bootstrap window is the thing under test.
-        QTimer.singleShot(POST_LOAD_SETTLE_MS, lambda: failed_guard("the window check", finalize))
-        return report
+        QTimer.singleShot(
+            POST_LOAD_SETTLE_MS,
+            lambda: _failed_guard(run, "the window check", lambda: _finalize(run)),
+        )
+        return run.report
 
-    editor.page_loaded_hook = on_loaded
-    return report
+    editor.page_loaded_hook = lambda ok: _on_loaded(run, ok)
+    return run.report
 
 
 def _as_mapping(value: object) -> dict[str, object]:

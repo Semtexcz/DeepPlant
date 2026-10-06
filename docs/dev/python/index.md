@@ -38,8 +38,10 @@ must be usable from any agent harness and by a human.
 
 It builds directly on the architecture established by Issue #106 (capability
 packages) and the ADRs that own each boundary. It defines the **contract**; the
-mechanically checkable subset of its size and architecture rules is enforced
-later by [Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108).
+mechanically checkable subset of its size and import-boundary rules is enforced
+by the repository-owned checker delivered by
+[Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108) and run as
+`make architecture-check`.
 
 ## Status vocabulary
 
@@ -78,11 +80,14 @@ described as "enforced by CI" unless a real gate enforces it.
   enforced by `make lint`, `make typecheck`, and `make test`.
 - **Canonical rule:** everything in this document set is binding for new or
   changed Python code.
-- **Deferred:** deterministic size/architecture enforcement (a checker, a Make
-  target, and any new architectural CI gate) is owned by
-  [Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108). This contract
-  defines the size policy and counting semantics so #108 can implement them
-  without inventing policy.
+- **Implemented:** deterministic size and import-boundary enforcement is the
+  repository-owned checker `tools/architecture_check.py`, run as
+  `make architecture-check` (part of `make check` and CI), delivered by
+  [Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108). The size policy
+  and counting semantics below are its canonical definition; its exact scopes,
+  thresholds, and exceptions policy are recorded under
+  [Enforcement scope](#enforcement-scope). Not every statement of this contract is
+  mechanically enforced.
 
 ## Python review checklist
 
@@ -135,10 +140,8 @@ into artificially small units.
 - **Soft limits** are review signals. Crossing one prompts a reviewer to ask
   whether a genuinely independent responsibility should be extracted; it never
   fails a check.
-- **Hard limits** are the intended enforcement thresholds. They are the level at
-  which a mechanically checkable rule
-  ([Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108)) is expected to
-  fail.
+- **Hard limits** are enforcement thresholds: `make architecture-check` fails on a
+  hard violation. Soft limits never fail the gate.
 - **Cohesion beats line count.** Never split a cohesive unit merely to stay under
   a limit. One cohesive 240-logical-LOC module is better than three fragments
   that must be read together.
@@ -150,11 +153,10 @@ into artificially small units.
 
 ### Counting semantics (logical LOC)
 
-[Issue #108](https://github.com/Semtexcz/DeepPlant/issues/108) implements the
-deterministic checker. To avoid it inventing policy, **logical LOC** is defined
-here in terms of **Python lexical tokens**, not raw text. The definition is
-implementable with the standard library (`ast` and `tokenize`); the checker
-itself belongs to #108.
+The deterministic checker (`tools/architecture_check.py`) and its regression tests
+(`tests/test_architecture_check.py`) implement exactly this definition. **Logical
+LOC** is defined here in terms of **Python lexical tokens**, not raw text, and is
+computed with the standard library (`ast` and `tokenize`).
 
 - **Blank lines are excluded.** A line that carries no token (only whitespace or
   a newline) is not counted.
@@ -167,7 +169,10 @@ itself belongs to #108.
 - **String and docstring content is counted** as part of the scope that defines
   it, including the interior source lines of a multi-line string. The single
   exception is the **module-level docstring**, which is excluded and attributed to
-  no sized scope.
+  no sized scope. Only a source line whose sole code-bearing content is that
+  docstring is excluded, so executable code sharing a module-docstring line (for
+  example a statement joined after its closing quotes with `;`) still counts as a
+  code line.
 - **Decorators are counted consistently with the definition they decorate**
   (function, method, or class): a decorator's lines belong to the decorated
   definition, never to the enclosing scope.
@@ -191,59 +196,99 @@ itself belongs to #108.
 
 ### Enforcement scope
 
-The initial policy enforcement planned for #108 covers:
+`make architecture-check` runs `tools/architecture_check.py` over:
 
 ```text
-src/deepplant/**/*.py  — production size rules
-tests/**/*.py          — test-module policy
+src/deepplant/**/*.py  — production module, function/method, and class limits
+tests/**/*.py          — test-module limit, plus the same function/method and
+                         class limits
 ```
 
-Repository developer tooling under `tools/**/*.py` is **outside** the initial
-size guardrails. That does not exempt `tools/` from existing Ruff, Pyright, or
-pytest quality checks; it only excludes it from the new size checker until a
-later, separately justified decision. Issue #107 does not expand into a `tools/`
-refactor.
+The **module** limit depends on the file kind (production module 250/500; test
+module 400/800). The **function/method** and **class** limits apply to every
+discovered file. Repository developer tooling under `tools/**/*.py` is **outside**
+the size guardrails — that excludes it from this checker only; `tools/` remains
+covered by Ruff, Pyright, and pytest.
+
+Soft violations are reported as `WARNING` and never fail. Hard violations are
+reported as `ERROR` and exit non-zero; a clean tree exits zero. Findings are sorted
+and formatted deterministically, so the same tree always yields the same output.
+
+The checker also protects the direction of dependencies by inspecting imports
+(`ast`) in the framework-free layers. The following scopes must not import a
+transport, CLI, GUI, or presentation layer:
+
+```text
+src/deepplant/model/    !-> FastAPI/Starlette/Uvicorn, Typer/Click, PySide6/PyQt,
+                            deepplant.editor, deepplant.render, deepplant.io,
+                            deepplant.adapters
+src/deepplant/render/   !-> the same frameworks, deepplant.editor
+src/deepplant/adapters/ !-> the same frameworks, deepplant.editor, deepplant.render
+src/deepplant/io.py     !-> the same frameworks, deepplant.editor, deepplant.render,
+                            deepplant.adapters
+```
+
+Both absolute imports (`import deepplant.editor.api`, `from deepplant.editor import api`)
+and relative imports (`from ..render import svg`) are resolved, including imports
+nested inside functions and classes. This is a **direct-import** structural check:
+it does not prove runtime or transitive behaviour, so the broader dependency
+principles here still need human review.
+
+**Exceptions** are centralized in the checker's `SIZE_EXCEPTIONS` list — never
+inline suppression comments — and each entry names its exact path and scope with a
+written justification. The list is empty: ordinary production code passes every
+hard limit without grandfathering. Only generated, vendored, or schema material
+may add a narrowly justified entry.
+
+```bash
+make architecture-check   # also part of `make check` and the CI python-checks job
+```
 
 ### Current evidence
 
-Measured against the repository at Issue #106, using the token-aware logical-LOC
-definition above (module-level docstrings excluded). The figures below are
-measured with `ast`/`tokenize`; #108's checker is the authoritative
-implementation and must reproduce them.
+Measured with the checker itself (`make architecture-check`) against the
+repository after Issue #108, using the token-aware logical-LOC definition above
+(module-level docstrings excluded). Limits: production module 500, test module 800,
+function/method 80, class 300.
 
-**Production modules** (hard limit 500): the largest are
-`adapters/dexpi/importer.py` (419 logical LOC), `render/layout.py` (412), and
-`render/symbols.py` (361) — all below the hard limit. (Their physical line counts
-are 490 / 480 / 447; physical length is not the limit.) The production module
-limit is consistent with the current code.
+**Production modules** (hard 500): the largest are `render/layout.py` (439 logical
+LOC), `adapters/dexpi/importer.py` (419), `render/symbols.py` (410),
+`editor/desktop_qt/self_check.py` (346), and `render/svg.py` (297) — all below the
+hard limit. Several exceed the 250 soft limit; those are cohesive review signals,
+not failures, and are deliberately not split for line count alone.
 
-**Test modules** (hard limit 800): the largest are `tests/adapters/dexpi/test_dexpi_adapter.py`
-(746 logical LOC), `tests/test_io.py` (750), and `tests/render/test_render.py`
-(639) — **all below the 800 hard limit**. (Their physical line counts are
-970 / 911 / 838; an earlier draft of this contract compared those *physical* line
-counts against the *logical* limit and wrongly concluded the modules exceeded it.
-They do not.) No test module requires splitting or an exemption.
+**Test modules** (hard 800): the largest are `tests/test_io.py` (750 logical LOC),
+`tests/adapters/dexpi/test_dexpi_adapter.py` (746), `tests/render/test_render.py`
+(639), and `tests/test_roundtrip.py` (534) — all below the hard limit. No test
+module requires splitting or an exemption.
 
 **Classes** (soft 150 / hard 300). The rule above counts a class's complete body,
 including its methods, so the class limit is genuinely measured. The largest
 production classes are `editor/desktop_qt/runtime.py` `DesktopEditor` (130 logical
 LOC), `editor/api.py` `EditorServer` (117), and `editor/desktop_qt/window.py`
 `MainWindow` (86); the largest semantic-model classes are `model/plant.py`
-`PlantModel` (74) and `model/process.py` `ProcessModel` (50). **No production
-class approaches the 300 hard limit, and none even reaches the 150 soft limit.**
-Decision: the class limits (150 / 300 logical LOC) are **kept unchanged** — they
-are realistic with substantial headroom, so #108 needs no class exception.
+`PlantModel` (74) and `model/process.py` `ProcessModel` (50). No production class
+reaches the 150 soft limit, so the class limits (150 / 300) are kept unchanged and
+need no exception.
 
-**Functions/methods** (soft 40 / hard 80). Under the same complete-content rule,
-the function/method limits are exceeded by several large module-level production
-procedures — the largest are `render/svg.py` `render_process_svg` (211 logical
-LOC), `editor/desktop_qt/self_check.py` `start_self_check` (165),
-`render/symbols.py` `parse_symbol_variant` (119), `render/layout.py`
-`place_steps_and_assign` (99), `render/layout.py` `compute_process_pfd_layout`
-(92), and `editor/projection.py` `project_process_pfd` (88). The function/method
-limits are **kept unchanged** by this contract; this is recorded as measured
-evidence of the current repository state so #108 can see it rather than
-re-derive it.
+**Functions/methods** (soft 40 / hard 80). The largest are
+`adapters/dexpi/importer.py` `_collect_stream` (70),
+`adapters/dexpi/importer.py` `import_dexpi_process_xml` (68),
+`editor/desktop.py` `run_desktop_editor` (68), and `render/svg.py`
+`render_process_svg` (66). The #108 refactor resolved the six over-limit functions
+the #107 review identified, preserving their behaviour:
+
+| Function | Before | After |
+|---|---:|---:|
+| `render/svg.py` `render_process_svg` | 211 | 66 |
+| `editor/desktop_qt/self_check.py` `start_self_check` | 165 | 45 |
+| `render/symbols.py` `parse_symbol_variant` | 119 | 21 |
+| `render/layout.py` `place_steps_and_assign` | 99 | 30 |
+| `render/layout.py` `compute_process_pfd_layout` | 92 | 49 |
+| `editor/projection.py` `project_process_pfd` | 88 | 48 |
+
+There are no hard violations and no size exceptions. Soft-limit findings remain
+informative, non-blocking review signals across the repository.
 
 ## Ruff rule review
 

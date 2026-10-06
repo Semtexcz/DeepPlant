@@ -145,8 +145,10 @@ change_patterns:
 checks:
   "src/**/*.py":
     - make test
+    - make architecture-check
   "tests/**/*.py":
     - make test
+    - make architecture-check
   "backend/**/*.py":
     - make test
   "apps/editor/**/*":

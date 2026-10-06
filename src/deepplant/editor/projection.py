@@ -34,8 +34,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal
 
-from deepplant.model import PlantModel
-from deepplant.render import compute_process_pfd_layout
+from deepplant.model import PlantModel, ProcessStep, ProcessStream
+from deepplant.render import ProcessPfdLayout, compute_process_pfd_layout
 
 __all__ = [
     "KIND_PROCESS_STEP",
@@ -183,7 +183,22 @@ def project_process_pfd(
     step_by_id = {step.id: step for step in process.steps}
     streams_by_id = {stream.id: stream for stream in process.streams}
 
-    steps = tuple(
+    return ProcessPfdProjection(
+        plant_id=model.plant.id,
+        plant_name=model.plant.name,
+        symbol_pack=layout.symbol_pack,
+        symbol_size=layout.symbol_size,
+        steps=_projected_steps(layout, step_by_id),
+        streams=_projected_streams(layout, streams_by_id),
+        validation=ValidationStatus(valid=True, message="Valid"),
+    )
+
+
+def _projected_steps(
+    layout: ProcessPfdLayout, step_by_id: Mapping[str, ProcessStep]
+) -> tuple[ProcessStepProjection, ...]:
+    """Project each placed step with its semantic properties and geometry."""
+    return tuple(
         ProcessStepProjection(
             kind=KIND_PROCESS_STEP,
             id=placement.step_id,
@@ -205,7 +220,12 @@ def project_process_pfd(
         for placement in layout.steps
     )
 
-    streams = tuple(
+
+def _projected_streams(
+    layout: ProcessPfdLayout, streams_by_id: Mapping[str, ProcessStream]
+) -> tuple[ProcessStreamProjection, ...]:
+    """Project each placed stream endpoint pair with its semantic name."""
+    return tuple(
         ProcessStreamProjection(
             kind=KIND_PROCESS_STREAM,
             id=placement.stream_id,
@@ -223,16 +243,6 @@ def project_process_pfd(
             is_feedback=placement.is_feedback,
         )
         for placement in layout.streams
-    )
-
-    return ProcessPfdProjection(
-        plant_id=model.plant.id,
-        plant_name=model.plant.name,
-        symbol_pack=layout.symbol_pack,
-        symbol_size=layout.symbol_size,
-        steps=steps,
-        streams=streams,
-        validation=ValidationStatus(valid=True, message="Valid"),
     )
 
 
