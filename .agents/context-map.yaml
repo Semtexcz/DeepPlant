@@ -61,20 +61,20 @@ change_patterns:
     - docs/dev/architecture/index.md
     - docs/contracts/index.md
     - docs/dev/workflow/quality.md
-  "src/deepplant/render.py":
+  "src/deepplant/render/**":
     - docs/contracts/rendering.md
     - docs/dev/reference/svg-symbols.md
   "src/deepplant/assets/symbols/**":
     - docs/dev/reference/svg-symbols.md
     - docs/dev/workflow/standards.md
     - docs/dev/reference/standards-registry.md
-  "src/deepplant/adapters/dexpi.py":
+  "src/deepplant/adapters/dexpi/**":
     - docs/dev/reference/dexpi-process-adapter.md
-  "tests/test_dexpi_adapter.py":
+  "tests/adapters/dexpi/**":
     - docs/dev/reference/dexpi-process-adapter.md
-  "tests/test_svg_symbols.py":
+  "tests/render/test_svg_symbols.py":
     - docs/dev/reference/svg-symbols.md
-  "tests/test_render.py":
+  "tests/render/test_render.py":
     - docs/contracts/rendering.md
     - docs/dev/reference/svg-symbols.md
   "backend/**/*.py":

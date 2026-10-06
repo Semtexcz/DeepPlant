@@ -22,7 +22,7 @@ superseded_by: null
 
 - Formatting and linting run through `make lint`.
 - Type checking runs through `make typecheck`. It deliberately excludes
-  `src/deepplant/editor/desktop_qt.py`, because the fast environment does not
+  the `src/deepplant/editor/desktop_qt/` package, because the fast environment does not
   install PySide6. The Qt module is still strictly type-checked: the native
   packaging jobs run `make typecheck-desktop`
   (`pyright --project pyrightconfig.desktop.json`), which mirrors the canonical
@@ -142,7 +142,7 @@ The consequences that matter:
   `editor-package-windows` and `editor-package-linux`.
 - The **canonical `src/deepplant/assets/**` symbols** are runtime and
   packaged-product inputs, not Python package metadata: the renderer reads them
-  through `importlib.resources` (`src/deepplant/render.py`), the Editor backend
+  through `importlib.resources` (`src/deepplant/render/symbols.py`), the Editor backend
   serves them to the browser at `/api/symbols/<role>.svg`, the Playwright suite
   drives that path, and `tools/package_editor.py` bundles and verifies a
   canonical symbol (`REQUIRED_SYMBOL`). A change there selects `python-checks`,

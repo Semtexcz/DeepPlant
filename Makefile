@@ -62,10 +62,11 @@ typecheck:
 
 
 # Desktop-specific strict type check (Issue #93 review). The default `typecheck`
-# excludes src/deepplant/editor/desktop_qt.py because the fast `dev` environment
-# deliberately does not install PySide6. The native packaging jobs do install the
-# `desktop` group, so they run this config, which mirrors the canonical strict
-# settings but keeps every module (including desktop_qt.py) in scope.
+# excludes the src/deepplant/editor/desktop_qt/ package because the fast `dev`
+# environment deliberately does not install PySide6. The native packaging jobs do
+# install the `desktop` group, so they run this config, which mirrors the
+# canonical strict settings but keeps every module (including the desktop_qt
+# package) in scope.
 typecheck-desktop:
 
 	uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json

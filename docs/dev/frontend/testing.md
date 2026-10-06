@@ -83,9 +83,9 @@ packaging-agnostic.
 
 The standalone product adds two layers that this browser suite does not cover:
 
-- **Host behaviour, without a GUI toolkit** - `tests/test_editor_desktop.py`
+- **Host behaviour, without a GUI toolkit** - `tests/editor/test_editor_desktop.py`
   (command-line wiring, the optional-path/self-check hand-off, the initial-model
-  load, the embedded-navigation policy) and `tests/test_editor_server.py` (the
+  load, the embedded-navigation policy) and `tests/editor/test_editor_server.py` (the
   owned `EditorServer` lifecycle: loopback-only bind, real HTTP, and socket
   release on stop).
 - **The packaged graphical product** - `tools/package_editor.py verify` launches

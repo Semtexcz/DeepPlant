@@ -25,7 +25,7 @@ superseded_by: null
 > **Question this document answers:** how is physical piping realized over
 > identified connections, and which rules (C1, P1–P5) must hold?
 >
-> Implemented in `src/deepplant/model.py`; authored shape in
+> Implemented in `src/deepplant/model/` (`piping.py`, `plant.py`); authored shape in
 > [yaml-format.md](yaml-format.md); the topology it references in
 > [plant-model.md](plant-model.md). Design rationale, rejected candidates, and
 > worked diffs are evidence in

@@ -119,7 +119,9 @@ def test_agent_metadata_selects_the_static_agent_validation() -> None:
 
 
 def test_python_core_change_runs_python_validation_and_the_wheel_boundary() -> None:
-    classification = ci_changes.classify_paths(["src/deepplant/model.py", "tests/test_model.py"])
+    classification = ci_changes.classify_paths(
+        ["src/deepplant/model/plant.py", "tests/model/test_model.py"]
+    )
     jobs = classification.required_jobs
 
     assert classification.surfaces["python"] is True
@@ -160,7 +162,7 @@ def test_editor_transport_change_requires_browser_evidence() -> None:
 
 
 def test_desktop_host_change_triggers_native_packaging() -> None:
-    classification = ci_changes.classify_paths(["src/deepplant/editor/desktop_qt.py"])
+    classification = ci_changes.classify_paths(["src/deepplant/editor/desktop_qt/runtime.py"])
     jobs = classification.required_jobs
 
     assert classification.surfaces["package"] is True

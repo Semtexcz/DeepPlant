@@ -34,7 +34,7 @@ superseded_by: null
 > DeepPlant support, **in which direction**, under which semantic constraints,
 > with what executable evidence, and exactly where does the adapter fail closed?
 >
-> Implemented in `src/deepplant/adapters/dexpi.py`. DEXPI is an external
+> Implemented in `src/deepplant/adapters/dexpi/`. DEXPI is an external
 > representation; the canonical model is DeepPlant's own
 > ([process-model.md](../../contracts/process-model.md), ADR-0002, ADR-0003). Research and
 > mapping rationale: [../research/dexpi/process-adapter-spike.md](../research/dexpi/process-adapter-spike.md).

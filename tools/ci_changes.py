@@ -178,7 +178,7 @@ _PACKAGE_FIXTURE_PREFIXES: tuple[str, ...] = ("examples/process-graph/",)
 #: The canonical DeepPlant symbol resources under ``src/deepplant/assets/**``.
 #: They are runtime and packaged-product inputs, not merely Python source or
 #: package metadata: the renderer reads them through ``importlib.resources``
-#: (``src/deepplant/render.py::read_process_symbol_svg``), the Editor backend
+#: (``src/deepplant/render/symbols.py::read_process_symbol_svg``), the Editor backend
 #: serves them to the browser (``/api/symbols/<role>.svg``, ``editor/api.py``),
 #: the Playwright suite drives that browser path, and ``tools/package_editor.py``
 #: bundles and verifies a canonical symbol (``REQUIRED_SYMBOL``). A change here

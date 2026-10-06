@@ -24,9 +24,6 @@ from deepplant import (
     load_plant,
     render_process_svg,
 )
-from deepplant import (
-    render as render_module,
-)
 from deepplant.model import (
     Plant,
     PlantModel,
@@ -36,8 +33,9 @@ from deepplant.model import (
     ProcessStep,
     ProcessStream,
 )
+from deepplant.render import symbols as render_symbols
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
 GOLDEN_SVG = REPO_ROOT / "examples" / "realistic-process-fragment" / "process.svg"
 
@@ -604,7 +602,7 @@ def _use_pack(monkeypatch: pytest.MonkeyPatch, pack: Path) -> None:
     def resolve(_pack: str) -> Path:
         return pack
 
-    monkeypatch.setattr(render_module, "_pack_directory", resolve)
+    monkeypatch.setattr(render_symbols, "pack_directory", resolve)
 
 
 def test_runtime_parser_accepts_top_level_non_group_geometry(
