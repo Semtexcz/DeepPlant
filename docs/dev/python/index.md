@@ -169,7 +169,10 @@ computed with the standard library (`ast` and `tokenize`).
 - **String and docstring content is counted** as part of the scope that defines
   it, including the interior source lines of a multi-line string. The single
   exception is the **module-level docstring**, which is excluded and attributed to
-  no sized scope.
+  no sized scope. Only a source line whose sole code-bearing content is that
+  docstring is excluded, so executable code sharing a module-docstring line (for
+  example a statement joined after its closing quotes with `;`) still counts as a
+  code line.
 - **Decorators are counted consistently with the definition they decorate**
   (function, method, or class): a decorator's lines belong to the decorated
   definition, never to the enclosing scope.

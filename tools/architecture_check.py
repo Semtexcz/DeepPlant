@@ -21,8 +21,10 @@ Logical LOC is counted from Python lexical tokens, never from raw text:
 - blank lines and genuine comment-only lines are excluded;
 - a line that carries any non-comment token counts, including decorator lines
   and every source line a multi-line expression or multi-line string occupies;
-- the module-level docstring is excluded; every other docstring counts as
-  content of the scope that defines it;
+- the module-level docstring is excluded; a line is excluded only when all of its
+  code-bearing content belongs to that docstring, so executable code sharing a
+  module-docstring line still counts. Every other docstring counts as content of
+  the scope that defines it;
 - a module (or a test module) counts the whole file's logical content; a class
   counts its complete body including methods and nested classes; a
   function/method counts its complete body including nested definitions. A
@@ -58,8 +60,12 @@ Exceptions
 
 Size exceptions are centralized in :data:`SIZE_EXCEPTIONS` (never inline
 suppression comments). Each names its exact ``path`` and ``scope`` plus a written
-justification. The list is intentionally empty: ordinary production code passes
-every hard limit without grandfathering.
+justification. The collection is validated before any file is scanned:
+:func:`size_exception_problems` rejects an empty path, scope, or justification, a
+duplicate ``(path, scope)`` pair, and any wildcard, so an invalid or unjustified
+exception fails the check instead of silently suppressing a hard violation. The
+list is intentionally empty: ordinary production code passes every hard limit
+without grandfathering.
 """
 
 from __future__ import annotations
@@ -130,6 +136,52 @@ class SizeException:
 #: entry only for generated, vendored, or schema material, with a written
 #: justification and the narrowest possible scope.
 SIZE_EXCEPTIONS: tuple[SizeException, ...] = ()
+
+
+#: Wildcard characters that would imply a non-exact exception scope. Matching is
+#: always exact, so an exception carrying one is a configuration error rather than
+#: a silent no-op.
+_WILDCARD_MARKERS: tuple[str, ...] = ("*", "?")
+
+
+def size_exception_problems(exceptions: Sequence[SizeException]) -> tuple[str, ...]:
+    """Return deterministic diagnostics for an invalid exception configuration.
+
+    The tuple is empty when the configuration is valid. Validation is a small,
+    format-only check rather than a configuration framework; it enforces exactly
+    the invariants the checker relies on:
+
+    - ``path`` and ``scope`` are non-empty and wildcard-free (matching is exact,
+      so there are no implicit wildcard exceptions);
+    - ``justification`` is a non-empty, non-whitespace explanation;
+    - no ``(path, scope)`` pair appears twice.
+
+    It is called before any file is scanned, so an invalid or unjustified
+    exception fails the check instead of silently suppressing a hard violation.
+    """
+    problems: list[str] = []
+    seen: set[tuple[str, str]] = set()
+    for index, exception in enumerate(exceptions):
+        located = f"size exception #{index} (path={exception.path!r}, scope={exception.scope!r})"
+        if not exception.path.strip():
+            problems.append(f"{located}: 'path' must be a non-empty path")
+        if not exception.scope.strip():
+            problems.append(f"{located}: 'scope' must be a non-empty exact scope")
+        if not exception.justification.strip():
+            problems.append(f"{located}: 'justification' must be a non-empty explanation")
+        has_wildcard = any(
+            marker in exception.path or marker in exception.scope for marker in _WILDCARD_MARKERS
+        )
+        if has_wildcard:
+            problems.append(
+                f"{located}: wildcards are not allowed; 'path' and 'scope' must match exactly"
+            )
+        key = (exception.path, exception.scope)
+        if key in seen:
+            problems.append(f"{located}: duplicate (path, scope) entry")
+        else:
+            seen.add(key)
+    return tuple(problems)
 
 
 @dataclass(frozen=True)
@@ -239,8 +291,22 @@ def _definition_start(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDe
     return node.lineno
 
 
-def _module_docstring_lines(tree: ast.Module) -> frozenset[int]:
-    """Lines of the module-level docstring, which is attributed to no scope."""
+def _within_span(
+    span: tuple[int, int, int, int], start: tuple[int, int], end: tuple[int, int]
+) -> bool:
+    """Whether a token's ``(row, col)`` span lies entirely within ``span``."""
+    start_row, start_col, end_row, end_col = span
+    return start >= (start_row, start_col) and end <= (end_row, end_col)
+
+
+def _module_docstring_lines(tree: ast.Module, source: str) -> frozenset[int]:
+    """Lines whose only code-bearing content is the module-level docstring.
+
+    The docstring is attributed to no sized scope, but a line it shares with other
+    code (for example a statement joined after its closing quotes with ``;``) is
+    not excluded, so the module logical LOC never undercounts executable content.
+    The decision is token-aware, never raw text matching.
+    """
     if not tree.body:
         return frozenset()
     first = tree.body[0]
@@ -249,7 +315,23 @@ def _module_docstring_lines(tree: ast.Module) -> frozenset[int]:
     value = first.value
     if not (isinstance(value, ast.Constant) and isinstance(value.value, str)):
         return frozenset()
-    return frozenset(range(value.lineno, (value.end_lineno or value.lineno) + 1))
+    span = (
+        value.lineno,
+        value.col_offset,
+        value.end_lineno or value.lineno,
+        value.end_col_offset or value.col_offset,
+    )
+    docstring_lines: set[int] = set()
+    other_code_lines: set[int] = set()
+    for token in tokenize.generate_tokens(io.StringIO(source).readline):
+        if token.type in _IGNORED_TOKEN_TYPES:
+            continue
+        token_lines = range(token.start[0], max(token.end[0], token.start[0]) + 1)
+        if _within_span(span, token.start, token.end):
+            docstring_lines.update(token_lines)
+        else:
+            other_code_lines.update(token_lines)
+    return frozenset(docstring_lines - other_code_lines)
 
 
 def measure_source(source: str) -> tuple[int, tuple[Definition, ...]]:
@@ -262,7 +344,7 @@ def measure_source(source: str) -> tuple[int, tuple[Definition, ...]]:
     code_lines = frozenset(logical_lines(source))
     tree = ast.parse(source)
     parents = _parents(tree)
-    module_loc = len(code_lines - _module_docstring_lines(tree))
+    module_loc = len(code_lines - _module_docstring_lines(tree, source))
 
     definitions: list[Definition] = []
     for node in ast.walk(tree):
@@ -294,7 +376,11 @@ def measure_source(source: str) -> tuple[int, tuple[Definition, ...]]:
 
 
 def _is_excepted(path: str, scope: str, exceptions: Sequence[SizeException]) -> bool:
-    """Whether a centralized exception covers this exact path and scope."""
+    """Whether a centralized exception covers this exact path and scope.
+
+    Matching is exact — no prefix, glob, or wildcard form is supported — so an
+    exception can only ever suppress the single finding it names.
+    """
     return any(exception.path == path and exception.scope == scope for exception in exceptions)
 
 
@@ -521,14 +607,34 @@ def iter_python_files(root: Path, globs: Sequence[str]) -> Iterator[Path]:
                 yield path
 
 
+def _exception_configuration_findings(
+    exceptions: Sequence[SizeException],
+) -> tuple[Finding, ...]:
+    """Turn an invalid exception configuration into deterministic hard errors."""
+    return tuple(
+        Finding(
+            severity=Severity.ERROR,
+            path="SIZE_EXCEPTIONS",
+            scope="configuration",
+            message=problem,
+        )
+        for problem in size_exception_problems(exceptions)
+    )
+
+
 def check_repository(
     root: Path, *, exceptions: Sequence[SizeException] = SIZE_EXCEPTIONS
 ) -> tuple[Finding, ...]:
     """Run every size and import-boundary check over ``root``.
 
-    Findings are returned in a stable order (path, line, scope, message), so the
-    same source tree always produces the same result.
+    The centralized exception configuration is validated before any file is
+    scanned, so an invalid configuration fails the check even on a tree with no
+    size violations. Findings are returned in a stable order (path, line, scope,
+    message), so the same source tree always produces the same result.
     """
+    configuration_findings = _exception_configuration_findings(exceptions)
+    if configuration_findings:
+        return configuration_findings
     findings: list[Finding] = []
     for path in iter_python_files(root, SIZE_GLOBS):
         relative = path.relative_to(root).as_posix()
