@@ -242,6 +242,7 @@ validate-docs:
 	@test -f docs/dev/planning/roadmap.md
 	@test -f docs/dev/planning/direction.md
 	@test -f docs/dev/planning/product.md
+	@test -f docs/dev/planning/strategy.md
 	@test -f docs/dev/workflow/index.md
 	@test -f docs/dev/workflow/quality.md
 	@test -f docs/index.md
@@ -263,6 +264,7 @@ validate-docs:
 	@test -f docs/dev/research/editor-desktop-host.md
 	@test ! -e docs/standards.md
 	@test -f docs/dev/history/implementation-slices.md
+	@test -f docs/dev/history/gate-decisions.md
 	@test -f docs/contracts/rendering.md
 	@test -f docs/dev/reference/svg-symbols.md
 	@test -f docs/dev/workflow/packaging.md

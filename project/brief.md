@@ -58,42 +58,36 @@ boundary map, not by this brief:
 
 ### Current initiative
 
-**Engineering Editor MVP v0.1** is the current product initiative: a local-first,
-standalone browser SPA launched locally that lets process and piping engineers
-interactively author a bounded PFD and P&ID subset while the semantic model
-remains authoritative. The UI/UX interaction architecture (Issue #69,
-[docs/dev/research/engineering-editor-ux.md](../docs/dev/research/engineering-editor-ux.md))
-and the reuse-first frontend architecture (Issue #70,
-[docs/dev/research/engineering-editor-reuse-architecture.md](../docs/dev/research/engineering-editor-reuse-architecture.md))
-are delivered as evidence/design. The first executable slice (Issue #75) is
-delivered: a read-only Process/PFD editor over the existing Python semantic core,
-launched with `deepplant ui <path>`. Semantic editing, presentation persistence,
-and P&ID authoring remain unimplemented. The post-#82 roadmap re-evaluation gate
-selected independent DeepPlant Core and standalone editor distribution (Issue #85)
-as the sole next product capability, and **#85 is now delivered** through its two
-child slices. PR #92 established the self-contained distribution foundation: the
-editor ships as a Windows installer and a Linux AppImage, the bundled SPA is an
-application-owned resource rather than a checkout dependency, and the Core stays
-independently usable without the editor transport. Issue #93, merged through PR #95,
-delivered the native desktop host: `deepplant-editor` opens a real graphical window with an
-embedded webview rendering the same `apps/editor/` SPA, with a native **Open**
-workflow; the browser host `deepplant ui` and the Python CLI remain separate
-surfaces. `#85` is complete. The post-#85 re-evaluation selected exactly one next
-product capability: an empty shared Editor workspace with `active project = none`.
-The immediate packaged-smoke parity hardening (#98) that preceded it is
-**delivered**: the packaged desktop verification loads a self-contained fixture
-through the same application loading boundary a `File -> Open…` selection uses
-(`deepplant-editor <path>`) with no hidden presentation override.
+**Engineering Editor MVP** is the current product initiative: a local-first,
+standalone editor that lets process and piping engineers interactively author a
+bounded PFD and P&ID subset — with bidirectional YAML editing — while the semantic
+model remains authoritative. Its definition is in
+[docs/dev/planning/product.md](../docs/dev/planning/product.md), and it is pursued
+through the product milestones in
+[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md).
 
-That capability — Issue #97 — is now **delivered** as well: the standalone Editor
-launches directly into the ordinary shared Vue workspace with `active project =
-none`, the native Qt bootstrap/start page is gone, `File -> Open…` activates or
-replaces a document in the same long-lived server and webview, and the packaged
-no-model verification proves the real shared SPA empty state. Its successor
-remains **unselected**: the post-#97 re-evaluation gate is ready to execute but has
-not run yet;
-[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) remains the
-authority for current operational priority.
+Delivered so far (the Foundation milestone): the read-only Process/PFD editor
+(Issue #75), launched with `deepplant ui <path>`; the canonical frontend
+engineering contract and quality gates (#80 → #81 → #82); independent DeepPlant
+Core and standalone Windows/Linux distribution (Issue #85: the PR #92
+distribution foundation and the Issue #93 native desktop host, merged through PR
+#95); and the empty shared Editor workspace with `active project = none`
+(Issue #97).
+
+Not yet implemented: professional application-shell UX, semantic editing,
+bidirectional YAML editing, presentation persistence, and P&ID authoring. The
+UI/UX interaction architecture (Issue #69,
+[docs/dev/research/engineering-editor-ux.md](../docs/dev/research/engineering-editor-ux.md)),
+the reuse-first frontend architecture (Issue #70,
+[docs/dev/research/engineering-editor-reuse-architecture.md](../docs/dev/research/engineering-editor-reuse-architecture.md)),
+and the design-to-code workflow (PR #96,
+[docs/dev/frontend/design-to-code.md](../docs/dev/frontend/design-to-code.md)) are
+delivered as evidence/governance to be applied.
+
+The active milestone is owned by
+[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md); the next
+implementation Issue is selected during ordinary refinement without a planning
+gate ([planning/index.md](../docs/dev/planning/index.md)).
 
 ### Deferred / out-of-scope capabilities
 
@@ -124,9 +118,10 @@ of truth.
 - Engineering organizations that want Git-native review, CI, and validation for
   engineering deliverables.
 
-The Engineering Editor MVP v0.1 makes process and piping engineers interactive
-editor users now; the GUI is a product target, not an implemented capability.
-Simulation and broader DEXPI consumers remain outside this MVP.
+The Engineering Editor MVP makes process and piping engineers interactive
+editor users; the interactive authoring capability is a product target, not an
+implemented capability. Simulation and broader DEXPI consumers remain outside
+this MVP.
 
 ## Desired Outcome
 
@@ -163,13 +158,16 @@ reloading without loss. The GUI for this target does not exist yet.
 
 ### Current initiative
 
-Engineering Editor MVP v0.1 is a local-first, standalone browser SPA launched
-locally for semantic-model-first, file-based, Git-native interactive authoring of
-a deliberately bounded PFD and P&ID subset. Semantic, presentation/layout, and
-frontend-framework state must remain separate. The MVP must not assume manual
-YAML editing for its core workflow. The first executable slice (Issue #75) is
-delivered as a **read-only** Process/PFD editor; semantic editing, presentation
-persistence, and P&ID authoring are still unimplemented.
+Engineering Editor MVP is a local-first, standalone editor for
+semantic-model-first, file-based, Git-native interactive authoring of a
+deliberately bounded PFD and P&ID subset, with bidirectional YAML editing.
+Semantic, presentation/layout, and frontend-framework state must remain
+separate. The MVP must not assume manual YAML editing for its core workflow. The
+first executable slice (Issue #75) is delivered as a **read-only** Process/PFD
+editor; semantic editing, bidirectional YAML editing, presentation persistence,
+and P&ID authoring are still unimplemented. The MVP is pursued through the
+product milestones in
+[docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md).
 
 ### Deferred / out-of-scope capabilities
 
@@ -221,17 +219,19 @@ persistence, and P&ID authoring are still unimplemented.
   PyInstaller, Inno Setup, and `appimagetool` are build-time-only and must never
   become runtime dependencies (Issue #85).
 - Do not create empty architecture directories before real code exists.
-- Planning authority is repository-led: `VISION.md` →
-  `docs/dev/planning/product.md` → `docs/dev/planning/direction.md` →
+- Planning authority is repository-led and milestone-driven: `VISION.md` →
+  `docs/dev/planning/strategy.md` → `docs/dev/planning/product.md` →
   `docs/dev/planning/roadmap.md` → GitHub Issues → Pull Requests. The roadmap
-  owns current operational priority and sequencing (`Now`, `Next`, and explicit
-  re-evaluation gates); `direction.md` owns long-term capability progression; the
-  relevant GitHub Issue owns concrete executable scope. GitHub Project may
-  visualize derived horizons but is a non-canonical projection.
-  Documentation authority, audience, atomicity, and metadata conventions live in
+  owns the product milestones and the single active outcome; `direction.md` owns
+  long-term capability progression (context, not authorization); the relevant
+  GitHub Issue owns concrete executable scope. Creating an Issue does not
+  authorize implementation, and the next Issue is selected without a planning
+  gate (`docs/dev/planning/index.md`). GitHub Project may visualize derived
+  groupings but is a non-canonical projection. Documentation authority,
+  audience, atomicity, and metadata conventions live in
   `docs/dev/workflow/conventions.md`; the documentation migration inventory
-  lives in `docs/dev/workflow/documentation-migration.md`. Directional material
-  is product context, not implementation authorization: implement only the
+  lives in `docs/dev/workflow/documentation-migration.md`. Milestone material is
+  product context, not implementation authorization: implement only the
   currently scoped vertical slice.
 
 ## Risks

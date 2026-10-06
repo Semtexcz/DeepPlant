@@ -21,11 +21,11 @@ Project type: `script`. Runtime level: `shared`.
 Governance: `lightweight`. Workflow mode: `pr`.
 
 DeepPlant is past the project-foundation state. Work proceeds as small vertical
-changes, and the next step is deliberately reconsidered from the roadmap's
-current evidence. What exists today, and what each document owns, is recorded in
+changes toward the active product milestone. What exists today, and what each
+document owns, is recorded in
 [architecture.md](../architecture/index.md) (boundary map), the
 [contracts](../../contracts/index.md) (current obligations), and
-[roadmap.md](../planning/roadmap.md) (current state and next direction). Do not implement
+[roadmap.md](../planning/roadmap.md) (product milestones and the active outcome). Do not implement
 capabilities ahead of the slice that authorizes them.
 
 ## Change Loop

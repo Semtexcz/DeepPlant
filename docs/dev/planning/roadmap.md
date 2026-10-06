@@ -2,15 +2,21 @@
 type: roadmap
 status: active
 canonical_for:
-  - current-implementation-roadmap
+  - product-milestones
 read_when:
-  - roadmap-change
   - feature-planning
-  - next-task-selection
+  - roadmap-change
+  - milestone-progress
+update_when:
+  - milestone-change
+  - priority-change
 depends_on:
-  - docs/contracts/index.md
-  - docs/dev/architecture/index.md
+  - VISION.md
+  - docs/dev/planning/strategy.md
+  - docs/dev/planning/product.md
   - docs/dev/planning/index.md
+  - docs/dev/architecture/index.md
+  - docs/contracts/index.md
 decision: []
 evidence: []
 superseded_by: null
@@ -18,726 +24,359 @@ superseded_by: null
 
 # Roadmap
 
-> **Primary question:** What is DeepPlant's current execution-planning state?
+> **Primary question:** which **product outcome** is DeepPlant pursuing now, and
+> how do we know that outcome is finished?
 
-It answers that question through three aspects:
-
-1. **Current state** — a short summary; canonical facts live in
-   [contracts/](../../contracts/index.md) and [architecture.md](../architecture/index.md).
-2. **Immediate operational sequence** — the authorized next work and its order.
-3. **Unresolved evidence gaps** — questions whose evidence must precede another
-   executable task.
-
-It contains no dates, estimates, release promises, fixed sequence commitments, or
-completion percentages; GitHub Issues remain the place for executable tasks.
-Detailed completion records live in
-[history/implementation-slices.md](../history/implementation-slices.md), the
-long-term capability progression in [direction.md](direction.md), and planning
-governance in [planning.md](index.md). This document is the canonical source for
-current operational priority and horizons; GitHub Issues own detailed scope for
-concrete executable work.
-
-## Current State
-
-DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
-
-- the physical/plant model and its validation contract
-  ([contracts/plant-model.md](../../contracts/plant-model.md));
-- the process graph ([contracts/process-model.md](../../contracts/process-model.md));
-- physical piping realization over identified connections
-  ([contracts/physical-piping.md](../../contracts/physical-piping.md));
-- YAML load/save ([contracts/yaml-format.md](../../contracts/yaml-format.md)) and the
-  `validate` CLI ([contracts/cli.md](../../contracts/cli.md));
-- the basic headless read-only process renderer ([contracts/rendering.md](../../contracts/rendering.md))
-  and the `basic` SVG symbol-pack contract ([dev/reference/svg-symbols.md](../reference/svg-symbols.md));
-- the narrow DEXPI 2.0.0 Process adapter
-  ([dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md));
-- the first runnable, read-only Process/PFD editor slice
-  ([architecture.md](../architecture/index.md#engineering-editor-slice-implemented)):
-  a DeepPlant-owned Process/PFD projection (`src/deepplant/editor/projection.py`),
-  a framework-independent editor application
-  (`src/deepplant/editor/application.py`) with a thin, loopback-only FastAPI/Uvicorn
-  boundary (`src/deepplant/editor/api.py`), the `deepplant ui <path>` launcher,
-  and a Vue 3 + TypeScript + Vite + Vue Flow SPA under `apps/editor/` that serves
-  pan, zoom, fit view, single selection, a read-only semantic Inspector, and the
-  current validation status;
-- the canonical Python engineering contract and its deterministic guardrails
-  ([dev/python/](../python/index.md)) delivered by the #84 umbrella: the
-  capability-oriented Core/editor packages, the size/cohesion policy, and
-  `make architecture-check` (`tools/architecture_check.py`), which enforces the
-  logical-LOC hard limits and the semantic-Core import boundaries as part of
-  `make check` and the CI `python-checks` job;
-- the canonical frontend engineering contract and quality gates for that SPA
-  ([dev/frontend/](../frontend/index.md)), enforced by an ESLint flat-config gate
-  as part of `make frontend-check` and `make check`, and applied to the existing
-  frontend by the #81 refactor: a thin application composition root
-  (`apps/editor/src/App.vue`), a feature-owned Process/PFD page and canvas
-  boundary, explicit feature state ownership
-  (`process-pfd/composables/useProcessPfd.ts`), UnoCSS over semantic tokens, and
-  Vue component plus feature-integration tests;
-- a small Playwright + Chromium browser E2E layer (`apps/editor/e2e/`, `make
-  frontend-e2e`) that proves the critical editor workflow across the real local
-  product path: the production SPA build, the real `deepplant ui --port 0` CLI
-  over loopback FastAPI/Uvicorn, and real pointer interaction in the browser;
-- a standalone Editor **graphical desktop application** (Issue #85, delivered
-  through its two child slices): PR #92 established the self-contained
-  distribution foundation — the `deepplant-editor` entry point, packaging of the
-  unchanged editor as a self-contained Windows installer and a Linux AppImage
-  through the cross-platform `tools/package_editor.py` driver, native
-  packaged-artifact verification that runs outside the checkout with a sanitized
-  environment, native Windows/Linux CI packaging jobs, an application-owned built
-  SPA (`deepplant/editor/dist` inside the bundle) rather than a checkout
-  dependency, and the editor transport (FastAPI/Uvicorn) as an optional
-  `deepplant[editor]` extra so the semantic Core stays installable without it.
-  Issue #93, merged through PR #95, then delivered the native desktop host: PySide6 + Qt WebEngine
-  in the optional `deepplant[desktop]` extra, a native window embedding the same
-  `apps/editor/` SPA over the same loopback `EditorServer`, a native Open dialog
-  for `*.yaml`/`*.yml`, an optional model path, and
-  a window lifecycle that stops the owned server and releases the loopback socket.
-  Issue #97 then delivered the **empty shared workspace**: the native
-  bootstrap/start page was removed, the desktop host opens directly into the
-  ordinary shared Vue editor with `active project = none`, and `File -> Open…`
-  activates or replaces a document in the same long-lived server and webview. The
-  evidence and candidate comparison are in
-  [research/editor-desktop-host.md](../research/editor-desktop-host.md). The
-  browser host `deepplant ui` and the Python CLI remain separate surfaces.
-
-- the standalone Editor **empty shared workspace** capability (Issue #97): the
-  application layer owns an `EditorWorkspace` whose active document is optional
-  (`active project = none | loaded project`), one long-lived loopback
-  `EditorServer` serves the shared SPA across workspace changes, and the native
-  desktop host opens directly into the ordinary Vue editor - canvas, Inspector,
-  status strip and an explicit neutral "no project open" state - with no native
-  start page and no second editor UI. `File -> Open…` activates a document in the
-  existing session, and the packaged no-model launch verifies the real shared SPA
-  empty state.
-
-Not implemented: a DeepPlant project format (canonical project directory, manifest,
-or portable `.deepplant` package); semantic editing and any semantic mutation
-command; presentation persistence; undo/redo; P&ID rendering and physical/P&ID
-symbols; automatic updates, code signing, release automation, store/package
-publishing, and macOS distribution; full DEXPI and Plant/P&ID import/export;
-other vendor adapters (COMOS, AVEVA); instrumentation and signal semantics;
-engineering rules; and the process ↔ physical realization mapping. The
-authoritative boundary map, including directional-but-unimplemented components,
-is [architecture.md](../architecture/index.md).
-
-## Completed
-
-Delivered slices are recorded in
-[history/implementation-slices.md](../history/implementation-slices.md) and, for
-evidence-heavy slices, in the linked spike/decision documents.
-
-- **#98 packaged-smoke parity** ([Issue #98](https://github.com/Semtexcz/DeepPlant/issues/98)):
-  the packaged desktop verification loads a self-contained fixture
-  (`examples/process-graph/plant.yaml`) through the same application loading
-  boundary a `File -> Open…` selection uses (`deepplant-editor <path>`) with no
-  hidden `--symbol-role` presentation override, so the automated packaged evidence
-  uses the end-user workflow's model-loading and presentation semantics. The
-  automation does not drive the native file dialog; the same fixture is
-  reproducible by hand through `File -> Open…`.
-- **#97 empty shared Editor workspace** ([Issue #97](https://github.com/Semtexcz/DeepPlant/issues/97)):
-  the standalone Editor launches directly into the ordinary shared Vue workspace
-  with an explicit `active project = none` state, and `deepplant-editor <path>`
-  activates a document in that same session. The native bootstrap/start page was
-  removed; one long-lived server and one webview serve both workspace states, so
-  opening or replacing a project leaks no server, socket, webview or window. The
-  packaged no-model launch proves the real shared SPA empty state, the Issue #98
-  loaded-model smoke path is preserved unchanged, and a packaged
-  **project-replacement regression** now proves the long-lived session invariant
-  directly: one session opens the canonical fixture, replaces it with a
-  distinguishable model, then attempts an invalid model, while the native window,
-  webview, server, origin, port and listening socket are unchanged across all of
-  it.
-
-## Operational Roadmap
-
-### Now
-
-[#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97)
-is **delivered**. The standalone Editor opens directly into the ordinary shared
-Vue workspace with `active project = none`, the native Qt bootstrap/start page is
-gone, `File -> Open…` activates or replaces a document in the existing session,
-and the packaged Linux/Windows verification proves the real shared SPA empty
-state, the loaded-model smoke path, and - since the #97 review - the
-project-replacement lifecycle (the one session's window, webview, server, origin,
-port and listening socket are unchanged while project A is replaced by project B
-and an invalid open leaves project B active).
-
-The previous `Now` items are all complete:
-
-[#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85)
-is **complete**. Its two child slices are delivered: the self-contained
-Windows/Linux distribution foundation (PR #92), and Issue #93's native desktop
-host, merged through PR #95. The host keeps one shared Vue SPA, adds the native
-window/Open workflow and clean owned-server shutdown, and does not change the
-semantic Core.
-
-The post-#85 gate was **executed** and its sequence is now fully delivered: the
-packaged-smoke parity hardening below, and the one selected product capability -
-the empty shared Editor workspace (Issue #97).
-
-#### Immediate evidence hardening — packaged smoke parity (delivered)
-
-[#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
-is **delivered**: the packaged desktop verification now loads a self-contained
-fixture (`examples/process-graph/plant.yaml`) through the same application
-loading boundary a `File -> Open…` selection uses, with no hidden CLI-only
-presentation override. The automated path supplies the fixture with
-`deepplant-editor <path>`; it never drives the native file dialog.
-
-The realistic fixture still needs the transient presentation override
-`PS-vessel → vessel` because `PS-vessel.function: unspecified` is valid
-engineering semantics but has no default Process/PFD symbol role. That boundary is
-correct and was preserved: no process function was invented and no global
-`unspecified → vessel` mapping was added. The fixture/workflow changed, not the
-semantic or presentation model boundary.
-
-#### Selected product capability — empty shared Editor workspace (delivered)
-
-[#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97)
-is **delivered**. The standalone Editor launches directly into the ordinary shared
-Vue application with an explicit **`active project = none`** workspace state, so a
-project is optional within an Editor session:
+The roadmap is organized around **product milestones**, not a sequence of
+completed Issues. A milestone is an outcome an engineer can experience; its
+success criteria describe demonstrable behavior, and a milestone is **not**
+complete merely because the Issues linked to it were merged.
 
 ```text
-Editor workspace/session
-  ├── no project open
-  └── project open
+VISION.md          why DeepPlant exists            →
+strategy.md        who it is for, and the choices  →
+product.md         what the first MVP must do       →
+roadmap.md         the milestones we build toward   →  (this document)
+GitHub Issues      bounded, executable work         →
+Pull Requests      delivered, verified capability   →
 ```
 
-Delivered exactly as scoped: the native Qt bootstrap/start page was removed, one
-long-lived server and one webview serve both workspace states, `deepplant-editor
-<path>` activates a document in the same session, a failed `File -> Open…` leaves
-the previous document active, and the packaged no-model verification proves the
-real shared SPA empty state. No project format, Save, mutation, or persisted
-presentation state was added.
+This document contains no dates, deadlines, duration estimates, horizons, or
+scheduled review intervals. Historical delivery is recorded in
+[history/implementation-slices.md](../history/implementation-slices.md); the
+long-term capability progression in [direction.md](direction.md); the product
+target in [product.md](product.md); the strategy in [strategy.md](strategy.md);
+and planning governance in [index.md](index.md).
 
-Manual AppImage evidence also confirms that semantic validity and Process/PFD view
-availability are distinct: a model can remain `Model: Valid` while no current view
-can be produced. That is architecturally correct and is recorded as the near-term
-UX candidate [#99](https://github.com/Semtexcz/DeepPlant/issues/99); the delivered
-slice kept it distinct - an empty workspace and an unprojectable document are
-different states - but did not implement that UX.
+## Milestones at a glance
 
-Strong candidates for the **following** gate, not commitments, are:
+| Milestone | Status |
+|---|---|
+| Foundation | **Delivered** |
+| Integrated Engineering Workspace | **Active** |
+| Project Persistence and Bidirectional Authoring | Planned (not authorized) |
+| Functional PFD/P&ID Authoring | Planned (not authorized) |
+| MVP Acceptance | Planned (not authorized) |
 
-```text
-#89 — DeepPlant project format and portable package
-first semantic mutation + Save
-presentation-state persistence
-semantic-validity vs view-availability UX (#99)
-#88 — release/version infrastructure
-P&ID
-process ↔ physical realization
-```
+"Delivered" states observable repository facts owned by
+[architecture.md](../architecture/index.md) and the [contracts](../../contracts/index.md),
+not a roadmap promise. "Planned" means the outcome is the intended direction;
+work in it is authorized only by a selected, refined Issue
+([index.md](index.md)).
 
-#89 is an especially strong candidate: the workspace now has a first-class notion
-of what document it opens, future Save/Open needs a persistence contract, and
-manual testing confirms presentation state must eventually persist separately from
-process semantics. **Strong candidate != preselected successor.** The existing
-boundaries remain unchanged: `Process/PFD != Physical/P&ID != Simulation`,
-`ProcessStep != Equipment`, `ProcessPort != physical Port/Nozzle`,
-`ProcessStream != Connection/PipingLine`, and engineering semantics != presentation
-state.
+## Foundation — Delivered
 
-### Next
+**Outcome.** DeepPlant has a semantic core, a headless toolchain, and a runnable,
+distributable, read-only editor over it.
 
-- **Unselected.** Do not preselect the successor to the empty-workspace slice.
-  Issue #97 is delivered, so the re-evaluation gate below is **ready to execute**;
-  a separate evidence-based re-evaluation selects the next capability, and no
-  candidate (#89, #99, #88, or any other) is promoted here.
+Delivered capabilities (facts owned by [architecture.md](../architecture/index.md)
+and the [contracts](../../contracts/index.md)):
 
-### Re-evaluation Gate
+- the physical/plant model, process graph, and physical piping realization;
+- YAML load/save and the `validate` CLI;
+- the `basic` SVG symbol pack and the headless read-only process renderer;
+- the narrow DEXPI 2.0.0 Process adapter;
+- the read-only Process/PFD editor: `deepplant ui <path>`, the framework-independent
+  editor application with a loopback-only FastAPI/Uvicorn boundary, and the
+  Vue 3 + TypeScript + Vite + Vue Flow SPA under `apps/editor/`;
+- the canonical Python and frontend engineering contracts with enforced quality
+  and size guardrails;
+- standalone Windows/Linux desktop distribution (`deepplant-editor`) and the
+  empty shared Editor workspace (`active project = none`).
 
-The post-#97 re-evaluation gate is **ready to execute** and has **not** been
-executed yet. It must select the next capability from the current implemented
-capabilities, the current roadmap horizon goals, unresolved evidence gaps,
-existing realistic examples/prototypes, and accepted ADRs - not by mechanically
-promoting the next backlog row.
-The previous re-evaluation gate was executed after #39, #69, and #70 were
-delivered.
+Detailed slice provenance is in
+[history/implementation-slices.md](../history/implementation-slices.md).
 
-Outcome:
-[#75 — Engineering Editor: first interactive Process/PFD vertical slice](https://github.com/Semtexcz/DeepPlant/issues/75)
-was selected as the smallest executable slice and is delivered.
+## Active Milestone — Integrated Engineering Workspace
 
-Process/PFD had the strongest complete executable substrate:
+**Outcome.** An engineer works inside one coherent, professional desktop
+application: a project/engineering explorer, editor tabs that move between the
+Process/PFD view and the physical/P&ID view, a YAML surface, a contextual
+Inspector, and a Problems/diagnostics area — with explicit application, project,
+document, and view states. The editor reads and feels like one application, not
+a graph widget beside a text box.
 
-- `ProcessModel`
-- structural validation
-- realistic process example
-- deterministic headless renderer
-- Process/PFD SVG symbol/anchor contract
-- completed UX architecture (Issue #69,
-  [engineering-editor-ux.md](../research/engineering-editor-ux.md))
-- completed reuse-first GUI architecture (Issue #70,
-  [engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md))
+This milestone delivers the **integrated application shell and navigation**,
+including the intended PFD/P&ID/YAML workspace structure. It does **not** deliver
+a working P&ID or YAML editor. The existing read-only Process/PFD view remains
+available; the physical/P&ID and YAML surfaces appear in the shell as explicitly
+unavailable or non-editable placeholders whose unsupported capabilities are
+clearly communicated. No functional P&ID or YAML authoring is implied or
+required, and no premature semantic model, synchronization, or
+project-persistence implementation is authorized here.
 
-The physical/P&ID side does not yet have an equivalent physical presentation /
-symbol contract, so the first GUI slice remains Process/PFD-only.
+**User value.** Today the editor exposes a single read-only Process/PFD
+projection. Before authoring capability is layered on, the user needs a real
+application surface: somewhere to navigate a project, see what is open, tell
+valid-but-unrenderable states apart from errors, and reach the surfaces the
+later milestones will make editable. Without this, persistence and bidirectional
+authoring would be added to a screen that cannot yet present them coherently.
 
-The process ↔ physical realization boundary evidence that preceded this gate is
-[process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
-and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md).
-Quantity implementation, DEXPI 2.0.1, port kinds, physical/P&ID GUI,
-rules, and semantic diff remain unpromoted. No successor is preselected; selection follows
-from the current repository state and the delivered evidence, not from a backlog
-row.
+**Demonstrable success criteria** (each must be observable in the running
+application, not inferred from merged Issues):
 
-The re-evaluation from the #75 implementation evidence identified that the
-delivered read-only slice needed foundation hardening before more product
-functionality was layered on it. Its outcome selected
-[#79 — Bug: Engineering Editor architecture is inconsistent with the existing
-DeepPlant application structure](https://github.com/Semtexcz/DeepPlant/issues/79)
-as the next executable slice, followed by the dependency-ordered
-frontend-engineering work #80 → #81 → #82. #79, #80, #81 and #82 are now
-delivered, so the quality-hardening sequence is complete.
+1. The application presents a coherent shell with an engineering explorer,
+   editor tabs, the existing Process/PFD view, a physical/P&ID view surface, a
+   YAML surface, an Inspector, and a Problems area. The physical/P&ID and YAML
+   surfaces are present as explicit placeholders that state they are not yet
+   editable — they are not working editors.
+2. Navigation between surfaces keeps one active project/document context; the
+   user can tell what project and what document are open.
+3. Application, project, and view states are explicit: empty/no project, loading,
+   loaded, error, and unsaved are distinguishable.
+4. Semantic validity and Process/PFD view availability are shown as **distinct**
+   states, so a valid-but-unprojectable model is not presented as an error
+   (Issue #99).
+5. The workspace remains local-first and read-consistent with the semantic core;
+   no surface becomes a second engineering model.
 
-#### Re-evaluation after #82 (executed)
+**Status of the criteria.** None of these are implemented today; they describe
+the outcome the milestone must demonstrate. The Process/PFD canvas, the
+Inspector, and the status strip already exist. The physical/P&ID and YAML
+surfaces do not yet exist even as placeholders, and this milestone adds them only
+as explicitly unavailable/non-editable surfaces: criterion 1 requires the
+placeholder to be present and to communicate that it is not yet editable, not
+that it works.
 
-The gate that opened after #82 is now executed. It selects exactly one product
-capability:
+**Genuine dependencies.** The delivered read-only editor slice, its
+`EditorWorkspace`/`EditorServer` session model, the frontend engineering contract
+([frontend/index.md](../frontend/index.md)), the interaction architecture
+(Issue #69, [engineering-editor-ux.md](../research/engineering-editor-ux.md)),
+the reuse-first frontend architecture (Issue #70,
+[engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)),
+and the design-to-code workflow (PR #96,
+[design-to-code.md](../frontend/design-to-code.md)). None of these has to be
+redone; the milestone applies them.
 
-[#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85)
+**Relevant existing Issues.**
 
-This outcome corrects an earlier draft of this same gate. That draft selected #89
-(project format + portable package) and classified #85 as a strategic later
-capability. Review found that this deferred #85 despite #85's explicit
-requirement that standalone distribution be proven before the editor grows
-further. The decision was therefore re-evaluated against Issue #85 itself and the
-then-current checkout-dependent editor runtime: the delivered editor was verified
-through `production SPA → real deepplant ui → FastAPI/Uvicorn → Chromium`, but it
-ran only from a development checkout (`uv run deepplant ui ...`) and resolved the
-built SPA assets from `apps/editor/dist` inside that checkout. The strongest
-missing evidence was therefore standalone distributability, not project
-persistence. Both #85 implementation slices are now delivered — the self-contained
-distribution foundation and the native desktop host (see
-[history/implementation-slices.md](../history/implementation-slices.md)); the
-checkout coupling described here was the gap the first slice closed, and #85 is
-complete.
+- [#99 — distinguish semantic validity from Process/PFD view availability](https://github.com/Semtexcz/DeepPlant/issues/99)
+  directly supplies criterion 4 and is the clearest bounded starter slice.
 
-Reasoning: the delivered editor (#75 → #79 → #80 → #81 → #82) proves the read
-path `load → semantic model → application/projection boundary → FastAPI →
-production SPA → Vue Flow → browser interaction`. That establishes the
-application architecture well enough to test the next architectural claim: can
-this actually be shipped to an engineering user without a development checkout?
-The missing product path is
+**Evidence gaps.**
 
-```text
-download
-  ↓
-install / launch
-  ↓
-open current supported model
-  ↓
-use editor
-  ↓
-close
-```
+- The professional application shell and its states are not yet designed; the
+  visual specification is a separate implementation concern (the design-to-code
+  workflow is the route, not this milestone).
+- The physical/P&ID and YAML surfaces are in scope as explicit placeholders only.
+  This milestone fixes that boundary: they are present in the shell and clearly
+  marked as not yet editable. Making them functional is authorized only by the
+  later authoring milestones.
+- Presentation-state persistence is explicitly out of this milestone; it belongs
+  to the persistence milestone.
 
-without requiring the user to install Python, Node.js, pnpm/npm, uv/pip,
-compilers, or development SDKs. Packaging problems often expose hidden coupling —
-repository-relative frontend paths, Python runtime assumptions,
-package-data/resource discovery, frontend asset location, subprocess/process
-lifecycle assumptions, filesystem/current-working-directory assumptions,
-platform-specific launcher behavior, desktop-shell requirements, Windows process
-behavior, Linux runtime dependencies — and those problems are cheaper to
-discover while the application is still small, read-only, well tested, and
-architecturally bounded than after adding semantic mutation, persistent
-presentation state, multi-file projects, P&ID, and larger editor infrastructure.
-That is why #85 is selected now: packaging is an application-architecture test,
-not release polish.
+**Why this milestone is active (justification).** The Foundation milestone is
+delivered, and the remaining MVP work — persistence, bidirectional authoring,
+and graphical PFD/P&ID editing — all require a surface to live in. Selecting the
+**workspace** first makes the subsequent milestones additive rather than
+speculative, and it is the smallest outcome that produces a usable application
+rather than more backend capability. Issue #89 (project format) is a strong and
+necessary capability, but it is an **enabling** concern for persistence, not the
+product outcome; selecting it as the strategic objective would optimize a format
+before the application that consumes it is coherent. The active milestone is
+therefore the workspace, and #99 is its natural first refinement.
 
-Issue #85 contains two related concerns, and the gate re-evaluates them
-separately against the current repository state:
+## Planned Milestones
 
-- **A. Independent Core boundary — verify and preserve, not redesign.** Much of
-  this is already supported by the delivered architecture: the semantic model
-  (`src/deepplant/`) stays usable from Python and CLI without the GUI, and the
-  dependency direction is `Vue → FastAPI transport → EditorApplication →
-  DeepPlant semantic/core code`. The #85 implementation must verify and preserve
-  that boundary (for example a test importing representative Core behavior
-  without the editor), **not** create a large Core refactor merely because #85
-  mentions Core independence.
-- **B. Standalone distribution — the major unresolved evidence gap.** The first
-  #85 implementation answers: can today's real read-only editor be built and run
-  as a self-contained Windows and Linux application? That is the capability that
-  justifies selecting #85.
+These are intended directions. Nothing here is authorized: work begins only when
+a refined, Ready Issue is selected ([index.md](index.md)). Order reflects
+dependencies and evidence, not a fixed schedule.
 
-`deepplant ui <plant.yaml>` already gives the standalone distribution slice a
-sufficient input contract: it can open today's supported YAML model. The slice
-does not depend on the final project format, and standalone application
-packaging must not be made to depend on it merely because a later editor will
-need richer Open/Save semantics.
+### Project Persistence and Bidirectional Authoring
 
-Candidate classification (evidence-based; not issue number or recency):
+**Outcome.** A DeepPlant project can be created, opened, edited, saved, closed,
+and reopened without losing supported semantic or presentation state; and YAML
+and the graphical editors are two views of one accepted model, where a YAML edit
+updates the accepted graph and a graphical edit is reflected in YAML.
 
-- **#85 independent Core boundary + standalone editor distribution — selected
-  product Now.** The repository now exposes a standalone-distributability
-  evidence gap that #85 explicitly requires closing early.
-- **#77 product philosophy — not product Now.** Valuable independent
-  governance/documentation work and a decision framework; not a prerequisite for
-  #85 and not itself the next product capability.
-- **#84 Python engineering standards — not product Now.**
-  Engineering-maintenance / developer-quality work; useful before substantial new
-  Python code, but it answers a developer-quality question rather than a
-  user/product one and does not block #85.
-- **#88 versioning / changelog / releases — not product Now.** Release
-  infrastructure; it becomes valuable before mature automated publishing of the
-  artifacts #85 makes possible, but it is not a prerequisite for the first
-  standalone build.
-- **#89 project format + portable package — strong later product candidate.**
-  Strategically important before richer mutation/Open/Save and persistence work,
-  but application distribution and project serialization produce evidence
-  independently; #89 is not a prerequisite for the first standalone build and is
-  not preselected as the successor.
+The synchronization and persistence architecture is proven with **one real
+vertical workflow**: one supported Process/PFD semantic mutation, performed
+graphically, represented in YAML, propagated bidirectionally through the accepted
+canonical `ProcessModel`, and verified by save/reload. This milestone proves the
+mechanism with that single command; it does **not** claim the full PFD/P&ID
+editing set, which the next milestone expands.
 
-Dependencies supported by current evidence (not a fabricated serial chain):
+**User value.** This is what makes the "one model, many surfaces" proposition
+real and Git-reviewable. It is the core strategic bet of the MVP.
 
-```text
-#85 (standalone distribution)
-      proves standalone build / distribution architecture
-      preserves the already-established Core boundary
-      consumes today's supported input: plant.yaml
+**Demonstrable success criteria.**
 
-#88 (release / version contract)
-      later provides automated release / version orchestration
-      for the distributable artifacts #85 makes possible
+- Create/Open/Edit/Save/Close/Reopen works for a real project, and a reopened
+  project matches what was saved (no silent loss of supported semantic state or
+  presentation state).
+- A YAML edit that is accepted updates the graphical view of the accepted model.
+- A graphical engineering change is reflected in YAML.
+- The single bounded vertical slice is demonstrated end to end: creating one
+  supported process step — a `ProcessStep` with an authored `id` and a supported
+  `function` — is performed through the UI, appears as the corresponding
+  `process.steps` entry in YAML, propagates bidirectionally through the accepted
+  `ProcessModel`, and survives save/reload.
+- Invalid YAML can exist as a temporary editing draft and does **not** corrupt
+  the last accepted model.
+- Unsaved state and synchronization conflicts are communicated clearly.
+- Serialized changes are meaningful and reviewable in Git.
 
-#89 (project contract)
-      later defines the durable engineering project representation
-      that richer Open/Save operates on
+**Genuine dependencies.** Project Persistence and Bidirectional Authoring
+depends on the Integrated Engineering Workspace (the surfaces it authorizes) and
+on a project/persistence contract. It does **not** depend on Functional PFD/P&ID
+Authoring: it introduces the one bounded graphical mutation it needs directly, so
+the two milestones are not circular.
 
-later editor capabilities
-      consume evidence from both #85 and #89
-```
+**Relevant existing Issues.**
 
-`#88 → #85` and `#89 → #85` are **not** hard dependencies: the repository already
-carries an application version (`0.1.0`) sufficient for versioned development
-artifacts, and today's `plant.yaml` input is sufficient to verify the standalone
-application architecture. #85 may later feed #88 (publishing the artifacts #85
-makes possible) and #89 may later define what richer Open/Save operates on, but
-neither blocks the first #85 implementation. #77 and #84 remain independent
-governance/maintenance work and are also not prerequisites of #85.
+- [#89 — Define the DeepPlant project format and portable package](https://github.com/Semtexcz/DeepPlant/issues/89)
+  is the existing project-format initiative. The canonical directory-first
+  format and any portable package stay conceptually distinct from the
+  application's own distribution format.
 
-Unresolved future concern recorded by this gate (belongs to #89/future
-persistence evidence, not to #85): a DeepPlant project will eventually need to
-store presentation state (diagram positions, layout, per-view overrides, possibly
-multiple diagrams/views). Presentation state is **not** semantic engineering
-state; that must not become a reason to block #85. #89 must create a
-project-level place where such state can later live **without** forcing the exact
-presentation schema now.
+**Evidence gaps.** Comment preservation, formatting fidelity, key ordering,
+stable identifiers, and Git-diff quality must be investigated **before** a YAML
+synchronization implementation is chosen (see
+[product.md](product.md#bidirectional-yaml-editing)). No generic synchronization
+framework is designed here.
 
-#### #85 child slices (decomposition)
+### Functional PFD/P&ID Authoring
 
-Recorded for the #85 implementation; **not** implemented by this planning fix.
-#85 is one umbrella capability, not one mandatory PR, and it is decomposed into
-child implementation slices:
+**Outcome.** Building on the single Process/PFD command demonstrated by Project
+Persistence and Bidirectional Authoring, an engineer can create, connect, select,
+modify, validate, and persist bounded `ProcessModel` objects in the PFD and a
+small supported physical subset (equipment, ports, connections, piping, a minimal
+valve concept) in the P&ID, without collapsing process intent into physical
+realization. This milestone **expands** the demonstrated mutation → YAML →
+save/reload mechanism into the bounded MVP editing set; it does not retroactively
+supply a prerequisite the earlier milestone lacked.
 
-```text
-#85 — Establish independent DeepPlant Core and standalone editor distribution
-  ├── distribution foundation        delivered by PR #92
-  │     independent Core boundary
-  │     editor dependency boundary
-  │     bundled Python runtime
-  │     bundled Vue SPA
-  │     checkout-independent resources
-  │     Windows installer
-  │     Linux AppImage
-  │     native packaging CI
-  │     packaged smoke/E2E
-  └── native desktop host            Issue #93, merged by PR #95
-        graphical application window
-        embedded shared Vue frontend
-        native Open workflow
-        no required external browser
-        desktop lifecycle
-```
+**User value.** This is the editing capability the product thesis promises; it
+turns the workspace into a real engineering editor.
 
-The first slice preserved the existing browser-hosted runtime, because its
-immediate goal was to prove self-contained Windows/Linux packaging without
-changing the product UI host. The second slice then changed only the host:
+**Scope.** On top of the single mutation proven by the persistence milestone,
+this milestone adds:
 
-```text
-distribution foundation (PR #92)
-packaged executable → local FastAPI/Uvicorn → external browser
+- additional Process/PFD commands (create/delete steps, connect/disconnect
+  streams, edit properties);
+- physical equipment editing;
+- physical ports and connections;
+- basic piping;
+- bounded P&ID interactions;
+- the relevant validation and persistence.
 
-delivered product (Issue #93, merged by PR #95)
-packaged executable → native desktop host → embedded shared Vue SPA
-```
+**Demonstrable success criteria.**
 
-Both slices carry automated evidence proving the packaged product. #85 is
-complete.
+- The bounded PFD workflow (create/delete steps, connect/disconnect streams,
+  select, move, edit properties, validate) modifies the canonical `ProcessModel`
+  and survives save/reload.
+- The bounded P&ID workflow modifies the physical/piping model and survives
+  save/reload.
+- The process and physical layers remain separate
+  (`ProcessStep != Equipment`, `ProcessStream != physical piping`,
+  `ProcessPort != physical Port/Nozzle`), with no merged source of truth.
 
-Deliberately excluded from the first slice (and from this selection): automatic
-updates, code signing, Microsoft Store / Flatpak / Snap publishing, PyPI
-publishing, commercial licensing, repository separation, complete public Python
-API stabilization, complete editor functionality, semantic editing, Save, and the
-project format. The product capability being selected is: *prove the standalone
-application architecture now, while the editor is still small.*
+**Genuine dependencies.** Project Persistence and Bidirectional Authoring, which
+demonstrates the mutation → YAML → save/reload mechanism with one command, and
+the integrated workspace. This milestone expands that demonstrated mechanism; it
+is not a prerequisite the earlier milestone waits on.
 
-The exact packaging technology is deliberately **not** selected here. No current
-repository evidence decides it; technology selection belongs to the #85
-implementation investigation (potential candidates may be evaluated there).
+**Relevant existing Issues.**
 
-At that time — before #85 was delivered — this post-#82 gate preselected no
-successor product capability after #85 and created no successor Issue itself (see
-**Now** and **Next**); successor selection was deliberately deferred to the later
-post-#85 re-evaluation, which has since executed and selected
-[#97](https://github.com/Semtexcz/DeepPlant/issues/97).
+- [#94 — Guided P&ID Design](https://github.com/Semtexcz/DeepPlant/issues/94)
+  is broader rule-driven P&ID work; it is context for what lies beyond the MVP,
+  **not** a milestone-defining requirement. The MVP P&ID subset remains
+  intentionally narrow.
 
-#### Re-evaluation after #85 (executed)
+**Evidence gaps.** The precise supported P&ID symbol subset and the valve
+concept must follow the existing semantic model and ADR-0016; no new semantic
+concepts are introduced to make editing easier.
 
-The gate that opened after #85 completed is now executed. It selects exactly one
-product capability, preceded by immediate verification hardening. The chronology is
-explicit:
+### MVP Acceptance
 
-```text
-Re-evaluation after #82 (executed)
-    ↓
-selected #85
+**Outcome.** The complete end-to-end engineering workflow is demonstrated in the
+real application: create/open a project, edit a PFD, edit YAML and observe the
+accepted graphical change, edit a bounded P&ID, validate the model, save, close
+and reopen DeepPlant, verify semantic and presentation persistence, and inspect
+meaningful Git changes.
 
-#85 delivered
-    ↓
-Re-evaluation after #85 (executed)
-    ↓
-selected #97
-    (preceded by #98 packaged-smoke parity)
+**User value.** This is the first point at which DeepPlant is a usable product
+rather than a set of capabilities, and the point at which the strategy
+hypotheses in [strategy.md](strategy.md) receive real evidence.
 
-#98 delivered
-    ↓
-#97 delivered
-    ↓
-Re-evaluation after #97 (ready to execute, not yet run)
-    ↓
-next capability unselected
-```
+**Demonstrable success criteria.** The full scenario above, performed in the
+running application, with the acceptance scenario in
+[product.md](product.md#end-to-end-mvp-acceptance) as the canonical definition.
 
-- **Immediate evidence hardening** (not a product capability):
-  [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
-  is **delivered**;
-- **Selected product capability (delivered):**
-  [#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97).
+**Genuine dependencies.** All prior milestones.
 
-**Next** stays unselected. The post-#97 re-evaluation gate is ready to execute but
-has not run yet, so a separate evidence-based re-evaluation selects the successor.
-Packaged-smoke parity (#98) is delivered: the packaged verification loads
-the self-contained fixture through the same application loading semantics as the
-ordinary `File -> Open…` workflow, and the no-model launch now proves the shared
-SPA's empty workspace. The strong future
-candidates — the project format/portable package (#89), the first semantic
-mutation + Save, presentation-state persistence, semantic validity vs Process/PFD
-view availability (#99), release/version infrastructure (#88), P&ID, and
-process ↔ physical realization — remain candidates only and are not preselected.
+**Relevant existing Issues.** None required to define it; acceptance is the
+demonstration, and supporting Issues are selected during refinement.
 
-### Completed Context
+**Evidence gaps.** Real-user usability of the workflow is the assumption under
+test; until then, acceptance is an internal demonstration, not validated demand.
 
-- **Issue #82 is delivered (browser E2E):** the Engineering Editor now has a real
-  browser system/browser test layer. A minimal Playwright (`@playwright/test`,
-  Chromium only) suite lives in the new `apps/editor/e2e/` root — deliberately
-  outside the Vitest `tests/` tree — and runs through `make frontend-e2e`
-  (`pnpm e2e`), which installs from the committed lockfile, builds the production
-  SPA, and then starts the real user-facing `uv run deepplant ui
-  examples/realistic-process-fragment/plant.yaml --symbol-role PS-vessel=vessel
-  --port 0` CLI. Readiness is the CLI's own announced loopback URL (no fixed port,
-  no readiness sleep), and the started process group is always stopped (SIGTERM
-  then bounded SIGKILL). Two tests prove (1) the realistic fragment renders 7
-  `ProcessStep`s and 7 `ProcessStream`s with `Valid` semantics, `Fit view` works,
-  and selecting `PS-pump` then `S-004` through the real rendered graph yields the
-  correct semantic Inspector fields, and (2) a semantically valid model whose
-  `PS-vessel` presentation role is unresolvable still reports `Valid` while
-  showing the projection error as a separate alert. The suite uses DeepPlant-owned
-  accessible names (`Process step <id>` / `Process stream <id>`, supplied by the
-  adapter) as resilient selectors, adds no mocks, and touches no transport,
-  domain, or architecture. `make check` still never downloads a browser; a
-  dedicated CI job installs Chromium and runs the suite, uploading trace,
-  screenshot, and server-log artifacts only on failure. See
-  [frontend/testing.md](../frontend/testing.md).
-- **Issue #81 is delivered (frontend refactor, unocss, component and integration
-  tests):** the #80 contract was applied to the existing editor frontend without
-  changing product behaviour. `App.vue` is now a thin application composition
-  root; the Process/PFD feature separates page composition, components,
-  composables, transport and view models inside its own module, owning feature
-  state (`process-pfd/composables/useProcessPfd.ts`), transport
-  (`transport/api.ts`) and runtime contract narrowing
-  (`transport/projection-contract.ts`); Vue Flow stays behind the canvas
-  and adapter boundaries and emits semantic ids only; UnoCSS over semantic
-  `--dp-*` tokens replaced broad global feature CSS; and Vue component plus
-  feature-integration tests were added alongside the DOM-free pure suites. See
-  [history/implementation-slices.md](../history/implementation-slices.md).
-- **Issue #80 is delivered (frontend engineering contract and quality gates):**
-  the canonical, repository-owned frontend engineering contract now lives in
-  [docs/dev/frontend/](../frontend/index.md) (architecture and feature ownership,
-  Vue/component/composable conventions, state ownership, effects and watchers,
-  TypeScript safety, the selected UnoCSS styling direction, the testing pyramid,
-  and accessibility), with a single canonical review checklist. It is enforced by
-  a real ESLint flat-config gate (`apps/editor/eslint.config.js`, `make
-  frontend-lint`) that is part of `make frontend-check` and therefore `make
-  check`, and that implements the hard size/cohesion limits. A tool-neutral
-  `frontend-engineering` agent skill routes to the contract. No editor product
-  behaviour was intentionally changed and no #81 refactor was performed. See
-  [history/implementation-slices.md](../history/implementation-slices.md).
-- **Issue #79 is delivered (foundation hardening):** the Engineering Editor
-  architecture now matches the repository structure. The browser editor is an
-  explicit standalone application under `apps/editor/` instead of an
-  unclassified root-level `frontend/` tree, and the custom `http.server` editor
-  adapter was replaced by a thin FastAPI application factory
-  (`create_editor_api`) served by Uvicorn on loopback only. Engineering behaviour
-  stayed in `EditorApplication` and below it — now factored into the
-  framework-independent `src/deepplant/editor/application.py` with the transport
-  in `src/deepplant/editor/api.py` — so the semantic core and the CLI
-  remain usable without the GUI, and no editor capability was added. See
-  [history/implementation-slices.md](../history/implementation-slices.md) and
-  [architecture.md](../architecture/index.md#engineering-editor-slice-implemented).
-- **Issue #75 is delivered:** the first runnable, read-only Process/PFD editor
-  slice shipped — a DeepPlant-owned Process/PFD projection
-  (`src/deepplant/editor/projection.py`), a loopback-only local application
-  boundary (`src/deepplant/editor/app.py`, later split into the
-  framework-independent `src/deepplant/editor/application.py` and the
-  FastAPI/Uvicorn `src/deepplant/editor/api.py` in Issue #79), the
-  `deepplant ui <path>` launcher, and a Vue 3 +
-  TypeScript + Vite + Vue Flow SPA under `apps/editor/`. It is read-only
-  (pan/zoom/fit/selection/Inspector/validation status) and delivered no semantic
-  editing, presentation persistence, undo/redo, P&ID rendering, or process ↔
-  physical realization. See
-  [history/implementation-slices.md](../history/implementation-slices.md).
-- **Issue #68 is delivered:** the Engineering Editor MVP v0.1 is bounded in
-  [product.md](product.md), including the PFD/P&ID subsets, semantic
-  source-of-truth interaction direction, user journey, non-goals, and Issue
-  #39 relationship. It authorized no GUI implementation; the first GUI slice was
-  later authorized by Issue #75.
-- **Issue #69 delivered design/evidence:** the minimalist Engineering Editor
-  UI/UX interaction architecture is recorded in
-  [research/engineering-editor-ux.md](../research/engineering-editor-ux.md)
-  (canvas-dominant minimum permanent chrome, one command direction, four
-  separated state kinds, engineering-concept explorer, PFD/P&ID editor views,
-  cardinality-neutral related-object navigation, shared command surface, and the
-  MVP/later/not-now UX matrix). It created no ADR and authorized no GUI
-  implementation, dependency, or `frontend/` directory; Issue #75 later
-  introduced them within its own narrow scope.
-- **Issue #70 delivered design/evidence:** the reuse-first Engineering Editor
-  frontend architecture is recorded in
-  [research/engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md).
-  It selects a small replaceable stack (Vue 3 + TypeScript + Vite foundation; Vue
-  Flow as the preferred canvas candidate behind a DeepPlant projection/adapter;
-  Reka UI primitives) and defers/rejects docking (Dockview), text editing (Monaco),
-  layout/routing (ELK/elkjs), a state manager (Pinia), general utilities (VueUse),
-  and the shadcn-vue / X6 / Cytoscape.js alternatives, each with a recorded
-  adoption trigger. It keeps semantic/presentation/framework state separated,
-  places undo/redo at the application-command boundary, reuses the existing
-  renderer and SVG symbol contract, created no ADR, and authorized no GUI
-  implementation, dependency, or `frontend/` directory; Issue #75 later
-  introduced those within its own narrow, read-only scope.
-- **Issue #39 delivered decision/evidence:** the process ↔ physical realization
-  ownership boundary is decided by
-  [process-physical-realization-boundary.md](../research/process-physical-realization-boundary.md)
-  and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md);
-  no process ↔ physical realization implementation slice or successor is
-  selected.
-- **Issue #20 is delivered:** the auditable DEXPI 2.0.0 supported-subset and
-  semantic round-trip contract is published in
-  [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md).
-- **Issue #32 delivered decision/evidence:** the separate qualified-engineering
-  quantity boundary is decided in
-  [research/qualified-engineering-quantities.md](../research/qualified-engineering-quantities.md)
-  and [ADR-0013](../decisions/ADR-0013-qualified-engineering-quantity-boundary.md).
-- **Issue #21 is closed:** its `StoringMaterial` topic remains historical or
-  deferred strategic/evidence context, not an open executable Issue.
-- **Issue #84 (Python engineering standards and quality guardrails) — all three
-  child slices delivered:** the structural refactor into capability packages
-  (#106), the canonical Python engineering contract (#107), and the deterministic
-  guardrails (#108). The guardrail is `make architecture-check`
-  (`tools/architecture_check.py`), run as part of `make check` and the CI
-  `python-checks` job: it enforces the logical-LOC hard limits and the
-  semantic-Core import boundaries, reports soft-limit findings as non-blocking
-  warnings, and needed no legacy exemptions. This is developer-quality
-  engineering-maintenance work, not a product capability, so it is **not** a
-  product `Now`/`Next` item and it does not change the selected product slice
-  (the empty shared Editor workspace, #97). The umbrella Issue #84 itself is
-  closed only once all three child slices are verified complete; this
-  implementation closes only child slice #108.
+## Milestone → relevant existing Issues
 
-### Scope Discipline
+| Milestone | Relevant existing Issues |
+|---|---|
+| Foundation — Delivered | #68 (MVP definition, closed), #69 (UX architecture, closed), #70 (reuse architecture, closed), PR #96 (design-to-code) |
+| Integrated Engineering Workspace (active) | #99 (validity vs view availability) |
+| Project Persistence and Bidirectional Authoring | #89 (project format and portable package) |
+| Functional PFD/P&ID Authoring | #94 (guided P&ID design — broader context only) |
+| MVP Acceptance | — |
 
-- No hosted/cloud backend, authentication, database, ORM, collaboration
-  service, containers, or production server infrastructure before a concrete
-  requirement justifies them.
-- A minimal local application/transport/API boundary is introduced only when the
-  selected standalone SPA vertical slice authorizes it. #75 introduced exactly one
-  and #79 corrected it: an explicit FastAPI application factory run by Uvicorn,
-  loopback-only, read-only, and single-user. It is not a hosted, authenticated,
-  production, containerized, or database-backed service surface, and it adds no
-  WebSockets, authentication, background jobs, or persistence infrastructure.
-- No empty architecture trees, application directories, or GUI dependencies
-  before a current executable slice requires them. The only application tree is
-  `apps/editor/`, which Issue #79 created by relocating the delivered SPA.
-- No full instrumentation, simulation, 3D, complete DEXPI, HAZOP/SIS, or all
-  EPC disciplines in the Engineering Editor MVP v0.1.
-- Semantic state remains distinct from presentation/layout state and
-  frontend-framework state; YAML remains serialization, not the domain model.
-- `Connection` is topology only; do not attach pipe/stream/signal engineering
-  semantics until a real requirement justifies them.
-- #85 authorized a bounded standalone-distribution and desktop-host vertical
-  slice and the preservation of the Core boundary, not a Core redesign. DeepPlant
-  Core must not acquire desktop, GUI, FastAPI-application, or packaging
-  dependencies; the dependency direction stays `applications → Core`, and the CLI
-  and editor continue to consume the same Core. Packaging and desktop-host
-  tooling was introduced only within the two #85 child slices (PR #92 distribution
-  foundation; Issue #93, merged by PR #95, native desktop host) and is confined to the optional
-  `deepplant[editor]`/`deepplant[desktop]` extras, the `package`/`desktop` uv
-  groups, and the packaging stages — never the base Core installation.
-- A future project/persistence contract (#89) will own the home for presentation
-  state (diagram positions, layout, per-view overrides, multiple views). That is
-  not semantic engineering state, it is not required for #85, and defining it must
-  not become a reason to block standalone distribution.
+This is a mapping of existing relevant work, not an authorization. An Issue in
+this table is implemented only when it is refined to Ready and selected
+([index.md](index.md)).
 
-## Directional Capability Roadmap
+## Retired planning mechanisms
 
-The long-term capability progression (stages, goals, dependencies, and their
-deliberately open questions) is recorded in [direction.md](direction.md). It is
-product context, not implementation authorization; the anti-roadmap below
-governs what may be built now.
+The earlier roadmap was organized around issue-driven `Now`/`Next` horizons and
+mandatory **re-evaluation gates** triggered when a small number of Issues
+completed. That mechanism is retired: milestone progress is now the organizing
+unit, and the next Issue is chosen during ordinary refinement without a planning
+ceremony ([index.md](index.md)). The unique decision evidence from those
+historical gates (for example the choice and later correction that led to
+standalone distribution before the empty workspace) is preserved in
+[history/implementation-slices.md](../history/implementation-slices.md) and
+[history/gate-decisions.md](../history/gate-decisions.md); it is historical
+record, not current governance.
 
 ## Anti-Roadmap — What Must Not Be Implemented Prematurely
 
-> The directional roadmap provides product context, not implementation
-> authorization. Implement only the currently scoped vertical slice.
+> The milestones provide product context, not implementation authorization.
+> Implement only the currently scoped vertical slice.
 >
-> A future stage appearing in the roadmap is not sufficient justification to
-> introduce its architecture today.
+> A milestone or a planned capability appearing here is not sufficient
+> justification to introduce its architecture today.
 >
-> Do not add abstractions, dependencies, or infrastructure for future stages
-> until a current vertical slice requires them.
+> Do not add abstractions, dependencies, or infrastructure for a future
+> milestone until a selected Issue requires them.
 
 Concrete examples:
 
-- the simulation stage does not justify simulator interfaces now
-- GUI implementation, editor application structure, and GUI dependencies are
-  authorized only within the explicitly selected Engineering Editor slices. The
-  hardening sequence is #79 (delivered: application layout + FastAPI boundary) →
-  #80 (delivered: frontend engineering contract + quality gates) → #81
-  (delivered: frontend refactor + component/integration tests) → #82 (delivered:
-  browser E2E); that sequence does not authorize semantic editing, presentation
-  persistence, a GUI redesign, P&ID, or broader Engineering Editor infrastructure
-- desktop/packaging tooling (desktop framework, webview host, bundlers,
-  installers, CI packaging jobs) was authorized only within the two #85 child
-  slices (PR #92 distribution foundation; Issue #93, merged by PR #95, native desktop host) — it is
-  confined to those slices and the `package`/`desktop` build groups, and is not
-  release polish for other work
-- the multi-discipline stage does not justify generic entity hierarchies now
-- the DEXPI stage does not justify DEXPI-shaped domain objects now
-- the physical-piping realization question and the separate process ↔ physical
-  realization question do not justify attaching pipe or process-stream semantics
-  to `Connection` now — and the decided piping layer (ADR-0011) honours that by
-  referencing identified connections instead of widening `Connection`
-- selecting #85 authorized only the bounded standalone-distribution and
-  desktop-host slices: it does not authorize automatic updates, code signing,
-  Microsoft Store / Flatpak / Snap or PyPI publishing, commercial licensing,
-  repository separation, complete public Python API stabilization, complete
-  editor functionality, semantic editing, Save, or the project format
-- defining the project format (#89) does not authorize semantic editing,
-  Save/mutation, or presentation persistence by itself; the first #89 slice is the
-  smallest project/persistence vertical slice, not the full project architecture
+- the AI-assisted and simulation directions do not justify agent or simulator
+  interfaces now;
+- GUI implementation, editor structure, and GUI dependencies are authorized only
+  within the currently selected Engineering Editor milestone slice;
+- the multi-discipline direction does not justify generic entity hierarchies now;
+- the DEXPI direction does not justify DEXPI-shaped domain objects now;
+- the physical-piping and process ↔ physical realization questions do not justify
+  widening `Connection` — ADR-0011 and ADR-0016 define the boundaries;
+- the persistence milestone authorizes only the single bounded semantic mutation
+  that proves bidirectional synchronization, together with the persistence it
+  requires; it does not authorize general semantic editing or a generic
+  synchronization framework;
+- the MVP containing a P&ID editing outcome does not authorize full
+  instrumentation, control loops, or advanced P&ID engineering.
 
 Think broadly about the destination. Build narrowly in the current iteration.
+
+## Related
+
+- [strategy.md](strategy.md) — who the product is for and the deliberate choices.
+- [product.md](product.md) — product definition and the MVP acceptance scenario.
+- [index.md](index.md) — idea intake, triage, refinement, and Issue selection.
+- [direction.md](direction.md) — long-term capability progression (context only).
+- [implementation-slices.md](../history/implementation-slices.md) — delivered
+  work and historical gate decisions.
+- [architecture.md](../architecture/index.md) — what exists, and its boundaries.
+- [contracts/index.md](../../contracts/index.md) — current obligations.
+
+

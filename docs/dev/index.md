@@ -60,7 +60,10 @@ The current → target mapping is in
 - **Governance** — [frontend/index.md](frontend/index.md): the Engineering Editor
   frontend engineering contract (architecture, feature ownership, Vue, TypeScript,
   styling, testing, accessibility, size guardrails).
-- **Current** — [roadmap.md](planning/roadmap.md): current state and next direction.
+- **Current** — [roadmap.md](planning/roadmap.md): product milestones and the
+  active outcome.
+- **Governance** — [strategy.md](planning/strategy.md): product strategy, target
+  user, and differentiation.
 - **Governance** — [conventions.md](workflow/conventions.md): documentation rules.
 - **Governance** — [standards.md](workflow/standards.md): standards usage and
   symbol-provenance policy.
@@ -78,6 +81,7 @@ table, not an orchestration engine.
 |---|---|
 | Orient in the repository | [architecture.md](architecture/index.md), [roadmap.md](planning/roadmap.md) |
 | Plan or pick the next slice | [planning/roadmap.md](planning/roadmap.md), [planning/index.md](planning/index.md) |
+| Understand the product strategy or triage an idea | [planning/strategy.md](planning/strategy.md), [planning/product.md](planning/product.md), [planning/index.md](planning/index.md) |
 | Change Python source or tests | [python/index.md](python/index.md), then the matching topic document in [python/](python/index.md); run `make architecture-check` for the size and import-boundary guardrails |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
@@ -117,7 +121,8 @@ authoritative.
 - **Evidence** (developer-owned) — [research/index.md](research/index.md): what
   was investigated.
 - **History** (developer-owned) —
-  [history/implementation-slices.md](history/implementation-slices.md): what
+  [history/implementation-slices.md](history/implementation-slices.md) and
+  [history/gate-decisions.md](history/gate-decisions.md): what
   shipped, in what order.
 - **Governance** (developer-owned) — [planning.md](planning/index.md),
   [standards.md](workflow/standards.md), [quality.md](workflow/quality.md),
@@ -126,8 +131,9 @@ authoritative.
 - **Reference** (developer-owned) —
   [standards-registry.md](reference/standards-registry.md): current standards
   lookup data (not policy).
-- **Direction** (developer-owned) — [direction.md](planning/direction.md),
-  [product.md](planning/product.md).
+- **Direction** (developer-owned) — [strategy.md](planning/strategy.md),
+  [direction.md](planning/direction.md), [product.md](planning/product.md),
+  [roadmap.md](planning/roadmap.md).
 
 ## User-facing material
 

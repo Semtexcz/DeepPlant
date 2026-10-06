@@ -100,7 +100,7 @@ superseded_by: null
   intentionally replaceable and does not warrant a new ADR.
 - **Current contracts operationalizing the result:** none yet. This document
   informs [roadmap.md](../planning/roadmap.md); the first executable GUI slice is
-  selected only at the [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate).
+  selected through ordinary planning ([planning/index.md](../planning/index.md)).
 - **Conditions for revisiting:** an authorized GUI slice needs a deferred
   capability (docking, YAML/diff editing, automatic layout/routing), a selected
   library's licence or maintenance condition materially changes, or evidence shows
@@ -138,7 +138,7 @@ Issue-wording assumptions are **corrected to current repository authority** here
 |---|---|
 | `MapProcessRealization(...)` is treated as an existing command/schema | No such command or schema exists. [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md) decides **ownership only**; a cross-layer realization action is described generically, never as a named call. |
 | Presentation state treated as an existing persisted schema | The MVP **requires** presentation state to survive save/reload, but its schema is undecided. Issue #70 only ensures selected libraries **do not prevent** DeepPlant from owning it. |
-| Issue #70 as a "GUI technology decision" implying implementation | Issue #70 is a documentation/evidence slice only. It authorizes no dependency, directory, or runtime code, and the first executable slice is selected later at the re-evaluation gate. |
+| Issue #70 as a "GUI technology decision" implying implementation | Issue #70 is a documentation/evidence slice only. It authorizes no dependency, directory, or runtime code, and the first executable slice is selected later through ordinary planning. |
 
 ## Requirements inherited from Issue #69
 
@@ -893,9 +893,8 @@ Recorded deliberately rather than resolved by invention:
 - [reference-products.md](reference-products.md) — the canonical factual home for
   candidate projects, licences, upstream URLs, maintenance evidence, and
   provenance observations.
-- [roadmap.md](../planning/roadmap.md) — current priority and the
-  [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate) that follows
-  #39/#69/#70.
+- [roadmap.md](../planning/roadmap.md) — the product milestones that authorize
+  GUI work; this architecture is applied when a milestone selects it.
 - [product.md](../planning/product.md) — MVP boundaries and the SPA direction.
 - [direction.md](../planning/direction.md) — Stages 3–4 (engineering views,
   interactive editing), product context only.

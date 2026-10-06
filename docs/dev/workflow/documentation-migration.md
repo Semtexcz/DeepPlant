@@ -188,7 +188,8 @@ v2.1 paths.
 | `docs/dev/workflow/conventions.md` | dev/agent | governance | KEEP | — | Documentation governance; a change-process rule (relocated in Phase 3A) | medium (16) |
 | `docs/dev/workflow/documentation-migration.md` | dev/agent | governance | KEEP | — | This inventory; relocated in Phase 3A | medium (10) |
 | `docs/dev/planning/index.md` | dev/agent | governance | KEEP | — | Planning governance; relocated in Phase 3B (was `docs/planning.md`) | medium (12) |
-| `docs/dev/planning/roadmap.md` | dev/agent | current | KEEP | — | Current execution state and next direction; relocated in Phase 3B (was `docs/roadmap.md`) | high (34) |
+| `docs/dev/planning/strategy.md` | dev/agent | current | NEW | — | Product strategy (target user, differentiation, hypotheses); added with the milestone-driven planning change | low (3) |
+| `docs/dev/planning/roadmap.md` | dev/agent | current | KEEP | — | Product milestones and the active outcome; relocated in Phase 3B (was `docs/roadmap.md`) | high (34) |
 | `docs/dev/planning/direction.md` | dev/agent | current | KEEP | — | Long-term capability progression; relocated in Phase 3B (was `docs/direction.md`) | medium (18) |
 | `docs/dev/planning/product.md` | dev/agent | current | KEEP | — | Internal product/planning thesis; relocated in Phase 3B (was `docs/product.md`); its user link is transitional and will be replaced by `docs/user/concepts/what-is-deepplant.md` | medium (11) |
 | `docs/dev/workflow/standards.md` | dev/agent | governance | KEEP | — | Active standards usage and symbol-provenance policy; created by the Phase 6 split of `docs/standards.md` | medium (20) |

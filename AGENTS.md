@@ -41,30 +41,35 @@ The semantic engineering model is the product core.
 - Rendering and presentation data must remain separate from engineering semantics.
 - Prefer small vertical changes with executable tests.
 - Do not build abstractions for hypothetical future features unless a current requirement justifies them.
-- The directional roadmap provides product context, not implementation authorization. Implement only the currently scoped vertical slice.
+- The milestone roadmap provides product context, not implementation
+  authorization. Implement only the currently scoped vertical slice.
 
 ## Strategic Planning
 
-Repository planning is self-contained. Derive long-term direction from
-`docs/dev/planning/direction.md`, current priority/horizons and sequencing from
-`docs/dev/planning/roadmap.md`, and concrete executable scope from the relevant
-GitHub Issue. Read `VISION.md` and `docs/dev/planning/product.md` for the
-upstream thesis and product target; planning governance is in
-`docs/dev/planning/index.md`.
+Repository planning is self-contained and milestone-driven. Read
+`VISION.md` for the thesis, `docs/dev/planning/strategy.md` for the target user
+and deliberate choices, `docs/dev/planning/product.md` for the MVP definition,
+and `docs/dev/planning/roadmap.md` for the product milestones and the single
+**active milestone**. Concrete executable scope comes from the relevant GitHub
+Issue; planning governance (idea intake, triage, refinement, readiness, and
+Issue selection) is in `docs/dev/planning/index.md`.
 
-GitHub Project access is not required to determine priority. `roadmap.md` is
-canonical for current operational priority and sequencing (`Now`, `Next`, and
-explicit re-evaluation gates), while `direction.md` is canonical for long-term
-capability progression. GitHub Project may visualize derived horizons but is a
+GitHub Project access is not required to determine priority. The
+`roadmap.md` milestones are canonical for what DeepPlant is building toward;
+`direction.md` is long-term capability progression (context, not
+authorization). GitHub Project may visualize derived groupings but is a
 non-canonical convenience projection; it must not contain unique direction
 required by agents.
 
 Before implementing substantial work:
 
-1. read the relevant product, roadmap, architecture, and ADR context;
-2. work from a concrete Ready Issue when one exists;
-3. do not create speculative Issues or mechanically promote directional work
-   without evidence.
+1. read the relevant strategy, product, roadmap, architecture, and ADR context;
+2. work toward the **active milestone**, from a concrete **Ready** Issue;
+3. treat an idea or an open Issue as a candidate, not authorization — creating
+   an Issue does not authorize implementation;
+4. do not create speculative Issues, and do not promote an open Issue into the
+   active milestone unilaterally; triage new ideas per
+   `docs/dev/planning/index.md`.
 
 Never merge automatically.
 
@@ -171,45 +176,30 @@ Project-specific context is in `project/brief.md`, `docs/`, and ADRs under
 finalizing the PR, and update the brief or ADRs when implementation teaches
 something durable.
 
-## Roadmap Reconciliation
+## Milestone Reconciliation
 
-For every PR that changes implemented capabilities, architecture decisions,
-examples, or milestone progress, roadmap reconciliation is part of Definition
-of Done.
+Planning documents change when versioned canonical documentation genuinely
+changes — not because an Issue completed. There is no mandatory re-evaluation and
+no planning PR required to pick the next Issue; the next Issue is chosen during
+ordinary refinement from the active milestone (`docs/dev/planning/index.md`).
 
-Before opening or finalizing the PR:
+When a PR genuinely changes product state:
 
-1. Re-read `docs/dev/planning/roadmap.md` against the actual repository state after the
-   change.
-2. Mark an item complete only if the PR actually delivers it.
-3. Re-evaluate the next task from:
-   - current implemented capabilities,
-   - current roadmap horizon goals,
-   - unresolved evidence gaps,
-   - existing realistic examples/prototypes,
-   - accepted ADRs.
-4. Do not mechanically promote the next existing backlog row.
-5. Prefer the smallest evidence-producing vertical slice justified by the
-   current roadmap and Issue scope. Do not introduce broader abstractions,
-   dependencies, or presentation architecture than that slice requires.
-6. Ensure these roadmap sections are mutually consistent:
-   - Current State
-   - Completed
-   - Operational Roadmap, including `Now`, `Next`, and explicit
-     re-evaluation/evidence gates
-   - Completed Context
-   - Scope Discipline
-   - the Directional Capability Roadmap pointer (the long-term capability
-     progression itself lives in `docs/dev/planning/direction.md`)
-7. Search touched documentation for stale statements such as:
-   `next task`, `not yet implemented`, `deferred`, `open decision`,
-   `prerequisite`, and similar status wording.
-8. If the PR genuinely does not affect roadmap state, explicitly verify that
-   no roadmap update is required.
+1. Re-read `docs/dev/planning/roadmap.md` against the actual repository state
+   after the change.
+2. Advance or complete a milestone only when its **demonstrable outcome** moved —
+   never merely because linked Issues merged.
+3. Do not select or promote a successor milestone; that is a deliberate product
+   decision recorded when it actually happens.
+4. If canonical documents genuinely change (strategy, product, or roadmap), keep
+   them mutually consistent and update `direction.md` only if long-term context
+   changed.
+5. If the PR genuinely does not change milestone state, say so explicitly instead
+   of editing the roadmap.
 
-The final task report must include a short `Roadmap check` stating:
+The final task report must include a short `Milestone check` stating:
 
-- what became complete,
-- what is now in `Now` and `Next`, including any explicit re-evaluation gate,
-- why that operational sequence follows from the current repository state.
+- what milestone outcome (if any) moved, and how it was demonstrated;
+- what the active milestone is and what evidence would complete it;
+- why no roadmap change was needed, if none was.
 

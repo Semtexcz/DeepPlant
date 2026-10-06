@@ -196,11 +196,12 @@ Only a subset exists today, in executable, evidence-producing vertical slices:
 - a narrow DEXPI 2.0 Process import/export adapter spike
   ([docs/dev/research/dexpi/process-adapter-spike.md](docs/dev/research/dexpi/process-adapter-spike.md)).
 
-Everything else in the capability map is direction: the product target is
-recorded in [docs/dev/planning/product.md](docs/dev/planning/product.md), the
+Everything else in the capability map is direction: the strategy is recorded in
+[docs/dev/planning/strategy.md](docs/dev/planning/strategy.md), the product
+target in [docs/dev/planning/product.md](docs/dev/planning/product.md), the
 long-term capability progression in
 [docs/dev/planning/direction.md](docs/dev/planning/direction.md), and the
-canonical current priority and horizons in
+product milestones in
 [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md). GitHub Project is
 a non-canonical visual projection of repository planning and Issue state.
 Current obligations live in [docs/contracts/index.md](docs/contracts/index.md).
@@ -270,8 +271,8 @@ adapters, and agents over the semantic model — not the model itself.
 DeepPlant is an experimental repository (AGPL-3.0-only) in its early
 evidence-driven phase. What exists and what it must conform to is recorded in
 [docs/dev/architecture/index.md](docs/dev/architecture/index.md) and
-[docs/contracts/index.md](docs/contracts/index.md); the current state,
-unresolved questions, and next evidence candidates are recorded in
+[docs/contracts/index.md](docs/contracts/index.md); the product milestones and
+evidence gaps are recorded in
 [docs/dev/planning/roadmap.md](docs/dev/planning/roadmap.md); the long-term capability progression is in
 [docs/dev/planning/direction.md](docs/dev/planning/direction.md). GitHub Project may
 visualize a derived, non-canonical projection of that repository-led planning state.

@@ -63,7 +63,7 @@ boundaries, instrumentation/signals, and presentation/graphics.
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39), since delivered; quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../planning/roadmap.md) (Issue #39 delivered; successor re-evaluated there) |
+| [next-slice-re-evaluation.md](next-slice-re-evaluation.md) | What is the best evidence-backed next executable slice after Issue #32? | One Ready slice: the process ↔ physical realization boundary (Issue #39), since delivered; quantity implementation, port kinds, DEXPI 2.0.1 review, view layer, and rules deferred | [roadmap.md](../planning/roadmap.md) (Issue #39 delivered; the milestone structure now owns selection) |
 
 ## Engineering editor UX evidence
 
@@ -75,7 +75,7 @@ boundaries, instrumentation/signals, and presentation/graphics.
 
 | Document | Question investigated | Outcome | Operationalized by |
 |---|---|---|---|
-| [engineering-editor-reuse-architecture.md](engineering-editor-reuse-architecture.md) | Which reusable GUI technologies should underpin the DeepPlant Engineering Editor, and where are their boundaries? | Selects a small reuse-first stack — Vue 3 + TypeScript + Vite (foundation), Vue Flow (canvas, behind a DeepPlant projection/adapter), Reka UI (primitives) — and defers/rejects Dockview, Monaco, ELK/elkjs, Pinia, VueUse, shadcn-vue, X6, and Cytoscape.js, each with an adoption trigger; keeps semantic/presentation/framework state separated, undo/redo at the application-command boundary, and the existing renderer/symbol contract reused; no new ADR and no dependency added | the read-only Process/PFD editor slice (Issue #75) is its first implementation consumer; informs [roadmap.md](../planning/roadmap.md) and the [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate) |
+| [engineering-editor-reuse-architecture.md](engineering-editor-reuse-architecture.md) | Which reusable GUI technologies should underpin the DeepPlant Engineering Editor, and where are their boundaries? | Selects a small reuse-first stack — Vue 3 + TypeScript + Vite (foundation), Vue Flow (canvas, behind a DeepPlant projection/adapter), Reka UI (primitives) — and defers/rejects Dockview, Monaco, ELK/elkjs, Pinia, VueUse, shadcn-vue, X6, and Cytoscape.js, each with an adoption trigger; keeps semantic/presentation/framework state separated, undo/redo at the application-command boundary, and the existing renderer/symbol contract reused; no new ADR and no dependency added | the read-only Process/PFD editor slice (Issue #75) is its first implementation consumer; informs [roadmap.md](../planning/roadmap.md) |
 
 ## Reuse, standards, and asset evidence
 

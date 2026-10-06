@@ -395,8 +395,9 @@ is in [../workflow/quality.md](../workflow/quality.md#change-aware-ci).
 ## Related
 
 - [contracts/index.md](../../contracts/index.md) — the current contract set.
-- [roadmap.md](../planning/roadmap.md) — current state, next direction, evidence gaps.
+- [roadmap.md](../planning/roadmap.md) — product milestones, active outcome, evidence gaps.
+- [strategy.md](../planning/strategy.md) — target user, positioning, and hypotheses.
 - [direction.md](../planning/direction.md) — capability progression (not authorization).
-- [product.md](../planning/product.md) — product thesis and long-term position.
+- [product.md](../planning/product.md) — product definition and MVP.
 - [decisions/index.md](../decisions/index.md) — decision records.
 - [conventions.md](../workflow/conventions.md) — document types and linking rules.

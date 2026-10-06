@@ -45,8 +45,8 @@ superseded_by: null
 > scope the MVP covers** (Issue #68, [product.md](../planning/product.md)). It
 > selects no framework or library, adds no dependency, creates no `frontend/`
 > directory, and authorizes no implementation. It is the interaction authority
-> the first executable GUI slice must follow when one is eventually selected at
-> the [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate).
+> the first executable GUI slice must follow when one is selected by the
+> [active milestone](../planning/roadmap.md).
 
 ## Outcome card
 
@@ -102,7 +102,7 @@ superseded_by: null
   [physical-piping.md](../../contracts/physical-piping.md),
   [rendering.md](../../contracts/rendering.md)) continue to describe the current
   model.
-- **Conditions for revisiting:** when the [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate)
+- **Conditions for revisiting:** when the [active milestone](../planning/roadmap.md)
   selects the first GUI slice, when Issue #70's reuse-first architecture
   constrains a surface, or when real user evidence shows a permanent surface is
   missing, redundant, or wrong.
@@ -1519,9 +1519,8 @@ Recorded deliberately rather than resolved by invention:
 - [product.md](../planning/product.md) — MVP scope, PFD/P&ID as views.
 - [direction.md](../planning/direction.md) — Stages 3–4 (engineering views,
   interactive editing); product context only.
-- [roadmap.md](../planning/roadmap.md) — current priority; the
-  [re-evaluation gate](../planning/roadmap.md#re-evaluation-gate) that follows
-  Issues #39/#69/#70.
+- [roadmap.md](../planning/roadmap.md) — the product milestones that authorize
+  GUI work; the Interaction architecture is applied when a milestone selects it.
 - [architecture.md](../architecture/index.md) — current architecture and durable
   invariants.
 - [contracts/process-model.md](../../contracts/process-model.md),
