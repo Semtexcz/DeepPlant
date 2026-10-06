@@ -514,7 +514,7 @@ records the identity of the long-lived resources before and after every change:
     "errorReported": true, "productionSpa": true,
     "windowUnchanged": true, "viewUnchanged": true, "serverUnchanged": true,
     "originUnchanged": true, "portUnchanged": true,
-    "singleWindow": true, "singleView": true, "oneServingSocket": true,
+    "singleWindow": true, "singleView": true, "noAdditionalServingSocket": true,
     "windowVisible": true, "windowClosed": true,
     "serverStopRequested": true, "serverStopped": true,
     "serverThreadTerminated": true, "portReleased": true,
@@ -536,9 +536,10 @@ window handed to its one user-facing error mechanism.
 `windowUnchanged`/`viewUnchanged`/`serverUnchanged` compare the Python identity of
 the single `QMainWindow`, `QWebEngineView` and `EditorServer` across the launch, the
 two opens and the failed open; `singleWindow`/`singleView` read the live Qt widget
-tree; `oneServingSocket` reads the process's *listening TCP ports* (Linux `/proc`,
-Windows `netstat -ano`) and requires them to be unchanged and to be exactly the
-owned server's. The `session` object carries the four raw snapshots as evidence.
+tree; `noAdditionalServingSocket` reads the process's *listening TCP ports* (Linux
+`/proc`, Windows `netstat -ano`) and requires the set to be unchanged and to
+contain the owned server's port, so no port the document changes could have added
+remains open. The `session` object carries the four raw snapshots as evidence.
 
 The driver also rejects a report whose `checks` omit any required lifecycle key,
 so an older artifact cannot pass by sending a shorter report. It additionally

@@ -158,7 +158,7 @@ _REQUIRED_SELF_CHECK_CHECKS: dict[str, tuple[str, ...]] = {
         "portUnchanged",
         "singleWindow",
         "singleView",
-        "oneServingSocket",
+        "noAdditionalServingSocket",
     ),
 }
 

@@ -160,7 +160,7 @@ def _passing_report() -> dict[str, object]:
             "portUnchanged": True,
             "singleWindow": True,
             "singleView": True,
-            "oneServingSocket": True,
+            "noAdditionalServingSocket": True,
             "windowVisible": True,
             "windowClosed": True,
             "serverStopRequested": True,

@@ -319,30 +319,32 @@ def on_loaded(run: SelfCheckRun, ok: bool) -> None:
         fail(run, f"the transition scenario saw an unexpected extra page load ({load})")
 
 
-def _one_serving_socket(identities: dict[str, dict[str, object]]) -> bool:
-    """Whether the session kept exactly one listening socket throughout.
+def _no_additional_serving_socket(identities: dict[str, dict[str, object]]) -> bool:
+    """Whether the process's listening sockets stayed exactly as they started.
 
     Reads the *measured* listening-port sets from every identity snapshot: they
-    must be known, identical, contain exactly one port, and that port must be the
-    owned server's. A second serving socket left behind by a recreated server would
-    appear here as an extra port.
+    must be known, identical, and contain the owned server's port, so opening or
+    replacing a project cannot have left an extra serving socket behind. Requiring
+    the *same* set (rather than an absolute count) stays honest on a host that
+    already has an unrelated listener while still failing on any port the session's
+    document changes added.
     """
     snapshots = list(identities.values())
     listener_sets = [snapshot.get("listeningPorts") for snapshot in snapshots]
     if not listener_sets or any(value is None for value in listener_sets):
         return False
-    normalized: list[int] = []
+    normalized: list[tuple[int, ...]] = []
     for value in listener_sets:
         if not isinstance(value, list):
             return False
-        ports = cast("list[int]", value)
-        if len(ports) != 1:
-            return False
-        normalized.append(ports[0])
+        normalized.append(tuple(cast("list[int]", value)))
     if len(set(normalized)) != 1:
         return False
+    ports = set(normalized[0])
     server_ports = {snapshot.get("port") for snapshot in snapshots}
-    return server_ports == {normalized[0]}
+    if not ports or None in server_ports:
+        return False
+    return all(port in ports for port in server_ports)
 
 
 def _content_checks(run: SelfCheckRun) -> dict[str, object]:
@@ -410,7 +412,7 @@ def _session_checks(identities: dict[str, dict[str, object]]) -> dict[str, objec
             snapshot.get("mainWindowCount") == 1 for snapshot in identities.values()
         ),
         "singleView": all(snapshot.get("webViewCount") == 1 for snapshot in identities.values()),
-        "oneServingSocket": _one_serving_socket(identities),
+        "noAdditionalServingSocket": _no_additional_serving_socket(identities),
     }
 
 
