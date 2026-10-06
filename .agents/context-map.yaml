@@ -53,13 +53,20 @@ change_patterns:
     - pyproject.toml
     - tests/
     - docs/dev/architecture/index.md
+    - docs/dev/python/index.md
     - docs/contracts/index.md
     - docs/dev/workflow/quality.md
   "tests/**/*.py":
     - pyproject.toml
     - src/
     - docs/dev/architecture/index.md
+    - docs/dev/python/index.md
     - docs/contracts/index.md
+    - docs/dev/workflow/quality.md
+  "docs/dev/python/**":
+    - docs/dev/index.md
+    - docs/dev/python/index.md
+    - docs/dev/architecture/index.md
     - docs/dev/workflow/quality.md
   "src/deepplant/render/**":
     - docs/contracts/rendering.md

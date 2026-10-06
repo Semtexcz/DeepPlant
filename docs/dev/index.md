@@ -53,6 +53,9 @@ The current → target mapping is in
   boundaries, durable invariants.
 - **Governance** — [workflow.md](workflow/index.md): the change loop.
 - **Governance** — [quality.md](workflow/quality.md): checks and test expectations.
+- **Governance** — [python/index.md](python/index.md): the canonical Python
+  engineering contract (architecture, conventions, typing, errors, scientific
+  computation, testing, size guardrails).
 - **Governance** — [frontend/index.md](frontend/index.md): the Engineering Editor
   frontend engineering contract (architecture, feature ownership, Vue, TypeScript,
   styling, testing, accessibility, size guardrails).
@@ -74,6 +77,7 @@ table, not an orchestration engine.
 |---|---|
 | Orient in the repository | [architecture.md](architecture/index.md), [roadmap.md](planning/roadmap.md) |
 | Plan or pick the next slice | [planning/roadmap.md](planning/roadmap.md), [planning/index.md](planning/index.md) |
+| Change Python source or tests | [python/index.md](python/index.md), then the matching topic document in [python/](python/index.md) |
 | Change the plant / process / piping model | [contracts/index.md](../contracts/index.md), then the specific contract |
 | Change the CLI | [contracts/cli.md](../contracts/cli.md), [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the editor frontend or the local application boundary | [frontend/index.md](frontend/index.md), [architecture.md](architecture/index.md), [contracts/rendering.md](../contracts/rendering.md), [workflow/quality.md](workflow/quality.md) |
@@ -117,7 +121,7 @@ authoritative.
 - **Governance** (developer-owned) — [planning.md](planning/index.md),
   [standards.md](workflow/standards.md), [quality.md](workflow/quality.md),
   [workflow.md](workflow/index.md), [conventions.md](workflow/conventions.md),
-  [frontend/](frontend/index.md).
+  [python/](python/index.md), [frontend/](frontend/index.md).
 - **Reference** (developer-owned) —
   [standards-registry.md](reference/standards-registry.md): current standards
   lookup data (not policy).
