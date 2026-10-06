@@ -265,7 +265,15 @@ validate-docs:
 	@test -f docs/dev/frontend/testing.md
 	@test -f docs/dev/frontend/accessibility.md
 	@test -f docs/dev/frontend/design-to-code.md
+	@test -f docs/dev/python/index.md
+	@test -f docs/dev/python/architecture.md
+	@test -f docs/dev/python/conventions.md
+	@test -f docs/dev/python/typing.md
+	@test -f docs/dev/python/errors.md
+	@test -f docs/dev/python/scientific-computation.md
+	@test -f docs/dev/python/testing.md
 	@test -f .agents/skills/frontend-engineering/SKILL.md
+	@test -f .agents/skills/python-engineering/SKILL.md
 	@test -f docs/user/index.md
 	@test -f docs/user/getting-started.md
 	@test -f docs/user/concepts/what-is-deepplant.md

@@ -51,6 +51,12 @@ Capability skills:
 
 Project skills (DeepPlant-specific):
 
+- `python-engineering` for any change under `src/deepplant/` or `tests/`: the
+  canonical DeepPlant Python engineering contract (dependency direction,
+  capability-package ownership, idiomatic design, the Pydantic boundary, strict
+  typing, error semantics, engineering-computation documentation, testing, and
+  the size/cohesion policy). It routes to the durable rules in `docs/dev/python/`
+  and does not restate them.
 - `frontend-engineering` for any change under `apps/editor/`: the canonical
   Engineering Editor frontend contract (architecture, feature ownership, Vue
   conventions, composables, state ownership, effects/watchers, TypeScript,
