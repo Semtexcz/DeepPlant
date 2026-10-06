@@ -25,10 +25,21 @@ from deepplant.editor.application import (
     create_empty_workspace,
     load_editor_application,
 )
+from deepplant.editor.desktop import (
+    SMOKE_EXPECTED_STEPS,
+    SMOKE_EXPECTED_STREAMS,
+    TRANSITION_PROJECT_B_EXPECTED_STEPS,
+    TRANSITION_PROJECT_B_EXPECTED_STREAMS,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
 VESSEL_OVERRIDES = {"PS-vessel": "vessel"}
+#: The canonical self-contained fixture and a distinguishable second model. Since
+#: Issue #97 a document change is a *workspace state change*, so the two are used
+#: below to prove one long-lived server serves both (no second server is created).
+SMOKE_EXAMPLE = REPO_ROOT / "examples" / "process-graph" / "plant.yaml"
+REPLACEMENT_EXAMPLE = REPO_ROOT / "examples" / "process-graph" / "replacement.yaml"
 
 
 @pytest.fixture()
@@ -60,6 +71,19 @@ def _projection_of(payload: dict[str, object]) -> dict[str, object]:
 def _sequence(value: object) -> Sequence[object]:
     assert isinstance(value, list)
     return cast("Sequence[object]", value)
+
+
+def _document_name(payload: dict[str, object]) -> str:
+    """Return ``workspace.document.name`` from a projection envelope."""
+    document = _mapping(_mapping(payload["workspace"])["document"])
+    name = document["name"]
+    assert isinstance(name, str)
+    return name
+
+
+def _mapping(value: object) -> dict[str, object]:
+    assert isinstance(value, dict)
+    return cast("dict[str, object]", value)
 
 
 def _port_accepts(host: str, port: int) -> bool:
@@ -150,8 +174,15 @@ def test_start_refuses_a_second_time(workspace: EditorWorkspace) -> None:
         server.stop()
 
 
-def test_replacing_a_server_releases_the_previous_port(workspace: EditorWorkspace) -> None:
-    """Opening another model in the same window must not leak a socket."""
+def test_stopping_a_server_releases_its_port(workspace: EditorWorkspace) -> None:
+    """Generic ``EditorServer`` lifecycle: a stopped server frees its port.
+
+    This is deliberately *not* a statement about opening another project. Since
+    Issue #97 a document change reuses the one long-lived server (see
+    ``test_changing_the_active_document_reuses_the_same_server``); this test only
+    pins the owned-server primitive: after ``stop()`` the bound port no longer
+    accepts connections, while an unrelated running server still does.
+    """
     first = EditorServer(workspace, port=0)
     first.start()
     first_port = first.port
@@ -164,6 +195,55 @@ def test_replacing_a_server_releases_the_previous_port(workspace: EditorWorkspac
         assert _port_accepts("127.0.0.1", second.port) is True
     finally:
         second.stop()
+
+
+def test_changing_the_active_document_reuses_the_same_server(tmp_path: Path) -> None:
+    """Issue #97: opening another project must not create a second server.
+
+    The session owns one ``EditorServer`` bound to the *workspace*, so activating a
+    different document is a state change: the same object, bound port and origin
+    keep serving, and ``/api/projection`` reports the new document. This is the
+    behaviour the previous ``test_replacing_a_server_releases_the_previous_port``
+    misdescribed as creating a second server.
+    """
+    assets = tmp_path / "dist"
+    assets.mkdir()
+    (assets / "index.html").write_text("<!doctype html><p>DeepPlant</p>", encoding="utf-8")
+    workspace = EditorWorkspace(assets_dir=assets)
+    workspace.activate(load_editor_application(SMOKE_EXAMPLE, assets_dir=assets))
+
+    server = EditorServer(workspace, port=0)
+    server.start()
+    try:
+        port = server.port
+        base_url = server.base_url
+
+        status, payload = _get_json(f"{base_url}api/projection")
+        assert status == 200
+        assert _document_name(payload) == SMOKE_EXAMPLE.name
+        assert len(_sequence(_projection_of(payload)["steps"])) == SMOKE_EXPECTED_STEPS
+        assert len(_sequence(_projection_of(payload)["streams"])) == SMOKE_EXPECTED_STREAMS
+
+        # Replace the active document: the server, its port and its origin are the
+        # same owned session, and the projection now describes the new document.
+        workspace.activate(load_editor_application(REPLACEMENT_EXAMPLE, assets_dir=assets))
+
+        assert server.port == port
+        assert server.base_url == base_url
+        status, payload = _get_json(f"{base_url}api/projection")
+        assert status == 200
+        assert _document_name(payload) == REPLACEMENT_EXAMPLE.name
+        assert (
+            len(_sequence(_projection_of(payload)["steps"])) == TRANSITION_PROJECT_B_EXPECTED_STEPS
+        )
+        assert (
+            len(_sequence(_projection_of(payload)["streams"]))
+            == TRANSITION_PROJECT_B_EXPECTED_STREAMS
+        )
+        assert _port_accepts("127.0.0.1", port) is True
+    finally:
+        assert server.stop() is True
+    assert _port_accepts("127.0.0.1", port) is False
 
 
 class _NeverEndingThread(threading.Thread):

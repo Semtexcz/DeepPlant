@@ -106,7 +106,7 @@ Runtime and toolchain:
 | `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport, the owned `EditorServer` lifecycle, and loopback binding | contain engineering logic, or claim production/server security |
 | `editor/launcher.py` | the shared launch primitives both hosts use (`run_editor`, symbol-role parsing, help text) | import FastAPI, Uvicorn, or a GUI toolkit at import time |
 | `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-document load, and the exact-origin embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
-| `editor/desktop_qt/` (`window.py`, `runtime.py`, `probes.py`, `self_check.py`) | the native window hosting the single embedded webview, the native Open dialog, the owned window/server/workspace lifecycle, and the packaged self-check probes | parse DeepPlant YAML, own the semantic model, or become a second frontend |
+| `editor/desktop_qt/` (`window.py`, `runtime.py`, `probes.py`, `self_check.py`, `session.py`, `transition.py`) | the native window hosting the single embedded webview, the native Open dialog, the owned window/server/workspace lifecycle, and the packaged self-check probes (the empty/loaded scenarios, the shared run state, and the project-replacement scenario) | parse DeepPlant YAML, own the semantic model, or become a second frontend |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
 | `apps/editor/` (TypeScript) | application composition, the Process/PFD feature (projection state, selection, canvas/adapter, Inspector), transport and runtime contract narrowing, and styling | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
 
@@ -328,7 +328,11 @@ Launching `deepplant-editor` with no argument opens that shared editor directly
 there is no native start page and no second editor UI. `File -> Open…` activates a
 document in the *existing* session - the same server, socket, window and webview -
 and the shared SPA is reloaded, so opening or replacing a project can never leak a
-server, a socket, a webview, or a window.
+server, a socket, a webview, or a window. The packaged desktop verification now
+proves that directly (Issue #97 review): one session opens the canonical fixture,
+replaces it with a distinguishable model, then attempts a failed open, and the
+native window, webview, server, origin, port and listening socket are asserted
+unchanged across all of it through the real Open handler and the real rendered SPA.
 
 Two host policies are deliberately strict (Issue #93 review):
 

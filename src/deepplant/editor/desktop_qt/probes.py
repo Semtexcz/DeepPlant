@@ -33,6 +33,7 @@ __all__ = [
     "POST_SELECTION_SETTLE_MS",
     "PROBE_STEP_ID",
     "SELF_CHECK_TIMEOUT_MS",
+    "canvas_probe_js",
 ]
 
 #: Give the SPA a moment to render the graph and the Inspector after load and
@@ -81,13 +82,24 @@ EMPTY_WORKSPACE_PROBE_JS: Final[str] = f"""
 }})()
 """
 
-CANVAS_PROBE_JS: Final[str] = f"""
+
+def canvas_probe_js(step_id: str) -> str:
+    """Return the canvas probe script that activates one process step by id.
+
+    The probe reads the *rendered* page - the status strip, the projected
+    process-step and process-stream counts, and whether the named step node is
+    present - then dispatches a synthetic activation on that node so the
+    follow-up Inspector probe reads a real selection. The step id is a parameter
+    because the packaged project-replacement scenario selects a different step in
+    each project.
+    """
+    return f"""
 (() => {{
   const text = (el) => (el ? el.textContent.replace(/\\s+/g, ' ').trim() : null);
   const status = document.querySelector('[role="status"]');
   const steps = document.querySelectorAll('[role="group"][aria-label^="Process step "]');
   const streams = document.querySelectorAll('[role="group"][aria-label^="Process stream "]');
-  const node = document.querySelector('[role="group"][aria-label="Process step {PROBE_STEP_ID}"]');
+  const node = document.querySelector('[role="group"][aria-label="Process step {step_id}"]');
   if (node) {{
     const box = node.getBoundingClientRect();
     const init = {{
@@ -105,11 +117,14 @@ CANVAS_PROBE_JS: Final[str] = f"""
     statusText: text(status),
     processSteps: steps.length,
     processStreams: streams.length,
-    pumpNodeFound: node !== null,
+    probeNodeFound: node !== null,
     devEntryPoint: document.documentElement.outerHTML.includes('/src/main.ts'),
   }});
 }})()
 """
+
+
+CANVAS_PROBE_JS: Final[str] = canvas_probe_js(PROBE_STEP_ID)
 
 INSPECTOR_PROBE_JS: Final[str] = """
 (() => {

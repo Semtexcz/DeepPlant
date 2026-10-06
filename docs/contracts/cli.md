@@ -141,7 +141,10 @@ and it embeds the *same* frontend and the *same* application boundary as
 ```text
 deepplant-editor [path] [--symbol-role STEP=ROLE] [--port <n>]
                         [--assets-dir <dir>]
-                        [--self-check --self-check-report <path>]
+                        [--self-check --self-check-report <path>
+                         [--self-check-scenario empty|loaded|transition]
+                         [--self-check-project <path>]...
+                         [--self-check-invalid-project <path>]]
 ```
 
 - **The path is optional.** Running it with no argument opens the ordinary shared
@@ -178,8 +181,13 @@ deepplant-editor [path] [--symbol-role STEP=ROLE] [--port <n>]
   the real rendered page, closes the window, writes a JSON verdict, and exits
   with `0` only when every check passed. With no model argument it probes the
   shared SPA's empty workspace (no project open, no fabricated model); with a
-  model it probes the rendered Process/PFD and Inspector. It adds no production
-  protocol and is never used in normal operation.
+  model it probes the rendered Process/PFD and Inspector. `--self-check-scenario`
+  selects the verification explicitly (`empty`, `loaded`, or `transition`);
+  `transition` is the project-replacement lifecycle that opens each
+  `--self-check-project` through the Open handler in order and then attempts
+  `--self-check-invalid-project`, proving the one session - window, webview,
+  server, origin, port and listening socket - is reused rather than recreated. It
+  adds no production protocol and is never used in normal operation.
 
 Closing the window stops the local server, releases the loopback socket, and
 terminates the helper processes the application owns. Nothing outside the

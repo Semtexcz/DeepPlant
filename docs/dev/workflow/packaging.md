@@ -317,7 +317,7 @@ does not trust the packaging tool's exit code. It:
 5. starts the artifact from outside the repository with a *sanitized*
    environment (no virtualenv, and no Python/Node/pnpm entries on `PATH` - the
    graphical session variables an end user's desktop provides are deliberately
-   kept) **twice**:
+   kept) **three times**:
    - **no model argument** - proves the packaged application starts directly into
      the real shared Vue SPA with an explicit **empty workspace** (no project
      open, no fabricated model, no projection failure), instead of demanding a
@@ -325,6 +325,12 @@ does not trust the packaging tool's exit code. It:
    - `plant.yaml` - proves the packaged editor workflow renders the
      self-contained fixture, selects a known step, and shows its semantics, with
      **no** `--symbol-role` or other hidden presentation override;
+   - the **project-replacement** scenario (`--self-check-scenario transition`) -
+     proves one session opens `plant.yaml`, replaces it with
+     `examples/process-graph/replacement.yaml`, then attempts an invalid model: the
+     native window, webview, server, origin, port and listening socket are never
+     recreated, and the failed open leaves the previous project active (Issue #97
+     review);
 6. reads each launch's JSON report and requires every check to be true;
 7. restores the checkout SPA and removes the temporary installation.
 
@@ -413,10 +419,13 @@ from the installation folder.
 
 ### The desktop self-check hook
 
-Both launches use `--self-check --self-check-report <path>`. This is the narrow,
-documented test hook Issue #93 requires, and it exists for a specific reason: a
-GUI application has no browser target, and on Windows it is a `--windowed`
-executable with no console, so stdout cannot carry the evidence.
+All three launches use `--self-check --self-check-report <path>`. This is the
+narrow, documented test hook Issue #93 requires, and it exists for a specific
+reason: a GUI application has no browser target, and on Windows it is a
+`--windowed` executable with no console, so stdout cannot carry the evidence.
+`--self-check-scenario` selects what is verified (defaulting to `empty` with no
+model argument and `loaded` with one); `--self-check-project` and
+`--self-check-invalid-project` supply the project-replacement scenario's inputs.
 
 What it does — and deliberately does **not** do:
 
@@ -484,8 +493,58 @@ fixture content, so the packaged product is proven to open the real shared SPA
 workspace is proven to be an ordinary state rather than a validation error or a
 projection failure.
 
+### The project-replacement regression
+
+The **project-replacement** launch (`--self-check-scenario transition`) proves the
+Issue #97 review invariant: the Editor session exists independently of the active
+document, so opening or replacing a project must not recreate or leak session
+resources. It launches with no project, opens `plant.yaml` through the real
+`File -> Open…` handler (the native file chooser is bypassed by a *controlled
+path*, never by GUI mouse automation), replaces it with the distinguishable
+`examples/process-graph/replacement.yaml`, then attempts an invalid model. It
+records the identity of the long-lived resources before and after every change:
+
+```json
+{
+  "checks": {
+    "emptyAtLaunch": true,
+    "projectARendered": true, "projectASelected": true,
+    "projectBReplacedA": true, "projectBSelected": true,
+    "selectionResetOnReplacement": true, "failedLoadKeptProjectB": true,
+    "errorReported": true, "productionSpa": true,
+    "windowUnchanged": true, "viewUnchanged": true, "serverUnchanged": true,
+    "originUnchanged": true, "portUnchanged": true,
+    "singleWindow": true, "singleView": true, "oneServingSocket": true,
+    "windowVisible": true, "windowClosed": true,
+    "serverStopRequested": true, "serverStopped": true,
+    "serverThreadTerminated": true, "portReleased": true,
+    "eventLoopReturned": true
+  },
+  "session": { "...": "the four measured identity snapshots" },
+  "verdict": "pass"
+}
+```
+
+`projectARendered`/`projectBReplacedA` read the *rendered* canvas (3 steps / 2
+streams for `plant.yaml`, 2 steps / 1 stream for `replacement.yaml`).
+`projectASelected`/`projectBSelected` read the Inspector after selecting a step in
+each project; `selectionResetOnReplacement` reads the Inspector *before* selecting
+in project B, proving project A's selection did not survive; `failedLoadKeptProjectB`
+re-reads project B after the invalid open; `errorReported` reads the message the
+window handed to its one user-facing error mechanism.
+
+`windowUnchanged`/`viewUnchanged`/`serverUnchanged` compare the Python identity of
+the single `QMainWindow`, `QWebEngineView` and `EditorServer` across the launch, the
+two opens and the failed open; `singleWindow`/`singleView` read the live Qt widget
+tree; `oneServingSocket` reads the process's *listening TCP ports* (Linux `/proc`,
+Windows `netstat -ano`) and requires them to be unchanged and to be exactly the
+owned server's. The `session` object carries the four raw snapshots as evidence.
+
 The driver also rejects a report whose `checks` omit any required lifecycle key,
-so an older artifact cannot pass by sending a shorter report.
+so an older artifact cannot pass by sending a shorter report. It additionally
+rejects a report that omits the required checks of the scenario it ran, so a
+scenario that silently stopped reporting its evidence fails rather than passing on
+a reduced check set.
 
 What this proves: the artifact runs outside the checkout, starts into the real
 shared Vue SPA both with no project open and with a model opened from outside the

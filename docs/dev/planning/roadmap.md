@@ -142,8 +142,13 @@ evidence-heavy slices, in the linked spike/decision documents.
   activates a document in that same session. The native bootstrap/start page was
   removed; one long-lived server and one webview serve both workspace states, so
   opening or replacing a project leaks no server, socket, webview or window. The
-  packaged no-model launch now proves the real shared SPA empty state, and the
-  Issue #98 loaded-model smoke path is preserved unchanged.
+  packaged no-model launch proves the real shared SPA empty state, the Issue #98
+  loaded-model smoke path is preserved unchanged, and a packaged
+  **project-replacement regression** now proves the long-lived session invariant
+  directly: one session opens the canonical fixture, replaces it with a
+  distinguishable model, then attempts an invalid model, while the native window,
+  webview, server, origin, port and listening socket are unchanged across all of
+  it.
 
 ## Operational Roadmap
 
@@ -153,8 +158,11 @@ evidence-heavy slices, in the linked spike/decision documents.
 is **delivered**. The standalone Editor opens directly into the ordinary shared
 Vue workspace with `active project = none`, the native Qt bootstrap/start page is
 gone, `File -> Open…` activates or replaces a document in the existing session,
-and the packaged Linux/Windows no-model verification proves the real shared SPA
-empty state while retaining the Issue #98 loaded-model smoke evidence.
+and the packaged Linux/Windows verification proves the real shared SPA empty
+state, the loaded-model smoke path, and - since the #97 review - the
+project-replacement lifecycle (the one session's window, webview, server, origin,
+port and listening socket are unchanged while project A is replaced by project B
+and an invalid open leaves project B active).
 
 The previous `Now` items are all complete:
 

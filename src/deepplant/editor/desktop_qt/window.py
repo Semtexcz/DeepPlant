@@ -102,6 +102,17 @@ class MainWindow(QMainWindow):
         self._origin_provider = origin_provider
         self._view: QWebEngineView | None = None
 
+        #: Automation seams used only by the packaged desktop self-check. Both are
+        #: ``None`` in an ordinary session, so the native Open dialog and the
+        #: blocking error message box remain the real user paths. The self-check
+        #: points ``open_path_provider`` at a controlled path (bypassing the native
+        #: file chooser) and records ``error_reporter`` instead of opening a modal
+        #: dialog it cannot dismiss. The Open *implementation* - load through the
+        #: ordinary boundary, then replace the document in the existing session -
+        #: is identical either way.
+        self.open_path_provider: Callable[[str], str | None] | None = None
+        self.error_reporter: Callable[[str], None] | None = None
+
         # A plain container holds the single webview. It is not a second UI: it
         # only lets teardown detach the view without deleting it, preserving the
         # ownership semantics the earlier stacked widget provided.
@@ -187,7 +198,18 @@ class MainWindow(QMainWindow):
             view.setParent(None)
 
     def ask_for_model(self, directory: str) -> str | None:
-        """Run the operating system's native Open dialog (path selection only)."""
+        """Return the path the user chose for a model.
+
+        In an ordinary session this runs the operating system's native Open
+        dialog (path selection only). The packaged self-check may install a
+        controlled path through :attr:`open_path_provider` instead, so the
+        document-replacement lifecycle can be verified without brittle GUI mouse
+        automation; the returned value is still loaded through the ordinary
+        boundary.
+        """
+        provider = self.open_path_provider
+        if provider is not None:
+            return provider(directory)
         selected, _ = QFileDialog.getOpenFileName(
             self,
             "Open plant model",
@@ -197,7 +219,17 @@ class MainWindow(QMainWindow):
         return selected or None
 
     def show_error(self, message: str) -> None:
-        """Report a model/asset failure without a traceback."""
+        """Report a model/asset failure without a traceback.
+
+        The real user path is a modal message box. The packaged self-check may
+        install :attr:`error_reporter` instead of a dialog it cannot dismiss, so
+        it can still assert that the failure was reported through this one
+        user-facing mechanism.
+        """
+        reporter = self.error_reporter
+        if reporter is not None:
+            reporter(message)
+            return
         QMessageBox.critical(self, WINDOW_TITLE, message)
 
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802 - Qt API name

@@ -94,10 +94,12 @@ The standalone product adds two layers that this browser suite does not cover:
   owned `EditorServer` lifecycle: loopback-only bind, real HTTP, and socket
   release on stop).
 - **The packaged graphical product** - `tools/package_editor.py verify` launches
-  the real frozen application with no model argument and with the realistic
-  fragment, reads the real rendered page through Qt's own JavaScript engine, and
-  checks the window/server/socket lifecycle. On Linux the CI job additionally
-  discovers the real X11 window with `xdotool` on a virtual display.
+  the real frozen application with no model argument, with the self-contained
+  canonical fixture, and through the project-replacement lifecycle (Issue #97
+  review), reads the real rendered page through Qt's own JavaScript engine, and
+  checks the window/server/socket lifecycle plus the long-lived session's resource
+  identity. On Linux the CI job additionally discovers the real X11 window with
+  `xdotool` on a virtual display.
 
 The layers are deliberately not duplicated: browser behaviour belongs to this
 Playwright suite, and the native window belongs to the packaging verification.

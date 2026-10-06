@@ -24,6 +24,9 @@ from deepplant.editor import DEFAULT_HOST, DEFAULT_PORT
 from deepplant.editor.api import EditorServer
 from deepplant.editor.application import EditorApplication, EditorSetupError, EditorWorkspace
 from deepplant.editor.desktop import (
+    SELF_CHECK_SCENARIO_EMPTY,
+    SELF_CHECK_SCENARIO_LOADED,
+    DesktopSelfCheckPlan,
     ProjectLoader,
     editor_origin,
     initial_open_directory,
@@ -286,6 +289,7 @@ def run_host(
     echo: Callable[[str], None] = print,
     self_check: bool = False,
     report_path: Path | None = None,
+    self_check_plan: DesktopSelfCheckPlan | None = None,
 ) -> int:
     """Start the Qt application, show the window, and return its exit code.
 
@@ -310,6 +314,16 @@ def run_host(
         if self_check:
             if report_path is None:
                 raise RuntimeError("the desktop self-check requires a report path")
+            # Issue #97/#98 default when the caller gave no explicit plan: the
+            # canonical fixture is the `loaded` scenario, no project the `empty`
+            # one, and the project-replacement lifecycle is always explicit.
+            plan = self_check_plan or DesktopSelfCheckPlan(
+                scenario=(
+                    SELF_CHECK_SCENARIO_LOADED
+                    if initial_application is not None
+                    else SELF_CHECK_SCENARIO_EMPTY
+                )
+            )
             # Armed before the first page load, so the hook is installed before the
             # embedded SPA can finish loading.
             report = start_self_check(
@@ -317,7 +331,9 @@ def run_host(
                 Path(report_path),
                 echo=echo,
                 finish=qt_application.exit,
-                has_project=initial_application is not None,
+                scenario=plan.scenario,
+                projects=plan.projects,
+                invalid_project=plan.invalid_project,
             )
 
         # One long-lived session for both the empty and the loaded workspace: the
