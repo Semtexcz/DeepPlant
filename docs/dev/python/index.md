@@ -318,4 +318,4 @@ existing check was disabled.
 - [quality.md](../workflow/quality.md) — the quality gates this contract is part of.
 - [conventions.md](conventions.md) — design, Pydantic boundaries, and the Ruff review.
 - [frontend/index.md](../frontend/index.md) — the parallel frontend contract.
-- [roadmap.md](../planning/roadmap.md) — current state and next direction.
+- [roadmap.md](../planning/roadmap.md) — product milestones and the active outcome.

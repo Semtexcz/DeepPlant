@@ -17,14 +17,12 @@ superseded_by: null
 
 # Directional Capability Roadmap
 
-> **Status:** product context, moved out of [roadmap.md](roadmap.md) when the
-> roadmap was reduced to current state, immediate direction, and unresolved
-> evidence gaps. This stage list describes capability progression and
-> dependencies; it is not a delivery calendar, a fixed build order, or an
+> **Status:** product context. This stage list describes capability progression
+> and dependencies; it is not a delivery calendar, a fixed build order, or an
 > implementation authorization. The
 > [anti-roadmap](roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
-> still governs; [roadmap.md](roadmap.md) is the canonical record of current
-> operational horizons.
+> still governs; [roadmap.md](roadmap.md) is the canonical record of the current
+> product milestones.
 
 
 The stages below describe where DeepPlant may ultimately go. They are
@@ -139,33 +137,30 @@ interaction technology must be compared against the
 [reference-product landscape](../research/reference-products.md) rather than assumed, and no
 GUI framework may dictate the domain model.
 
-**Engineering Editor MVP v0.1 intentionally takes a narrow vertical slice across
+**Engineering Editor MVP intentionally takes a narrow vertical slice across
 Stages 3 and 4.** It does not require all engineering-view capability to be
 completed before interactive editing begins: the MVP is limited to a local-first
 interactive subset of PFD and P&ID. Issue #68 completed its product boundary;
 Issue #69 delivered the UI/UX interaction architecture and Issue #70 delivered the
 reuse-first frontend architecture; none authorizes prebuilding GUI architecture.
 Issue #39 delivered its process ↔ physical realization boundary evidence and
-ADR-0016. With #39, #69, and #70 complete, the first read-only Process/PFD slice
-([#75](roadmap.md)) was selected at the roadmap re-evaluation gate and delivered;
-its foundation was hardened by the sequenced slices #79 → #80 → #81 → #82 (all
-delivered). The post-#82 re-evaluation gate then selected independent DeepPlant
-Core and standalone editor distribution
-([Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85)) as the next
-product capability, so the editor is proven to ship as a self-contained
-Windows/Linux application — with the Core remaining independently usable — before
-more editor functionality is layered on it. That capability is now **delivered**
-through its two child slices: the self-contained distribution foundation (PR #92)
-and the native desktop host that turns the packaged runtime into a real graphical
-application over the same Vue frontend (Issue #93, merged through PR #95). The
-post-#85 gate then selected the empty shared Editor workspace / optional active
-project as the sole next product capability, after packaged-smoke parity
-hardening, and that capability — Issue #97 — is now **delivered**: the standalone
-Editor launches directly into the ordinary shared workspace with `active project =
-none`. The DeepPlant project format and portable package
-([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) is an especially
-strong candidate for the following gate, not a preselected successor; the post-#97
-gate is ready to execute.
+ADR-0016.
+
+With those complete, DeepPlant delivered the read-only Process/PFD editor
+(#75), hardened its foundation (#79 → #80 → #81 → #82), then delivered
+independent Core and standalone editor distribution
+([#85](https://github.com/Semtexcz/DeepPlant/issues/85)) — the self-contained
+distribution foundation (PR #92) and the native desktop host over the same Vue
+frontend (Issue #93, merged through PR #95) — and the empty shared Editor
+workspace (Issue #97), which launches directly into the shared workspace with
+`active project = none`. These are delivered capabilities, not gate selections.
+
+The remaining MVP work is organized as product milestones in
+[roadmap.md](roadmap.md), which owns the active outcome; this stage list stays
+directional context and authorizes nothing. The DeepPlant project format and
+portable package ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89))
+is an existing capability concern of the persistence milestone, not a
+strategically preselected successor.
 
 ### Stage 5 — Git-native Engineering Workflow
 

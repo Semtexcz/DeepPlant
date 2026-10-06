@@ -336,11 +336,12 @@ physical-ownership boundary. Current state:
   were reconciled in the same slice.
 - **Developer-owned canonical planning (relocated in Phase 3B)**:
   [planning/index.md](../planning/index.md),
+  [planning/strategy.md](../planning/strategy.md),
   [planning/roadmap.md](../planning/roadmap.md),
   [planning/direction.md](../planning/direction.md), and
   [planning/product.md](../planning/product.md) now live under `docs/dev/planning/`;
   their inbound links, navigations, metadata, and agent routing were reconciled
-  in the same slice.
+  in the same slice (or, for `strategy.md`, when it was added).
 - **Developer-owned canonical standards material (split by authority in
   Phase 6)**: policy [standards.md](standards.md), reference
   [standards-registry.md](../reference/standards-registry.md), and

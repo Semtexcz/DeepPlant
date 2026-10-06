@@ -191,8 +191,9 @@ an engineering IDE, and AI-assisted workflows over an explicit model.
 
 These are **directional capabilities**, not current features and not delivery
 commitments. The [Vision](VISION.md) records the thesis, the
-[current roadmap](docs/dev/planning/roadmap.md) records the immediate state and
-evidence gaps, and the
+[product strategy](docs/dev/planning/strategy.md) records the target user and
+positioning, the [roadmap](docs/dev/planning/roadmap.md) records the product
+milestones and the active outcome, and the
 [directional capability roadmap](docs/dev/planning/direction.md) records the
 long-term capability progression.
 
@@ -214,6 +215,7 @@ long-term capability progression.
 **Direction**
 
 - [Vision](VISION.md)
+- [Product strategy](docs/dev/planning/strategy.md)
 - [Roadmap](docs/dev/planning/roadmap.md)
 - [Long-term direction](docs/dev/planning/direction.md)
 

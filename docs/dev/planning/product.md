@@ -78,61 +78,94 @@ high-value engineering views over a deeper semantic model:
           higher abstraction   more detail
 ```
 
-The next product target is **DeepPlant Engineering Editor MVP v0.1**: a
-local-first, standalone, browser-based editor initially launched locally. It
-edits the same semantic model through a deliberately bounded subset of PFD and
-P&ID; the drawing is not the source of truth. The initial implementation
-direction is Vue 3 + TypeScript + Vite. The interaction architecture is decided by
-Issue #69 ([engineering-editor-ux.md](../research/engineering-editor-ux.md)) and the
+The current product target is **DeepPlant Engineering Editor MVP**: a
+local-first, standalone editor that lets one engineer author a bounded PFD and
+P&ID while the semantic model remains authoritative. It edits the same semantic
+model through a deliberately bounded subset of PFD and P&ID; the drawing is not
+the source of truth. The implementation direction is Vue 3 + TypeScript + Vite.
+The interaction architecture is decided by Issue #69
+([engineering-editor-ux.md](../research/engineering-editor-ux.md)) and the
 reuse-first frontend architecture by Issue #70
-([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)).
-The first executable slice (**Issue #75**) is delivered: a local, read-only
-Process/PFD editor over the existing Python semantic core, using exactly that
-stack. Its foundation was hardened by the explicitly sequenced slices
-[#79](roadmap.md) (application layout + FastAPI boundary) → #80 (frontend
-engineering contract) → #81 (frontend refactor) → #82 (browser E2E), all
-delivered. No semantic
-editing, presentation persistence, or P&ID authoring is implemented. The post-#82
-[re-evaluation gate](roadmap.md#re-evaluation-gate) selected
-[Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85) — independent
-DeepPlant Core and standalone editor distribution — as the sole next product
-capability: prove the editor can ship as a self-contained Windows/Linux
-application while the Core stays independently usable, before more editor
-functionality is layered on it. The post-#85 re-evaluation selected the empty shared
-Editor workspace / optional active project as the sole next product capability
-(following packaged-smoke parity hardening), and that capability — Issue #97 — is
-now **delivered**: the standalone Editor launches directly into the ordinary shared
-workspace with `active project = none`. The DeepPlant project format and portable package
-([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) is an especially
-strong candidate for the following gate, not a preselected successor; the post-#97
-gate is ready to execute. Detailed
+([engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md));
+the design-to-code workflow is in
+[design-to-code.md](../frontend/design-to-code.md) (PR #96).
+
+The MVP is pursued through the product milestones in [roadmap.md](roadmap.md).
+What already exists — the read-only Process/PFD editor, standalone Windows/Linux
+distribution, and the empty shared workspace — is the delivered Foundation
+milestone. Semantic editing, presentation persistence, bidirectional YAML
+editing, and P&ID authoring are **not** implemented; they are the outcomes of the
+milestones that follow. The active milestone and its demonstrable success
+criteria are owned by [roadmap.md](roadmap.md), not restated here. Detailed
 view-projection rules remain deliberately undecided here.
 
-## Engineering Editor MVP v0.1
+## Engineering Editor MVP
 
-The MVP is the first usable product vertical slice, not a replacement for the
-semantic-model-first thesis. It is intended to be:
+The MVP is the first usable product outcome: one engineer, one local project,
+authored through both a graphical editor and YAML, validated, and persisted to a
+Git-reviewable project. It is not a replacement for the semantic-model-first
+thesis; it is the workflow that proves it. It is:
 
 - local-first, standalone, file-based, and Git-native;
-- a browser-based SPA launched locally rather than a hosted service;
 - an interactive editor, not a read-only viewer;
-- limited to a deliberately bounded PFD and P&ID subset;
+- limited to a deliberately bounded PFD and a minimal P&ID subset;
 - explicit about three separate state concerns: semantic engineering state,
   presentation/layout state, and frontend-framework state.
 
-### Bounded engineering scope
+The MVP is delivered across the milestones in [roadmap.md](roadmap.md). The
+subsections below define its required scope; none of it is implemented today
+beyond the delivered read-only surfaces.
 
-The MVP PFD subset is limited to a useful small process fragment: create, delete,
-connect, select, move, and edit basic properties of supported process steps and
-streams; validate; save; and reload. Initial supported process functions are
-limited to source, sink, pumping, heat exchange, mixing, splitting, and basic
-vessel/storage representation where the canonical model supports them.
+### Professional application UX
+
+The editor must present itself as one coherent desktop application, not a graph
+widget beside a text box:
+
+- a project/engineering explorer;
+- editor tabs and navigation between the Process/PFD view, the physical/P&ID
+  view, and the YAML surface;
+- a contextual Inspector;
+- a Problems/diagnostics area;
+- application commands and status;
+- explicit loading, empty, error, and unsaved states;
+- a clear distinction between semantic validity and view availability.
+
+The graphical editor and the YAML editor must feel like **two views of one
+application**. The interaction architecture is owned by Issue #69
+([engineering-editor-ux.md](../research/engineering-editor-ux.md)); the visual
+specification (Figma) is a separate implementation concern governed by the
+[design-to-code workflow](../frontend/design-to-code.md) (PR #96) and is not
+defined here.
+
+### Graphical PFD editing
+
+The MVP PFD subset is limited to a useful small process fragment. Initial
+supported process functions are limited to source, sink, pumping, heat exchange,
+mixing, splitting, and basic vessel/storage representation where the canonical
+model supports them. The required interactions:
+
+- create/delete supported process steps;
+- edit supported semantic properties;
+- connect/disconnect process streams;
+- select, move, and inspect objects;
+- validate changes;
+- persist engineering and presentation state.
+
+### Graphical P&ID editing
 
 The MVP P&ID subset is intentionally narrower than a production P&ID system:
-basic pump, vessel, and heat-exchanger equipment; their basic physical
-connection points/ports; basic piping realization; and at most one basic valve
-concept when supported by the selected semantic slice. It excludes full
-instrumentation and detailed piping semantics.
+
+- basic equipment: pump, vessel, heat exchanger;
+- basic physical ports and connections;
+- basic piping realization;
+- at most one basic valve concept where the semantic model allows it;
+- essential editing and inspection interactions.
+
+Minimal instrumentation may be evaluated, but complete instrumentation,
+control-loop design, and advanced P&ID engineering are not MVP requirements.
+The precise subset must follow the existing semantic models and ADR-0016. No
+unsupported engineering semantics are claimed, and no complete standards
+compliance is implied.
 
 PFD and P&ID are not independent drawing documents. They are views over distinct
 but related semantic layers: `ProcessModel` for the PFD, and the physical plant
@@ -164,27 +197,59 @@ view update
 It must not treat SVG/canvas mutation as the authoritative state and infer
 engineering semantics afterward.
 
-Its target user journey is:
+### Bidirectional YAML editing
+
+YAML is a first-class editing surface, not an export or a read-only preview. The
+required user-facing behavior:
+
+- a YAML edit that is accepted updates the canonical semantic model;
+- accepted model changes update the graphical views;
+- graphical engineering changes are reflected in YAML;
+- invalid intermediate YAML can exist as an editable draft;
+- an invalid draft does not silently destroy the last accepted model;
+- unsaved changes and synchronization conflicts are communicated clearly;
+- save and reload preserve supported engineering data without silent loss.
+
+Before a synchronization implementation is chosen, these must be investigated:
+comment preservation, formatting fidelity, key ordering, stable identifiers, and
+Git-diff quality. This document records the **requirement and the open
+questions**; it does not design a generic synchronization framework, and the
+frontend must never own a second engineering model.
+
+### Persistent Git-native projects
+
+The user must be able to create a supported project, open it, edit it, save it,
+close it, reopen it, verify that semantic and presentation state survived, and
+review meaningful changes in Git.
+
+Issue #89 is the existing project-format initiative. The canonical
+directory-first project and any portable `.deepplant` package stay conceptually
+distinct from the application's own distribution format: application
+distribution, project packaging, engineering semantics, and presentation
+persistence are separate concerns. Presentation state (positions, layout,
+per-view overrides) is not semantic engineering state and must persist
+separately without forcing a presentation schema into the semantic model.
+
+### End-to-end MVP acceptance
+
+The MVP is complete only when this workflow is demonstrated in the real
+application:
 
 ```text
-open project
-    ↓
-open/create PFD
-    ↓
-graphically create/edit process semantics
-    ↓
-realize part of the process physically
-    ↓
-open/create P&ID
-    ↓
-graphically edit basic equipment/piping
-    ↓
-validate
-    ↓
-save semantic + presentation state
-    ↓
-reload without loss
+1. create/open a project
+2. edit a PFD
+3. edit YAML and observe the accepted graphical change
+4. edit a bounded P&ID
+5. validate the model
+6. save the project
+7. close and reopen DeepPlant
+8. verify semantic and presentation persistence
+9. inspect meaningful Git changes
 ```
+
+Passing automated tests is necessary but not sufficient: the acceptance
+criterion is the demonstrated workflow, matching the MVP Acceptance milestone in
+[roadmap.md](roadmap.md).
 
 The MVP does not require cloud hosting, authentication, databases,
 collaboration, complete instrumentation, simulation, 3D, complete DEXPI,
@@ -259,8 +324,8 @@ is assumed by this document.
 Current implementation facts are not repeated here. The boundary map is
 [architecture.md](../architecture/index.md); the current obligations are the
 [contracts](../../contracts/index.md) (plant model, process model, physical piping,
-YAML format, CLI, renderer, symbol pack, DEXPI Process adapter); the actionable
-current and next state is [roadmap.md](roadmap.md).
+YAML format, CLI, renderer, symbol pack, DEXPI Process adapter); the active
+milestone and its success criteria are in [roadmap.md](roadmap.md).
 
 ## Hypotheses
 
@@ -281,7 +346,7 @@ The capability progression — the stages, their goals, their dependencies, and
 the questions deliberately left open in each — is recorded in
 [direction.md](direction.md). It is product context, not implementation
 authorization: the [anti-roadmap](roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely)
-still governs, and the actionable current/next state lives in
+still governs, and the active milestone lives in
 [roadmap.md](roadmap.md).
 
 ## Product Principles
@@ -325,9 +390,10 @@ still governs, and the actionable current/next state lives in
   durable invariants.
 - [contracts/index.md](../../contracts/index.md) — current model, format, CLI,
   renderer, and adapter obligations.
+- [strategy.md](strategy.md) — target user, positioning, and hypotheses.
 - [direction.md](direction.md) — long-term capability progression (product
   context, not authorization).
-- [roadmap.md](roadmap.md) — current state, next direction, anti-roadmap.
+- [roadmap.md](roadmap.md) — product milestones and the active outcome.
 - [workflow.md](../workflow/index.md) — the daily change loop.
 - [decisions/index.md](../decisions/index.md) — architectural decisions.
 - [VISION.md](../../../VISION.md) — the durable long-term thesis and capability map.

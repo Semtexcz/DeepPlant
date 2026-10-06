@@ -673,10 +673,10 @@ The examples below illustrate how this workflow could be validated when
 the roadmap selects compatible frontend work.
 
 This document does not select, prioritize, authorize, or schedule either
-example. Operational priority remains owned exclusively by the roadmap
-([roadmap.md](../planning/roadmap.md), [planning/index.md](../planning/index.md)),
-which decides whether and when either example is used. Neither is `Now`, `Next`, a
-first authorized slice, a successor, or an implementation ordering.
+example. The [roadmap](../planning/roadmap.md) owns the active milestone and the
+active outcome, and Issue selection happens through
+[planning/index.md](../planning/index.md). Neither example is a first authorized
+slice, a successor, or an implementation ordering.
 
 ### Example A — DeepPlant Application Shell
 

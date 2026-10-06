@@ -99,6 +99,7 @@ change_patterns:
     - frontend/shared/api/
   "project/**":
     - project/brief.md
+    - docs/dev/planning/strategy.md
     - docs/dev/planning/roadmap.md
     - docs/dev/planning/index.md
   "docs/user/**":
@@ -122,6 +123,7 @@ change_patterns:
     - VISION.md
     - project/brief.md
     - docs/dev/planning/index.md
+    - docs/dev/planning/strategy.md
     - docs/dev/planning/product.md
     - docs/dev/planning/direction.md
     - docs/dev/planning/roadmap.md

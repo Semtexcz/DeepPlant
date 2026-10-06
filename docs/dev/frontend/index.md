@@ -86,14 +86,12 @@ editor product behavior.
   `tsconfig.node.json`) so Node globals never reach production browser code.
 - **Canonical rule:** everything below is binding for new frontend work.
 - **Deferred:** none for the current frontend-engineering baseline; the #82
-  browser E2E slice is delivered. The [roadmap](../planning/roadmap.md) post-#82
-  re-evaluation gate selected
-  [Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85) — independent
-  DeepPlant Core and standalone editor distribution — as the next product
-  capability, and that capability is now delivered (its native desktop host slice
-  is [#93](https://github.com/Semtexcz/DeepPlant/issues/93)). That is a
-  product/application concern owned by the roadmap and Issue #85; it did not
-  change this frontend contract.
+  browser E2E slice is delivered. Independent DeepPlant Core and standalone
+  editor distribution ([Issue #85](https://github.com/Semtexcz/DeepPlant/issues/85),
+  including its native desktop host slice
+  [#93](https://github.com/Semtexcz/DeepPlant/issues/93)) is delivered as a
+  product/application concern; the current product milestones are in the
+  [roadmap](../planning/roadmap.md). It did not change this frontend contract.
 - **Host invariant:** DeepPlant has **one** engineering frontend implemented in
   web technologies. The native desktop host delivered by
   [Issue #93](https://github.com/Semtexcz/DeepPlant/issues/93) and any future web
@@ -129,6 +127,6 @@ the `frontend-engineering` skill points here rather than duplicating it.
 
 - [architecture.md](../architecture/index.md) — current technical shape and boundaries.
 - [quality.md](../workflow/quality.md) — the quality gates this contract is part of.
-- [roadmap.md](../planning/roadmap.md) — current state and next direction.
+- [roadmap.md](../planning/roadmap.md) — product milestones and the active outcome.
 - [engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)
   — the reuse-first evidence behind the selected stack.

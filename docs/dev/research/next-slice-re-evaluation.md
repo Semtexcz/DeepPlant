@@ -38,9 +38,9 @@ superseded_by: null
 - **Resulting ADRs:** none; Issue #39 may produce one.
 - **Current contracts operationalizing the result:** none; the current planning
   state is maintained in [roadmap.md](../planning/roadmap.md).
-- **Conditions for revisiting:** Issue #39's evidence closes (then create a new
-  re-evaluation record), or a deferred candidate gains a concrete
-  DeepPlant-native consumer or a decisive upstream change.
+- **Conditions for revisiting:** historical only. The mandatory re-evaluation
+  gate mechanism was retired in favor of milestone-driven planning
+  ([planning/index.md](../planning/index.md)); this record is not revived.
 
 ## Current state at inspection
 
@@ -146,6 +146,6 @@ remains maintained in [roadmap.md](../planning/roadmap.md), not in this historic
 
 ## Revisit condition
 
-Create a new re-evaluation record after Issue #39's evidence concludes, or
-re-evaluate earlier if a deferred candidate gains an evidence-backed
-DeepPlant-native consumer.
+Historical record. The mandatory re-evaluation gate that produced this record was
+retired; further next-slice selection happens through milestone-driven planning
+([planning/index.md](../planning/index.md)), not by creating another gate record.

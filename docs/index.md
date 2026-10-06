@@ -82,8 +82,9 @@ the Phase 6 split of the standards document into policy, registry, and evidence
 | Current contract (model, YAML, CLI, renderer, DEXPI) | [contracts/index.md](contracts/index.md) |
 | Current boundary map of what exists | [architecture.md](dev/architecture/index.md) |
 | Project purpose, users, scope | [project brief](../project/brief.md) |
+| Product strategy (target user, differentiation) | [strategy.md](dev/planning/strategy.md) |
 | Product thesis and non-goals | [product.md](dev/planning/product.md) |
-| Current state and next direction | [roadmap.md](dev/planning/roadmap.md) |
+| Product milestones and the active outcome | [roadmap.md](dev/planning/roadmap.md) |
 | Long-term capability progression | [direction.md](dev/planning/direction.md) |
 | Why a choice was made | [decisions/index.md](dev/decisions/index.md) |
 | Evidence, research, or a prototype | [research/index.md](dev/research/index.md) |
