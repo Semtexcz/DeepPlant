@@ -74,9 +74,34 @@ export interface ProcessPfdProjectionDto {
   readonly streams: readonly ProcessStreamDto[]
 }
 
+/** Which editor-workspace state the local boundary reports (Issue #97). */
+export type WorkspaceState = 'empty' | 'loaded'
+
+/** Identity of the document an editor session has open, when one is open. */
+export interface WorkspaceDocumentDto {
+  readonly name: string
+  readonly plant_id: string
+  readonly plant_name: string | null
+}
+
+/**
+ * Editor workspace state, independent of any engineering model.
+ *
+ * `state` is `'empty'` when no project is open and `'loaded'` when one is. An
+ * empty workspace carries no model at all, so the frontend never mistakes the
+ * absence of a document for a semantic validation or Process/PFD projection
+ * failure, and a loaded-but-unprojectable model is still reported as loaded
+ * (`document` is present while `projection` is `null`).
+ */
+export interface WorkspaceDto {
+  readonly state: WorkspaceState
+  readonly document: WorkspaceDocumentDto | null
+}
+
 /** Transport envelope returned by `/api/projection`. */
 export interface ProjectionEnvelope {
-  readonly validation: ValidationStatusDto
+  readonly workspace: WorkspaceDto
+  readonly validation: ValidationStatusDto | null
   readonly projection: ProcessPfdProjectionDto | null
   readonly error: string | null
 }

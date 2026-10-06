@@ -70,12 +70,16 @@ packaged executable → native desktop window → embedded shared Vue SPA
 
 - `deepplant-editor` launches a `QMainWindow` with an embedded
   `QWebEngineView`. It never opens an external browser.
-- The initial model path is **optional**. With no argument the window opens with
-  a minimal native bootstrap (`File -> Open…` and an `Open plant…` button);
-  a native `QFileDialog` then selects a `*.yaml`/`*.yml` path, which is loaded
-  through the ordinary DeepPlant application boundary. The shell never parses
-  YAML.
-- With a path argument the same window opens directly on that model.
+- The initial model path is **optional**. With no argument the window opens
+  directly into the ordinary shared Vue editor with **no project open**: the
+  application chrome, the Process/PFD canvas, the Inspector and the status strip
+  are present, with an explicit neutral "no project open" state and no native
+  start page (Issue #97). A native `QFileDialog` then selects a
+  `*.yaml`/`*.yml` path, which is loaded through the ordinary DeepPlant
+  application boundary. The shell never parses YAML.
+- With a path argument the same window opens with that model already active in the
+  same session. `File -> Open…` later replaces the active document in the existing
+  window, server and webview.
 - The embedded view may only navigate within the local application origin; other
   schemes and remote hosts are refused.
 - Closing the window stops the owned `EditorServer`, which closes the loopback
@@ -314,8 +318,10 @@ does not trust the packaging tool's exit code. It:
    environment (no virtualenv, and no Python/Node/pnpm entries on `PATH` - the
    graphical session variables an end user's desktop provides are deliberately
    kept) **twice**:
-   - **no model argument** - proves the primary end-user workflow opens a real
-     window instead of demanding a path;
+   - **no model argument** - proves the packaged application starts directly into
+     the real shared Vue SPA with an explicit **empty workspace** (no project
+     open, no fabricated model, no projection failure), instead of demanding a
+     path or showing only a native start page;
    - `plant.yaml` - proves the packaged editor workflow renders the
      self-contained fixture, selects a known step, and shows its semantics, with
      **no** `--symbol-role` or other hidden presentation override;
@@ -380,7 +386,9 @@ application (a source checkout can open the file in place):
 cp examples/process-graph/plant.yaml /tmp/deepplant-smoke.yaml
 ```
 
-1. Launch the Editor **without a model** and wait for the start page:
+1. Launch the Editor **without a model**. It opens directly into the shared Vue
+   editor with an empty workspace (canvas, Inspector and status strip present, an
+   explicit "no project open" status):
    - source checkout: `uv run --group desktop deepplant-editor`;
    - installed artifact: the Start Menu shortcut (Windows) or the AppImage
      (Linux).
@@ -426,13 +434,14 @@ What it does — and deliberately does **not** do:
 
 The report is a small JSON object. Every value in `checks` must be `true`;
 `lifecycle` records the raw measured facts (a `false` there is what makes the run
-fail):
+fail). The loaded launch asserts the fixture's rendered content as well:
 
 ```json
 {
   "checks": {
+    "productionSpa": true,
     "validationValid": true, "processSteps": true, "processStreams": true,
-    "pumpSelected": true, "inspectorFunction": true, "productionSpa": true,
+    "pumpSelected": true, "inspectorFunction": true,
     "windowVisible": true, "windowClosed": true,
     "serverStopRequested": true, "serverStopped": true,
     "serverThreadTerminated": true, "portReleased": true,
@@ -449,11 +458,38 @@ fail):
 }
 ```
 
+The **no-model** launch asserts the empty-workspace evidence instead of the
+fixture content, so the packaged product is proven to open the real shared SPA
+(rather than only a native start page):
+
+```json
+{
+  "checks": {
+    "productionSpa": true,
+    "workspaceEmpty": true,
+    "statusNoProject": true,
+    "emptyCanvasMessage": true,
+    "noProjectionError": true,
+    "windowVisible": true, "windowClosed": true,
+    "serverStopRequested": true, "serverStopped": true,
+    "serverThreadTerminated": true, "portReleased": true,
+    "eventLoopReturned": true
+  }
+}
+```
+
+`statusNoProject` compares the rendered status text against
+`EMPTY_WORKSPACE_STATUS_TEXT` (authored once in the Qt-free
+`deepplant.editor.desktop`, and the same string the Vue SPA renders), so an empty
+workspace is proven to be an ordinary state rather than a validation error or a
+projection failure.
+
 The driver also rejects a report whose `checks` omit any required lifecycle key,
 so an older artifact cannot pass by sending a shorter report.
 
-What this proves: the artifact runs outside the checkout, opens a model outside
-the checkout, renders the production SPA in a real native window, stops its owned
+What this proves: the artifact runs outside the checkout, starts into the real
+shared Vue SPA both with no project open and with a model opened from outside the
+checkout, renders the production SPA in a real native window, stops its owned
 server thread and releases the loopback socket when the window closes, and lets
 the application exit through the ordinary lifecycle. The process is **not**
 force-terminated to make the report look clean: `eventLoopReturned` is only
@@ -639,8 +675,9 @@ The embedded view is limited to the **exact origin** of the running
 `EditorServer` (`scheme://host:port`), plus the internal `data:`/`blob:`/`about:`/
 `qrc:` schemes the SPA and Qt use. A different loopback port, `localhost` versus
 `127.0.0.1`, an external HTTPS site and `file:` are all refused, and pop-ups are
-refused. When another model is opened the server is replaced - possibly on a
-different ephemeral port - and the permitted origin moves to the new one. This is
+refused. Since Issue #97 the session keeps one long-lived server, so opening or
+replacing a model is a workspace state change on that same origin and the
+permitted origin does not move. This is
 a webview host policy, not authentication: the loopback server stays single-user
 and unauthenticated, and no tokens, sessions, CORS or TLS are introduced. The pure
 policy is `deepplant.editor.desktop.is_allowed_navigation`, covered by

@@ -22,9 +22,10 @@ from typing import TYPE_CHECKING, cast
 
 from PySide6.QtCore import QTimer
 
-from deepplant.editor.desktop import WINDOW_TITLE
-from deepplant.editor.desktop_qt.window import (
+from deepplant.editor.desktop import EMPTY_WORKSPACE_STATUS_TEXT, WINDOW_TITLE
+from deepplant.editor.desktop_qt.probes import (
     CANVAS_PROBE_JS,
+    EMPTY_WORKSPACE_PROBE_JS,
     EXPECTED_STEPS,
     EXPECTED_STREAMS,
     INSPECTOR_PROBE_JS,
@@ -110,6 +111,33 @@ def _self_check_verdict(
         "checks": checks,
         "canvas": canvas_fields,
         "inspector": inspector_fields,
+    }
+
+
+def _empty_workspace_verdict(probe: object) -> tuple[bool, dict[str, object]]:
+    """Decide whether the real embedded application proved the empty workspace.
+
+    Issue #97 requires the packaged no-project launch to prove the *shared Vue
+    SPA*, not merely that a native bootstrap widget appeared. The checks below are
+    read from the rendered page through the webview's JavaScript engine: the
+    ordinary production SPA rendered with no active document, no engineering model
+    was fabricated (zero projected steps), the status is the neutral "no project
+    open" state rather than "Invalid", and no Process/PFD projection failure is
+    reported.
+    """
+    fields = _as_mapping(probe)
+    checks: dict[str, object] = {
+        "productionSpa": fields.get("devEntryPoint") is False,
+        "workspaceEmpty": fields.get("processSteps") == 0,
+        "statusNoProject": fields.get("statusText") == EMPTY_WORKSPACE_STATUS_TEXT,
+        "emptyCanvasMessage": fields.get("emptyWorkspaceNotice") is True,
+        "noProjectionError": fields.get("projectionError") is None,
+    }
+    passed = all(value is True for value in checks.values())
+    return passed, {
+        "verdict": "pass" if passed else "fail",
+        "checks": checks,
+        "workspace": fields,
     }
 
 
@@ -212,7 +240,7 @@ def _compose_report(
             run.results.get("canvas"), run.results.get("inspector")
         )
     else:
-        content_checks = True
+        content_checks, content_extra = _empty_workspace_verdict(run.results.get("workspace"))
 
     checks = _as_mapping(content_extra.get("checks"))
     checks["windowVisible"] = measurement.window_visible
@@ -322,15 +350,52 @@ def _after_inspector(run: _SelfCheckRun, raw: object) -> None:
     _failed_guard(run, "the inspector probe", handle)
 
 
+def _probe_empty(run: _SelfCheckRun) -> None:
+    """Ask the embedded webview for the rendered empty-workspace facts."""
+    stage_log(run.report_path, "probe: empty workspace")
+    view = run.editor.window.web_view
+    if view is None:
+        _fail(run, "the native window never created an embedded view")
+        return
+
+    def handle_result(raw: object) -> None:
+        _after_empty(run, raw)
+
+    view.page().runJavaScript(EMPTY_WORKSPACE_PROBE_JS, handle_result)
+
+
+def _after_empty(run: _SelfCheckRun, raw: object) -> None:
+    """Consume the empty-workspace probe result and finalize the run."""
+
+    def handle() -> None:
+        workspace = _parse_probe(raw)
+        stage_log(run.report_path, f"probe: empty workspace result {bool(workspace)}")
+        if not workspace:
+            _fail(run, "the empty-workspace probe returned no usable result")
+            return
+        run.results["workspace"] = workspace
+        _finalize(run)
+
+    _failed_guard(run, "the empty-workspace probe", handle)
+
+
 def _on_loaded(run: _SelfCheckRun, ok: bool) -> None:
     """React to the embedded page finishing (or failing) its load."""
     stage_log(run.report_path, f"page loaded: {ok}")
     if not ok:
         _fail(run, "the embedded page did not finish loading")
         return
+    if run.has_project:
+        QTimer.singleShot(
+            POST_LOAD_SETTLE_MS,
+            lambda: _failed_guard(run, "the canvas probe", lambda: _probe_canvas(run)),
+        )
+        return
+    # No document was supplied: the shared SPA's empty-workspace state is the thing
+    # under test, so the probe reads the real rendered page (Issue #97).
     QTimer.singleShot(
         POST_LOAD_SETTLE_MS,
-        lambda: _failed_guard(run, "the canvas probe", lambda: _probe_canvas(run)),
+        lambda: _failed_guard(run, "the empty-workspace probe", lambda: _probe_empty(run)),
     )
 
 
@@ -375,14 +440,8 @@ def start_self_check(
         lambda: _fail(run, f"the self-check did not finish within {SELF_CHECK_TIMEOUT_MS} ms"),
     )
 
-    if not has_project:
-        # No model was supplied: the bootstrap window is the thing under test.
-        QTimer.singleShot(
-            POST_LOAD_SETTLE_MS,
-            lambda: _failed_guard(run, "the window check", lambda: _finalize(run)),
-        )
-        return run.report
-
+    # The shared SPA loads in both cases (Issue #97), so the page-loaded hook is
+    # always installed; it decides which probe to run from ``has_project``.
     editor.page_loaded_hook = lambda ok: _on_loaded(run, ok)
     return run.report
 

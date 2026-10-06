@@ -27,6 +27,16 @@ describe('InspectorPanel', () => {
     expect(wrapper.find('dl').exists()).toBe(false)
   })
 
+  it('shows a neutral no-project empty state when no workspace project is open', () => {
+    const wrapper = mount(InspectorPanel, { props: { view: null, hasProject: false } })
+
+    expect(wrapper.get('aside').attributes('aria-label')).toBe('Inspector')
+    expect(wrapper.get('h2').text()).toBe('Inspector')
+    expect(wrapper.text()).toContain('No project open.')
+    expect(wrapper.text()).not.toContain('Select a process step or process stream.')
+    expect(wrapper.find('dl').exists()).toBe(false)
+  })
+
   it('renders the semantic fields of a selected ProcessStep', () => {
     const view = inspectorForSelection(selectProcessStep(PROJECTION_FIXTURE, 'PS-pump'))
     const wrapper = mount(InspectorPanel, { props: { view } })

@@ -8,17 +8,23 @@ not a second frontend:
 
     native window + embedded webview
               ↓
-    http://127.0.0.1:<ephemeral-port>
+    http://127.0.0.1:<ephemeral-port>   (one long-lived origin)
               ↓
     FastAPI / Uvicorn  (deepplant.editor.api)
               ↓
-    EditorApplication  (deepplant.editor.application)
+    EditorWorkspace  (deepplant.editor.application)
               ↓
-    DeepPlant Core
+    EditorApplication?  (active document: none | loaded)  →  DeepPlant Core
 
 The embedded page is the ordinary production build of ``apps/editor/`` - the same
 Vue SPA the developer/browser host (``deepplant ui``) and any future web
 deployment serve. No engineering UI is re-implemented natively.
+
+Since Issue #97 the window opens *directly into that shared Vue editor*: the
+application shell exists independently of its active document, so launching with
+no argument shows the ordinary editor workspace with ``active project = none``
+rather than a native start page. Opening a project changes workspace state
+through the same long-lived server and webview; it never swaps in a second UI.
 
 This module is deliberately **Qt-free**: it owns the command-line surface, the
 dependency probe, the initial-project load, and the small navigation policy, so
@@ -49,6 +55,7 @@ from deepplant.editor import (
 from deepplant.editor.application import (
     EditorApplication,
     EditorSetupError,
+    create_empty_workspace,
     load_editor_application,
 )
 from deepplant.editor.launcher import (
@@ -61,6 +68,7 @@ from deepplant.io import PlantLoadError
 
 __all__ = [
     "DesktopHostError",
+    "EMPTY_WORKSPACE_STATUS_TEXT",
     "MODEL_FILE_FILTER",
     "SMOKE_EXPECTED_STEPS",
     "SMOKE_EXPECTED_STREAMS",
@@ -91,6 +99,14 @@ MODEL_FILE_FILTER: str = "DeepPlant plant models (*.yaml *.yml);;All files (*)"
 SMOKE_PROBE_STEP_ID: str = "PUMP"
 SMOKE_EXPECTED_STEPS: int = 3
 SMOKE_EXPECTED_STREAMS: int = 2
+
+#: The neutral status text the shared Vue SPA shows when no project is open (Issue
+#: #97). The packaged self-check asserts it, so the no-project launch is proven to
+#: be an ordinary editor state rather than a validation ("Invalid") or Process/PFD
+#: projection failure. It is authored here - the Qt-free half of the host - so the
+#: value the frontend renders and the value the probe asserts can be checked
+#: together in the fast Python gate.
+EMPTY_WORKSPACE_STATUS_TEXT: str = "No project open"
 
 #: Schemes the SPA and Qt itself legitimately use inside the view. They carry no
 #: remote authority, so they are allowed alongside the exact active origin. They
@@ -213,10 +229,11 @@ def run_desktop_editor(
 ) -> int:
     """Launch the native DeepPlant Editor window and return its exit code.
 
-    ``project_path`` is *optional*: with no path the window opens with a minimal
-    native bootstrap (``File -> Open...``), which is the primary end-user
-    workflow. With a path the same window opens directly on that model, which is
-    the advanced/diagnostic workflow.
+    ``project_path`` is *optional*: the window always opens directly into the
+    ordinary shared Vue editor workspace (Issue #97), and with no path that
+    workspace simply has no active document (``File -> Open...`` is available from
+    the normal application shell). With a path the same workspace opens with that
+    model already active, which is the advanced/diagnostic workflow.
 
     The initial project is loaded *before* the window is created, so an invalid
     or missing model is a clear message instead of a window that appears and then
@@ -236,8 +253,9 @@ def run_desktop_editor(
         host_runner: Test seam; defaults to the real Qt host.
 
     Raises:
-        DesktopHostError: If the desktop extra is missing or the initial model
-            cannot be loaded. The message is user-facing; no traceback.
+        DesktopHostError: If the desktop extra is missing, the built editor assets
+            cannot be found, or the initial model cannot be loaded. The message is
+            user-facing; no traceback.
     """
     try:
         overrides = parse_symbol_role_overrides(symbol_role_entries)
@@ -249,11 +267,19 @@ def run_desktop_editor(
 
     runner = host_runner if host_runner is not None else _load_qt_host_runner()
 
+    # The workspace serves the shared SPA whether or not a document is open, so the
+    # built assets must resolve before any window appears. An empty workspace is a
+    # real, first-class state - not a fallback that hides a missing build.
+    try:
+        workspace = create_empty_workspace(assets_dir)
+    except EditorSetupError as exc:
+        raise DesktopHostError(str(exc)) from exc
+
     def load(selected: Path) -> EditorApplication:
         return load_editor_application(
             selected,
             symbol_role_overrides=overrides,
-            assets_dir=assets_dir,
+            assets_dir=workspace.assets_dir,
         )
 
     initial_application: EditorApplication | None = None
@@ -264,6 +290,7 @@ def run_desktop_editor(
             raise DesktopHostError(str(exc)) from exc
 
     return runner(
+        assets_dir=workspace.assets_dir,
         initial_application=initial_application,
         loader=load,
         port=port,

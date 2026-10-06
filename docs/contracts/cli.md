@@ -107,9 +107,14 @@ Behavior:
 - The server binds to **loopback only** (`127.0.0.1`); there is no option to
   expose it on `0.0.0.0`. This is a local developer/product tool with no
   authentication and no production or server-security claim.
-- It serves exactly three read routes: the Process/PFD projection JSON
+- It serves exactly three read routes: the workspace/projection JSON
   (`/api/projection`), the canonical packaged symbol assets
   (`/api/symbols/<role>.svg`), and the built editor assets.
+- `/api/projection` reports the explicit **workspace state** first
+  (`workspace.state`: `"empty"` or `"loaded"`, with the open document's identity
+  when loaded). With no project open it answers HTTP 200 with
+  `validation: null`, `projection: null`, and no error: an empty workspace is an
+  ordinary state, never an invalid model or a failed projection (Issue #97).
 - The built editor application must exist first in a source checkout:
   `make frontend-build` (or `cd apps/editor && pnpm build`). A standalone
   application always carries it. If it is missing, the command exits 1 with a
@@ -139,13 +144,22 @@ deepplant-editor [path] [--symbol-role STEP=ROLE] [--port <n>]
                         [--self-check --self-check-report <path>]
 ```
 
-- **The path is optional.** Running it with no argument opens the editor window
-  with a minimal start page and a native `File -> Open…` action; it never prints
-  help and never demands a path. Normal use therefore requires no terminal and no
+- **The path is optional.** Running it with no argument opens the ordinary shared
+  Vue editor with **no project open**: the application chrome, the Process/PFD
+  workspace and canvas, the Inspector and the status strip are all present, the
+  canvas is empty, and the status clearly says no project is open. There is no
+  separate native start page and no second editor UI (Issue #97). It never prints
+  help and never demands a path, so normal use requires no terminal and no
   command-line knowledge.
-- With a path it opens the same window directly on that model. This is the
+- With a path it opens the same editor with that model already active. This is the
   advanced/diagnostic form, and it supports development, automated checks, and a
-  future OS *Open With* association.
+  future OS *Open With* association. It is not a separate product mode: the path
+  simply activates a document in the normal workspace.
+- **`File -> Open…`** activates the selected model in the *existing* session. The
+  same window, long-lived server and webview are reused, so opening or replacing a
+  project never leaks a server, socket, webview or window, and the previous
+  document is released cleanly. A failed open leaves the previously active project
+  untouched and reports the normal DeepPlant load error.
 - It resolves the project through the same `EditorApplication`, serves it through
   the same FastAPI/Uvicorn transport on `127.0.0.1` with the same ephemeral-port
   behaviour, and renders the same production SPA. There is no second editor
@@ -162,12 +176,16 @@ deepplant-editor [path] [--symbol-role STEP=ROLE] [--port <n>]
 - `--self-check --self-check-report <path>` is the documented automation mode
   used by the packaged-artifact verification: it loads the application, probes
   the real rendered page, closes the window, writes a JSON verdict, and exits
-  with `0` only when every check passed. It adds no production protocol and is
-  never used in normal operation.
+  with `0` only when every check passed. With no model argument it probes the
+  shared SPA's empty workspace (no project open, no fabricated model); with a
+  model it probes the rendered Process/PFD and Inspector. It adds no production
+  protocol and is never used in normal operation.
 
 Closing the window stops the local server, releases the loopback socket, and
 terminates the helper processes the application owns. Nothing outside the
-application is signalled.
+application is signalled. This holds when the editor never opened a project: an
+empty session owns the same server, socket and WebEngine helpers, so it shuts
+them down identically (Issue #97).
 
 ## Deliberately not provided
 

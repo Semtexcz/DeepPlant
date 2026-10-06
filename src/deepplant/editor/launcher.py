@@ -35,7 +35,11 @@ from deepplant.editor import (
     MissingEditorDependenciesError,
     require_editor_dependencies,
 )
-from deepplant.editor.application import EditorSetupError, load_editor_application
+from deepplant.editor.application import (
+    EditorSetupError,
+    EditorWorkspace,
+    load_editor_application,
+)
 from deepplant.io import PlantLoadError
 
 __all__ = [
@@ -120,10 +124,16 @@ def run_editor(
     except (PlantLoadError, EditorSetupError) as exc:
         raise EditorLaunchError(str(exc)) from exc
 
+    # ``deepplant ui <path>`` opens the shared editor workspace with the requested
+    # document already active. The workspace is the same session concept the
+    # standalone desktop host uses, so both hosts serve one product (Issue #97).
+    workspace = EditorWorkspace(assets_dir=application.assets_dir)
+    workspace.activate(application)
+
     on_listening = (
         _browser_launcher(host, echo=echo, opener=browser_opener) if open_browser else None
     )
-    serve_editor(application, host=host, port=port, echo=echo, on_listening=on_listening)
+    serve_editor(workspace, host=host, port=port, echo=echo, on_listening=on_listening)
 
 
 def _browser_launcher(

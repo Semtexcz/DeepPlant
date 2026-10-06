@@ -7,11 +7,11 @@ This module owns only the HTTP transport and the local server lifecycle. It
 depends on the framework-independent application layer
 (:mod:`deepplant.editor.application`); the application layer never depends on it.
 
-Transport (Issue #79): FastAPI + Uvicorn. The surface is three read routes (one
-JSON projection, the canonical symbol assets, and the built SPA assets). It is
-loopback-only, single-user, unauthenticated, and makes no production or
-server-security claim. Route handlers only receive a request, call
-``EditorApplication``, and map its result to an HTTP response; no engineering
+Transport (Issue #79): FastAPI + Uvicorn. The surface is three read routes (the
+workspace/projection JSON, the canonical symbol assets, and the built SPA
+assets). It is loopback-only, single-user, unauthenticated, and makes no
+production or server-security claim. Route handlers only receive a request, call
+an ``EditorWorkspace``, and map its result to an HTTP response; no engineering
 behaviour lives here.
 
 This is the only DeepPlant module that imports FastAPI and Uvicorn. Those are an
@@ -40,7 +40,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from deepplant.editor import DEFAULT_HOST, DEFAULT_PORT
-from deepplant.editor.application import EditorApplication
+from deepplant.editor.application import WORKSPACE_STATE_EMPTY, EditorWorkspace
 from deepplant.render import ProcessRenderError
 
 __all__ = [
@@ -66,14 +66,18 @@ _LISTENING_TIMEOUT_S: Final[float] = 20.0
 _SHUTDOWN_TIMEOUT_S: Final[float] = 10.0
 
 
-def create_editor_api(editor: EditorApplication) -> FastAPI:
+def create_editor_api(workspace: EditorWorkspace) -> FastAPI:
     """Build the FastAPI transport for one editor session.
 
     The returned application exposes exactly three read surfaces and holds no
-    engineering logic: the projection view, the canonical packaged symbol
-    assets, and the built SPA assets. It is an explicit factory rather than
+    engineering logic: the workspace/projection view, the canonical packaged
+    symbol assets, and the built SPA assets. It is an explicit factory rather than
     hidden module-level mutable state, so the HTTP layer is straightforward to
     test.
+
+    The transport reads the *live* workspace (Issue #97): activating a document
+    changes what ``/api/projection`` reports, so opening a project is a state
+    change rather than a new server.
     """
     api = FastAPI(
         title="DeepPlant Engineering Editor",
@@ -83,11 +87,13 @@ def create_editor_api(editor: EditorApplication) -> FastAPI:
     )
 
     def read_projection() -> Response:
-        view = editor.projection_view()
-        return JSONResponse(
-            status_code=200 if view.projectable else 422,
-            content=view.to_envelope(),
-        )
+        view = workspace.view()
+        # An empty workspace is a successful, ordinary state (HTTP 200): no
+        # document is open, so there is nothing to validate or project. HTTP 422
+        # is reserved for a loaded document whose *current Process/PFD view*
+        # cannot be produced - a view limitation, never the absence of a document.
+        status_code = 200 if view.state == WORKSPACE_STATE_EMPTY or view.projectable else 422
+        return JSONResponse(status_code=status_code, content=view.to_envelope())
 
     def read_symbol(symbol_role: str) -> Response:
         # The canonical asset is ``<role>.svg``; accept the role with or without
@@ -96,18 +102,18 @@ def create_editor_api(editor: EditorApplication) -> FastAPI:
             symbol_role[: -len(_SVG_SUFFIX)] if symbol_role.endswith(_SVG_SUFFIX) else symbol_role
         )
         try:
-            svg = editor.symbol_svg(role)
+            svg = workspace.symbol_svg(role)
         except ProcessRenderError as exc:
             return Response(
                 status_code=404,
-                content=f"unknown symbol role: {exc}\n",
+                content=f"process symbol role is not available: {exc}\n",
                 media_type=_TEXT_CONTENT_TYPE,
             )
         return Response(content=svg, media_type=_SVG_CONTENT_TYPE)
 
     api.add_api_route(_PROJECTION_ROUTE, read_projection, methods=["GET", "HEAD"])
     api.add_api_route(_SYMBOL_ROUTE, read_symbol, methods=["GET", "HEAD"])
-    api.mount("/", StaticFiles(directory=editor.assets_dir, html=True), name="editor-spa")
+    api.mount("/", StaticFiles(directory=workspace.assets_dir, html=True), name="editor-spa")
     return api
 
 
@@ -144,12 +150,17 @@ def _await_listening(host: str, port: int, *, timeout: float) -> None:
 
 
 class EditorServer:
-    """Owns the local loopback editor server for one application session.
+    """Owns the local loopback editor server for one editor workspace.
 
     Issue #93 needs a server the caller *owns*: the native desktop host starts it,
     shows the window, and must stop it deterministically when the window closes.
     The blocking :func:`serve_editor` (the terminal shape of ``deepplant ui``) is
     implemented on top of this class, so there is exactly one server lifecycle.
+
+    Since Issue #97 the server is bound to an :class:`EditorWorkspace` rather than
+    to one loaded document, so a single long-lived server keeps serving the same
+    shared SPA while the workspace moves between "no project open" and "project
+    open".
 
     The socket is bound in the constructor - before Uvicorn starts - so the real
     loopback URL is known (and can be embedded in the native window) *before* the
@@ -159,15 +170,15 @@ class EditorServer:
 
     def __init__(
         self,
-        application: EditorApplication,
+        workspace: EditorWorkspace,
         *,
         host: str = DEFAULT_HOST,
         port: int = DEFAULT_PORT,
     ) -> None:
         self._host = host
-        self._application = application
+        self._workspace = workspace
         self._config = uvicorn.Config(
-            create_editor_api(application), log_level="warning", access_log=False
+            create_editor_api(workspace), log_level="warning", access_log=False
         )
         self._server = uvicorn.Server(self._config)
         self._listener = _bind_loopback_socket(host, port)
@@ -179,9 +190,9 @@ class EditorServer:
         self._stop_requested = False
 
     @property
-    def application(self) -> EditorApplication:
-        """The editor application this server exposes."""
-        return self._application
+    def workspace(self) -> EditorWorkspace:
+        """The editor workspace this server exposes."""
+        return self._workspace
 
     @property
     def host(self) -> str:
@@ -279,14 +290,14 @@ class EditorServer:
 
 
 def serve_editor(
-    application: EditorApplication,
+    workspace: EditorWorkspace,
     *,
     host: str = DEFAULT_HOST,
     port: int = DEFAULT_PORT,
     echo: Callable[[str], None] = print,
     on_listening: Callable[[int], None] | None = None,
 ) -> None:
-    """Serve the local editor with Uvicorn until interrupted (usually Ctrl+C).
+    """Serve the local editor workspace with Uvicorn until interrupted (Ctrl+C).
 
     The bind address defaults to loopback, so the editor is never exposed on
     ``0.0.0.0`` by default.
@@ -295,9 +306,10 @@ def serve_editor(
     bound port after the server starts accepting connections. It is only a
     readiness notification; it is never used to change what the server serves.
     """
-    server = EditorServer(application, host=host, port=port)
+    server = EditorServer(workspace, host=host, port=port)
     echo("DeepPlant Engineering Editor (read-only Process/PFD)")
-    echo(f"  project: {application.project_path}")
+    document = workspace.active_document
+    echo(f"  project: {document.project_path if document is not None else '(none)'}")
     echo(f"  open:    {server.base_url}")
     echo("  press Ctrl+C to stop")
     _flush_standard_streams()

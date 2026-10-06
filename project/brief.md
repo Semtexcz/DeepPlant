@@ -38,7 +38,9 @@ adapter, and the runnable, read-only Process/PFD editor slice
 (the `src/deepplant/editor/` application boundary plus the `apps/editor/` SPA,
 launched with `deepplant ui <path>`). The editor ships as a self-contained
 graphical application on Windows and Linux: `deepplant-editor` opens a native
-desktop window with an embedded webview rendering the same `apps/editor/` SPA
+desktop window with an embedded webview rendering the same `apps/editor/` SPA,
+and since Issue #97 it launches directly into that ordinary shared workspace with
+`active project = none` rather than a native start page
 (PR #92 established the distribution foundation; Issue #93, merged through PR #95,
 delivered the native desktop host). The editor HTTP transport is an optional `deepplant[editor]` extra
 and the native host an optional `deepplant[desktop]` extra, so the semantic Core
@@ -76,13 +78,20 @@ independently usable without the editor transport. Issue #93, merged through PR 
 delivered the native desktop host: `deepplant-editor` opens a real graphical window with an
 embedded webview rendering the same `apps/editor/` SPA, with a native **Open**
 workflow; the browser host `deepplant ui` and the Python CLI remain separate
-surfaces. `#85` is complete. The post-#85 re-evaluation selects exactly one next
+surfaces. `#85` is complete. The post-#85 re-evaluation selected exactly one next
 product capability: an empty shared Editor workspace with `active project = none`.
-The immediate packaged-smoke parity hardening (#98) that preceded it is now
+The immediate packaged-smoke parity hardening (#98) that preceded it is
 **delivered**: the packaged desktop verification loads a self-contained fixture
 through the same application loading boundary a `File -> Open…` selection uses
 (`deepplant-editor <path>`) with no hidden presentation override.
-Its successor remains unselected until the empty-workspace slice is delivered;
+
+That capability — Issue #97 — is now **delivered** as well: the standalone Editor
+launches directly into the ordinary shared Vue workspace with `active project =
+none`, the native Qt bootstrap/start page is gone, `File -> Open…` activates or
+replaces a document in the same long-lived server and webview, and the packaged
+no-model verification proves the real shared SPA empty state. Its successor
+remains **unselected**: the post-#97 re-evaluation gate is ready to execute but has
+not run yet;
 [docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) remains the
 authority for current operational priority.
 

@@ -247,13 +247,13 @@ make architecture-check   # also part of `make check` and the CI python-checks j
 ### Current evidence
 
 Measured with the checker itself (`make architecture-check`) against the
-repository after Issue #108, using the token-aware logical-LOC definition above
+repository after Issue #97, using the token-aware logical-LOC definition above
 (module-level docstrings excluded). Limits: production module 500, test module 800,
 function/method 80, class 300.
 
 **Production modules** (hard 500): the largest are `render/layout.py` (439 logical
 LOC), `adapters/dexpi/importer.py` (419), `render/symbols.py` (410),
-`editor/desktop_qt/self_check.py` (346), and `render/svg.py` (297) — all below the
+`editor/desktop_qt/self_check.py` (393), and `render/svg.py` (297) — all below the
 hard limit. Several exceed the 250 soft limit; those are cohesive review signals,
 not failures, and are deliberately not split for line count alone.
 
@@ -264,19 +264,20 @@ module requires splitting or an exemption.
 
 **Classes** (soft 150 / hard 300). The rule above counts a class's complete body,
 including its methods, so the class limit is genuinely measured. The largest
-production classes are `editor/desktop_qt/runtime.py` `DesktopEditor` (130 logical
-LOC), `editor/api.py` `EditorServer` (117), and `editor/desktop_qt/window.py`
-`MainWindow` (86); the largest semantic-model classes are `model/plant.py`
-`PlantModel` (74) and `model/process.py` `ProcessModel` (50). No production class
-reaches the 150 soft limit, so the class limits (150 / 300) are kept unchanged and
-need no exception.
+production classes are `editor/desktop_qt/runtime.py` `DesktopEditor` (149 logical
+LOC), `editor/desktop_qt/window.py` `MainWindow` (122), and `editor/api.py`
+`EditorServer` (122); the largest semantic-model classes are `model/plant.py`
+`PlantModel` (74) and `model/process.py` `ProcessModel` (50). `DesktopEditor` is the
+only production class near the 150 soft limit, so the class limits (150 / 300) are
+kept unchanged.
 
 **Functions/methods** (soft 40 / hard 80). The largest are
+`editor/desktop.py` `run_desktop_editor` (75),
 `adapters/dexpi/importer.py` `_collect_stream` (70),
-`adapters/dexpi/importer.py` `import_dexpi_process_xml` (68),
-`editor/desktop.py` `run_desktop_editor` (68), and `render/svg.py`
-`render_process_svg` (66). The #108 refactor resolved the six over-limit functions
-the #107 review identified, preserving their behaviour:
+`adapters/dexpi/importer.py` `import_dexpi_process_xml` (68), `render/svg.py`
+`render_process_svg` (66), and `editor/desktop_qt/runtime.py` `run_host` (65). The
+#108 refactor resolved the six over-limit functions the #107 review identified,
+preserving their behaviour:
 
 | Function | Before | After |
 |---|---:|---:|

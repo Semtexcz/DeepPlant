@@ -20,7 +20,11 @@ from urllib.request import urlopen
 import pytest
 
 from deepplant.editor.api import EditorServer
-from deepplant.editor.application import EditorApplication, load_editor_application
+from deepplant.editor.application import (
+    EditorWorkspace,
+    create_empty_workspace,
+    load_editor_application,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
@@ -28,15 +32,18 @@ VESSEL_OVERRIDES = {"PS-vessel": "vessel"}
 
 
 @pytest.fixture()
-def application(tmp_path: Path) -> EditorApplication:
+def workspace(tmp_path: Path) -> EditorWorkspace:
     assets = tmp_path / "dist"
     assets.mkdir()
     (assets / "index.html").write_text("<!doctype html><p>DeepPlant</p>", encoding="utf-8")
-    return load_editor_application(
+    application = load_editor_application(
         REALISTIC_EXAMPLE,
         symbol_role_overrides=VESSEL_OVERRIDES,
         assets_dir=assets,
     )
+    editor_workspace = EditorWorkspace(assets_dir=assets)
+    editor_workspace.activate(application)
+    return editor_workspace
 
 
 def _get_json(url: str) -> tuple[int, dict[str, object]]:
@@ -63,8 +70,8 @@ def _port_accepts(host: str, port: int) -> bool:
         return False
 
 
-def test_server_binds_loopback_and_serves_the_editor(application: EditorApplication) -> None:
-    server = EditorServer(application, port=0)
+def test_server_binds_loopback_and_serves_the_editor(workspace: EditorWorkspace) -> None:
+    server = EditorServer(workspace, port=0)
     try:
         assert server.host == "127.0.0.1"
         assert server.port > 0
@@ -75,6 +82,14 @@ def test_server_binds_loopback_and_serves_the_editor(application: EditorApplicat
         assert server.running is True
         status, payload = _get_json(f"{server.base_url}api/projection")
         assert status == 200
+        assert payload["workspace"] == {
+            "state": "loaded",
+            "document": {
+                "name": REALISTIC_EXAMPLE.name,
+                "plant_id": "demo",
+                "plant_name": "Realistic Process Fragment",
+            },
+        }
         assert payload["validation"] == {"valid": True, "message": "Valid"}
         steps = _sequence(_projection_of(payload)["steps"])
         assert len(steps) == 7
@@ -82,8 +97,28 @@ def test_server_binds_loopback_and_serves_the_editor(application: EditorApplicat
         assert server.stop() is True
 
 
-def test_stop_releases_the_listening_socket(application: EditorApplication) -> None:
-    server = EditorServer(application, port=0)
+def test_server_serves_an_empty_workspace(tmp_path: Path) -> None:
+    """An editor session with no project open is a first-class servable state."""
+    assets = tmp_path / "dist"
+    assets.mkdir()
+    (assets / "index.html").write_text("<!doctype html><p>DeepPlant</p>", encoding="utf-8")
+    server = EditorServer(create_empty_workspace(assets), port=0)
+    try:
+        server.start()
+        assert server.running is True
+
+        status, payload = _get_json(f"{server.base_url}api/projection")
+        assert status == 200
+        assert payload["workspace"] == {"state": "empty", "document": None}
+        assert payload["validation"] is None
+        assert payload["projection"] is None
+        assert "error" not in payload
+    finally:
+        assert server.stop() is True
+
+
+def test_stop_releases_the_listening_socket(workspace: EditorWorkspace) -> None:
+    server = EditorServer(workspace, port=0)
     server.start()
     port = server.port
     assert _port_accepts("127.0.0.1", port) is True
@@ -94,19 +129,19 @@ def test_stop_releases_the_listening_socket(application: EditorApplication) -> N
     assert _port_accepts("127.0.0.1", port) is False
 
 
-def test_stop_is_idempotent_and_safe_before_start(application: EditorApplication) -> None:
-    never_started = EditorServer(application, port=0)
+def test_stop_is_idempotent_and_safe_before_start(workspace: EditorWorkspace) -> None:
+    never_started = EditorServer(workspace, port=0)
     assert never_started.stop() is True
     assert never_started.stop() is True
 
-    started = EditorServer(application, port=0)
+    started = EditorServer(workspace, port=0)
     started.start()
     assert started.stop() is True
     assert started.stop() is True
 
 
-def test_start_refuses_a_second_time(application: EditorApplication) -> None:
-    server = EditorServer(application, port=0)
+def test_start_refuses_a_second_time(workspace: EditorWorkspace) -> None:
+    server = EditorServer(workspace, port=0)
     server.start()
     try:
         with pytest.raises(RuntimeError):
@@ -115,12 +150,12 @@ def test_start_refuses_a_second_time(application: EditorApplication) -> None:
         server.stop()
 
 
-def test_replacing_a_server_releases_the_previous_port(application: EditorApplication) -> None:
+def test_replacing_a_server_releases_the_previous_port(workspace: EditorWorkspace) -> None:
     """Opening another model in the same window must not leak a socket."""
-    first = EditorServer(application, port=0)
+    first = EditorServer(workspace, port=0)
     first.start()
     first_port = first.port
-    second = EditorServer(application, port=0)
+    second = EditorServer(workspace, port=0)
     second.start()
     try:
         assert second.port != first_port
@@ -163,14 +198,14 @@ class _NeverEndingThread(threading.Thread):
 class _ControllableServer(EditorServer):
     """An EditorServer whose serving thread is a controlled stand-in (Issue #93)."""
 
-    def __init__(self, application: EditorApplication) -> None:
-        super().__init__(application, port=0)
+    def __init__(self, workspace: EditorWorkspace) -> None:
+        super().__init__(workspace, port=0)
         self.serving = _NeverEndingThread()
         self._thread = self.serving
 
 
 def test_stop_is_truthful_while_the_owned_thread_is_still_alive(
-    application: EditorApplication,
+    workspace: EditorWorkspace,
 ) -> None:
     """A timed-out stop must not erase a still-live owned server (Issue #93).
 
@@ -179,7 +214,7 @@ def test_stop_is_truthful_while_the_owned_thread_is_still_alive(
     instead of from the actual thread state. The reference is now retained, so
     ``running`` stays truthful and a later ``stop()`` can still join it.
     """
-    server = _ControllableServer(application)
+    server = _ControllableServer(workspace)
     try:
         assert server.running is True
         assert server.stop(timeout=0.0) is False
@@ -195,10 +230,10 @@ def test_stop_is_truthful_while_the_owned_thread_is_still_alive(
 
 
 def test_a_timed_out_stop_completes_once_the_owned_thread_ends(
-    application: EditorApplication,
+    workspace: EditorWorkspace,
 ) -> None:
     """An earlier timeout must not prevent the server from eventually stopping."""
-    server = _ControllableServer(application)
+    server = _ControllableServer(workspace)
     assert server.stop(timeout=0.0) is False
     assert server.running is True
 

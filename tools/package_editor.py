@@ -1383,11 +1383,13 @@ def run_desktop_self_check(
     SPA. It then writes a JSON report and exits; both the exit code and the report
     must agree that the desktop product works.
 
-    ``model`` is optional. Without it the bootstrap window is verified (the
-    no-argument launch), with it the full packaged editor workflow is verified.
-    No presentation override is ever injected: the canonical smoke fixture is
-    self-contained (Issue #98), so the command is the ordinary
-    ``deepplant-editor <path>`` launch a user can reproduce.
+    ``model`` is optional. Without it the shared Vue SPA's **empty workspace** is
+    verified (the no-argument launch, Issue #97): the ordinary editor shell must
+    render with an explicit "no project open" state and no fabricated model. With
+    it the full packaged editor workflow is verified. No presentation override is
+    ever injected: the canonical smoke fixture is self-contained (Issue #98), so
+    the command is the ordinary ``deepplant-editor <path>`` launch a user can
+    reproduce.
     """
     command = [str(launcher)]
     if model is not None:
@@ -1526,7 +1528,9 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
     evidence is the real native window and the real embedded SPA - not an HTTP
     endpoint. Two launches are checked:
 
-    1. no model argument -> the bootstrap window appears and closes cleanly;
+    1. no model argument -> the packaged application starts into the shared Vue
+       editor with an explicit no-project workspace, then closes cleanly and
+       releases its server/socket (Issue #97);
     2. the canonical self-contained smoke fixture (Issue #98) -> the packaged
        editor workflow renders Valid, three ProcessSteps, two ProcessStreams,
        selects ``PUMP``, and shows its semantic data in the Inspector, all with no
@@ -1652,8 +1656,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             log("packaged smoke: " + json.dumps(evidence, sort_keys=True, default=str))
             log(
-                "VERIFIED: the packaged desktop application opened a native window with the "
-                "real shared Vue editor outside the checkout, and closed cleanly"
+                "VERIFIED: the packaged desktop application opened the real shared Vue editor "
+                "outside the checkout (empty workspace and loaded model), and closed cleanly"
             )
         elif phase == "extract":
             artifact = (

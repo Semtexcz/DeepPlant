@@ -1,4 +1,9 @@
-import type { ProcessPfdProjectionDto, ProcessStepDto, ProcessStreamDto } from '../../src/process-pfd/transport/dto'
+import type {
+  ProcessPfdProjectionDto,
+  ProcessStepDto,
+  ProcessStreamDto,
+  WorkspaceDto,
+} from '../../src/process-pfd/transport/dto'
 
 /**
  * Test-only fixture data for the editor frontend tests.
@@ -65,4 +70,13 @@ export const PROJECTION_FIXTURE: ProcessPfdProjectionDto = {
   validation: { valid: true, message: 'Valid' },
   steps: [PUMP_STEP, MIX_STEP],
   streams: [PUMP_DISCHARGE_STREAM, RECYCLE_STREAM],
+}
+
+/** No project is open: the workspace carries no document. */
+export const EMPTY_WORKSPACE: WorkspaceDto = { state: 'empty', document: null }
+
+/** A project is open: the workspace carries the document identity. */
+export const LOADED_WORKSPACE: WorkspaceDto = {
+  state: 'loaded',
+  document: { name: 'plant.yaml', plant_id: 'demo', plant_name: 'Fixture Plant' },
 }

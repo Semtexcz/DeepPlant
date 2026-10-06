@@ -126,7 +126,7 @@ def test_open_directory_never_raises(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_no_path_starts_the_window_without_a_project(assets_dir: Path) -> None:
-    """Launching without an argument is the primary workflow, never an error."""
+    """Launching without an argument opens the shared editor with no document."""
     host = _RecordingHost()
 
     code = run_desktop_editor(None, assets_dir=assets_dir, host_runner=host)
@@ -134,7 +134,26 @@ def test_no_path_starts_the_window_without_a_project(assets_dir: Path) -> None:
     assert code == 0
     assert len(host.calls) == 1
     assert host.calls[0]["initial_application"] is None
+    # The workspace serves the shared SPA, so it always owns resolved assets.
+    assert host.calls[0]["assets_dir"] == assets_dir
     assert callable(host.calls[0]["loader"])
+
+
+def test_missing_built_assets_fail_before_any_window(tmp_path: Path) -> None:
+    """The empty workspace still serves the shared SPA, so missing assets fail early.
+
+    An empty workspace is a real state that renders the ordinary Vue editor, so a
+    checkout without a built SPA is an actionable message before a window appears -
+    it is never silently hidden behind a start page.
+    """
+    host = _RecordingHost()
+    without_spa = tmp_path / "no-spa"
+    without_spa.mkdir()
+
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(None, assets_dir=without_spa, host_runner=host)
+
+    assert host.calls == []
 
 
 def test_optional_path_loads_the_model_into_the_window(assets_dir: Path) -> None:

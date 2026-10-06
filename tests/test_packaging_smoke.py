@@ -23,6 +23,7 @@ import pytest
 
 from deepplant import load_plant, render_process_svg
 from deepplant.editor.desktop import (
+    EMPTY_WORKSPACE_STATUS_TEXT,
     SMOKE_EXPECTED_STEPS,
     SMOKE_EXPECTED_STREAMS,
     SMOKE_PROBE_STEP_ID,
@@ -118,16 +119,25 @@ def test_verify_phase_defaults_to_the_canonical_smoke_fixture(
 
 
 def _passing_report() -> dict[str, object]:
-    """A minimal report the driver accepts, so the launch command can be inspected."""
+    """A minimal report the driver accepts, so the launch command can be inspected.
+
+    It carries both the loaded-model checks and the empty-workspace checks the real
+    self-check reports (Issue #97), so the driver is exercised against the same
+    shape it validates in the packaged product.
+    """
     return {
         "verdict": "pass",
         "checks": {
+            "productionSpa": True,
             "validationValid": True,
             "processSteps": True,
             "processStreams": True,
             "pumpSelected": True,
             "inspectorFunction": True,
-            "productionSpa": True,
+            "workspaceEmpty": True,
+            "statusNoProject": True,
+            "emptyCanvasMessage": True,
+            "noProjectionError": True,
             "windowVisible": True,
             "windowClosed": True,
             "serverStopRequested": True,
@@ -193,15 +203,30 @@ def test_packaged_desktop_self_check_injects_no_presentation_override(
     assert not any("PS-vessel" in part for part in command)
 
 
-def test_packaged_desktop_self_check_bootstrap_launch_has_no_override(
+def test_packaged_desktop_self_check_no_project_launch_has_no_override(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """The no-argument launch proves the shared Vue SPA's empty workspace.
+
+    Issue #97: the packaged verification must exercise the real shared-SPA
+    no-project state, not merely that a native bootstrap widget appeared.
+    """
     command = _capture_launch_command(tmp_path, monkeypatch, model=None)
 
     assert command[0].endswith("deepplant-editor")
     assert "--self-check" in command
     assert "--symbol-role" not in command
     assert not any("PS-vessel" in part for part in command)
+
+
+def test_the_empty_workspace_status_text_is_a_single_pinned_value() -> None:
+    """The empty-workspace status the probe asserts is authored once (Issue #97).
+
+    It is the same string the shared Vue SPA renders for `active project = none`,
+    so renaming it on either side fails this fast Python gate rather than only the
+    slow native packaging job.
+    """
+    assert EMPTY_WORKSPACE_STATUS_TEXT == "No project open"
 
 
 # --- The realistic fragment's honest boundary is unchanged ---------------------
