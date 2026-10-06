@@ -79,8 +79,9 @@ workflow; the browser host `deepplant ui` and the Python CLI remain separate
 surfaces. `#85` is complete. The post-#85 re-evaluation selects exactly one next
 product capability: an empty shared Editor workspace with `active project = none`.
 The immediate packaged-smoke parity hardening (#98) that preceded it is now
-**delivered**: the packaged desktop verification opens a self-contained fixture
-through the ordinary `File -> Open…` path with no hidden presentation override.
+**delivered**: the packaged desktop verification loads a self-contained fixture
+through the same application loading boundary a `File -> Open…` selection uses
+(`deepplant-editor <path>`) with no hidden presentation override.
 Its successor remains unselected until the empty-workspace slice is delivered;
 [docs/dev/planning/roadmap.md](../docs/dev/planning/roadmap.md) remains the
 authority for current operational priority.

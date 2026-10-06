@@ -324,11 +324,21 @@ does not trust the packaging tool's exit code. It:
 
 ### The canonical packaged smoke fixture
 
-The packaged verification must reproduce what an ordinary user reaches through
-`File -> Open…`, so the fixture it opens is **self-contained**: it loads,
-validates, projects and renders through the ordinary application boundary with no
-`--symbol-role`, no environment-variable presentation injection, no test-only
-application state, and no source-checkout dependency.
+The packaged verification must use the same model-loading and presentation
+semantics an ordinary user reaches through `File -> Open…`, so the fixture it
+loads is **self-contained**: it loads, validates, projects and renders through the
+ordinary application boundary with no `--symbol-role`, no environment-variable
+presentation injection, no test-only application state, and no source-checkout
+dependency.
+
+The automation and the manual workflow differ only in **how the path is
+supplied**; both cross the same application loading boundary and neither carries
+hidden presentation state:
+
+```text
+automation            deepplant-editor <path>            (no native dialog driven)
+manual user workflow  launch editor -> File -> Open… -> choose the same fixture
+```
 
 ```text
 examples/process-graph/plant.yaml     (driver constant `SMOKE_MODEL`)
@@ -354,6 +364,44 @@ whose current presentation role cannot be resolved (`tests/test_render.py`,
 `tests/test_editor_projection.py`), and it stays the browser E2E fixture; this
 packaging slice must not falsify it by inventing a process function or adding a
 global `unspecified -> vessel` mapping.
+
+### Manual parity check
+
+The automated verification supplies the fixture path on launch
+(`deepplant-editor <path>`); it does **not** click through the native file dialog.
+Issue #98 also requires a reproducible manual path, so a developer or user can
+reach the *same meaningful result* by hand through the native workflow.
+
+The installed artifact does **not** bundle the `examples/` directory, so copy the
+fixture to a location outside the repository before opening it in a packaged
+application (a source checkout can open the file in place):
+
+```bash
+cp examples/process-graph/plant.yaml /tmp/deepplant-smoke.yaml
+```
+
+1. Launch the Editor **without a model** and wait for the start page:
+   - source checkout: `uv run --group desktop deepplant-editor`;
+   - installed artifact: the Start Menu shortcut (Windows) or the AppImage
+     (Linux).
+2. Use **File -> Open…** and select the model in the native dialog:
+   - source checkout: `examples/process-graph/plant.yaml`;
+   - installed artifact: the copied standalone file, e.g.
+     `/tmp/deepplant-smoke.yaml`.
+3. Confirm the rendered result:
+   - the model status is **Valid**;
+   - 3 `ProcessStep`s are rendered;
+   - 2 `ProcessStream`s are rendered;
+   - **PUMP** is visible;
+   - selecting **PUMP** shows `ID = PUMP`, `Name = Transfer Pump`,
+     `Function = pumping`, `Ports = suction, discharge`.
+4. Close the application normally (no forced kill).
+
+These are exactly the expectations the automated self-check asserts
+(`SMOKE_PROBE_STEP_ID`/`SMOKE_EXPECTED_STEPS`/`SMOKE_EXPECTED_STREAMS` in
+`deepplant.editor.desktop`), reached through the native workflow instead of a
+launch argument. On Windows the same recipe works with `deepplant-editor.exe`
+from the installation folder.
 
 ### The desktop self-check hook
 

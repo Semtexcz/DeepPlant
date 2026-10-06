@@ -109,10 +109,13 @@ Delivered slices are recorded in
 evidence-heavy slices, in the linked spike/decision documents.
 
 - **#98 packaged-smoke parity** ([Issue #98](https://github.com/Semtexcz/DeepPlant/issues/98)):
-  the packaged desktop verification opens a self-contained fixture
-  (`examples/process-graph/plant.yaml`) through the ordinary `File -> Open…`
-  boundary with no hidden `--symbol-role` presentation override, so the automated
-  packaged evidence matches the end-user workflow.
+  the packaged desktop verification loads a self-contained fixture
+  (`examples/process-graph/plant.yaml`) through the same application loading
+  boundary a `File -> Open…` selection uses (`deepplant-editor <path>`) with no
+  hidden `--symbol-role` presentation override, so the automated packaged evidence
+  uses the end-user workflow's model-loading and presentation semantics. The
+  automation does not drive the native file dialog; the same fixture is
+  reproducible by hand through `File -> Open…`.
 
 ## Operational Roadmap
 
@@ -131,9 +134,11 @@ which contains exactly one selected product capability.
 #### Immediate evidence hardening — packaged smoke parity (delivered)
 
 [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
-is **delivered**: the packaged desktop verification now opens a self-contained
-fixture (`examples/process-graph/plant.yaml`) through the ordinary
-`File -> Open…` boundary, with no hidden CLI-only presentation override.
+is **delivered**: the packaged desktop verification now loads a self-contained
+fixture (`examples/process-graph/plant.yaml`) through the same application
+loading boundary a `File -> Open…` selection uses, with no hidden CLI-only
+presentation override. The automated path supplies the fixture with
+`deepplant-editor <path>`; it never drives the native file dialog.
 
 The realistic fixture still needs the transient presentation override
 `PS-vessel → vessel` because `PS-vessel.function: unspecified` is valid
@@ -463,8 +468,9 @@ selected #97
 
 **Next** stays unselected. A new re-evaluation opens only after the remaining
 selected capability - the empty shared Editor workspace slice (#97) - is delivered.
-Packaged-smoke parity (#98) is already delivered through the ordinary GUI workflow.
-The strong future
+Packaged-smoke parity (#98) is already delivered: the packaged verification loads
+the self-contained fixture through the same application loading semantics as the
+ordinary `File -> Open…` workflow. The strong future
 candidates — the project format/portable package (#89), the first semantic
 mutation + Save, presentation-state persistence, semantic validity vs Process/PFD
 view availability (#99), release/version infrastructure (#88), P&ID, and
