@@ -4,7 +4,7 @@ These exercise the transport without a browser: the JSON projection route,
 canonical symbol delivery, static asset delivery, HEAD behavior, unknown and
 traversal cases, and the honest 422 for a plant that cannot be projected
 (Issues #75, #79). Framework-independent application behaviour is covered
-directly in tests/test_editor_application.py and is not duplicated here.
+directly in tests/editor/test_editor_application.py and is not duplicated here.
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from deepplant.editor.api import create_editor_api
 from deepplant.editor.application import EditorApplication, load_editor_application
 from deepplant.io import load_plant
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
 VESSEL_OVERRIDES = {"PS-vessel": "vessel"}
 

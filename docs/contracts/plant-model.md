@@ -25,7 +25,7 @@ superseded_by: null
 > **Question this document answers:** which physical/plant objects exist, what
 > identifies them, and which structural and reference rules must hold?
 >
-> Implemented in `src/deepplant/model.py`; authored shape in
+> Implemented in `src/deepplant/model/` (`physical.py`, `plant.py`); authored shape in
 > [yaml-format.md](yaml-format.md); the process graph in
 > [process-model.md](process-model.md); piping realization in
 > [physical-piping.md](physical-piping.md).

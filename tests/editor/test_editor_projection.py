@@ -23,7 +23,7 @@ from deepplant.editor.projection import (
 )
 from deepplant.render import ProcessRenderError
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
 
 # PS-vessel has engineering function "unspecified" (ADR-0009); the presentation

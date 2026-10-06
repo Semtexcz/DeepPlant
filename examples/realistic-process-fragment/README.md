@@ -107,7 +107,7 @@ What this states honestly:
 - No realization is marked `kind: direct`. The fragment provides no evidence
   that any of its adjacencies is pipe-less, so claiming one would be a false
   engineering assertion. `kind: direct` is exercised by a focused synthetic test
-  instead (`tests/test_piping_model.py::test_direct_realization_is_proven_with_a_synthetic_adjacency`).
+  instead (`tests/model/test_piping_model.py::test_direct_realization_is_proven_with_a_synthetic_adjacency`).
 - `T-101`, `V-101`, and the mixing/splitting/recycle paths remain **not
   represented** physically.
 
@@ -157,7 +157,7 @@ See [docs/dev/planning/roadmap.md](../../docs/dev/planning/roadmap.md) and
 headless read-only process renderer from the process layer of this example. It
 is committed so pull requests can review the visual result of a semantic
 change, and a determinism/golden test
-([`tests/test_render.py`](../../tests/test_render.py)) fails if renderer output
+([`tests/render/test_render.py`](../../tests/render/test_render.py)) fails if renderer output
 ever drifts from the committed file.
 
 It was generated with the public renderer API (no CLI command exists yet). The

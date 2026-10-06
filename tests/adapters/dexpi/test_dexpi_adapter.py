@@ -36,7 +36,7 @@ from deepplant.adapters.dexpi import (
 from deepplant.model import ProcessModel, ProcessPort, ProcessRef, ProcessStep, ProcessStream
 from deepplant.render import render_process_svg
 
-FIXTURES = Path(__file__).parent / "fixtures" / "dexpi" / "2.0.0"
+FIXTURES = Path(__file__).resolve().parents[2] / "fixtures" / "dexpi" / "2.0.0"
 FIXTURE_FILES = sorted(path.name for path in FIXTURES.glob("*.xml"))
 
 
@@ -177,7 +177,7 @@ def test_official_target_version_is_pinned() -> None:
     assert DEXPI_INSPECTION_DATE == "2026-09-09"
 
     spike_doc = (
-        Path(__file__).resolve().parents[1]
+        Path(__file__).resolve().parents[3]
         / "docs"
         / "dev"
         / "research"

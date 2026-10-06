@@ -28,7 +28,7 @@ superseded_by: null
 > **Question this document answers:** which process objects exist, who owns the
 > process graph, and which structural rules (S1–S4) must hold?
 >
-> Implemented in `src/deepplant/model.py`; authored shape in
+> Implemented in `src/deepplant/model/process.py`; authored shape in
 > [yaml-format.md](yaml-format.md); the physical layer in
 > [plant-model.md](plant-model.md); presentation symbol roles in
 > [rendering.md](rendering.md) and [../dev/reference/svg-symbols.md](../dev/reference/svg-symbols.md).

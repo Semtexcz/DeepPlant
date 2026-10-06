@@ -20,7 +20,7 @@ from deepplant import load_plant
 # pack can be resolved at runtime through importlib.resources. These contract
 # tests read the same tree from the source checkout.
 BASIC_PACK_DIR = (
-    Path(__file__).resolve().parents[1]
+    Path(__file__).resolve().parents[2]
     / "src"
     / "deepplant"
     / "assets"
@@ -29,7 +29,7 @@ BASIC_PACK_DIR = (
     / "basic"
 )
 REALISTIC_EXAMPLE = (
-    Path(__file__).resolve().parents[1] / "examples" / "realistic-process-fragment" / "plant.yaml"
+    Path(__file__).resolve().parents[2] / "examples" / "realistic-process-fragment" / "plant.yaml"
 )
 
 SVG_NAMESPACE = "http://www.w3.org/2000/svg"

@@ -290,7 +290,7 @@ jobs:
         run: python tools/packaging_toolchain.py export
 
       - name: Strict type-check the Qt desktop host
-        # The fast `check` gate excludes src/deepplant/editor/desktop_qt.py because
+        # The fast `check` gate excludes the src/deepplant/editor/desktop_qt/ package because
         # it deliberately does not install PySide6. This job does, so the actual Qt
         # module is type-checked in strict mode here (Issue #93 review).
         run: uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json
@@ -502,7 +502,7 @@ jobs:
         run: python tools/packaging_toolchain.py export
 
       - name: Strict type-check the Qt desktop host
-        # The fast `check` gate excludes src/deepplant/editor/desktop_qt.py because
+        # The fast `check` gate excludes the src/deepplant/editor/desktop_qt/ package because
         # it deliberately does not install PySide6. This job does, so the actual Qt
         # module is type-checked in strict mode here (Issue #93 review).
         run: uv run --group dev --group desktop pyright --project pyrightconfig.desktop.json

@@ -22,7 +22,7 @@ from deepplant.editor.desktop import (
     run_desktop_editor,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
 #: The canonical packaged smoke fixture (Issue #98): self-contained, so the
 #: ordinary path renders it with no presentation override.

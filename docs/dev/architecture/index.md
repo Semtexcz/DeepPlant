@@ -47,20 +47,20 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 
 | Component | Location | Contract |
 |---|---|---|
-| Physical/plant model, validation | `src/deepplant/model.py` | [contracts/plant-model.md](../../contracts/plant-model.md) |
-| Process graph model, S1–S4 | `src/deepplant/model.py` | [contracts/process-model.md](../../contracts/process-model.md) |
-| Piping realization, C1 + P1–P5 | `src/deepplant/model.py` | [contracts/physical-piping.md](../../contracts/physical-piping.md) |
+| Physical/plant model, validation | `src/deepplant/model/` (`physical.py`, `plant.py`) | [contracts/plant-model.md](../../contracts/plant-model.md) |
+| Process graph model, S1–S4 | `src/deepplant/model/process.py` | [contracts/process-model.md](../../contracts/process-model.md) |
+| Piping realization, C1 + P1–P5 | `src/deepplant/model/piping.py` | [contracts/physical-piping.md](../../contracts/physical-piping.md) |
 | YAML load/save boundary | `src/deepplant/io.py` | [contracts/yaml-format.md](../../contracts/yaml-format.md) |
 | CLI (`--help`, `version`, `validate`) | `src/deepplant/__main__.py` | [contracts/cli.md](../../contracts/cli.md) |
-| Headless process renderer | `src/deepplant/render.py` | [contracts/rendering.md](../../contracts/rendering.md) |
+| Headless process renderer | `src/deepplant/render/` | [contracts/rendering.md](../../contracts/rendering.md) |
 | `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [dev/reference/svg-symbols.md](../reference/svg-symbols.md) |
-| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi.py` | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
+| DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi/` | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 | Process/PFD view projection | `src/deepplant/editor/projection.py` | [contracts/rendering.md](../../contracts/rendering.md) |
 | Editor application (framework-independent) | `src/deepplant/editor/application.py` | this document (local-only) |
 | Editor shared launch primitives | `src/deepplant/editor/launcher.py` | this document (used by both hosts) |
 | Editor desktop host (Qt CLI + policy) | `src/deepplant/editor/desktop.py` | this document (host-specific, Qt-free) |
-| Editor Qt/WebEngine window | `src/deepplant/editor/desktop_qt.py` | this document (the only GUI-toolkit module) |
+| Editor Qt/WebEngine window | `src/deepplant/editor/desktop_qt/` | this document (the only GUI-toolkit package) |
 | Editor FastAPI/Uvicorn transport and server lifecycle | `src/deepplant/editor/api.py` | this document (local-only, transport-thin) |
 | Editor SPA (standalone application) | `apps/editor/` | this document (Vue 3 + TypeScript + Vite + Vue Flow) |
 | Standalone Editor packaging | `tools/package_editor.py`, `packaging/windows/` | [workflow/packaging.md](../workflow/packaging.md) |
@@ -96,35 +96,35 @@ Runtime and toolchain:
 
 | Module | Owns | Must not |
 |---|---|---|
-| `model.py` | semantic objects, ids, structural and reference rules | import CLI, YAML, file I/O, rendering, adapters, or any consumer concern |
+| `model/` (`validation.py`, `physical.py`, `piping.py`, `process.py`, `plant.py`) | semantic objects, ids, structural and reference rules | import CLI, YAML, file I/O, rendering, adapters, or any consumer concern |
 | `io.py` | YAML <-> typed models, `PlantLoadError` / `PlantSaveError` | contain domain rules or presentation logic |
 | `__main__.py` | argument parsing and user-facing output | contain domain logic; it delegates to `io.load_plant` |
-| `render.py` | presentation policy, symbol-role resolution, layout, routing, SVG output | store presentation data in the semantic model, or require it to validate |
-| `adapters/dexpi.py` | DEXPI XML <-> `ProcessModel` conversion and its fail-closed checks | leak DEXPI shapes into the canonical model |
+| `render/` (`symbols.py`, `layout.py`, `routing.py`, `svg.py`) | presentation policy, symbol-role resolution, layout, routing, SVG output | store presentation data in the semantic model, or require it to validate |
+| `adapters/dexpi/` (`target.py`, `mapping.py`, `xml.py`, `importer.py`, `exporter.py`) | DEXPI XML <-> `ProcessModel` conversion and its fail-closed checks | leak DEXPI shapes into the canonical model |
 | `editor/projection.py` | the read-only Process/PFD view projection of `ProcessModel` | contain domain rules, import the CLI or a web framework, or leak framework concepts |
 | `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, Uvicorn, or a GUI toolkit, or contain HTTP/runtime concerns |
 | `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport, the owned `EditorServer` lifecycle, and loopback binding | contain engineering logic, or claim production/server security |
 | `editor/launcher.py` | the shared launch primitives both hosts use (`run_editor`, symbol-role parsing, help text) | import FastAPI, Uvicorn, or a GUI toolkit at import time |
 | `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-project load, and the exact-origin embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
-| `editor/desktop_qt.py` | the native window, the embedded webview, the native Open dialog, and the Qt window/server lifecycle | parse DeepPlant YAML, own the semantic model, or become a second frontend |
+| `editor/desktop_qt/` (`window.py`, `runtime.py`, `self_check.py`) | the native window, the embedded webview, the native Open dialog, and the Qt window/server lifecycle | parse DeepPlant YAML, own the semantic model, or become a second frontend |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
 | `apps/editor/` (TypeScript) | application composition, the Process/PFD feature (projection state, selection, canvas/adapter, Inspector), transport and runtime contract narrowing, and styling | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
 
 The dependency direction is one-way:
 
 ```text
-            semantic model (model.py)
+            semantic model (model/)
                  ▲        ▲        ▲
-     io.py ──────┘        │        └────── adapters/dexpi.py
+     io.py ──────┘        │        └────── adapters/dexpi/
    __main__.py            │
-                    render.py  (presentation only)
+                    render/  (presentation only)
                           ▲
               editor/projection.py
                           ▲
         editor/application.py  ──►  editor/api.py  ──►  apps/editor/ (shared SPA)
                                         ▲                        ▲
                                         │                        │
-                     editor/desktop.py  ──►  editor/desktop_qt.py ┘
+                     editor/desktop.py  ──►  editor/desktop_qt/ ┘
 ```
 
 Consumers depend on the model; the model depends on nothing consumer-specific

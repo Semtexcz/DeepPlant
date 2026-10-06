@@ -277,7 +277,7 @@ GitHub Release, no tag, and no automatic version bumping is part of this
 workflow.
 
 Because the fast `check` gate deliberately does not install PySide6, it excludes
-`src/deepplant/editor/desktop_qt.py` from Pyright. Both native jobs therefore run
+the `src/deepplant/editor/desktop_qt/` package from Pyright. Both native jobs therefore run
 the desktop-specific strict check as well:
 
 ```bash
@@ -286,7 +286,7 @@ make typecheck-desktop   # developer convenience wrapper
 ```
 
 `pyrightconfig.desktop.json` mirrors the canonical strict settings in
-`[tool.pyright]` but keeps every module - including `desktop_qt.py` - in scope,
+`[tool.pyright]` but keeps every module - including the `desktop_qt` package - in scope,
 with PySide6's stubs available. There is no blanket `type: ignore` for the Qt
 module.
 
@@ -360,8 +360,8 @@ fragment carries no engineering evidence for the vessel's process function.
 Rendering it therefore requires an explicit per-step presentation override that an
 ordinary user never receives, so it stays unrenderable through the plain
 `File -> Open…` path. It remains useful evidence of a semantically valid model
-whose current presentation role cannot be resolved (`tests/test_render.py`,
-`tests/test_editor_projection.py`), and it stays the browser E2E fixture; this
+whose current presentation role cannot be resolved (`tests/render/test_render.py`,
+`tests/editor/test_editor_projection.py`), and it stays the browser E2E fixture; this
 packaging slice must not falsify it by inventing a process function or adding a
 global `unspecified -> vessel` mapping.
 
@@ -481,7 +481,7 @@ Three pieces enforce it, and none trusts a bookkeeping flag:
   the thread reference instead of erasing it, so `EditorServer.running` stays
   truthful (`False` only once the thread is really gone) and a later `stop()` can
   still join the same owned thread. Unit coverage is in
-  `tests/test_editor_server.py` (success, idempotency, timeout/still-live,
+  `tests/editor/test_editor_server.py` (success, idempotency, timeout/still-live,
   eventual shutdown, socket release) using a controlled thread seam, not real
   sleeps.
 - `_DesktopEditor` drops the owned server reference only when `stop()` reports it
@@ -644,7 +644,7 @@ different ephemeral port - and the permitted origin moves to the new one. This i
 a webview host policy, not authentication: the loopback server stays single-user
 and unauthenticated, and no tokens, sessions, CORS or TLS are introduced. The pure
 policy is `deepplant.editor.desktop.is_allowed_navigation`, covered by
-`tests/test_editor_desktop.py`.
+`tests/editor/test_editor_desktop.py`.
 
 On Linux the packaging job additionally launches the packaged application with
 **no** model argument on a virtual display (Xvfb) under a session window manager
