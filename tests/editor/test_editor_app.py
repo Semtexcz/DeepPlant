@@ -19,7 +19,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from deepplant.editor.api import create_editor_api
-from deepplant.editor.application import EditorApplication, load_editor_application
+from deepplant.editor.application import (
+    EditorApplication,
+    EditorWorkspace,
+    create_empty_workspace,
+    load_editor_application,
+)
 from deepplant.io import load_plant
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -43,7 +48,9 @@ def client(assets_dir: Path) -> Iterator[TestClient]:
         symbol_role_overrides=VESSEL_OVERRIDES,
         assets_dir=assets_dir,
     )
-    with TestClient(create_editor_api(application)) as test_client:
+    workspace = EditorWorkspace(assets_dir=application.assets_dir)
+    workspace.activate(application)
+    with TestClient(create_editor_api(workspace)) as test_client:
         yield test_client
 
 
@@ -51,6 +58,12 @@ def _envelope(response: httpx2.Response) -> dict[str, object]:
     parsed = json.loads(response.text)
     assert isinstance(parsed, dict)
     return cast("dict[str, object]", parsed)
+
+
+def _workspace_of(payload: dict[str, object]) -> dict[str, object]:
+    workspace = payload["workspace"]
+    assert isinstance(workspace, dict)
+    return cast("dict[str, object]", workspace)
 
 
 def _projection_of(payload: dict[str, object]) -> dict[str, object]:
@@ -76,10 +89,40 @@ def test_projection_route_returns_the_deepplant_projection(client: TestClient) -
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("application/json")
     payload = _envelope(response)
+    workspace = _workspace_of(payload)
+    assert workspace["state"] == "loaded"
+    document = workspace["document"]
+    assert isinstance(document, dict)
+    assert document["name"] == REALISTIC_EXAMPLE.name
     assert _validation_of(payload) == {"valid": True, "message": "Valid"}
     projection = _projection_of(payload)
     assert len(_sequence(projection["steps"])) == 7
     assert len(_sequence(projection["streams"])) == 7
+
+
+def test_projection_route_reports_an_empty_workspace(assets_dir: Path) -> None:
+    """No project open is an ordinary state, never an invalid model (Issue #97)."""
+    workspace = create_empty_workspace(assets_dir)
+
+    with TestClient(create_editor_api(workspace)) as scoped_client:
+        response = scoped_client.get("/api/projection")
+
+    assert response.status_code == 200
+    payload = _envelope(response)
+    assert _workspace_of(payload) == {"state": "empty", "document": None}
+    assert payload["validation"] is None
+    assert payload["projection"] is None
+    assert "error" not in payload
+
+
+def test_symbol_route_is_unavailable_without_a_project(assets_dir: Path) -> None:
+    """An empty workspace never fabricates a symbol asset."""
+    workspace = create_empty_workspace(assets_dir)
+
+    with TestClient(create_editor_api(workspace)) as scoped_client:
+        response = scoped_client.get("/api/symbols/pump.svg")
+
+    assert response.status_code == 404
 
 
 def test_symbol_route_serves_the_canonical_pack_asset(client: TestClient) -> None:
@@ -135,12 +178,15 @@ def test_projection_route_reports_an_honest_failure_without_a_process(
         model=load_plant(plant_path),
         assets_dir=assets_dir,
     )
+    workspace = EditorWorkspace(assets_dir=assets_dir)
+    workspace.activate(application)
 
-    with TestClient(create_editor_api(application)) as scoped_client:
+    with TestClient(create_editor_api(workspace)) as scoped_client:
         response = scoped_client.get("/api/projection")
 
     assert response.status_code == 422
     payload = _envelope(response)
+    assert _workspace_of(payload)["state"] == "loaded"
     assert _validation_of(payload) == {"valid": True, "message": "Valid"}
     assert payload["projection"] is None
     assert "no process model to project" in str(payload["error"])
@@ -150,8 +196,10 @@ def test_projection_route_keeps_a_valid_model_valid_when_its_role_is_unrenderabl
     assets_dir: Path,
 ) -> None:
     application = load_editor_application(REALISTIC_EXAMPLE, assets_dir=assets_dir)
+    workspace = EditorWorkspace(assets_dir=assets_dir)
+    workspace.activate(application)
 
-    with TestClient(create_editor_api(application)) as scoped_client:
+    with TestClient(create_editor_api(workspace)) as scoped_client:
         response = scoped_client.get("/api/projection")
 
     assert response.status_code == 422

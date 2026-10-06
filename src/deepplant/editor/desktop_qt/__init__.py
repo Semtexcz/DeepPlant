@@ -9,7 +9,9 @@ provided (`run_host`); the implementation is organized by capability:
 
 - `window`: the native window, the embedded webview, and the page policy;
 - `runtime`: the desktop host lifecycle and `run_host`;
-- `self_check`: the packaged self-check, probing, and diagnostics.
+- `session`: the shared self-check run state and low-level primitives;
+- `self_check`: the packaged self-check harness and the empty/loaded scenarios;
+- `transition`: the project-replacement (session) scenario.
 
 It is imported lazily by `deepplant.editor.desktop`, only after
 `deepplant.editor.require_desktop_dependencies` has succeeded, so the semantic

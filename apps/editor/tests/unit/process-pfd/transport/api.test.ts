@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { fetchProjection, PROJECTION_ROUTE, symbolUrl } from '../../../../src/process-pfd/transport/api'
 import { ProjectionContractError } from '../../../../src/process-pfd/transport/projection-contract'
-import { PROJECTION_FIXTURE } from '../../../fixtures/process-pfd'
+import {
+  EMPTY_WORKSPACE,
+  LOADED_WORKSPACE,
+  PROJECTION_FIXTURE,
+} from '../../../fixtures/process-pfd'
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -18,7 +22,11 @@ afterEach(() => {
 describe('DeepPlant boundary transport', () => {
   it('requests the projection route from the local boundary', async () => {
     const fetchMock = vi.fn(async () =>
-      jsonResponse({ validation: { valid: true, message: 'Valid' }, projection: PROJECTION_FIXTURE }),
+      jsonResponse({
+        workspace: LOADED_WORKSPACE,
+        validation: { valid: true, message: 'Valid' },
+        projection: PROJECTION_FIXTURE,
+      }),
     )
     vi.stubGlobal('fetch', fetchMock)
 
@@ -27,8 +35,25 @@ describe('DeepPlant boundary transport', () => {
     expect(fetchMock).toHaveBeenCalledWith(PROJECTION_ROUTE, {
       headers: { Accept: 'application/json' },
     })
+    expect(envelope.workspace.state).toBe('loaded')
     expect(envelope.projection?.steps).toHaveLength(2)
     expect(envelope.projection?.streams).toHaveLength(2)
+    expect(envelope.error).toBeNull()
+  })
+
+  it('reports an empty workspace without fabricating a model', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        jsonResponse({ workspace: EMPTY_WORKSPACE, validation: null, projection: null }),
+      ),
+    )
+
+    const envelope = await fetchProjection()
+
+    expect(envelope.workspace).toEqual({ state: 'empty', document: null })
+    expect(envelope.validation).toBeNull()
+    expect(envelope.projection).toBeNull()
     expect(envelope.error).toBeNull()
   })
 
@@ -38,6 +63,7 @@ describe('DeepPlant boundary transport', () => {
       vi.fn(async () =>
         jsonResponse(
           {
+            workspace: LOADED_WORKSPACE,
             validation: { valid: true, message: 'Valid' },
             projection: null,
             error: 'no process model to project',
@@ -53,7 +79,9 @@ describe('DeepPlant boundary transport', () => {
     expect(envelope.validation).toEqual({ valid: true, message: 'Valid' })
     expect(envelope.error).toBe('no process model to project')
   })
+})
 
+describe('DeepPlant boundary failures', () => {
   it('reports an unreachable boundary clearly', async () => {
     vi.stubGlobal(
       'fetch',
@@ -81,6 +109,7 @@ describe('DeepPlant boundary transport', () => {
       'fetch',
       vi.fn(async () =>
         jsonResponse({
+          workspace: LOADED_WORKSPACE,
           validation: { valid: true, message: 'Valid' },
           projection: { ...PROJECTION_FIXTURE, symbol_size: 'big' },
         }),

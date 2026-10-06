@@ -7,6 +7,9 @@ import type {
   ProcessStreamEndpointDto,
   ProjectionEnvelope,
   ValidationStatusDto,
+  WorkspaceDocumentDto,
+  WorkspaceDto,
+  WorkspaceState,
 } from './dto'
 
 /**
@@ -98,6 +101,40 @@ function parseValidationStatus(value: unknown): ValidationStatusDto {
   }
 }
 
+function parseWorkspaceState(record: Record<string, unknown>, what: string): WorkspaceState {
+  const value = asString(record, 'state', what)
+  if (value !== 'empty' && value !== 'loaded') {
+    throw new ProjectionContractError(`${what}.state must be 'empty' or 'loaded'`)
+  }
+  return value
+}
+
+function parseWorkspaceDocument(value: unknown): WorkspaceDocumentDto {
+  const record = asRecord(value, 'workspace.document')
+  return {
+    name: asString(record, 'name', 'workspace.document'),
+    plant_id: asString(record, 'plant_id', 'workspace.document'),
+    plant_name: asNullableString(record, 'plant_name', 'workspace.document'),
+  }
+}
+
+function parseWorkspace(value: unknown): WorkspaceDto {
+  const record = asRecord(value, 'workspace')
+  const state = parseWorkspaceState(record, 'workspace')
+  const documentValue = record['document']
+  const document =
+    documentValue === null || documentValue === undefined
+      ? null
+      : parseWorkspaceDocument(documentValue)
+  if (state === 'empty' && document !== null) {
+    throw new ProjectionContractError('workspace.document must be null when no project is open')
+  }
+  if (state === 'loaded' && document === null) {
+    throw new ProjectionContractError('workspace.document must be present when a project is open')
+  }
+  return { state, document }
+}
+
 function parsePlantRef(value: unknown): PlantRefDto {
   const record = asRecord(value, 'projection.plant')
   return {
@@ -184,17 +221,25 @@ function parseProjection(value: unknown): ProcessPfdProjectionDto {
 /**
  * Narrow an unknown `/api/projection` payload to the DTO contract.
  *
- * A semantic validation failure and a projection/view failure stay distinct:
- * `projection` remains `null` and `error` carries the separate view error while
- * `validation` still reports the semantic model's own validity.
+ * The workspace state is parsed first, so the caller can distinguish "no project
+ * open", "a project is open", and "a genuine application error" without inferring
+ * any of them from a missing projection. A semantic validation failure and a
+ * projection/view failure stay distinct: `projection` remains `null` and `error`
+ * carries the separate view error while `validation` still reports the semantic
+ * model's own validity. Both are `null` for an empty workspace.
  */
 export function parseProjectionEnvelope(raw: unknown): ProjectionEnvelope {
   const record = asRecord(raw, 'projection response')
-  const validation = parseValidationStatus(record['validation'])
+  const workspace = parseWorkspace(record['workspace'])
+  const validationValue = record['validation']
   const errorValue = record['error']
   const projectionValue = record['projection']
   return {
-    validation,
+    workspace,
+    validation:
+      validationValue === null || validationValue === undefined
+        ? null
+        : parseValidationStatus(validationValue),
     error: errorValue === undefined ? null : asString(record, 'error', 'projection response'),
     projection:
       projectionValue === null || projectionValue === undefined

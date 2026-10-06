@@ -6,7 +6,7 @@ from typer.testing import CliRunner
 
 from deepplant import __version__
 from deepplant.__main__ import app, main
-from deepplant.editor.application import EditorApplication
+from deepplant.editor.application import EditorApplication, EditorWorkspace
 
 runner = CliRunner()
 
@@ -196,19 +196,21 @@ def test_ui_loads_the_project_through_the_python_core(
     captured: dict[str, object] = {}
 
     def fake_serve(
-        application: object,
+        workspace: object,
         *,
         host: str = "",
         port: int,
         echo: object,
         on_listening: object = None,
     ) -> None:
-        captured["application"] = application
+        captured["workspace"] = workspace
         captured["port"] = port
 
     # ``deepplant ui`` and ``deepplant-editor`` share one launch path, so the
     # transport seam now lives with the transport it fakes. The assertion below
     # is unchanged: the CLI must still load the project through the Python Core.
+    # Since Issue #97 the transport is handed an editor workspace whose active
+    # document is that loaded project.
     monkeypatch.setattr("deepplant.editor.api.serve_editor", fake_serve)
 
     result = runner.invoke(
@@ -226,7 +228,9 @@ def test_ui_loads_the_project_through_the_python_core(
     )
 
     assert result.exit_code == 0
-    application = captured["application"]
+    workspace = captured["workspace"]
+    assert isinstance(workspace, EditorWorkspace)
+    application = workspace.active_document
     assert isinstance(application, EditorApplication)
     assert application.model.process is not None
     assert len(application.model.process.steps) == 7

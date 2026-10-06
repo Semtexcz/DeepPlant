@@ -51,17 +51,22 @@ behavior of a single component.
 
 ### Feature integration
 
-For example the current page chain:
+For example the current chains:
 
 ```text
-projection → page → selection → Inspector
+workspace state → page → canvas/Inspector      (no project open)
+projection      → page → selection → Inspector (project loaded)
 ```
 
-Prove the chain works with real modules, without a browser. The current
-`ProcessPfdPage.test.ts` replaces only the two unavoidable boundaries — the
-network (`fetch`) and a canvas integration double — while the transport, the
-contract narrowing, the feature state, selection, the Inspector and the
-validation/error behaviour stay real.
+Prove the chains work with real modules, without a browser. `ProcessPfdPage.test.ts`
+replaces only the two unavoidable boundaries — the network (`fetch`) and a canvas
+integration double — while the transport, the contract narrowing, the feature
+state, selection, the Inspector and the workspace/validation/error behaviour stay
+real. `useProcessPfd.test.ts` exercises the same feature state directly (no DOM and
+no lifecycle hook are involved) to prove the empty → loaded transition, project
+replacement with selection reset, and stale-response protection.
+`app-shell/App.test.ts` mounts the composition root to prove the same shell and the
+project-dependent `Fit view` action across both workspace states.
 
 ### Browser E2E
 
@@ -89,10 +94,12 @@ The standalone product adds two layers that this browser suite does not cover:
   owned `EditorServer` lifecycle: loopback-only bind, real HTTP, and socket
   release on stop).
 - **The packaged graphical product** - `tools/package_editor.py verify` launches
-  the real frozen application with no model argument and with the realistic
-  fragment, reads the real rendered page through Qt's own JavaScript engine, and
-  checks the window/server/socket lifecycle. On Linux the CI job additionally
-  discovers the real X11 window with `xdotool` on a virtual display.
+  the real frozen application with no model argument, with the self-contained
+  canonical fixture, and through the project-replacement lifecycle (Issue #97
+  review), reads the real rendered page through Qt's own JavaScript engine, and
+  checks the window/server/socket lifecycle plus the long-lived session's resource
+  identity. On Linux the CI job additionally discovers the real X11 window with
+  `xdotool` on a virtual display.
 
 The layers are deliberately not duplicated: browser behaviour belongs to this
 Playwright suite, and the native window belongs to the packaging verification.
@@ -124,6 +131,7 @@ production responsibility the suite covers:
 ```text
 apps/editor/
 ├── src/                         production application architecture
+│   ├── App.vue                  application composition root (shell + toolbar)
 │   └── process-pfd/             feature
 │       ├── pages/ components/ composables/
 │       └── transport/ view-models/ adapters/
@@ -137,8 +145,10 @@ apps/editor/
     │   └── process-pfd/
     │       └── components/
     ├── integration/             feature-level integration tests (happy-dom)
+    │   ├── app-shell/           application composition root
     │   └── process-pfd/
-    │       └── pages/
+    │       ├── pages/
+    │       └── composables/
     └── fixtures/                test-owned fixture data (never imported by src/)
 ```
 
@@ -162,11 +172,12 @@ HTTP, the real production build, and a real browser.
 Do not flatten feature tests into generic buckets. Feature ownership stays
 visible below each layer, and the responsibility directory mirrors the
 production module the suite verifies (`unit/process-pfd/transport/`,
-`component/process-pfd/components/`, `integration/process-pfd/pages/`).
+`unit/process-pfd/view-models/`, `component/process-pfd/components/`,
+`integration/process-pfd/{pages,composables}/`, `integration/app-shell/`).
 
 ## Current state (implemented)
 
-Seven Vitest suites (49 tests), all offline and independent of a running
+Ten Vitest suites (71 tests), all offline and independent of a running
 DeepPlant server, plus two Playwright browser E2E tests that run the real local
 product.
 
@@ -175,19 +186,23 @@ Pure unit — `tests/unit/process-pfd/{transport,view-models,adapters}/`
 
 | Suite | Covers |
 |---|---|
-| `transport/api.test.ts` | projection transport, boundary failures, symbol asset URL |
-| `transport/projection-contract.test.ts` | transport payload narrowing and contract errors |
+| `transport/api.test.ts` | projection transport, empty workspace, boundary failures, symbol asset URL |
+| `transport/projection-contract.test.ts` | transport payload narrowing (workspace state and projection) and contract errors |
 | `view-models/inspector.test.ts` | selection → Inspector mapping |
+| `view-models/workspace-status.test.ts` | workspace/projection/error → status text and tone (empty ≠ invalid) |
 | `adapters/vue-flow.test.ts` | DTO → Vue Flow adapter, identity separation, identity narrowing |
 
 Vue component — `tests/component/process-pfd/components/` — and feature
-integration — `tests/integration/process-pfd/pages/` (**DOM** environment):
+integration — `tests/integration/process-pfd/{pages,composables}/` plus
+`tests/integration/app-shell/` (**DOM** environment):
 
 | Suite | Covers |
 |---|---|
-| `components/InspectorPanel.test.ts` | empty state, ProcessStep/ProcessStream semantic fields, Inspector landmark |
+| `components/InspectorPanel.test.ts` | no-project empty state, selection prompt, ProcessStep/ProcessStream semantic fields, Inspector landmark |
 | `components/ProcessNode.test.ts` | canonical symbol URL from `symbol_role`, semantic id/name, selected state, anchor-derived non-connectable handles |
-| `pages/ProcessPfdPage.test.ts` | loading, load success, step selection → Inspector, stream selection → Inspector, validation vs projection-error |
+| `pages/ProcessPfdPage.test.ts` | empty workspace shell, Fit-view no-op with no project, load success, step/stream selection → Inspector, validation vs projection-error |
+| `composables/useProcessPfd.test.ts` | empty → loaded transition, project replacement + selection reset, stale-response protection, transport error |
+| `app-shell/App.test.ts` | the same shell with and without a project; `Fit view` disabled while no project is open |
 
 The shared fixtures live in `tests/fixtures/process-pfd.ts` and are imported only
 by test suites.

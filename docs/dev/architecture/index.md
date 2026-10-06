@@ -102,11 +102,11 @@ Runtime and toolchain:
 | `render/` (`symbols.py`, `layout.py`, `routing.py`, `svg.py`) | presentation policy, symbol-role resolution, layout, routing, SVG output | store presentation data in the semantic model, or require it to validate |
 | `adapters/dexpi/` (`target.py`, `mapping.py`, `xml.py`, `importer.py`, `exporter.py`) | DEXPI XML <-> `ProcessModel` conversion and its fail-closed checks | leak DEXPI shapes into the canonical model |
 | `editor/projection.py` | the read-only Process/PFD view projection of `ProcessModel` | contain domain rules, import the CLI or a web framework, or leak framework concepts |
-| `editor/application.py` | the framework-independent editor application: project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, Uvicorn, or a GUI toolkit, or contain HTTP/runtime concerns |
+| `editor/application.py` | the framework-independent editor application: the `EditorWorkspace` session (an optional active document plus the shared SPA assets), project loading, projection views, symbol resolution, asset resolution | import FastAPI, Starlette, Uvicorn, or a GUI toolkit, or contain HTTP/runtime concerns |
 | `editor/api.py` | the thin, local-only FastAPI/Uvicorn transport, the owned `EditorServer` lifecycle, and loopback binding | contain engineering logic, or claim production/server security |
 | `editor/launcher.py` | the shared launch primitives both hosts use (`run_editor`, symbol-role parsing, help text) | import FastAPI, Uvicorn, or a GUI toolkit at import time |
-| `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-project load, and the exact-origin embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
-| `editor/desktop_qt/` (`window.py`, `runtime.py`, `self_check.py`) | the native window, the embedded webview, the native Open dialog, and the Qt window/server lifecycle | parse DeepPlant YAML, own the semantic model, or become a second frontend |
+| `editor/desktop.py` | the `deepplant-editor` command surface, the desktop dependency probe, the initial-document load, and the exact-origin embedded-navigation policy | import a GUI toolkit at import time, or hold engineering semantics |
+| `editor/desktop_qt/` (`window.py`, `runtime.py`, `probes.py`, `self_check.py`, `session.py`, `transition.py`) | the native window hosting the single embedded webview, the native Open dialog, the owned window/server/workspace lifecycle, and the packaged self-check probes (the empty/loaded scenarios, the shared run state, and the project-replacement scenario) | parse DeepPlant YAML, own the semantic model, or become a second frontend |
 | `assets/symbols/**` | distributable graphical assets with provenance | encode engineering semantics |
 | `apps/editor/` (TypeScript) | application composition, the Process/PFD feature (projection state, selection, canvas/adapter, Inspector), transport and runtime contract narrowing, and styling | re-implement the semantic model, parse YAML, or become project truth (rules: [frontend/](../frontend/index.md)) |
 
@@ -203,7 +203,9 @@ apps/editor/ (Vue SPA)
         ↓  HTTP
 FastAPI transport (src/deepplant/editor/api.py)
         ↓
-EditorApplication (src/deepplant/editor/application.py)
+EditorWorkspace (src/deepplant/editor/application.py)
+        ↓
+EditorApplication? (active document: none | loaded)
         ↓
 projection → renderer / semantic model
 ```
@@ -224,24 +226,30 @@ standalone, pinned Vite application with its own dependency graph, while
   through `read_process_symbol_svg`. There is no second mapping and no second
   symbol pack.
 - **Application and transport.** `deepplant.editor.application` owns
-  `EditorApplication`, project loading, projection and validation reporting,
-  symbol resolution, and asset resolution without importing FastAPI, Starlette,
-  or Uvicorn, so it stays usable and testable from plain Python.
-  `deepplant.editor.api` exposes that application through the explicit FastAPI
-  application factory `create_editor_api(editor)`, run by Uvicorn (Issue #79).
-  The route handlers are transport-thin: they receive a request, call
-  `EditorApplication`, and map the result to a response. The `api.py` →
-  `application.py` direction is one-way. It binds to loopback only and makes no
-  production or server-security claim.
-- **Launch and failures.** `deepplant ui <path>` and the standalone application
-  entry point `deepplant-editor <path>` share one launch path (`run_editor`) and
-  serve the built editor application from the assets the application carries,
-  from an explicit `--assets-dir`, or from the source-checkout build. A
-  successful `load_plant` is the
+  `EditorWorkspace` - the editor session as an *optional* active document over the
+  shared built-SPA assets (Issue #97) - plus `EditorApplication` (one loaded
+  document), project loading, projection and validation reporting, symbol
+  resolution, and asset resolution, without importing FastAPI, Starlette, or
+  Uvicorn, so it stays usable and testable from plain Python.
+  `deepplant.editor.api` exposes that workspace through the explicit FastAPI
+  application factory `create_editor_api(workspace)`, run by Uvicorn (Issue #79).
+  The route handlers are transport-thin: they receive a request, call the
+  workspace, and map the result to a response. The `api.py` → `application.py`
+  direction is one-way. It binds to loopback only and makes no production or
+  server-security claim.
+- **Launch and failures.** `deepplant ui <path>` (the developer/browser host) and
+  the standalone application entry point `deepplant-editor [path]` (the native
+  desktop host) both serve the *same* built editor application from the assets the
+  application carries, from an explicit `--assets-dir`, or from the
+  source-checkout build. A successful `load_plant` is the
   semantic validation
   boundary. If the Process/PFD projection or its presentation role resolution
   fails, the local JSON route returns a separate view error (currently HTTP 422)
-  with no projection; it does not recast the loaded semantic model as invalid.
+  with no projection; it does not recast the loaded semantic model as invalid. An
+  editor session with **no** document open is a third, ordinary state: the route
+  answers HTTP 200 with an explicit empty workspace and no validation verdict, so
+  "no project open" is never reported as invalid data or a view failure (Issue
+  #97).
 - **Frontend.** `apps/editor/` is a Vue 3 + TypeScript + Vite + Vue Flow SPA with
   UnoCSS as the canonical utility layer. `App.vue` is a thin application
   composition root; the Process/PFD feature is owned by `process-pfd/` and
@@ -250,19 +258,23 @@ standalone, pinned Vite application with its own dependency graph, while
   `components/InspectorPanel.vue`), composables
   (`composables/useProcessPfd.ts`), transport (`transport/api.ts`,
   `transport/projection-contract.ts`, `transport/dto.ts`), view models
-  (`view-models/inspector.ts`), and the framework adapter
+  (`view-models/inspector.ts`, `view-models/workspace-status.ts`), and the
+  framework adapter
   (`adapters/vue-flow.ts`). Vue Flow-specific code is confined to the explicit
   Process/PFD canvas integration surface (`components/ProcessPfdCanvas.vue`,
   `components/ProcessNode.vue`, `adapters/vue-flow.ts`), and its `Node`/`Edge`
   graph shapes appear only in `adapters/vue-flow.ts`: a framework node/edge click
   is translated to a DeepPlant semantic id before the feature resolves it, so the
   Inspector only ever consumes projection objects. Selection is transient UI
-  state and nothing is persisted.
+  state and nothing is persisted. The feature renders the *same* shell and canvas
+  with no project open, showing an explicit neutral empty-workspace notice and a
+  disabled `Fit view` action.
   Frontend engineering rules — feature ownership, Vue/TypeScript conventions,
   state ownership, styling ownership, accessibility, testing layers, and
   size/cohesion guardrails — are canonical in [frontend/](../frontend/index.md)
   and enforced by `make frontend-lint` and `make frontend-check`. Verification is
-  split by lifecycle: isolated Vitest suites under `apps/editor/tests/` and the
+  split by lifecycle: isolated Vitest suites under `apps/editor/tests/`
+  (`unit/`, `component/`, `integration/`) and the
   system/browser Playwright suite under `apps/editor/e2e/`, which starts the real
   `deepplant ui` CLI over the production build and drives real Chromium
   (`make frontend-e2e`).
@@ -296,16 +308,31 @@ packaged executable → local FastAPI/Uvicorn → external browser
 
 delivered product (Issue #93, merged by PR #95)
 packaged executable → native desktop host → embedded shared Vue SPA
+
+delivered workspace capability (Issue #97)
+packaged executable → native desktop host → one long-lived server + one webview
+                     → shared Vue editor with active document: none | loaded project
 ```
 
 The desktop host is a *thin host*, not a second frontend: it owns a window, a
-native Open dialog, an embedded `QWebEngineView`, and the server/window
-lifecycle. It re-implements no Process/PFD canvas, Inspector, engineering form,
-navigation, or validation presentation, and it routes no engineering semantics
-through a desktop-only bridge. It loads the ordinary production build of
-`apps/editor/`, which a future web deployment would serve unchanged; the
-technology evidence is in
+native Open dialog, a single embedded `QWebEngineView`, one long-lived
+`EditorServer` bound to the editor workspace, and the server/window lifecycle. It
+re-implements no Process/PFD canvas, Inspector, engineering form, navigation, or
+validation presentation, and it routes no engineering semantics through a
+desktop-only bridge. It loads the ordinary production build of `apps/editor/`,
+which a future web deployment would serve unchanged; the technology evidence is in
 [research/editor-desktop-host.md](../research/editor-desktop-host.md).
+
+Launching `deepplant-editor` with no argument opens that shared editor directly
+(Issue #97): the application shell exists independently of its active document, so
+there is no native start page and no second editor UI. `File -> Open…` activates a
+document in the *existing* session - the same server, socket, window and webview -
+and the shared SPA is reloaded, so opening or replacing a project can never leak a
+server, a socket, a webview, or a window. The packaged desktop verification now
+proves that directly (Issue #97 review): one session opens the canonical fixture,
+replaces it with a distinguishable model, then attempts a failed open, and the
+native window, webview, server, origin, port and listening socket are asserted
+unchanged across all of it through the real Open handler and the real rendered SPA.
 
 Two host policies are deliberately strict (Issue #93 review):
 

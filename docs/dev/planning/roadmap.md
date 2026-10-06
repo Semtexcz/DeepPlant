@@ -92,11 +92,25 @@ DeepPlant ships a Python CLI package (`src/deepplant/`) implementing:
   Issue #93, merged through PR #95, then delivered the native desktop host: PySide6 + Qt WebEngine
   in the optional `deepplant[desktop]` extra, a native window embedding the same
   `apps/editor/` SPA over the same loopback `EditorServer`, a native Open dialog
-  for `*.yaml`/`*.yml`, launch with no model argument, an optional model path, and
+  for `*.yaml`/`*.yml`, an optional model path, and
   a window lifecycle that stops the owned server and releases the loopback socket.
-  The evidence and candidate comparison are in
+  Issue #97 then delivered the **empty shared workspace**: the native
+  bootstrap/start page was removed, the desktop host opens directly into the
+  ordinary shared Vue editor with `active project = none`, and `File -> Open…`
+  activates or replaces a document in the same long-lived server and webview. The
+  evidence and candidate comparison are in
   [research/editor-desktop-host.md](../research/editor-desktop-host.md). The
   browser host `deepplant ui` and the Python CLI remain separate surfaces.
+
+- the standalone Editor **empty shared workspace** capability (Issue #97): the
+  application layer owns an `EditorWorkspace` whose active document is optional
+  (`active project = none | loaded project`), one long-lived loopback
+  `EditorServer` serves the shared SPA across workspace changes, and the native
+  desktop host opens directly into the ordinary Vue editor - canvas, Inspector,
+  status strip and an explicit neutral "no project open" state - with no native
+  start page and no second editor UI. `File -> Open…` activates a document in the
+  existing session, and the packaged no-model launch verifies the real shared SPA
+  empty state.
 
 Not implemented: a DeepPlant project format (canonical project directory, manifest,
 or portable `.deepplant` package); semantic editing and any semantic mutation
@@ -122,10 +136,35 @@ evidence-heavy slices, in the linked spike/decision documents.
   uses the end-user workflow's model-loading and presentation semantics. The
   automation does not drive the native file dialog; the same fixture is
   reproducible by hand through `File -> Open…`.
+- **#97 empty shared Editor workspace** ([Issue #97](https://github.com/Semtexcz/DeepPlant/issues/97)):
+  the standalone Editor launches directly into the ordinary shared Vue workspace
+  with an explicit `active project = none` state, and `deepplant-editor <path>`
+  activates a document in that same session. The native bootstrap/start page was
+  removed; one long-lived server and one webview serve both workspace states, so
+  opening or replacing a project leaks no server, socket, webview or window. The
+  packaged no-model launch proves the real shared SPA empty state, the Issue #98
+  loaded-model smoke path is preserved unchanged, and a packaged
+  **project-replacement regression** now proves the long-lived session invariant
+  directly: one session opens the canonical fixture, replaces it with a
+  distinguishable model, then attempts an invalid model, while the native window,
+  webview, server, origin, port and listening socket are unchanged across all of
+  it.
 
 ## Operational Roadmap
 
 ### Now
+
+[#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97)
+is **delivered**. The standalone Editor opens directly into the ordinary shared
+Vue workspace with `active project = none`, the native Qt bootstrap/start page is
+gone, `File -> Open…` activates or replaces a document in the existing session,
+and the packaged Linux/Windows verification proves the real shared SPA empty
+state, the loaded-model smoke path, and - since the #97 review - the
+project-replacement lifecycle (the one session's window, webview, server, origin,
+port and listening socket are unchanged while project A is replaced by project B
+and an invalid open leaves project B active).
+
+The previous `Now` items are all complete:
 
 [#85 — Establish independent DeepPlant Core and standalone editor distribution](https://github.com/Semtexcz/DeepPlant/issues/85)
 is **complete**. Its two child slices are delivered: the self-contained
@@ -134,8 +173,9 @@ host, merged through PR #95. The host keeps one shared Vue SPA, adds the native
 window/Open workflow and clean owned-server shutdown, and does not change the
 semantic Core.
 
-The post-#85 gate is now **executed**. It authorizes the following sequence,
-which contains exactly one selected product capability.
+The post-#85 gate was **executed** and its sequence is now fully delivered: the
+packaged-smoke parity hardening below, and the one selected product capability -
+the empty shared Editor workspace (Issue #97).
 
 #### Immediate evidence hardening — packaged smoke parity (delivered)
 
@@ -153,16 +193,12 @@ correct and was preserved: no process function was invented and no global
 `unspecified → vessel` mapping was added. The fixture/workflow changed, not the
 semantic or presentation model boundary.
 
-#### Selected product capability — empty shared Editor workspace
+#### Selected product capability — empty shared Editor workspace (delivered)
 
 [#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97)
-is the selected product capability. The roadmap chain is now explicit: this `Now`
-section selects Issue #97, and the future implementation PR for #97 delivers the
-slice.
-
-The standalone Editor must launch directly into the ordinary shared Vue application
-with an explicit **`active project = none`** workspace state. A project is optional
-within an Editor session:
+is **delivered**. The standalone Editor launches directly into the ordinary shared
+Vue application with an explicit **`active project = none`** workspace state, so a
+project is optional within an Editor session:
 
 ```text
 Editor workspace/session
@@ -170,16 +206,19 @@ Editor workspace/session
   └── project open
 ```
 
-The Qt bootstrap/start page is temporary host bootstrap and should disappear as
-part of this slice. Qt remains a thin host; it must not acquire a second editor UI.
-This selection authorizes neither a project format, Save, mutation, nor persisted
-presentation state.
+Delivered exactly as scoped: the native Qt bootstrap/start page was removed, one
+long-lived server and one webview serve both workspace states, `deepplant-editor
+<path>` activates a document in the same session, a failed `File -> Open…` leaves
+the previous document active, and the packaged no-model verification proves the
+real shared SPA empty state. No project format, Save, mutation, or persisted
+presentation state was added.
 
 Manual AppImage evidence also confirms that semantic validity and Process/PFD view
 availability are distinct: a model can remain `Model: Valid` while no current view
 can be produced. That is architecturally correct and is recorded as the near-term
-UX candidate [#99](https://github.com/Semtexcz/DeepPlant/issues/99), not as the
-selected capability.
+UX candidate [#99](https://github.com/Semtexcz/DeepPlant/issues/99); the delivered
+slice kept it distinct - an empty workspace and an unprojectable document are
+different states - but did not implement that UX.
 
 Strong candidates for the **following** gate, not commitments, are:
 
@@ -193,8 +232,8 @@ P&ID
 process ↔ physical realization
 ```
 
-#89 is an especially strong candidate: the workspace needs a first-class notion of
-what project/document it opens, future Save/Open needs a persistence contract, and
+#89 is an especially strong candidate: the workspace now has a first-class notion
+of what document it opens, future Save/Open needs a persistence contract, and
 manual testing confirms presentation state must eventually persist separately from
 process semantics. **Strong candidate != preselected successor.** The existing
 boundaries remain unchanged: `Process/PFD != Physical/P&ID != Simulation`,
@@ -205,12 +244,17 @@ state.
 ### Next
 
 - **Unselected.** Do not preselect the successor to the empty-workspace slice.
-  Packaged-smoke parity (#98) is delivered, so a new explicit re-evaluation opens
-  only after the remaining selected capability - the empty shared Editor workspace
-  slice (#97) - is delivered.
+  Issue #97 is delivered, so the re-evaluation gate below is **ready to execute**;
+  a separate evidence-based re-evaluation selects the next capability, and no
+  candidate (#89, #99, #88, or any other) is promoted here.
 
 ### Re-evaluation Gate
 
+The post-#97 re-evaluation gate is **ready to execute** and has **not** been
+executed yet. It must select the next capability from the current implemented
+capabilities, the current roadmap horizon goals, unresolved evidence gaps,
+existing realistic examples/prototypes, and accepted ADRs - not by mechanically
+promoting the next backlog row.
 The previous re-evaluation gate was executed after #39, #69, and #70 were
 delivered.
 
@@ -463,20 +507,25 @@ selected #97
 
 #98 delivered
     ↓
-#97 remains the selected product capability
+#97 delivered
+    ↓
+Re-evaluation after #97 (ready to execute, not yet run)
+    ↓
+next capability unselected
 ```
 
 - **Immediate evidence hardening** (not a product capability):
   [#98 — Packaging: make the end-user desktop smoke workflow self-contained](https://github.com/Semtexcz/DeepPlant/issues/98)
   is **delivered**;
-- **Selected product capability:**
+- **Selected product capability (delivered):**
   [#97 — Editor: launch directly into an empty shared workspace](https://github.com/Semtexcz/DeepPlant/issues/97).
 
-**Next** stays unselected. A new re-evaluation opens only after the remaining
-selected capability - the empty shared Editor workspace slice (#97) - is delivered.
-Packaged-smoke parity (#98) is already delivered: the packaged verification loads
+**Next** stays unselected. The post-#97 re-evaluation gate is ready to execute but
+has not run yet, so a separate evidence-based re-evaluation selects the successor.
+Packaged-smoke parity (#98) is delivered: the packaged verification loads
 the self-contained fixture through the same application loading semantics as the
-ordinary `File -> Open…` workflow. The strong future
+ordinary `File -> Open…` workflow, and the no-model launch now proves the shared
+SPA's empty workspace. The strong future
 candidates — the project format/portable package (#89), the first semantic
 mutation + Save, presentation-state persistence, semantic validity vs Process/PFD
 view availability (#99), release/version infrastructure (#88), P&ID, and

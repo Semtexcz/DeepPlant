@@ -158,11 +158,14 @@ more editor functionality is layered on it. That capability is now **delivered**
 through its two child slices: the self-contained distribution foundation (PR #92)
 and the native desktop host that turns the packaged runtime into a real graphical
 application over the same Vue frontend (Issue #93, merged through PR #95). The
-post-#85 gate selects the empty shared Editor workspace / optional active project
-as the sole next product capability, after packaged-smoke parity hardening. The
-DeepPlant project format and portable package
+post-#85 gate then selected the empty shared Editor workspace / optional active
+project as the sole next product capability, after packaged-smoke parity
+hardening, and that capability — Issue #97 — is now **delivered**: the standalone
+Editor launches directly into the ordinary shared workspace with `active project =
+none`. The DeepPlant project format and portable package
 ([Issue #89](https://github.com/Semtexcz/DeepPlant/issues/89)) is an especially
-strong candidate for the following gate, not a preselected successor.
+strong candidate for the following gate, not a preselected successor; the post-#97
+gate is ready to execute.
 
 ### Stage 5 — Git-native Engineering Workflow
 

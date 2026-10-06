@@ -57,6 +57,12 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import cast
 
+from deepplant.editor.desktop import (
+    SELF_CHECK_SCENARIO_EMPTY,
+    SELF_CHECK_SCENARIO_LOADED,
+    SELF_CHECK_SCENARIO_TRANSITION,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # The packaging driver runs both as ``python tools/package_editor.py`` (CI, where
@@ -102,6 +108,59 @@ DEFAULT_DIST_DIR = REPO_ROOT / "dist" / "editor"
 #: step is honestly ``function: unspecified`` (ADR-0009) and needs an explicit
 #: presentation choice an ordinary user cannot be expected to supply.
 SMOKE_MODEL = REPO_ROOT / "examples" / "process-graph" / "plant.yaml"
+
+#: The second self-contained process model for the packaged *project-replacement*
+#: regression (Issue #97 review). It is distinguishable from ``SMOKE_MODEL`` by
+#: graph contents (two ``ProcessStep``s and one ``ProcessStream``, and no ``PUMP``),
+#: so the packaged self-check can prove that opening it *replaces* the previously
+#: rendered project in the same session instead of re-rendering identical nodes.
+TRANSITION_MODEL = REPO_ROOT / "examples" / "process-graph" / "replacement.yaml"
+
+#: A never-valid model written beside the transition fixtures. Opening it must fail
+#: through the ordinary loader (a schema-invalid ``plant.id``), so the previous
+#: project stays active and the failure is reported through the user-facing
+#: mechanism.
+INVALID_MODEL_TEXT = 'plant:\n  id: ""\n'
+
+#: Content checks each self-check scenario must report. The driver requires the
+#: names to be *present* (and true), so a scenario that silently stops reporting
+#: its evidence fails instead of passing on a reduced check set.
+_REQUIRED_SELF_CHECK_CHECKS: dict[str, tuple[str, ...]] = {
+    SELF_CHECK_SCENARIO_EMPTY: (
+        "productionSpa",
+        "workspaceEmpty",
+        "statusNoProject",
+        "emptyCanvasMessage",
+        "noProjectionError",
+    ),
+    SELF_CHECK_SCENARIO_LOADED: (
+        "productionSpa",
+        "validationValid",
+        "processSteps",
+        "processStreams",
+        "pumpSelected",
+        "inspectorFunction",
+    ),
+    SELF_CHECK_SCENARIO_TRANSITION: (
+        "emptyAtLaunch",
+        "projectARendered",
+        "projectASelected",
+        "projectBReplacedA",
+        "projectBSelected",
+        "selectionResetOnReplacement",
+        "failedLoadKeptProjectB",
+        "errorReported",
+        "productionSpa",
+        "windowUnchanged",
+        "viewUnchanged",
+        "serverUnchanged",
+        "originUnchanged",
+        "portUnchanged",
+        "singleWindow",
+        "singleView",
+        "noAdditionalServingSocket",
+    ),
+}
 
 #: Where the staged SPA is mapped inside the frozen application. This is the
 #: location ``deepplant.editor.application`` looks for first, and it matches the
@@ -1374,6 +1433,9 @@ def run_desktop_self_check(
     model: Path | None,
     cwd: Path,
     timeout: float = _DESKTOP_SELF_CHECK_TIMEOUT_S,
+    scenario: str | None = None,
+    projects: Sequence[Path] = (),
+    invalid_project: Path | None = None,
 ) -> dict[str, object]:
     """Run the packaged desktop application's own verification and check it.
 
@@ -1383,11 +1445,18 @@ def run_desktop_self_check(
     SPA. It then writes a JSON report and exits; both the exit code and the report
     must agree that the desktop product works.
 
-    ``model`` is optional. Without it the bootstrap window is verified (the
-    no-argument launch), with it the full packaged editor workflow is verified.
-    No presentation override is ever injected: the canonical smoke fixture is
-    self-contained (Issue #98), so the command is the ordinary
-    ``deepplant-editor <path>`` launch a user can reproduce.
+    ``model`` is optional. Without it the shared Vue SPA's **empty workspace** is
+    verified (the no-argument launch, Issue #97): the ordinary editor shell must
+    render with an explicit "no project open" state and no fabricated model. With
+    it the full packaged editor workflow is verified. No presentation override is
+    ever injected: the canonical smoke fixture is self-contained (Issue #98), so
+    the command is the ordinary ``deepplant-editor <path>`` launch a user can
+    reproduce.
+
+    ``scenario`` selects the verification and defaults to ``loaded``/``empty`` from
+    ``model``. ``transition`` (Issue #97 review) launches with no project, opens
+    ``projects`` in order through the real Open handler, then attempts
+    ``invalid_project``, proving the one session is reused rather than recreated.
     """
     command = [str(launcher)]
     if model is not None:
@@ -1396,6 +1465,12 @@ def run_desktop_self_check(
     # directory, so a relative report path would be written somewhere else.
     report = report.resolve()
     command += ["--self-check", "--self-check-report", str(report), "--port", "0"]
+    if scenario is not None:
+        command += ["--self-check-scenario", scenario]
+    for project in projects:
+        command += ["--self-check-project", str(project)]
+    if invalid_project is not None:
+        command += ["--self-check-invalid-project", str(invalid_project)]
     log("desktop self-check: " + " ".join(command))
 
     if report.exists():
@@ -1481,6 +1556,16 @@ def run_desktop_self_check(
             + ", ".join(missing_lifecycle)
             + f" -> {payload}"
         )
+    effective_scenario = scenario or (
+        SELF_CHECK_SCENARIO_LOADED if model is not None else SELF_CHECK_SCENARIO_EMPTY
+    )
+    required_content = _REQUIRED_SELF_CHECK_CHECKS.get(effective_scenario, ())
+    missing_content = [name for name in required_content if name not in checks]
+    if missing_content:
+        raise PackagingError(
+            f"the packaged desktop self-check ({effective_scenario}) did not report "
+            "required checks: " + ", ".join(missing_content) + f" -> {payload}"
+        )
     failed = sorted(name for name, value in checks.items() if value is not True)
     if failed:
         raise PackagingError(f"the packaged desktop self-check failed: {failed} -> {payload}")
@@ -1524,15 +1609,22 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
 
     Since Issue #93 the product is a graphical desktop application, so the
     evidence is the real native window and the real embedded SPA - not an HTTP
-    endpoint. Two launches are checked:
+    endpoint. Three launches are checked:
 
-    1. no model argument -> the bootstrap window appears and closes cleanly;
+    1. no model argument -> the packaged application starts into the shared Vue
+       editor with an explicit no-project workspace, then closes cleanly and
+       releases its server/socket (Issue #97);
     2. the canonical self-contained smoke fixture (Issue #98) -> the packaged
        editor workflow renders Valid, three ProcessSteps, two ProcessStreams,
        selects ``PUMP``, and shows its semantic data in the Inspector, all with no
-       presentation override.
+       presentation override;
+    3. the project-replacement lifecycle (Issue #97 review) -> one session opens
+       the canonical fixture, replaces it with a distinguishable second model,
+       then attempts an invalid model, proving the native window, webview, server,
+       origin, port and listening socket are never recreated and that the previous
+       project survives a failed open.
 
-    Both report whether the owned server stopped and the loopback socket was
+    All three report whether the owned server stopped and the loopback socket was
     released when the window closed.
     """
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -1544,6 +1636,17 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
     model_copy.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(model_path, model_copy)
     evidence["model"] = str(model_copy)
+
+    # The project-replacement regression opens the canonical fixture and a
+    # distinguishable second model, then a model that must fail. All three live
+    # outside the checkout, like every other packaged-smoke input.
+    transition_a = work_dir / "model" / "project-a.yaml"
+    transition_b = work_dir / "model" / "project-b.yaml"
+    invalid_copy = work_dir / "model" / "invalid.yaml"
+    shutil.copy2(SMOKE_MODEL, transition_a)
+    shutil.copy2(TRANSITION_MODEL, transition_b)
+    invalid_copy.write_text(INVALID_MODEL_TEXT, encoding="utf-8")
+    evidence["transition_projects"] = [str(transition_a), str(transition_b), str(invalid_copy)]
 
     launcher = install_or_extract(artifact, work_dir / "install")
     evidence["launcher"] = str(launcher)
@@ -1585,6 +1688,15 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
             report=reports / "desktop-workflow.json",
             model=model_copy,
             cwd=model_copy.parent,
+        )
+        evidence["project_replacement"] = run_desktop_self_check(
+            launcher,
+            report=reports / "project-replacement.json",
+            model=None,
+            cwd=model_copy.parent,
+            scenario=SELF_CHECK_SCENARIO_TRANSITION,
+            projects=(transition_a, transition_b),
+            invalid_project=invalid_copy,
         )
     finally:
         if spa_was_present and hidden_spa.exists() and not SPA_BUILD_DIR.exists():
@@ -1652,8 +1764,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             log("packaged smoke: " + json.dumps(evidence, sort_keys=True, default=str))
             log(
-                "VERIFIED: the packaged desktop application opened a native window with the "
-                "real shared Vue editor outside the checkout, and closed cleanly"
+                "VERIFIED: the packaged desktop application opened the real shared Vue editor "
+                "outside the checkout (empty workspace, loaded model, and project replacement), "
+                "and closed cleanly"
             )
         elif phase == "extract":
             artifact = (

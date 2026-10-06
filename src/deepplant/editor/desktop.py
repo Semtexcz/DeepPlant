@@ -8,17 +8,23 @@ not a second frontend:
 
     native window + embedded webview
               ↓
-    http://127.0.0.1:<ephemeral-port>
+    http://127.0.0.1:<ephemeral-port>   (one long-lived origin)
               ↓
     FastAPI / Uvicorn  (deepplant.editor.api)
               ↓
-    EditorApplication  (deepplant.editor.application)
+    EditorWorkspace  (deepplant.editor.application)
               ↓
-    DeepPlant Core
+    EditorApplication?  (active document: none | loaded)  →  DeepPlant Core
 
 The embedded page is the ordinary production build of ``apps/editor/`` - the same
 Vue SPA the developer/browser host (``deepplant ui``) and any future web
 deployment serve. No engineering UI is re-implemented natively.
+
+Since Issue #97 the window opens *directly into that shared Vue editor*: the
+application shell exists independently of its active document, so launching with
+no argument shows the ordinary editor workspace with ``active project = none``
+rather than a native start page. Opening a project changes workspace state
+through the same long-lived server and webview; it never swaps in a second UI.
 
 This module is deliberately **Qt-free**: it owns the command-line surface, the
 dependency probe, the initial-project load, and the small navigation policy, so
@@ -34,6 +40,7 @@ from __future__ import annotations
 import os
 import sys
 from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
 from urllib.parse import urlsplit
@@ -49,6 +56,7 @@ from deepplant.editor import (
 from deepplant.editor.application import (
     EditorApplication,
     EditorSetupError,
+    create_empty_workspace,
     load_editor_application,
 )
 from deepplant.editor.launcher import (
@@ -60,17 +68,29 @@ from deepplant.editor.launcher import (
 from deepplant.io import PlantLoadError
 
 __all__ = [
-    "DesktopHostError",
-    "MODEL_FILE_FILTER",
+    "SELF_CHECK_SCENARIO_EMPTY",
+    "SELF_CHECK_SCENARIO_LOADED",
+    "SELF_CHECK_SCENARIO_TRANSITION",
+    "SELF_CHECK_SCENARIOS",
     "SMOKE_EXPECTED_STEPS",
     "SMOKE_EXPECTED_STREAMS",
     "SMOKE_PROBE_STEP_ID",
+    "TRANSITION_PROJECT_B_EXPECTED_STEPS",
+    "TRANSITION_PROJECT_B_EXPECTED_STREAMS",
+    "TRANSITION_PROJECT_B_PROBE_FUNCTION",
+    "TRANSITION_PROJECT_B_PROBE_STEP_ID",
+    "TRANSITION_PROJECT_COUNT",
     "WINDOW_TITLE",
+    "DesktopHostError",
+    "DesktopSelfCheckPlan",
+    "EMPTY_WORKSPACE_STATUS_TEXT",
+    "MODEL_FILE_FILTER",
     "app",
     "editor_origin",
     "initial_open_directory",
     "is_allowed_navigation",
     "main",
+    "plan_self_check",
     "run_desktop_editor",
 ]
 
@@ -92,6 +112,46 @@ SMOKE_PROBE_STEP_ID: str = "PUMP"
 SMOKE_EXPECTED_STEPS: int = 3
 SMOKE_EXPECTED_STREAMS: int = 2
 
+#: The packaged desktop *project-replacement* regression (Issue #97 review) opens
+#: two self-contained process models in one session. Project A is the canonical
+#: smoke fixture above; project B is ``examples/process-graph/replacement.yaml``,
+#: which is distinguishable from it by graph contents (two steps, one stream, no
+#: ``PUMP``). The distinctions are authored here - the Qt-free half of the host -
+#: so the fixture and the probe expectations are checked together in the fast
+#: Python gate rather than only in the slow native packaging job.
+TRANSITION_PROJECT_B_PROBE_STEP_ID: str = "INLET"
+TRANSITION_PROJECT_B_EXPECTED_STEPS: int = 2
+TRANSITION_PROJECT_B_EXPECTED_STREAMS: int = 1
+TRANSITION_PROJECT_B_PROBE_FUNCTION: str = "source"
+
+#: The self-check scenario names. ``empty`` is the shared SPA with no document
+#: (Issue #97); ``loaded`` is the canonical fixture opened through the ordinary
+#: path (Issue #98); ``transition`` is the project-replacement lifecycle (empty
+#: session, then project A, then project B, then a failed open, then close).
+SELF_CHECK_SCENARIO_EMPTY: str = "empty"
+SELF_CHECK_SCENARIO_LOADED: str = "loaded"
+SELF_CHECK_SCENARIO_TRANSITION: str = "transition"
+
+#: The scenarios the native host understands, in the order the packaged
+#: verification runs them.
+SELF_CHECK_SCENARIOS: tuple[str, ...] = (
+    SELF_CHECK_SCENARIO_EMPTY,
+    SELF_CHECK_SCENARIO_LOADED,
+    SELF_CHECK_SCENARIO_TRANSITION,
+)
+
+#: Number of projects the transition scenario opens before it attempts the failing
+#: open: project A, then project B.
+TRANSITION_PROJECT_COUNT: int = 2
+
+#: The neutral status text the shared Vue SPA shows when no project is open (Issue
+#: #97). The packaged self-check asserts it, so the no-project launch is proven to
+#: be an ordinary editor state rather than a validation ("Invalid") or Process/PFD
+#: projection failure. It is authored here - the Qt-free half of the host - so the
+#: value the frontend renders and the value the probe asserts can be checked
+#: together in the fast Python gate.
+EMPTY_WORKSPACE_STATUS_TEXT: str = "No project open"
+
 #: Schemes the SPA and Qt itself legitimately use inside the view. They carry no
 #: remote authority, so they are allowed alongside the exact active origin. They
 #: are the only non-``http(s)`` schemes accepted; ``file:`` is deliberately not one
@@ -108,6 +168,61 @@ HostRunner = Callable[..., int]
 
 #: Project loader the native Open dialog uses.
 ProjectLoader = Callable[[Path], EditorApplication]
+
+
+@dataclass(frozen=True)
+class DesktopSelfCheckPlan:
+    """What the packaged-desktop self-check must verify once the window is up.
+
+    This is the Qt-free description of one automated desktop run, so the
+    command-line surface and the native host share one value instead of a growing
+    argument list. Issue #97 review added ``transition``: a single long-lived
+    session that opens project A, replaces it with project B, then attempts a
+    failing open, proving the window, webview, server, port and origin are never
+    recreated.
+    """
+
+    scenario: str = SELF_CHECK_SCENARIO_LOADED
+    #: Projects the ``transition`` scenario opens through the Open handler, in
+    #: order (project A, then project B).
+    projects: tuple[Path, ...] = ()
+    #: A model that must fail to load in the ``transition`` scenario, so the
+    #: previous project stays active.
+    invalid_project: Path | None = None
+
+    def __post_init__(self) -> None:
+        if self.scenario not in SELF_CHECK_SCENARIOS:
+            raise ValueError(f"unknown self-check scenario: {self.scenario!r}")
+        if self.scenario == SELF_CHECK_SCENARIO_TRANSITION:
+            if len(self.projects) != TRANSITION_PROJECT_COUNT:
+                raise ValueError(
+                    "the transition self-check needs exactly "
+                    f"{TRANSITION_PROJECT_COUNT} projects, got {len(self.projects)}"
+                )
+            if self.invalid_project is None:
+                raise ValueError("the transition self-check needs an invalid project")
+
+
+def plan_self_check(
+    scenario: str,
+    *,
+    projects: Sequence[Path] = (),
+    invalid_project: Path | None = None,
+) -> DesktopSelfCheckPlan:
+    """Build a validated :class:`DesktopSelfCheckPlan`, or raise ``DesktopHostError``.
+
+    The command line accepts a free-form scenario string, so the mapping from a
+    bad value to a user-facing message lives here rather than as an unhandled
+    ``ValueError``.
+    """
+    try:
+        return DesktopSelfCheckPlan(
+            scenario=scenario,
+            projects=tuple(Path(project) for project in projects),
+            invalid_project=None if invalid_project is None else Path(invalid_project),
+        )
+    except ValueError as exc:
+        raise DesktopHostError(str(exc)) from exc
 
 
 class DesktopHostError(Exception):
@@ -208,36 +323,31 @@ def run_desktop_editor(
     host: str = DEFAULT_HOST,
     self_check: bool = False,
     report_path: Path | None = None,
+    self_check_scenario: str | None = None,
+    self_check_projects: Sequence[Path] = (),
+    self_check_invalid_project: Path | None = None,
     echo: Callable[[str], None] = print,
     host_runner: HostRunner | None = None,
 ) -> int:
     """Launch the native DeepPlant Editor window and return its exit code.
 
-    ``project_path`` is *optional*: with no path the window opens with a minimal
-    native bootstrap (``File -> Open...``), which is the primary end-user
-    workflow. With a path the same window opens directly on that model, which is
-    the advanced/diagnostic workflow.
+    ``project_path`` is optional: the window always opens directly into the
+    ordinary shared Vue editor workspace (Issue #97), so with no path that
+    workspace simply has no active document. The initial project is loaded
+    *before* the window is created, so an invalid or missing model is a clear
+    message instead of a window that appears and then fails; the Open dialog's
+    selections are loaded through the same boundary.
 
-    The initial project is loaded *before* the window is created, so an invalid
-    or missing model is a clear message instead of a window that appears and then
-    fails. The Open dialog's selections are loaded through the same boundary.
-
-    Args:
-        project_path: Optional DeepPlant plant model to open immediately.
-        symbol_role_entries: Repeatable ``STEP=ROLE`` presentation overrides.
-        port: Local loopback port; ``0`` asks the OS for a free one.
-        assets_dir: Optional explicit built-SPA directory.
-        host: Bind host; loopback by default and never ``0.0.0.0``.
-        self_check: Run the automated packaged-desktop verification instead of
-            waiting for the user (see docs/dev/workflow/packaging.md).
-        report_path: Where ``self_check`` writes its JSON report. Required by the
-            packaged Windows build, which is a GUI executable with no console.
-        echo: Diagnostic sink.
-        host_runner: Test seam; defaults to the real Qt host.
+    ``self_check`` runs the automated packaged-desktop verification instead of
+    waiting for the user (see docs/dev/workflow/packaging.md). Its scenario is
+    ``empty`` (no document), ``loaded`` (the canonical fixture, the default with a
+    path), or ``transition`` - the project-replacement lifecycle, which opens
+    ``self_check_projects`` in order and then attempts ``self_check_invalid_project``.
 
     Raises:
-        DesktopHostError: If the desktop extra is missing or the initial model
-            cannot be loaded. The message is user-facing; no traceback.
+        DesktopHostError: If the desktop extra is missing, the built editor assets
+            cannot be found, the initial model cannot be loaded, or the self-check
+            scenario is inconsistent. The message is user-facing; no traceback.
     """
     try:
         overrides = parse_symbol_role_overrides(symbol_role_entries)
@@ -246,32 +356,85 @@ def run_desktop_editor(
 
     if self_check and report_path is None:
         raise DesktopHostError("--self-check requires --self-check-report <path>")
+    if self_check_scenario is not None and not self_check:
+        raise DesktopHostError("--self-check-scenario requires --self-check")
+
+    plan = _resolve_self_check_plan(
+        self_check=self_check,
+        project_path=project_path,
+        scenario=self_check_scenario,
+        projects=self_check_projects,
+        invalid_project=self_check_invalid_project,
+    )
 
     runner = host_runner if host_runner is not None else _load_qt_host_runner()
+
+    # The workspace serves the shared SPA whether or not a document is open, so the
+    # built assets must resolve before any window appears. An empty workspace is a
+    # real, first-class state - not a fallback that hides a missing build.
+    try:
+        workspace = create_empty_workspace(assets_dir)
+    except EditorSetupError as exc:
+        raise DesktopHostError(str(exc)) from exc
 
     def load(selected: Path) -> EditorApplication:
         return load_editor_application(
             selected,
             symbol_role_overrides=overrides,
-            assets_dir=assets_dir,
+            assets_dir=workspace.assets_dir,
         )
 
-    initial_application: EditorApplication | None = None
-    if project_path is not None:
-        try:
-            initial_application = load(project_path)
-        except (PlantLoadError, EditorSetupError) as exc:
-            raise DesktopHostError(str(exc)) from exc
-
     return runner(
-        initial_application=initial_application,
+        assets_dir=workspace.assets_dir,
+        initial_application=_load_initial_application(load, project_path),
         loader=load,
         port=port,
         host=host,
         echo=echo,
         self_check=self_check,
         report_path=report_path,
+        self_check_plan=plan,
     )
+
+
+def _load_initial_application(
+    load: Callable[[Path], EditorApplication], project_path: Path | None
+) -> EditorApplication | None:
+    """Load the optional initial document, reporting a bad path as a message."""
+    if project_path is None:
+        return None
+    try:
+        return load(project_path)
+    except (PlantLoadError, EditorSetupError) as exc:
+        raise DesktopHostError(str(exc)) from exc
+
+
+def _resolve_self_check_plan(
+    *,
+    self_check: bool,
+    project_path: Path | None,
+    scenario: str | None,
+    projects: Sequence[Path],
+    invalid_project: Path | None,
+) -> DesktopSelfCheckPlan | None:
+    """Return the validated self-check plan, or ``None`` when not self-checking.
+
+    With no explicit scenario the behaviour is the Issue #97/#98 default: the
+    ``loaded`` scenario when an initial path was given, ``empty`` otherwise. The
+    ``transition`` scenario opens its own projects, so an initial path is
+    contradictory and is rejected rather than silently ignored.
+    """
+    if not self_check:
+        return None
+    if scenario is None:
+        scenario = (
+            SELF_CHECK_SCENARIO_LOADED if project_path is not None else SELF_CHECK_SCENARIO_EMPTY
+        )
+    if scenario == SELF_CHECK_SCENARIO_TRANSITION and project_path is not None:
+        raise DesktopHostError(
+            "the transition self-check opens its own projects; do not pass a project path"
+        )
+    return plan_self_check(scenario, projects=projects, invalid_project=invalid_project)
 
 
 def _ensure_standard_streams() -> None:
@@ -324,15 +487,33 @@ def open_editor(
         bool,
         typer.Option(
             "--self-check",
-            help=(
-                "Automated verification: load the embedded application, probe the real "
-                "page, write a JSON report, and exit. Used by packaged desktop tests."
-            ),
+            help="Automated packaged-desktop verification: probe the real page and exit.",
         ),
     ] = False,
     self_check_report: Annotated[
         Path | None,
         typer.Option("--self-check-report", help="Report path for --self-check."),
+    ] = None,
+    self_check_scenario: Annotated[
+        str | None,
+        typer.Option(
+            "--self-check-scenario",
+            help="empty | loaded | transition (defaults from the presence of a path).",
+        ),
+    ] = None,
+    self_check_project: Annotated[
+        list[Path] | None,
+        typer.Option(
+            "--self-check-project",
+            help="For transition: a project to open, in order (repeat once per project).",
+        ),
+    ] = None,
+    self_check_invalid_project: Annotated[
+        Path | None,
+        typer.Option(
+            "--self-check-invalid-project",
+            help="For transition: a model that must fail to load.",
+        ),
     ] = None,
 ) -> None:
     """Open the standalone DeepPlant Editor window."""
@@ -344,6 +525,9 @@ def open_editor(
             assets_dir=assets_dir,
             self_check=self_check,
             report_path=self_check_report,
+            self_check_scenario=self_check_scenario,
+            self_check_projects=tuple(self_check_project or ()),
+            self_check_invalid_project=self_check_invalid_project,
         )
     except DesktopHostError as exc:
         typer.echo(f"✗ {exc}", err=True)

@@ -1,12 +1,13 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Desktop host lifecycle and runtime: the owned server and `run_host`.
+"""Desktop host lifecycle and runtime: the owned workspace/server and `run_host`.
 
-`DesktopEditor` owns the native window, the open project, and exactly one
-loopback `EditorServer` at a time; `run_host` starts Qt, shows the window, and
-returns its exit code. Closing the window stops the owned server and lets the
-process exit naturally. No engineering semantics are decided here.
+`DesktopEditor` owns the native window, the editor workspace (an optional active
+document), and exactly one long-lived loopback `EditorServer`; `run_host` starts
+Qt, shows the window, and returns its exit code. Closing the window stops the
+owned server and lets the process exit naturally. No engineering semantics are
+decided here.
 """
 
 from __future__ import annotations
@@ -21,8 +22,11 @@ from PySide6.QtWidgets import QApplication
 
 from deepplant.editor import DEFAULT_HOST, DEFAULT_PORT
 from deepplant.editor.api import EditorServer
-from deepplant.editor.application import EditorApplication, EditorSetupError
+from deepplant.editor.application import EditorApplication, EditorSetupError, EditorWorkspace
 from deepplant.editor.desktop import (
+    SELF_CHECK_SCENARIO_EMPTY,
+    SELF_CHECK_SCENARIO_LOADED,
+    DesktopSelfCheckPlan,
     ProjectLoader,
     editor_origin,
     initial_open_directory,
@@ -75,27 +79,33 @@ class _ServerShutdown:
 
 
 class DesktopEditor:
-    """Owns the window, the open project, and that project's local server.
+    """Owns the window, the workspace, and the workspace's local server.
 
-    Lifecycle (Issue #93)::
+    Lifecycle (Issues #93, #97)::
 
-        launch -> create window -> (optional) load model -> start local server
-               -> show window -> load embedded SPA
+        launch -> create window + empty workspace (optional initial document)
+               -> start one long-lived local server
+               -> show window -> load the shared SPA (workspace may be empty)
+               -> File -> Open… -> activate a document -> reload the same SPA
                -> user closes the window -> server stops -> Qt exits
 
-    Exactly one loopback :class:`~deepplant.editor.api.EditorServer` is owned at a
-    time. Opening another model through the dialog replaces it deliberately, so
-    no socket is ever leaked and nothing outside this application is signalled.
+    Exactly one loopback :class:`~deepplant.editor.api.EditorServer` is owned for
+    the life of the application, and it is bound to the workspace rather than to a
+    single document, so opening or replacing a project is a workspace state change:
+    the server, its listening socket, the native window and the embedded webview are
+    never recreated.
     """
 
     def __init__(
         self,
         *,
+        assets_dir: Path,
         loader: ProjectLoader,
         port: int,
         host: str,
         echo: Callable[[str], None],
     ) -> None:
+        self._workspace = EditorWorkspace(assets_dir=assets_dir)
         self._loader = loader
         self._port = port
         self._host = host
@@ -118,7 +128,7 @@ class DesktopEditor:
 
     @property
     def server(self) -> EditorServer | None:
-        """The currently owned local server, if a project is open.
+        """The currently owned local server, or ``None`` before the session starts.
 
         A still-live server is deliberately retained after a failed stop, so this
         never reports ``None`` for a server whose thread is still running.
@@ -128,11 +138,10 @@ class DesktopEditor:
     def current_origin(self) -> str | None:
         """The exact origin owned by the current server, or ``None``.
 
-        This is the single value the embedded webview's navigation policy compares
-        against, so opening another model - which starts a new server on a possibly
-        different ephemeral port - moves the permitted origin to the new one. It is
-        a method (not a property) because the page reads it live through a
-        callback.
+        This is the single value the webview's navigation policy compares against.
+        Since Issue #97 the session keeps one long-lived server, so the origin stays
+        stable while the workspace changes document. It is a method (not a property)
+        because the page reads it live through a callback.
         """
         server = self._server
         if server is None:
@@ -147,20 +156,35 @@ class DesktopEditor:
     def show(self) -> None:
         self._window.show()
 
-    def open_project(self, application: EditorApplication) -> None:
-        """Start the embedded server and show the shared SPA for one project."""
-        if not self._stop_server():
-            self._window.show_error(
-                "The previous local editor server did not stop, so this model was "
-                "not opened. Close the application and try again."
-            )
-            return
-        server = EditorServer(application, host=self._host, port=self._port)
+    def start_session(self) -> None:
+        """Start the long-lived server and show the shared SPA.
+
+        Called once, before the event loop runs, for both the empty and the loaded
+        workspace: either way it serves the *same* shared Vue editor.
+        """
+        server = EditorServer(self._workspace, host=self._host, port=self._port)
         server.start()
         self._server = server
+        document_name = self._workspace.document_name
+        self._echo(f"DeepPlant Editor: {document_name or 'no project open'} at {server.base_url}")
+        self._window.show_editor(server.base_url, document_name)
+
+    def open_project(self, application: EditorApplication) -> None:
+        """Open (or replace) the active document in the existing editor session.
+
+        This is a workspace *state* change: the same server, socket, window and
+        webview are reused and the shared SPA is reloaded, so nothing leaks and no
+        stale selection survives. The document is loaded through the ordinary
+        application boundary *before* this call, so a failed load never reaches
+        here and the previous document stays active.
+        """
+        self._workspace.activate(application)
         self._open_directory = str(application.project_path.parent)
-        self._echo(f"DeepPlant Editor: serving {application.project_path} at {server.base_url}")
-        self._window.show_editor(server.base_url, application.project_path.name)
+        if self._server is None:
+            self.start_session()
+            return
+        self._echo(f"DeepPlant Editor: opened {application.project_path}")
+        self._window.reload_editor(self._workspace.document_name)
 
     def open_from_dialog(self) -> None:
         """Run the native Open dialog, then load the selected model.
@@ -257,6 +281,7 @@ def _teardown_qt(editor: DesktopEditor, qt_application: QApplication) -> None:
 
 def run_host(
     *,
+    assets_dir: Path,
     initial_application: EditorApplication | None,
     loader: ProjectLoader,
     port: int = DEFAULT_PORT,
@@ -264,12 +289,14 @@ def run_host(
     echo: Callable[[str], None] = print,
     self_check: bool = False,
     report_path: Path | None = None,
+    self_check_plan: DesktopSelfCheckPlan | None = None,
 ) -> int:
     """Start the Qt application, show the window, and return its exit code.
 
     Qt is configured, then used; nothing here decides engineering semantics. The
-    window is shown with the bootstrap page when no project was supplied, which is
-    the primary end-user workflow.
+    window always shows the ordinary shared Vue editor (Issue #97): the workspace
+    starts empty unless ``initial_application`` was supplied, in which case that
+    document is activated before the single long-lived server starts.
     """
     _configure_webengine_for_this_process()
     if report_path is not None:
@@ -281,20 +308,42 @@ def run_host(
 
     report: dict[str, object] | None = None
     try:
-        editor = DesktopEditor(loader=loader, port=port, host=host, echo=echo)
+        editor = DesktopEditor(
+            assets_dir=assets_dir, loader=loader, port=port, host=host, echo=echo
+        )
         if self_check:
             if report_path is None:
                 raise RuntimeError("the desktop self-check requires a report path")
+            # Issue #97/#98 default when the caller gave no explicit plan: the
+            # canonical fixture is the `loaded` scenario, no project the `empty`
+            # one, and the project-replacement lifecycle is always explicit.
+            plan = self_check_plan or DesktopSelfCheckPlan(
+                scenario=(
+                    SELF_CHECK_SCENARIO_LOADED
+                    if initial_application is not None
+                    else SELF_CHECK_SCENARIO_EMPTY
+                )
+            )
+            # Armed before the first page load, so the hook is installed before the
+            # embedded SPA can finish loading.
             report = start_self_check(
                 editor,
                 Path(report_path),
                 echo=echo,
                 finish=qt_application.exit,
-                has_project=initial_application is not None,
+                scenario=plan.scenario,
+                projects=plan.projects,
+                invalid_project=plan.invalid_project,
             )
 
+        # One long-lived session for both the empty and the loaded workspace: the
+        # server and the webview are not recreated when a project is opened. An
+        # initial document is activated before the first page load, so the SPA's
+        # first read already sees the requested workspace state.
         if initial_application is not None:
             editor.open_project(initial_application)
+        else:
+            editor.start_session()
         editor.show()
         if report_path is not None:
             stage_log(report_path, "host: window shown, entering the event loop")

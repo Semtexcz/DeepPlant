@@ -1,0 +1,44 @@
+# Copyright (C) 2026 DeepPlant contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# The second self-contained process model used by the packaged desktop
+# *project-replacement* regression.
+#
+# It is deliberately distinguishable from `plant.yaml` by graph contents: two
+# `ProcessStep`s and one `ProcessStream`, and no `PUMP` step. The packaged
+# self-check opens `plant.yaml` first and this model second, so it can prove that
+# opening it *replaces* the previously rendered project in the same session -
+# same native window, same webview, same long-lived server - rather than merely
+# re-rendering identical nodes or recreating the application.
+#
+# It is self-contained: it loads, validates, projects and renders through the
+# ordinary application boundary with **no** presentation override, so the
+# automated verification reproduces what an end user reaches through
+# `File -> Open…`.
+
+plant:
+  id: demo
+  name: Replacement Process
+
+process:
+  steps:
+    - id: INLET
+      function: source
+      name: Inlet
+      ports:
+        - id: out
+
+    - id: OUTLET
+      function: sink
+      name: Outlet
+      ports:
+        - id: in
+
+  streams:
+    - id: S-100
+      source:
+        step: INLET
+        port: out
+      target:
+        step: OUTLET
+        port: in

@@ -90,25 +90,32 @@ extract-and-run mode, which needs no FUSE at all:
 ## Open a plant model
 
 **The normal way — no terminal.** Launch **DeepPlant Editor** (Start Menu on
-Windows, or the AppImage on Linux). The editor window opens with a start page:
+Windows, or the AppImage on Linux). The editor opens straight into its ordinary
+workspace, with no plant model loaded yet:
 
 ```text
-┌────────────────────────────────────────┐
-│ DeepPlant Editor                       │
-│                                        │
-│               DeepPlant                │
-│                                        │
-│            [ Open plant… ]             │
-│                                        │
-└────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│ DeepPlant | Process / PFD                     [Fit view] │
+├───────────────────────────────────────┬──────────────────┤
+│                                       │ Inspector        │
+│  No project open. Use File → Open…    │                  │
+│  to open a plant model.               │ No project open. │
+│                                       │                  │
+├───────────────────────────────────────┴──────────────────┤
+│ No project open                                          │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Choose **File → Open…** (or the **Open plant…** button) and pick your DeepPlant
-YAML file (`*.yaml` or `*.yml`) in the normal operating-system file chooser. The
-model opens inside the application window.
+An editor with no project open is a normal state, not an error: the canvas is
+simply empty and the status bar says **No project open**. *Fit view* is disabled
+until a model is open.
+
+Choose **File → Open…** and pick your DeepPlant YAML file (`*.yaml` or `*.yml`)
+in the normal operating-system file chooser. The model opens inside the same
+window, and you can keep using **File → Open…** to replace it with another model.
 
 **The advanced way.** You can also pass the model on the command line, which
-opens the same window directly on that file:
+opens the same window with that file already open:
 
 ```bash
 deepplant-editor path/to/plant.yaml
@@ -133,11 +140,11 @@ your model or to your YAML file.
 ```text
 start the application
         ↓
-the DeepPlant Editor window opens
+the DeepPlant Editor window opens on its normal workspace (no project open)
         ↓
 File → Open…  (or the model you passed on the command line)
         ↓
-you see the read-only Process / PFD view inside the window
+you see the read-only Process / PFD view inside the same window
         ↓
 close the window to stop the application
 ```
@@ -155,7 +162,7 @@ Useful options (`deepplant-editor --help` lists them):
 
 | Option | Meaning |
 |---|---|
-| `<path>` | Optional. Open this model immediately instead of the start page. |
+| `<path>` | Optional. Open this model immediately instead of starting with no project open. |
 | `--port <n>` | Local port for the embedded server; `0` asks the operating system for a free port. |
 | `--symbol-role STEP=ROLE` | Repeatable transient presentation override (see above). |
 

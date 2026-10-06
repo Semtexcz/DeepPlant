@@ -2,6 +2,7 @@
 
 These tests exercise the framework-independent application directly, without
 constructing FastAPI or going through HTTP: ``EditorApplication.projection_view()``,
+the ``EditorWorkspace`` session with and without an active document (Issue #97),
 ``load_editor_application()``, and ``resolve_assets_dir()`` (Issues #75, #79).
 """
 
@@ -14,13 +15,18 @@ import pytest
 from deepplant.editor import application as application_module
 from deepplant.editor.application import (
     EditorApplication,
+    EditorSetupError,
+    create_empty_workspace,
     load_editor_application,
     resolve_assets_dir,
 )
 from deepplant.io import PlantLoadError, load_plant
+from deepplant.render import ProcessRenderError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
+#: The canonical self-contained smoke fixture: it projects with no override.
+SMOKE_EXAMPLE = REPO_ROOT / "examples" / "process-graph" / "plant.yaml"
 VESSEL_OVERRIDES = {"PS-vessel": "vessel"}
 
 
@@ -85,6 +91,108 @@ def test_resolve_assets_dir_requires_a_built_editor_app(tmp_path: Path) -> None:
     explicit.mkdir(parents=True)
     (explicit / "index.html").write_text("<!doctype html>", encoding="utf-8")
     assert resolve_assets_dir(explicit) == explicit
+
+
+# --- The editor workspace exists independently of an active document (Issue #97) --
+
+
+def test_an_empty_workspace_is_a_first_class_state_with_no_model(assets_dir: Path) -> None:
+    """No project open is an ordinary state that carries no fabricated model.
+
+    The empty state reports no validation verdict and no Process/PFD projection, so
+    it can never be mistaken for invalid engineering data or a failed projection.
+    """
+    workspace = create_empty_workspace(assets_dir)
+
+    view = workspace.view()
+
+    assert view.state == "empty"
+    assert view.has_document is False
+    assert view.document is None
+    assert view.validation is None
+    assert view.projection is None
+    assert view.error is None
+    assert view.projectable is False
+
+
+def test_an_empty_workspace_never_fabricates_a_symbol(assets_dir: Path) -> None:
+    workspace = create_empty_workspace(assets_dir)
+
+    with pytest.raises(ProcessRenderError):
+        workspace.symbol_svg("pump")
+
+
+def test_create_empty_workspace_requires_built_assets(tmp_path: Path) -> None:
+    empty = tmp_path / "empty"
+    empty.mkdir()
+
+    with pytest.raises(EditorSetupError):
+        create_empty_workspace(empty)
+
+
+def test_activating_a_document_loads_it_and_clearing_returns_to_empty(assets_dir: Path) -> None:
+    workspace = create_empty_workspace(assets_dir)
+    assert workspace.view().state == "empty"
+
+    workspace.activate(load_editor_application(SMOKE_EXAMPLE, assets_dir=assets_dir))
+
+    loaded = workspace.view()
+    assert loaded.state == "loaded"
+    assert loaded.has_document is True
+    assert loaded.document is not None
+    assert loaded.document.name == SMOKE_EXAMPLE.name
+    assert loaded.validation is not None
+    assert loaded.validation.valid is True
+    assert loaded.projectable is True
+
+    workspace.clear()
+
+    assert workspace.view().state == "empty"
+    assert workspace.active_document is None
+
+
+def test_a_loaded_but_unprojectable_document_is_still_loaded(assets_dir: Path) -> None:
+    """A valid model whose Process/PFD view cannot be produced stays *loaded*.
+
+    Workspace presence and view availability are separate (Issue #97): the model is
+    semantically valid, so the workspace reports a loaded document while only the
+    projection is missing. Distinguishing that for the user is Issue #99 and is not
+    changed here.
+    """
+    workspace = create_empty_workspace(assets_dir)
+
+    workspace.activate(load_editor_application(REALISTIC_EXAMPLE, assets_dir=assets_dir))
+
+    view = workspace.view()
+    assert view.state == "loaded"
+    assert view.has_document is True
+    assert view.validation is not None
+    assert view.validation.valid is True
+    assert view.projection is None
+    assert view.error is not None
+
+
+def test_a_failed_load_never_reaches_activation_so_the_workspace_stays_intact(
+    assets_dir: Path,
+) -> None:
+    """Replacement loads through the boundary first, so a failure cannot corrupt it.
+
+    The workspace is only mutated by :meth:`EditorWorkspace.activate`, which is
+    reached after a successful load. A failed load raises at the ordinary loader
+    boundary, leaving the currently active document exactly as it was.
+    """
+    workspace = create_empty_workspace(assets_dir)
+    workspace.activate(load_editor_application(REALISTIC_EXAMPLE, assets_dir=assets_dir))
+
+    with pytest.raises(PlantLoadError):
+        load_editor_application(
+            REPO_ROOT / "examples" / "does-not-exist.yaml", assets_dir=assets_dir
+        )
+
+    current = workspace.active_document
+    assert current is not None
+    assert current.project_path == REALISTIC_EXAMPLE
+    assert workspace.view().state == "loaded"
 
 
 def test_resolve_assets_dir_prefers_the_spa_shipped_with_the_application(

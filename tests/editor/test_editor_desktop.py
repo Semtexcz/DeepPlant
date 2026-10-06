@@ -15,7 +15,11 @@ import pytest
 
 from deepplant.editor.application import EditorApplication
 from deepplant.editor.desktop import (
+    SELF_CHECK_SCENARIO_EMPTY,
+    SELF_CHECK_SCENARIO_LOADED,
+    SELF_CHECK_SCENARIO_TRANSITION,
     DesktopHostError,
+    DesktopSelfCheckPlan,
     editor_origin,
     initial_open_directory,
     is_allowed_navigation,
@@ -27,6 +31,8 @@ REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "pla
 #: The canonical packaged smoke fixture (Issue #98): self-contained, so the
 #: ordinary path renders it with no presentation override.
 SMOKE_EXAMPLE = REPO_ROOT / "examples" / "process-graph" / "plant.yaml"
+#: The distinguishable second model for the project-replacement regression.
+REPLACEMENT_EXAMPLE = REPO_ROOT / "examples" / "process-graph" / "replacement.yaml"
 
 
 @pytest.fixture()
@@ -126,7 +132,7 @@ def test_open_directory_never_raises(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_no_path_starts_the_window_without_a_project(assets_dir: Path) -> None:
-    """Launching without an argument is the primary workflow, never an error."""
+    """Launching without an argument opens the shared editor with no document."""
     host = _RecordingHost()
 
     code = run_desktop_editor(None, assets_dir=assets_dir, host_runner=host)
@@ -134,7 +140,26 @@ def test_no_path_starts_the_window_without_a_project(assets_dir: Path) -> None:
     assert code == 0
     assert len(host.calls) == 1
     assert host.calls[0]["initial_application"] is None
+    # The workspace serves the shared SPA, so it always owns resolved assets.
+    assert host.calls[0]["assets_dir"] == assets_dir
     assert callable(host.calls[0]["loader"])
+
+
+def test_missing_built_assets_fail_before_any_window(tmp_path: Path) -> None:
+    """The empty workspace still serves the shared SPA, so missing assets fail early.
+
+    An empty workspace is a real state that renders the ordinary Vue editor, so a
+    checkout without a built SPA is an actionable message before a window appears -
+    it is never silently hidden behind a start page.
+    """
+    host = _RecordingHost()
+    without_spa = tmp_path / "no-spa"
+    without_spa.mkdir()
+
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(None, assets_dir=without_spa, host_runner=host)
+
+    assert host.calls == []
 
 
 def test_optional_path_loads_the_model_into_the_window(assets_dir: Path) -> None:
@@ -241,3 +266,135 @@ def test_the_loader_is_bound_to_the_configured_assets(assets_dir: Path, tmp_path
 
     assert isinstance(application, EditorApplication)
     assert application.assets_dir == assets_dir
+
+
+# --- The self-check scenario wiring (Issue #97 review) -------------------------
+
+
+def _self_check_plan(host: _RecordingHost) -> DesktopSelfCheckPlan:
+    """Return the validated plan the CLI handed the native host."""
+    plan = host.calls[0]["self_check_plan"]
+    assert isinstance(plan, DesktopSelfCheckPlan)
+    return plan
+
+
+def test_the_default_self_check_plan_follows_the_launch(assets_dir: Path, tmp_path: Path) -> None:
+    """A path selects the loaded scenario; no path the empty one (Issues #97/#98)."""
+    with_path = _RecordingHost()
+    run_desktop_editor(
+        SMOKE_EXAMPLE,
+        assets_dir=assets_dir,
+        self_check=True,
+        report_path=tmp_path / "with.json",
+        host_runner=with_path,
+    )
+    assert _self_check_plan(with_path).scenario == SELF_CHECK_SCENARIO_LOADED
+
+    without_path = _RecordingHost()
+    run_desktop_editor(
+        None,
+        assets_dir=assets_dir,
+        self_check=True,
+        report_path=tmp_path / "without.json",
+        host_runner=without_path,
+    )
+    assert _self_check_plan(without_path).scenario == SELF_CHECK_SCENARIO_EMPTY
+
+
+def test_the_transition_self_check_plan_carries_its_projects(
+    assets_dir: Path, tmp_path: Path
+) -> None:
+    """The replacement scenario opens its own projects through the Open handler."""
+    host = _RecordingHost()
+    invalid = tmp_path / "invalid.yaml"
+
+    code = run_desktop_editor(
+        None,
+        assets_dir=assets_dir,
+        self_check=True,
+        report_path=tmp_path / "transition.json",
+        self_check_scenario=SELF_CHECK_SCENARIO_TRANSITION,
+        self_check_projects=[SMOKE_EXAMPLE, REPLACEMENT_EXAMPLE],
+        self_check_invalid_project=invalid,
+        host_runner=host,
+    )
+
+    assert code == 0
+    plan = _self_check_plan(host)
+    assert plan.scenario == SELF_CHECK_SCENARIO_TRANSITION
+    assert plan.projects == (SMOKE_EXAMPLE, REPLACEMENT_EXAMPLE)
+    assert plan.invalid_project == invalid
+    # The transition scenario opens its own projects, so nothing is pre-activated.
+    assert host.calls[0]["initial_application"] is None
+
+
+def test_the_transition_self_check_requires_two_projects(assets_dir: Path, tmp_path: Path) -> None:
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(
+            None,
+            assets_dir=assets_dir,
+            self_check=True,
+            report_path=tmp_path / "transition.json",
+            self_check_scenario=SELF_CHECK_SCENARIO_TRANSITION,
+            self_check_projects=[SMOKE_EXAMPLE],
+            self_check_invalid_project=tmp_path / "invalid.yaml",
+            host_runner=_RecordingHost(),
+        )
+
+
+def test_the_transition_self_check_requires_an_invalid_project(
+    assets_dir: Path, tmp_path: Path
+) -> None:
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(
+            None,
+            assets_dir=assets_dir,
+            self_check=True,
+            report_path=tmp_path / "transition.json",
+            self_check_scenario=SELF_CHECK_SCENARIO_TRANSITION,
+            self_check_projects=[SMOKE_EXAMPLE, REPLACEMENT_EXAMPLE],
+            host_runner=_RecordingHost(),
+        )
+
+
+def test_the_transition_self_check_rejects_an_initial_path(
+    assets_dir: Path, tmp_path: Path
+) -> None:
+    """The replacement scenario opens its own projects in one empty session."""
+    host = _RecordingHost()
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(
+            SMOKE_EXAMPLE,
+            assets_dir=assets_dir,
+            self_check=True,
+            report_path=tmp_path / "transition.json",
+            self_check_scenario=SELF_CHECK_SCENARIO_TRANSITION,
+            self_check_projects=[SMOKE_EXAMPLE, REPLACEMENT_EXAMPLE],
+            self_check_invalid_project=tmp_path / "invalid.yaml",
+            host_runner=host,
+        )
+    assert host.calls == []
+
+
+def test_a_self_check_scenario_requires_the_self_check_flag(assets_dir: Path) -> None:
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(
+            None,
+            assets_dir=assets_dir,
+            self_check_scenario=SELF_CHECK_SCENARIO_LOADED,
+            host_runner=_RecordingHost(),
+        )
+
+
+def test_an_unknown_self_check_scenario_is_a_message_not_a_traceback(
+    assets_dir: Path, tmp_path: Path
+) -> None:
+    with pytest.raises(DesktopHostError):
+        run_desktop_editor(
+            None,
+            assets_dir=assets_dir,
+            self_check=True,
+            report_path=tmp_path / "report.json",
+            self_check_scenario="not-a-scenario",
+            host_runner=_RecordingHost(),
+        )

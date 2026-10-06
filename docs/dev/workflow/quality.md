@@ -131,8 +131,9 @@ The consequences that matter:
 - **Windows/Linux packaging** runs only when the packaged desktop product can be
   affected, and it keeps its full existing verification strength (installer and
   AppImage generation, strict desktop type check, packaged GUI launch and window
-  lifecycle, Linux dependency audit, toolchain integrity, compliance payload,
-  artifact checksums). No step is weakened by routing.
+  lifecycle, the project-replacement regression, Linux dependency audit, toolchain
+  integrity, compliance payload, artifact checksums). No step is weakened by
+  routing.
 - The **`examples/realistic-process-fragment/**` runtime fixture** is browser E2E
   input, not ordinary prose: the browser E2E suite
   (`apps/editor/e2e/support/editor-server.ts`) loads its `plant.yaml` at runtime,
@@ -140,8 +141,9 @@ The consequences that matter:
   smoke test no longer loads it - its `PS-vessel` step is honestly
   `function: unspecified` and needs a presentation choice an ordinary user cannot
   supply (Issue #98). Since #98 that path opens the self-contained
-  **`examples/process-graph/**`** fixture (`tools/package_editor.py`
-  `SMOKE_MODEL`), so a change to *that* fixture selects `python-checks` and both
+  **`examples/process-graph/**`** fixtures (`tools/package_editor.py`
+  `SMOKE_MODEL`, and `TRANSITION_MODEL` used by the packaged project-replacement
+  regression), so a change to *that* fixture selects `python-checks` and both
   native packaging jobs. Other `examples/**` subtrees stay Python-only.
 - **`pyrightconfig.desktop.json`** is a package-validation input: both native jobs
   run the strict desktop type check with it, so changing it selects
