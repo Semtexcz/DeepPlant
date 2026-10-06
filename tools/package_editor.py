@@ -94,6 +94,15 @@ _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 DEFAULT_BUILD_DIR = REPO_ROOT / "build" / "editor-package"
 DEFAULT_DIST_DIR = REPO_ROOT / "dist" / "editor"
 
+#: The canonical packaged-desktop smoke fixture (Issue #98). It is self-contained:
+#: it loads, validates, projects and renders through the ordinary application
+#: boundary with **no** presentation override, so the packaged verification
+#: reproduces exactly what an end user gets through ``File -> Open…``. The
+#: realistic process fragment is deliberately not used here: its ``PS-vessel``
+#: step is honestly ``function: unspecified`` (ADR-0009) and needs an explicit
+#: presentation choice an ordinary user cannot be expected to supply.
+SMOKE_MODEL = REPO_ROOT / "examples" / "process-graph" / "plant.yaml"
+
 #: Where the staged SPA is mapped inside the frozen application. This is the
 #: location ``deepplant.editor.application`` looks for first, and it matches the
 #: package-relative path the base wheel deliberately excludes.
@@ -1376,10 +1385,13 @@ def run_desktop_self_check(
 
     ``model`` is optional. Without it the bootstrap window is verified (the
     no-argument launch), with it the full packaged editor workflow is verified.
+    No presentation override is ever injected: the canonical smoke fixture is
+    self-contained (Issue #98), so the command is the ordinary
+    ``deepplant-editor <path>`` launch a user can reproduce.
     """
     command = [str(launcher)]
     if model is not None:
-        command += [str(model), "--symbol-role", "PS-vessel=vessel"]
+        command.append(str(model))
     # Absolute: the application runs with the model's directory as its working
     # directory, so a relative report path would be written somewhere else.
     report = report.resolve()
@@ -1515,9 +1527,10 @@ def smoke_test_artifact(artifact: Path, *, work_dir: Path, model_path: Path) -> 
     endpoint. Two launches are checked:
 
     1. no model argument -> the bootstrap window appears and closes cleanly;
-    2. the realistic fragment -> the packaged editor workflow renders Valid, seven
-       ProcessSteps, seven ProcessStreams, selects ``PS-pump``, and shows its
-       semantic data in the Inspector.
+    2. the canonical self-contained smoke fixture (Issue #98) -> the packaged
+       editor workflow renders Valid, three ProcessSteps, two ProcessStreams,
+       selects ``PUMP``, and shows its semantic data in the Inspector, all with no
+       presentation override.
 
     Both report whether the owned server stopped and the loopback socket was
     released when the window closed.
@@ -1609,8 +1622,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--model",
         type=Path,
-        default=REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml",
-        help="plant model used by the packaged-artifact smoke test",
+        default=SMOKE_MODEL,
+        help="self-contained plant model used by the packaged-artifact smoke test",
     )
     args = parser.parse_args(argv)
 

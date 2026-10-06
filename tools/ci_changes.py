@@ -160,12 +160,20 @@ _E2E_PREFIXES: tuple[str, ...] = ("apps/editor/", "src/deepplant/editor/")
 #: ``deepplant ui`` is the serving path the Playwright suite drives.
 _E2E_FILES: frozenset[str] = frozenset({"src/deepplant/__main__.py"})
 
-#: Runtime fixture loaded by both the browser E2E suite
-#: (``apps/editor/e2e/support/editor-server.ts``) and the packaged-artifact smoke
-#: test (``tools/package_editor.py``). Changing it must select E2E and both native
-#: packaging jobs, not only the generic ``examples/**`` Python surface. Other
+#: Runtime fixture loaded by the browser E2E suite
+#: (``apps/editor/e2e/support/editor-server.ts``). Changing it must select the
+#: browser E2E job, not only the generic ``examples/**`` Python surface. Other
 #: ``examples/**`` subtrees stay Python-only.
-_RUNTIME_FIXTURE_PREFIXES: tuple[str, ...] = ("examples/realistic-process-fragment/",)
+_E2E_FIXTURE_PREFIXES: tuple[str, ...] = ("examples/realistic-process-fragment/",)
+
+#: Runtime fixture loaded by the packaged-artifact smoke test
+#: (``tools/package_editor.py`` ``SMOKE_MODEL``). It is a self-contained,
+#: self-renderable model (Issue #98), so changing it must select both native
+#: packaging jobs, not only the generic ``examples/**`` Python surface. The
+#: realistic fragment above is never used by the packaged path: its ``PS-vessel``
+#: step is honestly ``function: unspecified`` and needs an explicit presentation
+#: choice an ordinary user cannot supply.
+_PACKAGE_FIXTURE_PREFIXES: tuple[str, ...] = ("examples/process-graph/",)
 
 #: The canonical DeepPlant symbol resources under ``src/deepplant/assets/**``.
 #: They are runtime and packaged-product inputs, not merely Python source or
@@ -409,8 +417,9 @@ def _surfaces_for(path: str) -> frozenset[str] | None:
         surfaces.add("e2e")
     if path.startswith(_PACKAGE_PREFIXES) or path in _PACKAGE_FILES or path in _PACKAGE_ROOT_FILES:
         surfaces.add("package")
-    if path.startswith(_RUNTIME_FIXTURE_PREFIXES):
+    if path.startswith(_E2E_FIXTURE_PREFIXES):
         surfaces.add("e2e")
+    if path.startswith(_PACKAGE_FIXTURE_PREFIXES):
         surfaces.add("package")
     if path.startswith(_RUNTIME_ASSET_PREFIXES):
         surfaces.add("e2e")

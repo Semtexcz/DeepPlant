@@ -56,6 +56,9 @@ from deepplant.editor.api import EditorServer
 from deepplant.editor.application import EditorApplication, EditorSetupError
 from deepplant.editor.desktop import (
     MODEL_FILE_FILTER,
+    SMOKE_EXPECTED_STEPS,
+    SMOKE_EXPECTED_STREAMS,
+    SMOKE_PROBE_STEP_ID,
     WINDOW_TITLE,
     ProjectLoader,
     editor_origin,
@@ -81,11 +84,16 @@ POST_SELECTION_SETTLE_MS: Final[int] = 600
 #: writes a report and still exits with a non-zero code.
 SELF_CHECK_TIMEOUT_MS: Final[int] = 90_000
 
-#: The realistic fragment's step the packaged desktop workflow selects.
-PROBE_STEP_ID: Final[str] = "PS-pump"
+#: The packaged self-check expectations describe the canonical, self-contained
+#: smoke fixture (Issue #98). They are authored once in the Qt-free host module
+#: (:mod:`deepplant.editor.desktop`) so the fixture and these values can be checked
+#: together in the fast Python gate; the probe step resolves to a symbol role
+#: through the ordinary engineering ``function`` -> role policy, so no presentation
+#: override is needed.
+PROBE_STEP_ID: Final[str] = SMOKE_PROBE_STEP_ID
 
-_EXPECTED_STEPS: Final[int] = 7
-_EXPECTED_STREAMS: Final[int] = 7
+_EXPECTED_STEPS: Final[int] = SMOKE_EXPECTED_STEPS
+_EXPECTED_STREAMS: Final[int] = SMOKE_EXPECTED_STREAMS
 
 _CANVAS_PROBE_JS: Final[str] = f"""
 (() => {{

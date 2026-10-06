@@ -189,27 +189,47 @@ def test_packaging_tooling_change_triggers_native_packaging() -> None:
     assert classification.surfaces["python"] is True
 
 
-def test_realistic_fragment_fixture_runs_e2e_and_both_native_packaging_jobs() -> None:
-    # The browser E2E suite (`editor-server.ts` REALISTIC_PROJECT) and the
-    # packaged-artifact smoke test (`tools/package_editor.py` default `--model`)
-    # both load `examples/realistic-process-fragment/plant.yaml` at runtime, so a
-    # change to the fixture must select E2E and both native packaging jobs - not
-    # only the generic `examples/**` Python surface.
+def test_realistic_fragment_fixture_runs_e2e_but_not_native_packaging() -> None:
+    # The browser E2E suite (`editor-server.ts` REALISTIC_PROJECT) loads
+    # `examples/realistic-process-fragment/plant.yaml` at runtime, so a change to
+    # the fixture must select E2E - not only the generic `examples/**` Python
+    # surface. Since Issue #98 the packaged smoke test no longer loads it: its
+    # `PS-vessel` step is honestly `function: unspecified` and the ordinary user
+    # path cannot supply the presentation override, so native packaging is not
+    # selected by this fixture.
     classification = ci_changes.classify_paths(["examples/realistic-process-fragment/plant.yaml"])
     jobs = classification.required_jobs
 
     assert classification.surfaces["python"] is True
     assert classification.surfaces["e2e"] is True
-    assert classification.surfaces["package"] is True
+    assert classification.surfaces["package"] is False
     assert classification.surfaces["frontend"] is False
     assert ci_changes.PYTHON_JOB in jobs
     assert ci_changes.E2E_JOB in jobs
+    assert ci_changes.WINDOWS_PACKAGE_JOB not in jobs
+    assert ci_changes.LINUX_PACKAGE_JOB not in jobs
+
+
+def test_packaged_smoke_fixture_runs_both_native_packaging_jobs() -> None:
+    # The packaged-artifact smoke test (`tools/package_editor.py` `SMOKE_MODEL`)
+    # loads `examples/process-graph/plant.yaml` at runtime, so a change to that
+    # self-contained fixture must select both native packaging jobs. The browser
+    # E2E suite does not load it, so E2E is not selected.
+    classification = ci_changes.classify_paths(["examples/process-graph/plant.yaml"])
+    jobs = classification.required_jobs
+
+    assert classification.surfaces["python"] is True
+    assert classification.surfaces["package"] is True
+    assert classification.surfaces["e2e"] is False
+    assert classification.surfaces["frontend"] is False
+    assert ci_changes.PYTHON_JOB in jobs
     assert ci_changes.WINDOWS_PACKAGE_JOB in jobs
     assert ci_changes.LINUX_PACKAGE_JOB in jobs
+    assert ci_changes.E2E_JOB not in jobs
 
 
 def test_other_examples_remain_python_only() -> None:
-    # Only the fixture the runtime actually loads owns the E2E/package surface;
+    # Only the fixtures the runtime actually loads own the E2E/package surface;
     # the broader rule is not silently widened to every example.
     classification = ci_changes.classify_paths(["examples/minimal-process/plant.yaml"])
     jobs = classification.required_jobs

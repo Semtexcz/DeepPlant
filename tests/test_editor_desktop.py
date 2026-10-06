@@ -24,6 +24,9 @@ from deepplant.editor.desktop import (
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REALISTIC_EXAMPLE = REPO_ROOT / "examples" / "realistic-process-fragment" / "plant.yaml"
+#: The canonical packaged smoke fixture (Issue #98): self-contained, so the
+#: ordinary path renders it with no presentation override.
+SMOKE_EXAMPLE = REPO_ROOT / "examples" / "process-graph" / "plant.yaml"
 
 
 @pytest.fixture()
@@ -149,6 +152,24 @@ def test_optional_path_loads_the_model_into_the_window(assets_dir: Path) -> None
     assert isinstance(application, EditorApplication)
     assert application.project_path == REALISTIC_EXAMPLE
     assert application.symbol_role_overrides == {"PS-vessel": "vessel"}
+
+
+def test_optional_path_loads_the_self_contained_smoke_fixture(assets_dir: Path) -> None:
+    """Issue #98: the canonical smoke fixture opens through the ordinary path.
+
+    A path argument is loaded through the same boundary a `File -> Open…`
+    selection uses, and the self-contained fixture needs no presentation override.
+    """
+    host = _RecordingHost()
+
+    code = run_desktop_editor(SMOKE_EXAMPLE, assets_dir=assets_dir, host_runner=host)
+
+    assert code == 0
+    application = host.calls[0]["initial_application"]
+    assert isinstance(application, EditorApplication)
+    assert application.project_path == SMOKE_EXAMPLE
+    assert not application.symbol_role_overrides
+    assert application.projection_view().projectable is True
 
 
 def test_an_unloadable_initial_model_is_a_message_not_a_window(assets_dir: Path) -> None:
