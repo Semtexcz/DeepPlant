@@ -249,15 +249,8 @@ def _is_plain_role(role: str) -> bool:
     return bool(role) and "/" not in role and "\\" not in role and role not in {".", ".."}
 
 
-def parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
-    """Parse one ``<role>.svg`` into visible geometry plus ordered anchors.
-
-    The renderer validates the SVG contract invariants it relies on for
-    placement/routing while accepting every contract-permitted top-level
-    geometry element, not only ``<g>``.
-    """
-    if not _is_plain_role(role):
-        raise ProcessRenderError(f"cannot select a pack asset for non-filename-safe role {role!r}")
+def _parse_symbol_root(directory: Traversable, role: str) -> Element:
+    """Read and validate the SVG root element of one pack asset."""
     asset = directory.joinpath(f"{role}.svg")
     try:
         source = asset.read_text(encoding="utf-8")
@@ -290,19 +283,28 @@ def parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
         raise ProcessRenderError(
             f"role {role!r} asset in symbol pack {directory.name!r} must not set fixed width/height"
         )
+    return root
 
+
+def _find_anchor_group(root: Element, directory: Traversable, role: str) -> Element:
+    """Return the unique ``deepplant-anchors`` group of a pack asset."""
     anchor_groups = [
-        element
-        for element in root.iter()
-        if _local_name(element) == "g" and element.get("id") == _ANCHOR_GROUP_ID
+        node
+        for node in root.iter()
+        if _local_name(node) == "g" and node.get("id") == _ANCHOR_GROUP_ID
     ]
     if len(anchor_groups) != 1:
         raise ProcessRenderError(
             f"role {role!r} asset in symbol pack {directory.name!r} must contain exactly "
             f"one <g id={_ANCHOR_GROUP_ID!r}> group"
         )
-    anchor_group = anchor_groups[0]
+    return anchor_groups[0]
 
+
+def _collect_geometry(
+    root: Element, anchor_group: Element, directory: Traversable, role: str
+) -> list[Element]:
+    """Copy the visible top-level geometry, dropping the hidden anchors group."""
     geometry: list[Element] = []
     for child in root:
         if _local_name(child) not in _TOP_LEVEL_GEOMETRY_NAMES:
@@ -314,7 +316,31 @@ def parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
             copied = deepcopy(child)
             _remove_anchor_group(copied)
             geometry.append(copied)
+    return geometry
 
+
+def _ordered_anchors(
+    slots: list[tuple[int, Anchor]], directory: Traversable, role: str
+) -> tuple[Anchor, ...]:
+    """Order one direction's anchor slots and require contiguous 0-based indices."""
+    ordered = sorted(slots, key=lambda slot: slot[0])
+    indices = [index for index, _ in ordered]
+    if len(indices) != len(set(indices)):
+        raise ProcessRenderError(
+            f"role {role!r} asset in symbol pack {directory.name!r} has duplicate anchor indices"
+        )
+    if indices != list(range(len(indices))):
+        raise ProcessRenderError(
+            f"role {role!r} asset in symbol pack {directory.name!r} has "
+            "non-contiguous anchor indices"
+        )
+    return tuple(anchor for _, anchor in ordered)
+
+
+def _parse_anchor_group(
+    anchor_group: Element, directory: Traversable, role: str
+) -> tuple[tuple[Anchor, ...], tuple[Anchor, ...]]:
+    """Parse the anchors group into ordered input and output anchor slots."""
     in_slots: list[tuple[int, Anchor]] = []
     out_slots: list[tuple[int, Anchor]] = []
     anchor_ids: set[str] = set()
@@ -349,24 +375,26 @@ def parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
             in_slots.append((index, anchor))
         else:
             out_slots.append((index, anchor))
+    return (
+        _ordered_anchors(in_slots, directory, role),
+        _ordered_anchors(out_slots, directory, role),
+    )
 
-    def _ordered(slots: list[tuple[int, Anchor]]) -> tuple[Anchor, ...]:
-        ordered = sorted(slots, key=lambda slot: slot[0])
-        indices = [index for index, _ in ordered]
-        if len(indices) != len(set(indices)):
-            raise ProcessRenderError(
-                f"role {role!r} asset in symbol pack {directory.name!r} has duplicate "
-                "anchor indices"
-            )
-        if indices != list(range(len(indices))):
-            raise ProcessRenderError(
-                f"role {role!r} asset in symbol pack {directory.name!r} has "
-                "non-contiguous anchor indices"
-            )
-        return tuple(anchor for _, anchor in ordered)
 
-    in_anchors = _ordered(in_slots)
-    out_anchors = _ordered(out_slots)
+def parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
+    """Parse one ``<role>.svg`` into visible geometry plus ordered anchors.
+
+    The renderer validates the SVG contract invariants it relies on for
+    placement/routing while accepting every contract-permitted top-level
+    geometry element, not only ``<g>``.
+    """
+    if not _is_plain_role(role):
+        raise ProcessRenderError(f"cannot select a pack asset for non-filename-safe role {role!r}")
+    root = _parse_symbol_root(directory, role)
+    anchor_group = _find_anchor_group(root, directory, role)
+    geometry = _collect_geometry(root, anchor_group, directory, role)
+
+    in_anchors, out_anchors = _parse_anchor_group(anchor_group, directory, role)
     for child in geometry:
         _strip_duplicate_ids(child)
     return SymbolVariant(
@@ -375,6 +403,35 @@ def parse_symbol_variant(directory: Traversable, role: str) -> SymbolVariant:
         in_anchors=in_anchors,
         out_anchors=out_anchors,
     )
+
+
+def resolve_symbol_variants(
+    process: ProcessModel,
+    symbol_pack: str,
+    overrides: Mapping[str, str] | None,
+) -> tuple[dict[str, str], dict[str, SymbolVariant]]:
+    """Resolve each step's symbol role and parse every required pack variant.
+
+    The resolved presentation role of every step must name an asset the selected
+    pack actually provides (ADR-0008, ADR-0009); a missing asset is reported
+    against the step that needed it. Returns the per-step role map and one parsed
+    :class:`SymbolVariant` per distinct role, parsed once and shared so placement
+    and rendering observe identical geometry.
+    """
+    directory = pack_directory(symbol_pack)
+    available = available_pack_roles(directory)
+    role_by_step = resolve_symbol_role_by_step(process, symbol_pack, overrides)
+    for step in process.steps:
+        role = role_by_step[step.id]
+        if role not in available:
+            raise ProcessRenderError(
+                f"cannot render step '{step.id}' (engineering function "
+                f"'{step.function}', resolved symbol role '{role}') with symbol pack "
+                f"{symbol_pack!r}: the selected pack has no SVG asset for that "
+                "presentation symbol role"
+            )
+    roles = list(dict.fromkeys(role_by_step[step.id] for step in process.steps))
+    return role_by_step, {role: parse_symbol_variant(directory, role) for role in roles}
 
 
 def _remove_anchor_group(element: Element) -> None:

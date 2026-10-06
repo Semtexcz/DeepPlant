@@ -16,10 +16,11 @@ from copy import deepcopy
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element
 
-from deepplant.model import ProcessModel
+from deepplant.model import ProcessModel, ProcessStream
 from deepplant.render import symbols
 from deepplant.render.layout import (
     MARGIN,
+    PlacedStep,
     assign_layers,
     detect_feedback,
     ordered_feedback,
@@ -39,13 +40,9 @@ from deepplant.render.routing import (
 from deepplant.render.symbols import (
     SYMBOL_SIZE,
     Point,
-    ProcessRenderError,
-    available_pack_roles,
     element,
     fmt,
-    parse_symbol_variant,
     points_attr,
-    resolve_symbol_role_by_step,
 )
 
 # Engineering line style and text metrics for the generated document.
@@ -115,21 +112,48 @@ def render_process_svg(
             a step needs more input/output anchors than its chosen symbol
             provides.
     """
-    pack_dir = symbols.pack_directory(symbol_pack)
-    available_roles = available_pack_roles(pack_dir)
-    role_by_step = resolve_symbol_role_by_step(process, symbol_pack, symbol_role_overrides)
-    for step in process.steps:
-        role = role_by_step[step.id]
-        if role not in available_roles:
-            raise ProcessRenderError(
-                f"cannot render step '{step.id}' (engineering function "
-                f"'{step.function}', resolved symbol role '{role}') with symbol pack "
-                f"{symbol_pack!r}: the selected pack has no SVG asset for that "
-                "presentation symbol role"
-            )
-    roles = list(dict.fromkeys(role_by_step[step.id] for step in process.steps))
-    variant_by_role = {role: parse_symbol_variant(pack_dir, role) for role in roles}
+    placed, placed_by_id, out_index, in_index, feedback_ids = _placement(
+        process, symbol_pack, symbol_role_overrides
+    )
+    lane_by_id = _feedback_lane_offsets(placed, ordered_feedback(process, feedback_ids))
+    routes = _route_streams(process, placed_by_id, out_index, in_index, feedback_ids, lane_by_id)
+    stream_label_points = {
+        stream.id: stream_label_point(routes[stream.id]) for stream in process.streams
+    }
 
+    view_min_x, view_min_y, view_width, view_height = _compute_view_extent(
+        process, placed, routes, stream_label_points
+    )
+
+    svg = element(
+        "svg",
+        {
+            "width": fmt(view_width),
+            "height": fmt(view_height),
+            "viewBox": (
+                f"{fmt(view_min_x)} {fmt(view_min_y)} {fmt(view_width)} {fmt(view_height)}"
+            ),
+        },
+    )
+
+    # --- streams, then steps, then labels ----------------------------------
+    svg.append(_streams_layer(process, routes))
+    svg.append(_steps_layer(placed))
+    svg.append(_labels_layer(process, placed, stream_label_points))
+
+    document = ET.tostring(svg, encoding="unicode")
+    return document + "\n"
+
+
+def _placement(
+    process: ProcessModel,
+    symbol_pack: str,
+    symbol_role_overrides: Mapping[str, str] | None,
+) -> tuple[list[PlacedStep], dict[str, PlacedStep], dict[str, int], dict[str, int], set[str]]:
+    """Resolve symbols and compute deterministic placement plus feedback edges."""
+    role_by_step, variant_by_role = symbols.resolve_symbol_variants(
+        process, symbol_pack, symbol_role_overrides
+    )
     outgoing = {step.id: ordered_outgoing(process.streams, step) for step in process.steps}
     incoming = {step.id: ordered_incoming(process.streams, step) for step in process.steps}
     feedback_ids = set(detect_feedback(process.steps, outgoing, incoming))
@@ -143,14 +167,29 @@ def render_process_svg(
         incoming,
         layers,
     )
+    return placed, placed_by_id, out_index, in_index, feedback_ids
 
-    feedback_streams = ordered_feedback(process, feedback_ids)
+
+def _feedback_lane_offsets(
+    placed: list[PlacedStep], feedback_streams: list[ProcessStream]
+) -> dict[str, float]:
+    """Assign each feedback stream its dedicated return-lane y offset."""
     lowest_symbol_y = max((position.y + SYMBOL_SIZE for position in placed), default=MARGIN)
     lane_base = lowest_symbol_y + LANE_CLEARANCE
-    lane_by_id = {
+    return {
         stream.id: lane_base + index * LANE_PITCH for index, stream in enumerate(feedback_streams)
     }
 
+
+def _route_streams(
+    process: ProcessModel,
+    placed_by_id: dict[str, PlacedStep],
+    out_index: dict[str, int],
+    in_index: dict[str, int],
+    feedback_ids: set[str],
+    lane_by_id: dict[str, float],
+) -> dict[str, list[Point]]:
+    """Route every stream, forward or through its dedicated feedback lane."""
     routes: dict[str, list[Point]] = {}
     for stream in process.streams:
         source = placed_by_id[stream.source.step]
@@ -159,28 +198,27 @@ def render_process_svg(
         target_point = target.in_anchor_points[in_index[stream.id]]
         if stream.id in feedback_ids:
             routes[stream.id] = route_feedback(
-                source,
-                source_point,
-                target,
-                target_point,
-                lane_by_id[stream.id],
+                source, source_point, target, target_point, lane_by_id[stream.id]
             )
         else:
-            out_anchor_count = len(source.symbol.out_anchors)
             routes[stream.id] = route_forward(
                 source,
                 source_point,
                 target,
                 target_point,
                 out_index[stream.id],
-                out_anchor_count,
+                len(source.symbol.out_anchors),
             )
+    return routes
 
-    stream_label_points = {
-        stream.id: stream_label_point(routes[stream.id]) for stream in process.streams
-    }
 
-    # --- bounds -----------------------------------------------------------
+def _compute_view_extent(
+    process: ProcessModel,
+    placed: list[PlacedStep],
+    routes: dict[str, list[Point]],
+    stream_label_points: dict[str, Point],
+) -> tuple[float, float, float, float]:
+    """Return the deterministic ``(min_x, min_y, width, height)`` viewBox extent."""
     xs: list[float] = []
     ys: list[float] = []
 
@@ -209,32 +247,22 @@ def render_process_svg(
         label = stream_label_points[stream.id]
         add_text(label.x, label.y, stream.id, STREAM_FONT_SIZE)
 
-    # --- viewBox -----------------------------------------------------------
-    default_extent = 2.0 * MARGIN
-    if xs:
-        view_min_x = min(xs) - MARGIN
-        view_min_y = min(ys) - MARGIN
-        view_width = (max(xs) + MARGIN) - view_min_x
-        view_height = (max(ys) + MARGIN) - view_min_y
-    else:
-        view_min_x = 0.0
-        view_min_y = 0.0
-        view_width = default_extent
-        view_height = default_extent
-
-    svg = element(
-        "svg",
-        {
-            "width": fmt(view_width),
-            "height": fmt(view_height),
-            "viewBox": (
-                f"{fmt(view_min_x)} {fmt(view_min_y)} {fmt(view_width)} {fmt(view_height)}"
-            ),
-        },
+    if not xs:
+        extent = 2.0 * MARGIN
+        return 0.0, 0.0, extent, extent
+    view_min_x = min(xs) - MARGIN
+    view_min_y = min(ys) - MARGIN
+    return (
+        view_min_x,
+        view_min_y,
+        (max(xs) + MARGIN) - view_min_x,
+        (max(ys) + MARGIN) - view_min_y,
     )
 
-    # --- streams, then steps, then labels ----------------------------------
-    streams_layer = element(
+
+def _streams_layer(process: ProcessModel, routes: dict[str, list[Point]]) -> Element:
+    """Build the streams layer: one polyline plus arrowhead per stream."""
+    layer = element(
         "g",
         {
             "data-deepplant-layer": "streams",
@@ -246,20 +274,24 @@ def render_process_svg(
     for stream in process.streams:
         points = routes[stream.id]
         stream_group = element("g", {"data-deepplant-stream": stream.id})
-        polyline = element("polyline", {"points": points_attr(points)})
-        stream_group.append(polyline)
-        arrow = element(
-            "polygon",
-            {
-                "points": points_attr(arrow_head(points)),
-                "fill": "currentColor",
-                "stroke": "none",
-            },
+        stream_group.append(element("polyline", {"points": points_attr(points)}))
+        stream_group.append(
+            element(
+                "polygon",
+                {
+                    "points": points_attr(arrow_head(points)),
+                    "fill": "currentColor",
+                    "stroke": "none",
+                },
+            )
         )
-        stream_group.append(arrow)
-        streams_layer.append(stream_group)
+        layer.append(stream_group)
+    return layer
 
-    steps_layer = element("g", {"data-deepplant-layer": "steps"})
+
+def _steps_layer(placed: list[PlacedStep]) -> Element:
+    """Build the steps layer: one transformed group per placed step."""
+    layer = element("g", {"data-deepplant-layer": "steps"})
     for position in placed:
         step_group = element(
             "g",
@@ -270,9 +302,17 @@ def render_process_svg(
         )
         for child in position.symbol.geometry:
             step_group.append(deepcopy(child))
-        steps_layer.append(step_group)
+        layer.append(step_group)
+    return layer
 
-    labels_layer = element("g", {"data-deepplant-layer": "labels"})
+
+def _labels_layer(
+    process: ProcessModel,
+    placed: list[PlacedStep],
+    stream_label_points: dict[str, Point],
+) -> Element:
+    """Build the labels layer: step id/name labels plus stream id labels."""
+    layer = element("g", {"data-deepplant-layer": "labels"})
     for position in placed:
         label_group = element("g", {"data-deepplant-step-label": position.step.id})
         center_x = position.x + SYMBOL_SIZE / 2.0
@@ -291,16 +331,10 @@ def render_process_svg(
                     NAME_FONT_SIZE,
                 )
             )
-        labels_layer.append(label_group)
+        layer.append(label_group)
     for stream in process.streams:
         label = stream_label_points[stream.id]
         label_group = element("g", {"data-deepplant-stream-label": stream.id})
         label_group.append(_point_text(label.x, label.y, stream.id, STREAM_FONT_SIZE))
-        labels_layer.append(label_group)
-
-    svg.append(streams_layer)
-    svg.append(steps_layer)
-    svg.append(labels_layer)
-
-    document = ET.tostring(svg, encoding="unicode")
-    return document + "\n"
+        layer.append(label_group)
+    return layer

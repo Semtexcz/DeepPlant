@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck typecheck-desktop frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck typecheck-desktop architecture-check frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -59,6 +59,15 @@ format-check:
 typecheck:
 
 	uv run pyright
+
+
+# Deterministic Python architecture and size guardrails (Issue #108): a small,
+# repository-owned, standard-library checker over src/deepplant/** and tests/**.
+# Soft-limit findings are informative; hard-limit and import-boundary
+# violations fail with a non-zero exit code.
+architecture-check:
+
+	uv run python tools/architecture_check.py
 
 
 # Desktop-specific strict type check (Issue #93 review). The default `typecheck`
@@ -177,7 +186,7 @@ e2e-production:
 #   typecheck-desktop        strict PySide6 type check (desktop group)
 #   build                    release wheel/sdist (`uv build`)
 # CI runs this gate plus those stronger jobs asynchronously.
-check: validate-docs validate-agent-skills format-check lint typecheck test frontend-check
+check: validate-docs validate-agent-skills format-check lint typecheck test architecture-check frontend-check
 
 
 build:

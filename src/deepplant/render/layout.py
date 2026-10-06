@@ -22,9 +22,6 @@ from deepplant.render.symbols import (
     Point,
     ProcessRenderError,
     SymbolVariant,
-    available_pack_roles,
-    parse_symbol_variant,
-    resolve_symbol_role_by_step,
 )
 
 # Renderer-internal presentation geometry: symbols are placed on a
@@ -258,6 +255,22 @@ def place_steps_and_assign(
     Anchor-capacity errors are presentation compatibility errors and are
     raised here as :class:`ProcessRenderError`.
     """
+    row_by_id = _assign_rows(process, incoming, layers)
+    out_index, in_index = _assign_anchor_indices(
+        process, pack, variant_by_role, role_by_step, outgoing, incoming
+    )
+    placed, placed_by_id = _place_steps(process, layers, row_by_id, role_by_step, variant_by_role)
+    return placed, placed_by_id, out_index, in_index
+
+
+def _assign_rows(
+    process: ProcessModel, incoming: dict[str, list[ProcessStream]], layers: dict[str, int]
+) -> dict[str, int]:
+    """Assign each step a row within its column from incoming forward topology.
+
+    The row key is (upstream row, upstream output-port order, stream id), with
+    target declaration order and step id as deterministic fallbacks.
+    """
     step_by_id = {step.id: step for step in process.steps}
     declaration_index = {step.id: index for index, step in enumerate(process.steps)}
     row_members: dict[int, list[str]] = {}
@@ -290,7 +303,18 @@ def place_steps_and_assign(
 
         for index, step_id in enumerate(sorted(row_members[layer], key=row_key)):
             row_by_id[step_id] = index
+    return row_by_id
 
+
+def _assign_anchor_indices(
+    process: ProcessModel,
+    pack: str,
+    variant_by_role: dict[str, SymbolVariant],
+    role_by_step: Mapping[str, str],
+    outgoing: dict[str, list[ProcessStream]],
+    incoming: dict[str, list[ProcessStream]],
+) -> tuple[dict[str, int], dict[str, int]]:
+    """Map each stream onto a stable anchor index, validating anchor capacity."""
     out_index: dict[str, int] = {stream.id: 0 for stream in process.streams}
     in_index: dict[str, int] = {stream.id: 0 for stream in process.streams}
     for step in process.steps:
@@ -310,7 +334,17 @@ def place_steps_and_assign(
             out_index[stream.id] = index
         for index, stream in enumerate(ins):
             in_index[stream.id] = index
+    return out_index, in_index
 
+
+def _place_steps(
+    process: ProcessModel,
+    layers: dict[str, int],
+    row_by_id: dict[str, int],
+    role_by_step: Mapping[str, str],
+    variant_by_role: dict[str, SymbolVariant],
+) -> tuple[list[PlacedStep], dict[str, PlacedStep]]:
+    """Build each placed step and its absolute anchor points on the grid."""
     placed: list[PlacedStep] = []
     placed_by_id: dict[str, PlacedStep] = {}
     for step in process.steps:
@@ -318,8 +352,7 @@ def place_steps_and_assign(
         row = row_by_id[step.id]
         x = MARGIN + layer * COLUMN_PITCH
         y = MARGIN + row * ROW_PITCH
-        role = role_by_step[step.id]
-        variant = variant_by_role[role]
+        variant = variant_by_role[role_by_step[step.id]]
         placed_step = PlacedStep(
             step=step,
             layer=layer,
@@ -336,7 +369,7 @@ def place_steps_and_assign(
         )
         placed.append(placed_step)
         placed_by_id[step.id] = placed_step
-    return placed, placed_by_id, out_index, in_index
+    return placed, placed_by_id
 
 
 def _anchor_capacity_error(
@@ -409,20 +442,9 @@ def compute_process_pfd_layout(
             symbol role, broken pack asset contract, or anchor-capacity
             overflow).
     """
-    pack_dir = symbols.pack_directory(symbol_pack)
-    available_roles = available_pack_roles(pack_dir)
-    role_by_step = resolve_symbol_role_by_step(process, symbol_pack, symbol_role_overrides)
-    for step in process.steps:
-        role = role_by_step[step.id]
-        if role not in available_roles:
-            raise ProcessRenderError(
-                f"cannot render step '{step.id}' (engineering function "
-                f"'{step.function}', resolved symbol role '{role}') with symbol pack "
-                f"{symbol_pack!r}: the selected pack has no SVG asset for that "
-                "presentation symbol role"
-            )
-    roles = list(dict.fromkeys(role_by_step[step.id] for step in process.steps))
-    variant_by_role = {role: parse_symbol_variant(pack_dir, role) for role in roles}
+    role_by_step, variant_by_role = symbols.resolve_symbol_variants(
+        process, symbol_pack, symbol_role_overrides
+    )
 
     outgoing = {step.id: ordered_outgoing(process.streams, step) for step in process.steps}
     incoming = {step.id: ordered_incoming(process.streams, step) for step in process.steps}
@@ -438,7 +460,17 @@ def compute_process_pfd_layout(
         layers,
     )
 
-    steps = tuple(
+    return ProcessPfdLayout(
+        symbol_pack=symbol_pack,
+        symbol_size=SYMBOL_SIZE,
+        steps=_layout_steps(placed),
+        streams=_layout_streams(process, out_index, in_index, feedback_ids),
+    )
+
+
+def _layout_steps(placed: list[PlacedStep]) -> tuple[ProcessPfdStepPlacement, ...]:
+    """Project the transient placements into the presentation step DTOs."""
+    return tuple(
         ProcessPfdStepPlacement(
             step_id=position.step.id,
             symbol_role=position.symbol.role,
@@ -458,7 +490,15 @@ def compute_process_pfd_layout(
         for position in placed
     )
 
-    streams = tuple(
+
+def _layout_streams(
+    process: ProcessModel,
+    out_index: dict[str, int],
+    in_index: dict[str, int],
+    feedback_ids: set[str],
+) -> tuple[ProcessPfdStreamPlacement, ...]:
+    """Project each stream's endpoints and anchor indices into the DTOs."""
+    return tuple(
         ProcessPfdStreamPlacement(
             stream_id=stream.id,
             source_step=stream.source.step,
@@ -470,11 +510,4 @@ def compute_process_pfd_layout(
             is_feedback=stream.id in feedback_ids,
         )
         for stream in process.streams
-    )
-
-    return ProcessPfdLayout(
-        symbol_pack=symbol_pack,
-        symbol_size=SYMBOL_SIZE,
-        steps=steps,
-        streams=streams,
     )

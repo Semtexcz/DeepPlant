@@ -16,6 +16,7 @@ commands:
   - make lint
   - make typecheck
   - make test
+  - make architecture-check
   - make check
 outputs:
   - scoped Python change that follows the contract
@@ -66,7 +67,14 @@ Run the Python gates and report their results, then apply the review checklist i
 make format-check
 make lint
 make typecheck
+make architecture-check
 ```
+
+`make architecture-check` runs the repository-owned size/import-boundary checker
+(`tools/architecture_check.py`, Issue #108). Hard-limit or forbidden-import
+findings fail it; soft-limit notices are review signals, not failures. The
+enforced scopes, thresholds, counting semantics, and exceptions policy are
+canonical in `docs/dev/python/index.md`.
 
 During iteration, run a focused `uv run pytest <relevant test paths>` selection
 rather than the whole suite. `make test` (the full suite) and `make check` (the
@@ -76,6 +84,8 @@ run once, per `AGENTS.md`.
 ## Scope
 
 Apply this contract to all `src/deepplant/` and `tests/` work. The active Issue and
-roadmap define what may be implemented. The size/architecture checker is owned by
-Issue #108; do not add or reference a size/architecture gate from this skill until
-that target exists. Do not absorb work from sibling, future, or unselected Issues.
+roadmap define what may be implemented.
+
+The size/import-boundary checker owned by Issue #108 now exists: run
+`make architecture-check` and keep new and changed code within the hard limits it
+enforces. Do not absorb work from sibling, future, or unselected Issues.
