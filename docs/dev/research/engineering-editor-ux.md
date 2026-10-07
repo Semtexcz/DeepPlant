@@ -102,6 +102,9 @@ superseded_by: null
   [physical-piping.md](../../contracts/physical-piping.md),
   [rendering.md](../../contracts/rendering.md)) continue to describe the current
   model.
+- **Visual-design artifact:** [Engineering Editor Figma Design](engineering-editor-design/README.md)
+  preserves visual intent only; it neither changes nor supersedes this
+  interaction authority.
 - **Conditions for revisiting:** when the [active milestone](../planning/roadmap.md)
   selects the first GUI slice, when Issue #70's reuse-first architecture
   constrains a surface, or when real user evidence shows a permanent surface is
