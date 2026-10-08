@@ -347,6 +347,7 @@ summary:
 
 ```text
 build/symbol-gallery/
+├── .deepplant-symbol-gallery
 ├── index.html
 └── symbols/
     ├── instrument.local.svg
@@ -373,10 +374,15 @@ back into the generated SVG, which stays anchor-free.
 
 The page is static: embedded CSS only, no JavaScript, no remote resource, and no
 raster preview, so `build/symbol-gallery/index.html` opens directly as a local
-file. Generation is deterministic and recreates the output directory, so a
-preview of a symbol that left the registry cannot survive as a stale file. The
-output is ignored (`build/` is in `.gitignore`), is never committed, and is
-neither packaged nor a runtime dependency.
+file. Generation is deterministic: the whole replacement is written beside the
+target and swapped in only once it is complete, so a preview of a symbol that
+left the registry cannot survive as a stale file and a failed refresh leaves the
+previous gallery intact. The output directory is marked as generator-owned by
+the `.deepplant-symbol-gallery` file the tool writes, so regeneration replaces
+only a gallery directory the generator itself created, and the tool refuses —
+before writing or deleting anything — to replace an existing directory that does
+not carry that marker. The output is ignored (`build/` is in `.gitignore`), is
+never committed, and is neither packaged nor a runtime dependency.
 
 `make symbol-gallery` is the visual-review step that precedes expanding the
 catalogue, and it is a review aid only. It checks presentation quality —

@@ -29,8 +29,14 @@ Behaviour
 ---------
 
 - The whole page and every preview are rendered before anything is written, and
-  the output directory is then recreated, so a preview of a symbol that has left
-  the registry cannot survive as a stale file.
+  the complete replacement gallery is written beside the target first, so an
+  ordinary write failure leaves the previous gallery intact.
+- The output directory is generator-owned. An existing directory is replaced
+  only when it carries the ownership marker this tool writes
+  (:data:`OWNERSHIP_MARKER`); an unowned directory is refused untouched, and a
+  successful refresh leaves exactly the current registry's page and previews, so
+  a preview of a symbol that has left the registry cannot survive as a stale
+  file.
 - Output is deterministic and byte-stable: no timestamps, no random values, and
   explicit ``\n`` line endings.
 - The page is static: embedded CSS only, no JavaScript, no remote or raster
@@ -71,6 +77,20 @@ SYMBOL_SUBDIR = "symbols"
 
 #: The generated gallery page.
 INDEX_FILENAME = "index.html"
+
+#: The ownership marker written into the gallery output directory. Its presence
+#: is the only thing that authorizes the generator to replace an existing
+#: directory: a name, a location inside ``build/``, an ``index.html``, or a
+#: ``symbols/`` directory never imply ownership.
+OWNERSHIP_MARKER = ".deepplant-symbol-gallery"
+
+#: The marker's stable project-authored contents: no timestamp, no random value,
+#: no absolute path, and nothing machine-specific. Like the page and the
+#: previews, it is a generated artifact, so it takes part in the byte-stability
+#: guarantees.
+OWNERSHIP_MARKER_TEXT = (
+    "DeepPlant generated symbol gallery\nDo not edit or store unrelated files here.\n"
+)
 
 #: The preview area's long edge, in ``rem``; the short edge keeps the view box aspect.
 PREVIEW_LONG_EDGE_REM = 12.0
@@ -118,15 +138,19 @@ def generate_symbol_gallery(output_dir: Path | None = None) -> GalleryResult:
 
     ``None`` targets the documented default (:data:`DEFAULT_OUTPUT_DIR`); a test
     passes a temporary directory instead of writing into the repository.
+
+    Both guards run before anything is written: the location must not be a broad
+    path, and an existing target must be a gallery this generator owns.
     """
     target = DEFAULT_OUTPUT_DIR if output_dir is None else output_dir
     require_safe_output_dir(target)
+    require_owned_gallery(target)
     definitions = SYMBOLS.list()
     page = render_gallery_page(SYMBOLS)
     documents = tuple(
         (definition.symbol_id, render_symbol_svg(definition)) for definition in definitions
     )
-    _write_gallery(target, documents, page)
+    _replace_gallery(target, documents, page)
     return GalleryResult(
         output_dir=target,
         index_path=target / INDEX_FILENAME,
@@ -148,6 +172,27 @@ def require_safe_output_dir(output_dir: Path) -> None:
         raise SymbolGalleryError(f"refusing to refresh the home directory {resolved}")
     if resolved == _REPO_ROOT:
         raise SymbolGalleryError(f"refusing to refresh the repository root {resolved}")
+
+
+def require_owned_gallery(output_dir: Path) -> None:
+    """Fail closed unless ``output_dir`` is absent or explicitly gallery-owned.
+
+    Generation replaces its output directory, so ownership is explicit: only a
+    directory carrying :data:`OWNERSHIP_MARKER` may be replaced. The name
+    ``symbol-gallery``, the parent ``build/`` directory, an ``index.html``, or a
+    ``symbols/`` directory never imply ownership, because any of them can belong
+    to someone else. When the target exists and is not owned, nothing is written
+    or deleted and the caller sees :class:`SymbolGalleryError`.
+    """
+    if not output_dir.exists():
+        return
+    if not output_dir.is_dir():
+        raise SymbolGalleryError(f"refusing to replace the non-directory {output_dir}")
+    if not (output_dir / OWNERSHIP_MARKER).is_file():
+        raise SymbolGalleryError(
+            f"refusing to replace {output_dir}: it carries no {OWNERSHIP_MARKER} "
+            "ownership marker, so this generator does not own it"
+        )
 
 
 def render_gallery_page(registry: SymbolRegistry = SYMBOLS) -> str:
@@ -197,19 +242,77 @@ def format_number(value: float) -> str:
     return f"{rounded:.3f}".rstrip("0").rstrip(".")
 
 
-def _write_gallery(output_dir: Path, documents: tuple[tuple[str, str], ...], page: str) -> None:
-    """Write a freshly generated gallery, replacing any earlier one.
+def _replace_gallery(output_dir: Path, documents: tuple[tuple[str, str], ...], page: str) -> None:
+    """Replace ``output_dir`` with a completely written gallery.
 
-    The directory is recreated from scratch, so after a successful generation it
-    contains exactly the current registry's previews and the current page.
+    The replacement is written to a temporary sibling first and moved into place
+    only once every write has succeeded, so a write failure leaves the previous
+    gallery exactly as it was instead of deleting it and leaving a partial one.
+    The temporary sibling is removed on both paths and never outlives this call.
     """
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-    symbol_dir = output_dir / SYMBOL_SUBDIR
+    staging = _temporary_sibling(output_dir, "generated")
+    try:
+        _write_gallery_files(staging, documents, page)
+        _move_into_place(staging, output_dir)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+
+
+def _write_gallery_files(
+    directory: Path, documents: tuple[tuple[str, str], ...], page: str
+) -> None:
+    """Write one complete gallery into ``directory``, which the caller owns.
+
+    This is the only place a gallery is materialized, so a test can make it fail
+    to prove that an interrupted refresh leaves the previous gallery untouched.
+    The ownership marker is written with the artifacts, so the finished directory
+    is a gallery this generator may replace later.
+    """
+    symbol_dir = directory / SYMBOL_SUBDIR
     symbol_dir.mkdir(parents=True)
+    (directory / OWNERSHIP_MARKER).write_text(OWNERSHIP_MARKER_TEXT, encoding="utf-8", newline="\n")
     for symbol_id, document in documents:
         (symbol_dir / f"{symbol_id}.svg").write_text(document, encoding="utf-8", newline="\n")
-    (output_dir / INDEX_FILENAME).write_text(page, encoding="utf-8", newline="\n")
+    (directory / INDEX_FILENAME).write_text(page, encoding="utf-8", newline="\n")
+
+
+def _move_into_place(staging: Path, output_dir: Path) -> None:
+    """Move a finished gallery from ``staging`` to ``output_dir``.
+
+    An existing gallery is renamed aside first and removed only after the new one
+    is in place, so a failed final replace restores the previous gallery rather
+    than leaving the target missing. ``staging`` is a sibling of the target, so
+    replacing the target can never destroy data still needed to finish the
+    replacement.
+    """
+    if not output_dir.exists():
+        staging.rename(output_dir)
+        return
+    backup = _temporary_sibling(output_dir, "replaced")
+    output_dir.rename(backup)
+    try:
+        staging.rename(output_dir)
+    except OSError:
+        backup.rename(output_dir)
+        raise
+    shutil.rmtree(backup)
+
+
+def _temporary_sibling(output_dir: Path, label: str) -> Path:
+    """Return an unused sibling path of ``output_dir`` for temporary data.
+
+    The name is derived from the target alone, so no random or machine-specific
+    value can reach the final output, and a path that already exists is treated
+    as somebody else's and skipped rather than deleted. The returned path is
+    never part of the public result.
+    """
+    index = 0
+    while True:
+        candidate = output_dir.parent / f".{output_dir.name}.{label}{index}"
+        if not candidate.exists():
+            return candidate
+        index += 1
 
 
 def _render_header(count: int) -> str:

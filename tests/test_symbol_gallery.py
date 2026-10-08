@@ -4,9 +4,11 @@ The gallery is a derived developer artifact, so these tests pin the derivation
 itself: completeness follows ``SYMBOLS.list()`` instead of a parallel list of
 ids, every preview is the production renderer's own output, generation is
 byte-stable, the metadata comes from the definition objects, and hostile
-metadata cannot become active HTML. No test writes into the repository: the
-filesystem tests generate into ``tmp_path``, and the escaping test renders the
-page in memory.
+metadata cannot become active HTML. They also pin the output-directory contract:
+the generator owns its directory through a marker, refuses to replace anything
+else, and replaces an owned gallery without destroying it when a write fails. No
+test writes into the repository: the filesystem tests generate into ``tmp_path``,
+and the escaping test renders the page in memory.
 """
 
 from __future__ import annotations
@@ -28,9 +30,12 @@ from deepplant.symbols import (
     SymbolRegistry,
     render_symbol_svg,
 )
+from tools import generate_symbol_gallery as gallery
 from tools.generate_symbol_gallery import (
     DEFAULT_OUTPUT_DIR,
     INDEX_FILENAME,
+    OWNERSHIP_MARKER,
+    OWNERSHIP_MARKER_TEXT,
     SYMBOL_SUBDIR,
     GalleryResult,
     SymbolGalleryError,
@@ -39,6 +44,9 @@ from tools.generate_symbol_gallery import (
     render_gallery_page,
     require_safe_output_dir,
 )
+
+#: The repository root, used to check that the generator refuses to replace it.
+ROOT = Path(__file__).resolve().parents[1]
 
 #: The temporary output directory each filesystem test generates into.
 TARGET = "gallery"
@@ -97,6 +105,10 @@ def _snapshot(target: Path) -> dict[str, bytes]:
         for path in sorted(target.rglob("*"))
         if path.is_file()
     }
+
+
+def _marker(target: Path) -> Path:
+    return target / OWNERSHIP_MARKER
 
 
 class _PageParser(HTMLParser):
@@ -162,7 +174,9 @@ def test_generation_is_byte_stable(tmp_path: Path) -> None:
     first = generate_symbol_gallery(tmp_path / "first")
     second = generate_symbol_gallery(tmp_path / "second")
 
-    assert _snapshot(first.output_dir) == _snapshot(second.output_dir)
+    artifacts = _snapshot(first.output_dir)
+    assert artifacts[OWNERSHIP_MARKER] == OWNERSHIP_MARKER_TEXT.encode("utf-8")
+    assert _snapshot(second.output_dir) == artifacts
     assert _page(first) == _page(second)
 
 
@@ -178,6 +192,95 @@ def test_regeneration_removes_stale_previews(tmp_path: Path) -> None:
     assert result.symbol_ids == _registry_ids()
     for definition in SYMBOLS.list():
         assert _preview(result, definition.symbol_id).is_file()
+
+
+def test_a_new_gallery_is_created_and_marked_as_owned(tmp_path: Path) -> None:
+    result = _generate(tmp_path)
+
+    assert _marker(result.output_dir).read_text(encoding="utf-8") == OWNERSHIP_MARKER_TEXT
+    for definition in SYMBOLS.list():
+        assert _preview(result, definition.symbol_id).is_file()
+    # Exactly the current artifacts: no temporary directory, backup, or extra file
+    # survives a successful generation.
+    assert sorted(_snapshot(result.output_dir)) == sorted(
+        [OWNERSHIP_MARKER, INDEX_FILENAME]
+        + [f"{SYMBOL_SUBDIR}/{definition.symbol_id}.svg" for definition in SYMBOLS.list()]
+    )
+
+
+def test_generation_creates_missing_parent_directories(tmp_path: Path) -> None:
+    result = generate_symbol_gallery(tmp_path / "missing" / TARGET)
+
+    assert result.index_path.is_file()
+
+
+def test_an_owned_gallery_can_be_refreshed(tmp_path: Path) -> None:
+    target = tmp_path / TARGET
+    generate_symbol_gallery(target)
+    before = _snapshot(target)
+    stale = target / SYMBOL_SUBDIR / "removed.symbol.svg"
+    stale.write_text('<svg xmlns="http://www.w3.org/2000/svg" />\n', encoding="utf-8")
+
+    result = generate_symbol_gallery(target)
+    fresh = generate_symbol_gallery(tmp_path / "fresh")
+
+    assert result.symbol_ids == _registry_ids()
+    assert not stale.exists()
+    assert _marker(target).read_text(encoding="utf-8") == OWNERSHIP_MARKER_TEXT
+    assert OWNERSHIP_MARKER in before
+    assert _snapshot(target) == before
+    assert _snapshot(target) == _snapshot(fresh.output_dir)
+
+
+def test_the_marker_alone_establishes_ownership(tmp_path: Path) -> None:
+    target = tmp_path / TARGET
+    target.mkdir()
+    _marker(target).write_text(OWNERSHIP_MARKER_TEXT, encoding="utf-8")
+
+    result = generate_symbol_gallery(target)
+
+    assert result.symbol_ids == _registry_ids()
+    assert (target / INDEX_FILENAME).is_file()
+    for definition in SYMBOLS.list():
+        assert _preview(result, definition.symbol_id).is_file()
+
+
+def test_an_existing_unowned_directory_is_refused_untouched(tmp_path: Path) -> None:
+    target = tmp_path / TARGET
+    target.mkdir()
+    sentinel = target / "sentinel.txt"
+    sentinel.write_text("not a gallery\n", encoding="utf-8")
+
+    with pytest.raises(SymbolGalleryError):
+        generate_symbol_gallery(target)
+
+    assert target.is_dir()
+    assert sentinel.read_text(encoding="utf-8") == "not a gallery\n"
+    assert sorted(path.name for path in target.iterdir()) == ["sentinel.txt"]
+
+
+def test_a_failed_write_leaves_the_previous_gallery_untouched(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target = tmp_path / TARGET
+    generate_symbol_gallery(target)
+    before = _snapshot(target)
+
+    def failing_write(directory: Path, documents: tuple[tuple[str, str], ...], page: str) -> None:
+        """Start writing the replacement, then fail the way a full disk would."""
+        (directory / SYMBOL_SUBDIR).mkdir(parents=True)
+        (directory / SYMBOL_SUBDIR / "partial.svg").write_text("<svg />\n", encoding="utf-8")
+        raise OSError("simulated write failure")
+
+    monkeypatch.setattr(gallery, "_write_gallery_files", failing_write)
+
+    with pytest.raises(OSError, match="simulated write failure"):
+        generate_symbol_gallery(target)
+
+    # The previous gallery is byte-for-byte intact, and no temporary sibling of it
+    # survives the failure.
+    assert _snapshot(target) == before
+    assert sorted(path.name for path in tmp_path.iterdir()) == [TARGET]
 
 
 def test_the_page_carries_the_registry_metadata(tmp_path: Path) -> None:
@@ -245,7 +348,7 @@ def test_the_page_is_static_and_self_contained(tmp_path: Path) -> None:
         assert f'src="{SYMBOL_SUBDIR}/{definition.symbol_id}.svg"' in page
 
 
-@pytest.mark.parametrize("broad", [Path("/"), Path.home()])
+@pytest.mark.parametrize("broad", [Path("/"), Path.home(), ROOT])
 def test_a_too_broad_output_directory_is_refused(broad: Path) -> None:
     with pytest.raises(SymbolGalleryError):
         require_safe_output_dir(broad)
