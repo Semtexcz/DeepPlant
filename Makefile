@@ -1,4 +1,4 @@
-.PHONY: setup dev run test format format-check lint typecheck typecheck-desktop architecture-check frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
+.PHONY: setup dev run test format format-check lint typecheck typecheck-desktop architecture-check symbol-gallery frontend-install frontend-lint frontend-typecheck frontend-test frontend-build frontend-check frontend-e2e package-editor verify-packaged-editor api-schema api-generate api-check e2e e2e-production check build image-build image-inspect prod-up prod-status prod-smoke prod-down docs validate-docs validate-agent-skills down
 
 PROJECT_TYPE := script
 RUNTIME_LEVEL := shared
@@ -68,6 +68,17 @@ typecheck:
 architecture-check:
 
 	uv run python tools/architecture_check.py
+
+
+# Generated developer symbol gallery (Issue #121). Renders every definition in the
+# canonical `deepplant.symbols` registry through the production renderer into the
+# ignored build directory, so a developer can inspect geometry, anchors, asset
+# provenance, and standards state in a static local page. Derived artifact only:
+# never canonical geometry, never committed, and never part of packaging or
+# runtime.
+symbol-gallery:
+
+	uv run python tools/generate_symbol_gallery.py
 
 
 # Desktop-specific strict type check (Issue #93 review). The default `typecheck`
