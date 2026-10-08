@@ -68,9 +68,12 @@ DeepPlant assets   → independent implementation assets with provenance
 ```
 
 - **restricted normative reference** — the normative content is copyright
-  restricted; it is never redistributed and never fed to AI systems without an
-  explicit licence permitting that use. DeepPlant references it by identifier and
-  verifies it by hand when alignment matters.
+  restricted; it is never redistributed, and it is not fed to AI systems unless
+  the applicable licence permits that use or the operator has explicitly
+  authorized a private local reference for a specific task
+  ([Operator-authorized private reference material](#operator-authorized-private-reference-material)).
+  DeepPlant references it by identifier and verifies it by hand when alignment
+  matters.
 - **open semantic/interchange specification** — openly licensed material that may
   be used subject to its licence terms and required attribution; it is not the
   DeepPlant drawing standard.
@@ -84,7 +87,7 @@ DeepPlant assets   → independent implementation assets with provenance
 |---|---|
 | Which standards guide DeepPlant? | The current reference set and each standard's role are recorded in the [standards registry](../reference/standards-registry.md); this policy governs how that material may be used. |
 | Which standard content may be stored in the repository? | Official metadata, identifiers, and DeepPlant-authored summaries only. No normative tables, figures, symbol artwork, or substantial text from ISO/ISA/IEC publications. DEXPI 2.0 content may be stored where its CC BY 4.0 licence covers it, with attribution. |
-| Which material may AI agents inspect? | Openly licensed specifications (DEXPI under CC BY 4.0), DeepPlant-authored summaries, and public material whose licence/terms explicitly permit AI use. For ISO, only ISO Open Data or other explicitly permitted material. Public availability alone is not permission for AI ingestion. |
+| Which material may AI agents inspect? | Openly licensed specifications (DEXPI under CC BY 4.0), DeepPlant-authored summaries, and public material whose licence/terms explicitly permit AI use. For ISO, only ISO Open Data or other explicitly permitted material. Public availability alone is not permission for AI ingestion. One bounded exception exists: material inside an operator-authorized private local reference bundle, for the specific task that was authorized — see [Operator-authorized private reference material](#operator-authorized-private-reference-material). That authorization permits inspection only, never redistribution, and it never produces a `human-verified` state. |
 | Where may graphical assets come from? | DeepPlant-original geometry and clearly permissively licensed sources with explicit provenance. Not from tracing or extracting restricted standard artwork. See [Symbol Provenance Policy](#symbol-provenance-policy). |
 | When may DeepPlant claim standards alignment or compliance? | Only after human verification against an authorized copy. Until then the vocabulary is `reference` / `candidate-alignment`. Visual similarity is not compliance. See [Verification vocabulary](#verification-vocabulary). |
 | How must symbol provenance and licensing be recorded? | Every distributed symbol needs a provenance record covering author/origin, licence, modification state, upstream revision, intended standard, and verification state. See [Symbol Provenance Policy](#symbol-provenance-policy). |
@@ -121,8 +124,12 @@ not open-licensed.
 - Trace their symbol images.
 - Embed screenshots from them.
 - Reproduce substantial text from them.
-- Send purchased/licensed standards to an AI system.
-- Ask an AI system to derive SVG assets from those PDFs.
+- Send purchased/licensed standards to an AI system, except under an explicit
+  operator authorization for a specific task
+  ([Operator-authorized private reference material](#operator-authorized-private-reference-material)).
+- Ask an AI system to derive SVG assets from those PDFs. Authorized inspection
+  may inform the engineering reading, but the asset itself is still authored
+  independently — never traced, auto-vectorized, or imported.
 - Claim compliance from visual similarity or secondary sources.
 
 ### Human catalogue verification versus AI ingestion
@@ -130,7 +137,13 @@ not open-licensed.
 Humans may manually use official catalogue pages to verify a standard's
 identifier, edition, status, and official source. That manual verification does
 not authorize AI ingestion of the page. For ISO, agents may use only ISO Open
-Data or other material whose applicable terms explicitly permit AI use.
+Data or other material whose applicable terms explicitly permit AI use, plus the
+bounded operator-authorized private-reference exception below.
+
+An authorized private inspection is not a verification either. `human-verified`
+remains a named-human record against an authorized copy; an agent's inspection
+and visual comparison never produce that state
+([Verification vocabulary](#verification-vocabulary)).
 
 ### What may be stored in the repository
 
@@ -140,6 +153,122 @@ Data or other material whose applicable terms explicitly permit AI use.
   attribution and a link to the licence.
 - Anything a rights holder has explicitly released under a compatible open
   licence, verified in writing.
+
+## Operator-authorized private reference material
+
+This policy has **two modes**, and they must never be conflated.
+
+```text
+default mode                          restricted material stays out of AI workflows
+operator-authorized private-reference mode   one authorized local bundle, one task,
+                                              inspection only, no redistribution
+```
+
+### Default mode — no operator authorization
+
+The project rule above is unchanged and remains the default: restricted
+normative ISO, ISA, and IEC material is not ingested or inspected by AI agents
+unless the applicable licence or terms explicitly permit that use. Purchased
+standards PDFs, licensed standard content, and other restricted material stay out
+of AI workflows, and public availability is still not permission.
+
+### Operator-authorized private-reference mode
+
+An operator may explicitly authorize a **private local reference set** for one
+specific DeepPlant task. Within that authorization, and only for that task, an
+agent may inspect the authorized local material for engineering analysis and
+implementation:
+
+- open, search, and read the material;
+- inspect figures, tables, and symbols visually, including rendering a document
+  locally for inspection;
+- interpret the engineering notation, and compare standard notation with company
+  or project usage;
+- identify the normative rules, the defining topology, and the features that
+  distinguish one representation from its neighbours;
+- compare DeepPlant's independently authored representation against the
+  reference for engineering recognizability.
+
+The authorization belongs to the **task or session**, not to the material: it is
+what permits the use, it does not carry over to another task, and the presence of
+private material never implies its own authorization.
+
+### Authorization to inspect is not permission to redistribute
+
+```text
+operator-authorized AI reference use  !=  permission to redistribute
+AI inspection                         !=  human verification
+```
+
+Even when an agent is authorized to inspect private material, it must not:
+
+- commit a standard's PDF, a company drawing, or any other private source file;
+- redistribute the standard or the drawing in any form;
+- publish pages, screenshots, crops, or extracted images;
+- reproduce normative tables, figures, symbol artwork, title blocks, or
+  substantial normative text;
+- copy, trace, auto-vectorize, or import source artwork into the repository;
+- record a private local filesystem path, a private project number, or a
+  proprietary tag in any tracked file, commit message, or pull request.
+
+Repository output stays DeepPlant-authored: engineering conclusions, permitted
+identifiers and metadata, independently authored geometry and documentation,
+tests, and implementation.
+
+```text
+private reference material
+        ↓  engineering facts, topology, and constraints only
+DeepPlant interpretation
+        ↓
+independently encoded implementation   →   repository
+```
+
+Independent encoding — not mechanical copying — is the boundary. A standardized
+engineering shape will naturally resemble the reference, so it must not be
+deliberately distorted to look different; equally, it must never be traced,
+extracted, or imported.
+
+### Company and project engineering material
+
+Operator-authorized private company/project engineering material — PFD and P&ID
+drawings, legends, and similar project documents — may likewise be inspected by
+agents for requirements, engineering context, notation, symbol identification,
+topology, visual QA, and implementation review.
+
+It must not be redistributed, and the same prohibitions apply: no committed
+drawings, screenshots, legends, title blocks, tags, or project identifiers, and no
+private local path recorded in the repository.
+
+Company/project material may inform **what DeepPlant must represent**, and it may
+corroborate that an independently authored result is recognizable. It must not let
+a company convention silently become part of `generic-iso`: a company-specific
+representation belongs to a separate, explicitly scoped profile with its own
+provenance, not to the generic one.
+
+### Developer-local reference pointer
+
+A developer may keep the path of their operator-authorized private reference
+bundle in a `.deepplant-references.local` file at the repository root. That file
+is intentionally ignored by Git and stays untracked:
+
+- the path is private local configuration and is never committed;
+- the pointer file's presence does **not** itself grant an agent authorization;
+- authorization must still be explicit for the task or session;
+- the contents of any referenced bundle remain subject to this section and must
+  not be redistributed.
+
+### What this does not change
+
+- `human-verified` remains reserved for a **named human** verification record
+  against an authorized copy. An authorized inspection, however useful, never
+  produces that state, and no `verified_by`/`verified_on` evidence may be
+  invented for it.
+- No compliance or conformance claim follows from an authorized inspection:
+  "ISO compliant", "ISO conformant", and "fully verified against ISO" stay
+  unavailable, and the conservative vocabulary
+  ([Verification vocabulary](#verification-vocabulary)) still applies.
+- Restricted standards content still never enters the repository, and standards
+  material is still referenced by identifier and official source.
 
 ## DEXPI policy boundary
 

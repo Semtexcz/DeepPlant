@@ -27,3 +27,6 @@ apps/editor/shared/api/generated/
 Thumbs.db
 *.log
 .fuse_hidden*
+
+# Developer-local private engineering reference pointer
+.deepplant-references.local

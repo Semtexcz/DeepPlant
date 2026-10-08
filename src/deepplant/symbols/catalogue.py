@@ -144,11 +144,19 @@ BALL_VALVE = SymbolDefinition(
 )
 
 # DeepPlant-authored project seed geometry for the check valve
-# (docs/dev/reference/symbol-seed-geometry.md, seed E): one triangle on the
-# process axis followed by a separate seat line, which is what makes the
-# one-way character readable. The triangle and the seat line are separated by a
-# gap so they never merge into one shape, and the stubs are DeepPlant's
-# connection representation of the adjacent pipeline.
+# (docs/dev/reference/symbol-seed-geometry.md, seed E): the same connectable
+# valve body the gate and ball valves use - two triangles meeting apex to apex on
+# the process axis - plus the closure-element marker the reference notation uses
+# for a check valve, a circle centred on the body's upstream top corner. The
+# marker exists on the inlet side only, so the one-way character is carried by
+# where the marker sits rather than by an arrow, and the two stubs are
+# DeepPlant's connection representation of the adjacent pipeline.
+#
+# The reference marks that closure element as a solid dot. This library renders
+# strokes only (`fill="none"` at the document root, and no fill attribute on a
+# primitive), so the marker is the same circle drawn as a stroke: position and
+# meaning are preserved, the fill difference is a rendering-style deviation, and
+# it needs no new primitive and no renderer change.
 #
 # This definition separates the two concepts the anchor contract keeps apart:
 # `inlet`/`outlet` are semantic connection *roles*, while `orientation` stays
@@ -162,9 +170,10 @@ CHECK_VALVE = SymbolDefinition(
     profile="generic-iso",
     primitives=(
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
-        Polygon(points=((28.0, 34.0), (28.0, 66.0), (58.0, 50.0))),
-        Line(x1=62.0, y1=34.0, x2=62.0, y2=66.0),
-        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Circle(cx=28.0, cy=34.0, r=8.0),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
     ),
     anchors=(
         SymbolAnchor(name="inlet", x=0.0, y=50.0, orientation="west", kind="process"),

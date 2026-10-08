@@ -63,8 +63,8 @@ GATE_VALVE_DOCUMENT = (
 CHECK_VALVE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
-    '<polygon points="28,34 28,66 58,50" /><line x1="62" y1="34" x2="62" y2="66" />'
-    '<line x1="62" y1="50" x2="100" y2="50" /></svg>\n'
+    '<polygon points="28,34 28,66 50,50" /><polygon points="50,50 72,34 72,66" />'
+    '<circle cx="28" cy="34" r="8" /><line x1="72" y1="50" x2="100" y2="50" /></svg>\n'
 )
 
 #: Fragments that would prove a project/company tag or convention leaked into
@@ -253,15 +253,25 @@ def test_check_valve_contract() -> None:
     assert definition.profile == "generic-iso"
     assert definition.diagram_types == ("pid",)
 
-    # One triangle plus a separate seat line; the gap between them is what keeps
-    # the one-way character readable instead of merging into a single shape
-    # (seed E).
+    # The shared connectable valve body (two triangles meeting apex to apex on
+    # the process axis, exactly as the gate and ball valves draw it) plus the
+    # closure-element marker at the body's upstream top corner, which is what
+    # makes the glyph a check valve and what makes it directional (seed E).
     assert definition.primitives == (
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
-        Polygon(points=((28.0, 34.0), (28.0, 66.0), (58.0, 50.0))),
-        Line(x1=62.0, y1=34.0, x2=62.0, y2=66.0),
-        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Circle(cx=28.0, cy=34.0, r=8.0),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
     )
+
+    # The marker carries the meaning through its position and is drawn with the
+    # existing primitives: no fill-capable primitive and no renderer change were
+    # introduced for it.
+    markers = [item for item in definition.primitives if isinstance(item, Circle)]
+    assert markers == [Circle(cx=28.0, cy=34.0, r=8.0)]
+    assert len(_elements(definition, "circle")) == 1
+    assert _elements(definition, "text") == []
 
     # The check valve is the case where a semantic connection *role* is
     # meaningful, and it stays separate from the purely geometric orientation:

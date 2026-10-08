@@ -130,7 +130,7 @@ cannot be mistaken for a standard base library.
 | Ball valve | on/off isolation (quarter-turn) | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: the bowtie body with a circle on the process axis marking the ball, two neutral process ports (`port_a` west / `port_b` east), and no encoded flow direction; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | — | no | yes | **implemented** (`valve.ball`) |
 | Globe valve | throttling isolation | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the throttling mark | — | no | yes | planned |
 | Needle valve | fine throttling | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the needle mark | — | no | yes | planned |
-| Check valve | one-way flow | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: one triangle on the process axis plus a separate seat line, which is what carries the one-way character; `inlet` / `outlet` are semantic connection roles while the anchor orientation stays purely geometric; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | swing / globe | no | yes | **implemented** (`valve.check`) |
+| Check valve | one-way flow | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: the shared bowtie valve body with a closure-element marker circle on the body's upstream top corner, which is what carries both the one-way character and the direction; `inlet` / `outlet` are semantic connection roles while the anchor orientation stays purely geometric; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | swing / globe | no | yes | **implemented** (`valve.check`) |
 | Safety / relief valve | overpressure protection | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | valve body with a spring-loaded indication | straight / angle | no | yes | planned |
 | Control valve with actuator | control function | `composed-symbol` | valve | ISO 10628-2:2012 and ISO 15519-2:2015 (actuator conventions); `reference` | a valve body composed with an actuator graphic, not a new standalone symbol | diaphragm / cylinder / motor | no | yes | planned (composition framework deferred) |
 | Reducer | pipe size change | `symbol` | fitting | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a tapered inline body that narrows from `large_end` to `small_end`, with one process stub per side; the anchor names describe the canonical geometry and deliberately imply no process flow direction; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | — | no | yes | **implemented** (`fitting.reducer`) |
@@ -216,10 +216,14 @@ cannot carry the profile ([symbol-library.md](symbol-library.md)).
 - Whether generated symbol SVG should also carry the hidden anchor slots used by
   the existing process symbol-pack contract is unresolved; in this slice anchors
   remain definition data only.
-- Restricted standard material is never committed to the repository and is never
-  provided to AI tooling; the identifiers recorded here should be confirmed
-  against the official ISO catalogue by a human before any compliance-sensitive
-  claim, and DeepPlant never claims compliance from visual similarity
+- Restricted standard material is never committed to the repository, and it is
+  provided to AI tooling only under an explicit operator authorization for a
+  specific task, on the terms of
+  [standards.md](../workflow/standards.md#operator-authorized-private-reference-material);
+  an authorized inspection is engineering evidence and never verification. The
+  identifiers recorded here should still be confirmed against the official ISO
+  catalogue by a human before any compliance-sensitive claim, and DeepPlant never
+  claims compliance from visual similarity
   ([standards.md](../workflow/standards.md)).
 
 ## Related

@@ -421,7 +421,7 @@ PR review
 |---|---|---|---|---|
 | `valve.gate` | Gate valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two triangles meeting apex to apex on the process axis, with a process line to each view-box edge. |
 | `valve.ball` | Ball valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | The same bowtie body, with a circle on the process axis marking the ball, and a process line to each view-box edge. |
-| `valve.check` | Check valve | `pid` | `inlet` → `west`, `process`; `outlet` → `east`, `process` | One triangle on the process axis plus a separate seat line, with a process line to each view-box edge. |
+| `valve.check` | Check valve | `pid` | `inlet` → `west`, `process`; `outlet` → `east`, `process` | The shared bowtie body, with a closure-element marker circle on the body's upstream top corner, and a process line to each view-box edge. |
 | `pump.centrifugal` | Centrifugal pump | `pfd`, `pid` | `suction` → `west`, `process`; `discharge` → `east`, `process` | A circular casing with a full horizontal line through it and two lines running from the casing top and bottom to the casing's right-hand point. |
 | `fitting.reducer` | Reducer | `pid` | `large_end` → `west`, `process`; `small_end` → `east`, `process` | A tapered inline body narrowing from the large end to the small end, with a process line to each view-box edge. |
 | `instrument.local` | Local/field instrument | `pid` | `tap` → `south`, `process` | A plain instrument circle joined to the process by one vertical functional connection line. |
@@ -473,8 +473,12 @@ created.
    locator, table/figure reference, registration number, or the standard's own
    name unless it comes from a permitted source or a recorded human verification.
 3. Author the geometry independently from the primitives. Do not trace, extract,
-   or reproduce standard artwork, and do not derive geometry from a company
-   reference drawing.
+   auto-vectorize, or reproduce standard artwork, and do not turn a company
+   reference drawing into geometry. An operator-authorized private reference
+   ([workflow/standards.md](../workflow/standards.md#operator-authorized-private-reference-material))
+   may inform the engineering reading — which features carry the meaning, and
+   what the symbol must be recognizable as — but the coordinates stay DeepPlant's
+   own design, and no reference material is copied, quoted, or committed.
 4. Add a `SymbolDefinition` (with explicit anchors, geometric `orientation`, and
    `AssetProvenance`) to `src/deepplant/symbols/catalogue.py`.
 5. Add the coverage-matrix row's status and the structural test for the new

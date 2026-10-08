@@ -12,7 +12,8 @@ depends_on: []
 decision:
   - docs/dev/decisions/ADR-0007-standards-and-symbol-provenance.md
   - docs/dev/decisions/ADR-0017-machine-rendered-symbol-definitions.md
-evidence: []
+evidence:
+  - Operator-authorized private engineering reference bundle (the relevant engineering standard and company/project P&ID material)
 superseded_by: null
 ---
 
@@ -37,8 +38,13 @@ definition currently in the `deepplant.symbols` catalogue.
 
 - They are **DeepPlant-original** and are **not** derived from normative standard
   artwork.
-- They were **not** traced, measured, extracted, or otherwise derived from the
-  standard's artwork or from the company reference drawings.
+- They were **not** traced, measured for dimensions, extracted, auto-vectorized,
+  or otherwise mechanically derived from the standard's artwork or from the
+  company reference drawings. Where an operator-authorized private reference was
+  inspected for a concept, it informed the *engineering reading* only — which
+  features carry the meaning and what the glyph must be recognizable as — and the
+  geometry was then authored independently from the DeepPlant primitives
+  ([Authorized reference inspection](#authorized-reference-inspection)).
 - They are **not** exact ISO geometry, and no ISO correspondence is claimed as
   verified.
 - No standard figure, table, symbol artwork, locator, or normative wording is
@@ -58,6 +64,40 @@ SymbolDefinition              src/deepplant/symbols/catalogue.py
         ↓
 generated SVG                 render_symbol_svg(definition)
 ```
+
+## Authorized reference inspection
+
+The geometry here is authored, not copied, but two authoring tasks were informed
+by material the operator explicitly authorized for a specific task as a **private
+local reference bundle** (policy:
+[workflow/standards.md](../workflow/standards.md#operator-authorized-private-reference-material)):
+
+- the relevant **engineering standard**, inspected as the technical reference for
+  what a concept's conventional notation actually is: its defining topology, and
+  the features that distinguish it from neighbouring concepts;
+- the **company/project P&ID material**, inspected as real-world corroboration:
+  how the same concepts are drawn in an actual project legend and on a process
+  sheet.
+
+Both were used as engineering evidence only. Authorization to inspect is not
+authorization to redistribute, and inspection is not verification:
+
+- no source file, page, screenshot, crop, extracted image, table, title block, or
+  project identifier is stored, quoted, or committed anywhere in this repository;
+- no source artwork was traced, auto-vectorized, imported, or measured for
+  dimensions. The coordinates below are DeepPlant's own normalized design on the
+  canonical `0 0 100 100` box, and a standardized engineering shape naturally
+  resembles the reference;
+- no company-specific convention is adopted into the `generic-iso` profile: the
+  reference material says *what* must be recognizable, while a project-specific
+  representation would belong to a separate, explicitly scoped profile;
+- the standards relationship of every definition stays `candidate-alignment`, an
+  *intended* correspondence. A `human-verified` state still requires the recorded
+  named-human check, which no agent inspection provides.
+
+Seed E below is the case where that evidence changed the geometry: the previous
+triangle-plus-seat-line reading was replaced once the reference inspection showed
+which features actually carry the check-valve notation.
 
 ## Seed A — gate valve
 
@@ -130,18 +170,49 @@ whose one-way character is carried by the geometry alone.
 
 ```text
 line    (0, 50) → (28, 50)              process connection stub
-polygon (28, 34), (28, 66), (58, 50)    body triangle
-line    (62, 34) → (62, 66)             seat line, separated by a gap
-line    (62, 50) → (100, 50)            process connection stub
+polygon (28, 34), (28, 66), (50, 50)    upstream body half
+polygon (50, 50), (72, 34), (72, 66)    downstream body half
+circle  centre (28, 34), radius 8       closure-element marker, upstream corner
+line    (72, 50) → (100, 50)            process connection stub
 ```
 
 Anchors: `inlet` at `(0, 50)`, orientation `west`, kind `process`; `outlet` at
 `(100, 50)`, orientation `east`, kind `process`. This definition is the case
 where a semantic connection *role* is meaningful: `inlet`/`outlet` name the role,
 while `orientation` remains purely geometric and no `flow_direction` concept
-exists on a generic anchor. The 4-unit gap between the triangle apex at
-`x = 58` and the seat line at `x = 62` is deliberate: it keeps the two marks from
-merging into one shape.
+exists on a generic anchor.
+
+Engineering reading: the valve family shares **one connectable body** — two
+triangles meeting apex to apex on the process axis, which is the body the gate
+and ball valves already use. A check valve is that body with its **closure
+element marked**: a distinctly separate circle sits on the body's *upstream top
+corner*, above the process axis. The marker therefore exists on the inlet side
+only, so the one-way character is carried by *where the marker sits* and not by
+an arrow or by a flow-direction field, and the process connection stays on the
+axis at both ends, which keeps the anchor contract unchanged.
+
+Design notes:
+
+- The marker keeps radius `8`, i.e. `0.5` of the body half-height — the same
+  marker magnitude the ball valve already uses, and the same order as the
+  closure-element mark the reference notation draws. Scale consistency inside the
+  catalogue is deliberate: the marker's *position*, not its size, is what makes
+  the glyph a check valve rather than a ball valve.
+- The marker is drawn as a stroked circle. The library renderer emits strokes
+  only (`fill="none"` at the document root, and no fill attribute on a
+  primitive), so the reference's solid closure mark cannot be reproduced with the
+  current primitives. Drawing it as a stroked circle of the same size and
+  position preserves the topology and the meaning, needs no new primitive, and
+  changes no renderer behaviour; the fill difference is a documented
+  rendering-style deviation, not a different engineering statement.
+- The two body halves are `Polygon`s and the marker is a `Circle`, so the
+  definition stays inside the existing `Line` / `Polygon` / `Circle` primitives.
+
+Why this is not the earlier triangle-plus-seat-line reading: that reading drew a
+lone triangle on the axis with a separate vertical line behind it, which shares
+no body with the rest of the catalogue's valve family and reads as a generic
+flow-direction marker rather than as a valve, and it is not the notation the
+reference material uses for a check valve.
 
 ## Seed F — reducer
 
