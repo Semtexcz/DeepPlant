@@ -267,6 +267,9 @@ validate-docs:
 	@test -f docs/dev/history/gate-decisions.md
 	@test -f docs/contracts/rendering.md
 	@test -f docs/dev/reference/svg-symbols.md
+	@test -f docs/dev/reference/symbol-library.md
+	@test -f docs/dev/reference/mvp-symbol-coverage.md
+	@test -f docs/dev/reference/symbol-seed-geometry.md
 	@test -f docs/dev/workflow/packaging.md
 	@test -f docs/dev/frontend/index.md
 	@test -f docs/dev/frontend/architecture.md

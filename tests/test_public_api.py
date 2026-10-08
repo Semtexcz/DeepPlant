@@ -16,6 +16,7 @@ import deepplant
 import deepplant.adapters.dexpi
 import deepplant.model
 import deepplant.render
+import deepplant.symbols
 
 
 def test_model_package_reexports_its_public_surface() -> None:
@@ -56,6 +57,26 @@ def test_render_package_reexports_its_public_surface() -> None:
     assert set(deepplant.render.__all__) == expected
     assert deepplant.render.render_process_svg is deepplant.render_process_svg
     assert deepplant.render.ProcessRenderError is deepplant.ProcessRenderError
+
+
+def test_symbol_library_reexports_its_public_surface() -> None:
+    expected = {
+        "CANONICAL_VIEW_BOX",
+        "SYMBOLS",
+        "AssetProvenance",
+        "Circle",
+        "Line",
+        "Polygon",
+        "StandardsReference",
+        "SymbolAnchor",
+        "SymbolDefinition",
+        "SymbolDefinitionError",
+        "SymbolRegistry",
+        "render_symbol_svg",
+    }
+    assert set(deepplant.symbols.__all__) == expected
+    for name in expected:
+        assert hasattr(deepplant.symbols, name)
 
 
 def test_dexpi_adapter_reexports_its_public_surface() -> None:
