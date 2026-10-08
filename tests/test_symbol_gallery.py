@@ -4,8 +4,9 @@ The gallery is a derived developer artifact, so these tests pin the derivation
 itself: completeness follows ``SYMBOLS.list()`` instead of a parallel list of
 ids, every preview is the production renderer's own output, generation is
 byte-stable, the metadata comes from the definition objects, and hostile
-metadata cannot become active HTML. No test writes into the repository: each one
-generates into ``tmp_path``.
+metadata cannot become active HTML. No test writes into the repository: the
+filesystem tests generate into ``tmp_path``, and the escaping test renders the
+page in memory.
 """
 
 from __future__ import annotations
