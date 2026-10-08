@@ -75,6 +75,12 @@ change_patterns:
     - docs/dev/reference/svg-symbols.md
     - docs/dev/workflow/standards.md
     - docs/dev/reference/standards-registry.md
+  "src/deepplant/symbols/**":
+    - docs/dev/reference/symbol-library.md
+    - docs/dev/reference/mvp-symbol-coverage.md
+    - docs/dev/reference/symbol-seed-geometry.md
+    - docs/dev/workflow/standards.md
+    - docs/dev/reference/standards-registry.md
   "src/deepplant/adapters/dexpi/**":
     - docs/dev/reference/dexpi-process-adapter.md
   "tests/adapters/dexpi/**":

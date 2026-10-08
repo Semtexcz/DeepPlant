@@ -54,6 +54,7 @@ PlantModel -> Plant + Equipment[] (+ Port[]) + Connection[]
 | CLI (`--help`, `version`, `validate`) | `src/deepplant/__main__.py` | [contracts/cli.md](../../contracts/cli.md) |
 | Headless process renderer | `src/deepplant/render/` | [contracts/rendering.md](../../contracts/rendering.md) |
 | `basic` SVG symbol pack | `src/deepplant/assets/symbols/process/basic/` | [dev/reference/svg-symbols.md](../reference/svg-symbols.md) |
+| Standard symbol library (machine-rendered) | `src/deepplant/symbols/` | [dev/reference/symbol-library.md](../reference/symbol-library.md) |
 | DEXPI 2.0.0 Process adapter | `src/deepplant/adapters/dexpi/` | [dev/reference/dexpi-process-adapter.md](../reference/dexpi-process-adapter.md) |
 | Public Python surface | `src/deepplant/__init__.py` | re-exports the contracts above |
 | Process/PFD view projection | `src/deepplant/editor/projection.py` | [contracts/rendering.md](../../contracts/rendering.md) |
@@ -359,8 +360,10 @@ for the prohibition):
   step classes) and any other vendor adapter (COMOS, AVEVA, simulators);
 - instrumentation, signals, and cross-sheet connector semantics;
 - engineering rules and a validation engine above the structural layer;
-- P&ID rendering, standards-aligned or company symbol packs, and semantic/editing
-  capabilities in the editor (the delivered editor is read-only Process/PFD);
+- P&ID rendering, a standards-aligned or company symbol *pack* mechanism
+  (Issue #119 delivers a machine-rendered `generic-iso` symbol *library*, not a
+  pack mechanism and not P&ID rendering), and semantic/editing capabilities in
+  the editor (the delivered editor is read-only Process/PFD);
 - typed engineering quantities, a canonical `Pipe` or `Nozzle`, and the
   process ↔ physical realization mapping implementation (its ownership boundary is
   decided by ADR-0016);

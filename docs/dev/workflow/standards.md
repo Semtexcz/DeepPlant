@@ -186,6 +186,13 @@ Rules:
 - Symbol assets that merely resemble a standard figure are still independent
   copyright works with their own provenance; resemblance does not transfer the
   standard's copyright or grant any rights.
+- `candidate-alignment` never requires a human check, and `reference` never claims
+  correspondence for a concrete asset. A drawing profile may additionally require
+  an intended correspondence: a `deepplant.symbols` definition in the
+  `generic-iso` profile must record at least one standards relationship at
+  `candidate-alignment` or `human-verified`, because `reference` alone claims
+  nothing about that concrete geometry
+  ([symbol-library.md](../reference/symbol-library.md)).
 
 ## Source-quality rule
 
@@ -211,10 +218,15 @@ policy states only the acceptance test.
 
 ## Symbol Provenance Policy
 
-This is a documented requirement for future symbol assets, not yet a
-machine-readable schema. A machine-readable provenance manifest is an accepted
-future direction (see example below) but is **not implemented**, and no
-asset-management framework is created.
+This is a documented requirement, now partially implemented: `deepplant.symbols`
+records a per-definition `AssetProvenance(origin, license)` and a
+`StandardsReference(standard, verification, ...)` in code, both validated on
+construction, with `human-verified` failing closed without recorded
+locator/verifier/date evidence, while a machine-readable manifest over the whole
+asset tree, an asset-import pipeline, and an asset-management framework remain
+**not implemented**. Third-party asset import is deferred until the first concrete
+third-party asset; until then `ASSET_ORIGINS` accepts only `deepplant-original`,
+because the two-field provenance record is not sufficient for an imported asset.
 
 Every distributed symbol must eventually be able to answer:
 
@@ -235,8 +247,9 @@ Repository handling for imported assets, when imports begin:
 - Keep the upstream licence text and preserve required NOTICE/attribution.
 - Confirm the licence permits redistribution inside an AGPL-3.0 repository and
   commercial use; reject noncommercial or ambiguous licences.
-- Default the standards-correspondence state to `candidate-alignment` (or
-  `reference`) and never to `human-verified` without a recorded human check.
+- Default the standards-correspondence state to `reference` (or
+  `candidate-alignment`) and never to `human-verified` without a recorded human
+  check.
 
 A future machine-readable provenance manifest is an acceptable direction, for
 example:
@@ -247,18 +260,29 @@ asset_origin: deepplant-original
 asset_license: AGPL-3.0-only
 standards:
   - id: ISO 10628-2:2012
-    verification: unverified
+    verification: reference
 ```
 
 That example is illustrative only; it is not a schema to implement without a
-concrete need.
+concrete need. The current `deepplant.symbols` record is the narrow in-code form
+of the same two independent facts (`origin`/`license` versus standard +
+verification state, including the verifier evidence a `human-verified` state
+requires).
 
 DeepPlant-original geometry is the default for distributed symbols. The shipped
 `basic` process pack is non-normative DeepPlant-original fallback geometry under
 AGPL-3.0-only, packaged inside the Python package under
 `deepplant/assets/symbols/process/basic/` (contract:
 [dev/reference/svg-symbols.md](../reference/svg-symbols.md); consumed by
-[contracts/rendering.md](../../contracts/rendering.md)). A future
+[contracts/rendering.md](../../contracts/rendering.md)). The machine-rendered
+`generic-iso` symbol library records that same default per definition, and
+validates it as one explicit origin/licence pair: `deepplant-original` geometry is
+accepted only under `AGPL-3.0-only`, and any other licence fails closed
+(`AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")`;
+contract: [dev/reference/symbol-library.md](../reference/symbol-library.md)). The
+geometry of the three current definitions is project-owned seed geometry
+([dev/reference/symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)),
+the canonical source those definitions are authored from. A future
 standards-aligned, company, or custom pack keeps independent provenance and may
 carry its own licence, subject to this policy.
 
