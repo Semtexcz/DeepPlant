@@ -65,6 +65,8 @@ registry                         SYMBOLS.get("valve.gate")
 renderer                         render_symbol_svg(definition)
         ↓
 SVG                              generated output, never canonical source
+        ↓
+developer gallery                build/symbol-gallery, derived and ignored
 ```
 
 The engineering object is never the SVG, the geometry is never hand-edited, and
@@ -333,6 +335,73 @@ what the tests use. A duplicate symbol id is rejected at construction, and an
 unknown id fails closed. There is no search, filter, variant, pack, or plugin
 API: nothing needs one yet.
 
+## Generating the symbol gallery
+
+```bash
+make symbol-gallery
+```
+
+The target renders every definition in `SYMBOLS.list()` through the production
+`render_symbol_svg(definition)` into `build/symbol-gallery/` and prints a concise
+summary:
+
+```text
+build/symbol-gallery/
+├── index.html
+└── symbols/
+    ├── instrument.local.svg
+    ├── pump.centrifugal.svg
+    └── valve.gate.svg
+```
+
+The source-of-truth hierarchy stays one-way:
+
+```text
+SymbolDefinition  =  canonical symbol geometry
+generated SVG     =  derived artifact
+gallery           =  derived developer artifact
+```
+
+The gallery is a developer review aid, not a second catalogue: it maintains no
+symbol id, name, metadata, anchor, or geometry of its own, so a newly registered
+definition appears in it without a change to the generator. Each card shows the
+definition's identity, the SVG the production renderer generated for it, every
+anchor (name, coordinates, orientation, kind), the asset provenance, and the
+standards relationship with its verification state. Anchor markers are
+gallery-only CSS positioned from `SymbolDefinition.anchors`; nothing is written
+back into the generated SVG, which stays anchor-free.
+
+The page is static: embedded CSS only, no JavaScript, no remote resource, and no
+raster preview, so `build/symbol-gallery/index.html` opens directly as a local
+file. Generation is deterministic and recreates the output directory, so a
+preview of a symbol that left the registry cannot survive as a stale file. The
+output is ignored (`build/` is in `.gitignore`), is never committed, and is
+neither packaged nor a runtime dependency.
+
+`make symbol-gallery` is the visual-review step that precedes expanding the
+catalogue, and it is a review aid only. It checks presentation quality —
+recognisability, centring, proportion, clipping, connection stubs meeting their
+anchors, consistency with the rest of the catalogue. It does **not** establish
+standards conformance and does **not** promote a symbol's standards relationship
+to `human-verified`; that still requires the recorded human check against an
+authorized copy ([workflow/standards.md](../workflow/standards.md)).
+
+The expected developer workflow for adding or changing a symbol:
+
+```text
+add/update SymbolDefinition
+        ↓
+tests
+        ↓
+make symbol-gallery
+        ↓
+open build/symbol-gallery/index.html
+        ↓
+visually inspect geometry + anchors + provenance
+        ↓
+PR review
+```
+
 ## Implemented catalogue
 
 | Symbol id | Name | Diagram types | Anchors (name → orientation, kind) | Geometry |
@@ -389,7 +458,10 @@ created.
    `AssetProvenance`) to `src/deepplant/symbols/catalogue.py`.
 5. Add the coverage-matrix row's status and the structural test for the new
    symbol.
-6. Run `uv run pytest tests/symbols`, `make format-check`, `make lint`,
+6. Run `make symbol-gallery` and inspect the new symbol in
+   `build/symbol-gallery/index.html` — geometry, anchor markers, asset
+   provenance, and standards state — before requesting review.
+7. Run `uv run pytest tests/symbols`, `make format-check`, `make lint`,
    `make typecheck`, and `make architecture-check`; run `make check` once before
    finalizing the pull request.
 
@@ -400,10 +472,11 @@ created.
 - Composition and variant machinery: instrument letter-code composition, signal
   connections for instrument functions that have one, control valves with
   actuators, instruments with displays, multifunction instruments.
-- A generated gallery. Issue #119 asks for one; this slice deliberately does not
-  build it, because it would expand the commit well beyond the architecture
-  validation it exists for. A developer can render any definition with
-  `render_symbol_svg` in one line.
+- Gallery extensions: filtering, search, side-by-side comparison, and any
+  generated artifact other than the static developer page. The gallery itself now
+  exists as the derived developer artifact delivered by Issue #121
+  ([Generating the symbol gallery](#generating-the-symbol-gallery)); it stays a
+  review aid, not a catalogue and not a conformance statement.
 - Runtime provenance manifests, pack configuration, custom-pack loading, and
   arbitrary SVG import.
 - Editor integration, drag-and-drop, routing, layout, DEXPI graphics, and tag or
