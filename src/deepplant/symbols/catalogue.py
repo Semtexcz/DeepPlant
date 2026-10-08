@@ -42,9 +42,14 @@ detail that is only available from restricted material is recorded here.
 Anchors
 -------
 
-Anchors are geometry: each records where a connection line leaves the symbol
-(``orientation``) and which connection class the slot accepts (``kind``). Neither
-flow direction nor inlet/outlet semantics are part of a graphical anchor.
+Anchors record symbol-local connection points: each says where a connection line
+leaves the symbol (``x``/``y``, ``orientation``) and which connection class the
+slot accepts (``kind``). ``orientation`` is geometric only and never encodes flow
+direction, while ``name`` may carry a symbol-local role such as ``port_a``,
+``suction``, ``inlet``, ``outlet``, or ``large_end``. A role name does not turn
+the anchor into a semantic ``ProcessPort`` or a physical port or nozzle: the
+anchor stays presentation data that a consumer may later map to engineering
+semantics.
 
 Where the intended representation shows the adjacent pipeline as separate line
 segments, the DeepPlant definition draws that connection to the view-box edge

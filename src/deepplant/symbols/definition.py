@@ -71,8 +71,9 @@ DIAGRAM_TYPES: frozenset[str] = frozenset({"pfd", "pid"})
 
 #: Anchor orientations: the geometric direction a connection leaves the symbol
 #: in, in the symbol's own coordinate system. This is routing/layout geometry
-#: only - never process flow direction, signal direction, or inlet/outlet
-#: semantics.
+#: only: it never encodes process-flow direction, signal-flow direction, or
+#: semantic inlet/outlet direction. A symbol-local connection role is expressed
+#: by the anchor ``name``, not here.
 ANCHOR_ORIENTATIONS: frozenset[str] = frozenset({"north", "east", "south", "west"})
 
 #: Connection kinds an anchor may carry.
@@ -170,12 +171,28 @@ class SymbolAnchor:
     (ADR-0008). Declaration order in :attr:`SymbolDefinition.anchors` is the
     symbol's stable anchor order.
 
-    ``orientation`` is the **geometric** direction a connection leaves the symbol
-    in, which is what routing and layout need. It carries no engineering
-    meaning: process flow direction, signal direction, and inlet/outlet semantics
-    are never part of a generic graphical anchor. ``kind`` records which
-    connection class the slot accepts, and any semantic meaning comes from the
-    anchor ``name`` and from later semantic mapping.
+    Field roles:
+
+    ``name``
+        the symbol-local connection role: a stable local identifier such as
+        ``port_a``, ``port_b``, ``suction``, ``discharge``, ``inlet``,
+        ``outlet``, ``large_end``, ``small_end``, or ``tap``;
+    ``x`` / ``y``
+        the symbol-local connection coordinates;
+    ``orientation``
+        the geometric direction in which the connection leaves the symbol
+        (``north``, ``east``, ``south``, or ``west``);
+    ``kind``
+        the connection class the slot accepts (``process`` or ``signal``).
+
+    ``orientation`` carries no engineering meaning: it is purely geometric and
+    never encodes process-flow direction, signal-flow direction, or semantic
+    inlet/outlet direction. A symbol-local role may be expressed by ``name`` (for
+    example ``inlet``, ``outlet``, ``suction``, or ``large_end``) and may later be
+    mapped to engineering semantics by the consumer, but the anchor itself still
+    does not become a :class:`ProcessPort`, a physical port or nozzle, or a
+    general semantic connection object. There is no generic ``flow_direction``
+    field on an anchor.
     """
 
     name: str
