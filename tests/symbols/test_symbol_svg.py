@@ -2,19 +2,27 @@
 
 These tests pin the Issue #119 rendering contract: SVG is generated from a
 definition deterministically, output is a restricted, themeable subset, anchors
-are definition data rather than SVG inference, and the three implemented
-representations keep their structural shape, their neutral geometric anchors, and
+are definition data rather than SVG inference, and the implemented
+representations keep their structural shape, their intended anchor semantics, and
 their asset provenance.
 """
 
 from __future__ import annotations
 
+import dataclasses
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
 import pytest
 
-from deepplant.symbols import SYMBOLS, Circle, Polygon, SymbolDefinition, render_symbol_svg
+from deepplant.symbols import (
+    SYMBOLS,
+    Circle,
+    Line,
+    Polygon,
+    SymbolDefinition,
+    render_symbol_svg,
+)
 
 CANONICAL_VIEW_BOX = "0 0 100 100"
 ALLOWED_ELEMENT_NAMES = {"svg", "line", "circle", "polygon"}
@@ -22,8 +30,16 @@ ALLOWED_ROOT_ATTRIBUTES = {"viewBox", "fill", "stroke", "stroke-width"}
 THEMEABLE_COLOR_VALUES = {"none", "currentColor"}
 FORBIDDEN_ATTRIBUTES = {"href", "style", "class", "font-family", "onload"}
 
-#: The three representations the first Issue #119 slice implements.
-IMPLEMENTED_IDS = ("instrument.local", "pump.centrifugal", "valve.gate")
+#: The representations the reviewed Issue #119 slices implement, in the
+#: registry's stable symbol-id order.
+IMPLEMENTED_IDS = (
+    "fitting.reducer",
+    "instrument.local",
+    "pump.centrifugal",
+    "valve.ball",
+    "valve.check",
+    "valve.gate",
+)
 
 ISO_10628_2 = "ISO 10628-2:2012"
 ISO_15519_2 = "ISO 15519-2:2015"
@@ -37,6 +53,18 @@ GATE_VALVE_DOCUMENT = (
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
     '<polygon points="28,34 28,66 50,50" /><polygon points="50,50 72,34 72,66" />'
     '<line x1="72" y1="50" x2="100" y2="50" /></svg>\n'
+)
+
+#: The exact check-valve document the project seed geometry produces (seed E).
+#: One representative rendered document for the second batch: the
+#: definition-level tests already pin every primitive tuple exactly, so this
+#: keeps the definition → SVG derivation itself pinned without hard-coding one
+#: document per symbol.
+CHECK_VALVE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
+    '<polygon points="28,34 28,66 58,50" /><line x1="62" y1="34" x2="62" y2="66" />'
+    '<line x1="62" y1="50" x2="100" y2="50" /></svg>\n'
 )
 
 #: Fragments that would prove a project/company tag or convention leaked into
@@ -88,6 +116,10 @@ def test_a_rebuilt_definition_renders_identically(symbol_id: str) -> None:
 
 def test_the_rendered_gate_valve_document_is_unchanged() -> None:
     assert render_symbol_svg(SYMBOLS.get("valve.gate")) == GATE_VALVE_DOCUMENT
+
+
+def test_the_rendered_check_valve_document_is_unchanged() -> None:
+    assert render_symbol_svg(SYMBOLS.get("valve.check")) == CHECK_VALVE_DOCUMENT
 
 
 def test_every_registered_symbol_renders_a_well_formed_document() -> None:
@@ -149,7 +181,7 @@ def test_generated_documents_carry_no_project_or_company_text() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Structural contracts of the three implemented representations
+# Structural contracts of the implemented representations
 # ---------------------------------------------------------------------------
 
 
@@ -179,6 +211,114 @@ def test_gate_valve_contract() -> None:
         Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
         Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
     ]
+
+
+def test_ball_valve_contract() -> None:
+    definition = SYMBOLS.get("valve.ball")
+
+    assert definition.name == "Ball valve"
+    assert definition.category == "valve"
+    assert definition.profile == "generic-iso"
+    assert definition.diagram_types == ("pid",)
+
+    # The complete primitive tuple is pinned, because a definition's geometric
+    # identity is its explicit primitive sequence rather than a shared template
+    # (seed D).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Circle(cx=50.0, cy=50.0, r=8.0),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+    )
+
+    # Neutral connection ports, exactly like the gate valve: a generic ball valve
+    # is not inherently an inlet/outlet device, so neither the names nor a flow
+    # direction may be encoded here.
+    assert [
+        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
+        for anchor in definition.anchors
+    ] == [
+        ("port_a", "west", "process", 0.0, 50.0),
+        ("port_b", "east", "process", 100.0, 50.0),
+    ]
+    assert {anchor.name for anchor in definition.anchors}.isdisjoint({"inlet", "outlet"})
+
+
+def test_check_valve_contract() -> None:
+    definition = SYMBOLS.get("valve.check")
+
+    assert definition.name == "Check valve"
+    assert definition.category == "valve"
+    assert definition.profile == "generic-iso"
+    assert definition.diagram_types == ("pid",)
+
+    # One triangle plus a separate seat line; the gap between them is what keeps
+    # the one-way character readable instead of merging into a single shape
+    # (seed E).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (58.0, 50.0))),
+        Line(x1=62.0, y1=34.0, x2=62.0, y2=66.0),
+        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
+    )
+
+    # The check valve is the case where a semantic connection *role* is
+    # meaningful, and it stays separate from the purely geometric orientation:
+    # `inlet`/`outlet` name the role, `west`/`east` only say where a line leaves
+    # the symbol.
+    assert [
+        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
+        for anchor in definition.anchors
+    ] == [
+        ("inlet", "west", "process", 0.0, 50.0),
+        ("outlet", "east", "process", 100.0, 50.0),
+    ]
+
+
+def test_no_generic_anchor_carries_a_flow_direction() -> None:
+    # The check valve is the definition that would motivate a flow-direction
+    # field, and it is deliberately not introduced: a generic anchor stays a
+    # name, a position, a geometric orientation, and a connection kind.
+    for definition in SYMBOLS.list():
+        for anchor in definition.anchors:
+            assert not hasattr(anchor, "flow_direction")
+            assert {field.name for field in dataclasses.fields(anchor)} == {
+                "name",
+                "x",
+                "y",
+                "orientation",
+                "kind",
+            }
+
+
+def test_reducer_contract() -> None:
+    definition = SYMBOLS.get("fitting.reducer")
+
+    assert definition.name == "Reducer"
+    assert definition.category == "fitting"
+    assert definition.profile == "generic-iso"
+    assert definition.diagram_types == ("pid",)
+
+    # A tapered body that narrows from the large end to the small end, with a
+    # process stub on each side (seed F).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (72.0, 42.0), (72.0, 58.0), (28.0, 66.0))),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+    )
+
+    # `large_end`/`small_end` describe the canonical geometry, not process flow:
+    # a reducer may be installed in either orientation, so the anchors are
+    # deliberately not named `inlet`/`outlet` and carry only geometry.
+    assert [
+        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
+        for anchor in definition.anchors
+    ] == [
+        ("large_end", "west", "process", 0.0, 50.0),
+        ("small_end", "east", "process", 100.0, 50.0),
+    ]
+    assert {anchor.name for anchor in definition.anchors}.isdisjoint({"inlet", "outlet"})
 
 
 def test_centrifugal_pump_contract() -> None:
@@ -269,7 +409,10 @@ def test_provenance_and_standards_correspondence_are_independent() -> None:
     ("symbol_id", "standard"),
     [
         ("valve.gate", ISO_10628_2),
+        ("valve.ball", ISO_10628_2),
+        ("valve.check", ISO_10628_2),
         ("pump.centrifugal", ISO_10628_2),
+        ("fitting.reducer", ISO_10628_2),
         ("instrument.local", ISO_15519_2),
     ],
 )

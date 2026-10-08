@@ -54,7 +54,7 @@ implementation state
 
 A concept can be required and unimplemented, or implemented with no human check
 claimed. Only the third state produces a symbol. The repository deliberately
-records no restricted-derived symbol locator for the three current symbols, so no
+records no restricted-derived symbol locator for the current symbols, so no
 row claims that a standard's own representation was located, inspected, or
 assessed.
 
@@ -127,11 +127,14 @@ cannot be mistaken for a standard base library.
 |---|---|---|---|---|---|---|---|---|---|
 | Piping line | piping connection | `connection` | piping | ISO 15519-2:2015 (connection conventions); `reference` | routed line between connection points | line-width conventions | no | yes | planned |
 | Gate valve | on/off isolation | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a bowtie of two triangles meeting apex to apex on the process axis, with two neutral process ports (`port_a` west / `port_b` east) and no flow semantics, in [symbol-seed-geometry.md](symbol-seed-geometry.md) | none implemented | no | yes | **implemented** (`valve.gate`) |
-| Globe / ball / needle valve | throttling isolation | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the variant's internal mark | globe / ball / needle | no | yes | planned |
-| Check valve | one-way flow | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the variant's flow mark | swing / globe | no | yes | planned |
+| Ball valve | on/off isolation (quarter-turn) | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: the bowtie body with a circle on the process axis marking the ball, two neutral process ports (`port_a` west / `port_b` east), and no encoded flow direction; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | — | no | yes | **implemented** (`valve.ball`) |
+| Globe valve | throttling isolation | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the throttling mark | — | no | yes | planned |
+| Needle valve | fine throttling | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the needle mark | — | no | yes | planned |
+| Check valve | one-way flow | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: one triangle on the process axis plus a separate seat line, which is what carries the one-way character; `inlet` / `outlet` are semantic connection roles while the anchor orientation stays purely geometric; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | swing / globe | no | yes | **implemented** (`valve.check`) |
 | Safety / relief valve | overpressure protection | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | valve body with a spring-loaded indication | straight / angle | no | yes | planned |
 | Control valve with actuator | control function | `composed-symbol` | valve | ISO 10628-2:2012 and ISO 15519-2:2015 (actuator conventions); `reference` | a valve body composed with an actuator graphic, not a new standalone symbol | diaphragm / cylinder / motor | no | yes | planned (composition framework deferred) |
-| Fittings: strainer, reducer, blind, orifice plate | inline fitting | `symbol` | fitting | ISO 10628-2:2012 (reference direction); `reference` | small inline graphic on the piping axis | by fitting type | no | yes | planned |
+| Reducer | pipe size change | `symbol` | fitting | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a tapered inline body that narrows from `large_end` to `small_end`, with one process stub per side; the anchor names describe the canonical geometry and deliberately imply no process flow direction; recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | — | no | yes | **implemented** (`fitting.reducer`) |
+| Fittings: strainer, blind, orifice plate | inline fitting | `symbol` | fitting | ISO 10628-2:2012 (reference direction); `reference` | small inline graphic on the piping axis | by fitting type | no | yes | planned |
 | Process equipment in P&ID: vessel, column, exchanger, filter | equipment item | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with nozzles and process anchors | by equipment type | no | yes | planned |
 | Insulation / tracing / jacketing conventions | line treatment | `connection` | annotation | ISO 10628-1:2014 (diagram structure); `reference` | line decoration derived from authored data, never a tag embedded in geometry | insulation / tracing | code values are project-specific | yes | planned |
 | Nozzle designation | equipment annotation | `annotation` | annotation | not a graphical symbol | text beside a nozzle | — | yes | yes | planned (text, never geometry) |
@@ -168,12 +171,20 @@ cannot be mistaken for a standard base library.
 | Symbol | Classification | Profile | Asset provenance | Standard reference | Verification | Anchors (name → orientation, kind) |
 |---|---|---|---|---|---|---|
 | `valve.gate` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `port_a` → west, process; `port_b` → east, process |
+| `valve.ball` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `port_a` → west, process; `port_b` → east, process |
+| `valve.check` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `inlet` → west, process; `outlet` → east, process |
 | `pump.centrifugal` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `suction` → west, process; `discharge` → east, process |
+| `fitting.reducer` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `large_end` → west, process; `small_end` → east, process |
 | `instrument.local` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 15519-2:2015 | `candidate-alignment` | `tap` → south, process |
 
+Six definitions are implemented: four pipe-line components (`valve.gate`,
+`valve.ball`, `valve.check`, `fitting.reducer`), one equipment symbol
+(`pump.centrifugal`), and the reusable instrument base graphic
+(`instrument.local`).
+
 Everything else above is `planned`, `deferred`, or `out of the base library`. No
-concept outside these three is implemented, no standards relationship is
-`human-verified`, and the three implemented geometries are DeepPlant-authored
+concept outside these six is implemented, no standards relationship is
+`human-verified`, and the implemented geometries are DeepPlant-authored
 project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not
 derived from a standard's artwork or from a company drawing. They are recorded at
 `candidate-alignment` because the project intends them to correspond to the named
@@ -184,7 +195,7 @@ cannot carry the profile ([symbol-library.md](symbol-library.md)).
 
 ## Unresolved questions
 
-- Whether these three DeepPlant-authored representations are close enough to the
+- Whether these DeepPlant-authored representations are close enough to the
   standards they name is open: the symbols are recorded at `candidate-alignment`,
   and any promotion to `human-verified` requires a human comparison against an
   authorized copy, recorded with the standard, the symbol, the date, and the
@@ -216,7 +227,7 @@ cannot carry the profile ([symbol-library.md](symbol-library.md)).
 - [symbol-library.md](symbol-library.md) — the machine-rendered symbol library
   contract and the implemented definitions.
 - [symbol-seed-geometry.md](symbol-seed-geometry.md) — the project-owned spec the
-  three implemented geometries are authored from.
+  implemented geometries are authored from.
 - [svg-symbols.md](svg-symbols.md) — the separate, DeepPlant-original process
   symbol-pack and anchor contract.
 - [../workflow/standards.md](../workflow/standards.md) and

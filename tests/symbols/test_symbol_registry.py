@@ -2,7 +2,7 @@
 
 The registry is the lookup boundary between the catalogue and a renderer or
 editor consumer: it must resolve a stable symbol id, expose the implemented set
-deterministically, and refuse an id it does not know.
+deterministically and completely, and refuse an id it does not know.
 """
 
 from __future__ import annotations
@@ -19,8 +19,15 @@ from deepplant.symbols import (
     SymbolRegistry,
 )
 
-#: The three representations the first Issue #119 slice implements.
-IMPLEMENTED_IDS = ("instrument.local", "pump.centrifugal", "valve.gate")
+#: The representations the reviewed Issue #119 slices implement.
+IMPLEMENTED_IDS = (
+    "fitting.reducer",
+    "instrument.local",
+    "pump.centrifugal",
+    "valve.ball",
+    "valve.check",
+    "valve.gate",
+)
 
 
 def _definition(symbol_id: str) -> SymbolDefinition:
@@ -45,6 +52,14 @@ def test_the_builtin_registry_exposes_exactly_the_implemented_symbols() -> None:
     assert tuple(definition.symbol_id for definition in SYMBOLS.list()) == IMPLEMENTED_IDS
 
 
+def test_the_catalogue_contains_exactly_six_definitions() -> None:
+    # The reviewed catalogue size is part of the contract: each definition is a
+    # deliberate, reviewed addition, so an accidental extra or missing symbol
+    # must fail loudly rather than silently change the library.
+    assert len(SYMBOLS.list()) == 6
+    assert len(set(IMPLEMENTED_IDS)) == len(IMPLEMENTED_IDS)
+
+
 def test_get_resolves_a_stable_symbol_id() -> None:
     definition = SYMBOLS.get("valve.gate")
 
@@ -54,8 +69,8 @@ def test_get_resolves_a_stable_symbol_id() -> None:
 
 
 def test_get_fails_closed_on_an_unknown_symbol_id() -> None:
-    with pytest.raises(SymbolDefinitionError, match="unknown symbol id 'valve.ball'"):
-        SYMBOLS.get("valve.ball")
+    with pytest.raises(SymbolDefinitionError, match="unknown symbol id 'valve.globe'"):
+        SYMBOLS.get("valve.globe")
 
 
 def test_list_order_is_stable_regardless_of_declaration_order() -> None:

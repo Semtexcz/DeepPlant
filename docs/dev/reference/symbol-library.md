@@ -29,8 +29,8 @@ superseded_by: null
 > looked up, and turned into SVG, and what must a new symbol provide?
 
 This is the developer-only contract for `deepplant.symbols` (Issue #119). It is
-deliberately narrow: it describes the three representations the first slice
-implements and the minimum machinery around them.
+deliberately narrow: it describes the representations the reviewed slices
+implement and the minimum machinery around them.
 
 ## Where this sits
 
@@ -180,10 +180,14 @@ semantic flow direction is NOT part of the generic graphical anchor
 `orientation` is deliberately *not* flow direction, signal direction, or
 inlet/outlet meaning. A generic graphical anchor tells routing which way the line
 leaves the symbol; engineering meaning comes from the anchor `name` and from
-later semantic mapping. A generic gate valve therefore uses neutral `port_a` /
-`port_b` connection names instead of `inlet` / `outlet`, while a pump keeps the
-meaningful `suction` / `discharge` names and records their geometry separately
-(`west` / `east`).
+later semantic mapping. The two are therefore decided separately: a generic gate
+valve or ball valve uses neutral `port_a` / `port_b` names because it is not
+inherently an inlet/outlet device, a pump keeps the meaningful `suction` /
+`discharge` names, a check valve may use the role names `inlet` / `outlet`, and a
+reducer uses the geometry names `large_end` / `small_end`; in every case the
+anchor records only the geometric orientation (`west` / `east` / ...). No
+`flow_direction` field exists on a generic anchor, and a reducer's geometry names
+deliberately imply no process flow direction at all.
 
 Each anchor also has a local `name` and an `x`/`y` position. Declaration order in
 `SymbolDefinition.anchors` is the symbol's stable anchor order.
@@ -286,7 +290,7 @@ asset provenance (origin, licence)  !=  standards correspondence (reference, sta
 
 Consequences:
 
-- all three definitions in the implemented catalogue are
+- all definitions in the implemented catalogue are
   `origin="deepplant-original"`, `license="AGPL-3.0-only"`;
 - a future company, project, or custom definition is a perfectly valid definition
   without a standards reference and must not be given a fake ISO reference, while
@@ -350,8 +354,11 @@ build/symbol-gallery/
 ├── .deepplant-symbol-gallery
 ├── index.html
 └── symbols/
+    ├── fitting.reducer.svg
     ├── instrument.local.svg
     ├── pump.centrifugal.svg
+    ├── valve.ball.svg
+    ├── valve.check.svg
     └── valve.gate.svg
 ```
 
@@ -413,33 +420,41 @@ PR review
 | Symbol id | Name | Diagram types | Anchors (name → orientation, kind) | Geometry |
 |---|---|---|---|---|
 | `valve.gate` | Gate valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two triangles meeting apex to apex on the process axis, with a process line to each view-box edge. |
+| `valve.ball` | Ball valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | The same bowtie body, with a circle on the process axis marking the ball, and a process line to each view-box edge. |
+| `valve.check` | Check valve | `pid` | `inlet` → `west`, `process`; `outlet` → `east`, `process` | One triangle on the process axis plus a separate seat line, with a process line to each view-box edge. |
 | `pump.centrifugal` | Centrifugal pump | `pfd`, `pid` | `suction` → `west`, `process`; `discharge` → `east`, `process` | A circular casing with a full horizontal line through it and two lines running from the casing top and bottom to the casing's right-hand point. |
+| `fitting.reducer` | Reducer | `pid` | `large_end` → `west`, `process`; `small_end` → `east`, `process` | A tapered inline body narrowing from the large end to the small end, with a process line to each view-box edge. |
 | `instrument.local` | Local/field instrument | `pid` | `tap` → `south`, `process` | A plain instrument circle joined to the process by one vertical functional connection line. |
 
 The exact primitive construction of each is recorded in
 [symbol-seed-geometry.md](symbol-seed-geometry.md) — the project-owned spec all
-three are authored from.
+of them are authored from.
 
-All three are `generic-iso`, DeepPlant-authored project seed geometry under
+All of them are `generic-iso`, DeepPlant-authored project seed geometry under
 `AGPL-3.0-only` (`AssetProvenance(origin="deepplant-original",
 license="AGPL-3.0-only")`): no standard figure or company asset was copied,
 traced, or embedded, and none is claimed to be exact ISO geometry. Each records
 its standards relationship conservatively at `candidate-alignment` - ISO
-10628-2:2012 for the valve and the pump, ISO 15519-2:2015 for the instrument -
-meaning the geometry is *intended* to correspond to that document, but no human
-has checked it against an authorized copy. `candidate-alignment` claims no human
-verification, and none of the three is `reference` or `human-verified`. The
-coverage matrix records the concepts still to come
+10628-2:2012 for the valves, the pump, and the reducer, ISO 15519-2:2015 for the
+instrument - meaning the geometry is *intended* to correspond to that document,
+but no human has checked it against an authorized copy. `candidate-alignment`
+claims no human verification, and none of them is `reference` or
+`human-verified`. The coverage matrix records the concepts still to come
 ([mvp-symbol-coverage.md](mvp-symbol-coverage.md)).
 
-The gate valve deliberately has no semantic inlet/outlet anchor contract: a
-generic gate valve is not inherently an inlet/outlet device, so its ports are
-named neutrally and carry only a geometric orientation. The pump keeps the
-meaningful `suction`/`discharge` names, and its geometry records only where each
-line leaves the symbol. The local instrument is the reusable base graphic with
-one process tap and **no** mandatory signal anchor: a local indicator may have no
-outgoing signal while a transmitter does, so a signal connection belongs to a
-later concrete instrument-function composition, not to the base graphic.
+The gate valve and the ball valve deliberately have no semantic inlet/outlet
+anchor contract: a generic valve of either kind is not inherently an inlet/outlet
+device, so their ports are named neutrally and carry only a geometric
+orientation. The pump keeps the meaningful `suction`/`discharge` names, and its
+geometry records only where each line leaves the symbol. The check valve is the
+case where a semantic connection *role* is meaningful, so it uses `inlet`/
+`outlet` while `orientation` stays purely geometric; the reducer is the opposite
+case, where even the names (`large_end`/`small_end`) describe canonical geometry
+only, because a reducer may be installed in either process-flow direction. The
+local instrument is the reusable base graphic with one process tap and **no**
+mandatory signal anchor: a local indicator may have no outgoing signal while a
+transmitter does, so a signal connection belongs to a later concrete
+instrument-function composition, not to the base graphic.
 
 A project tag such as `FV-101`, a line number, or a function letter code such as
 `PIT` is **never** part of a definition. Instrument letter codes are composition

@@ -280,7 +280,7 @@ validates it as one explicit origin/licence pair: `deepplant-original` geometry 
 accepted only under `AGPL-3.0-only`, and any other licence fails closed
 (`AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")`;
 contract: [dev/reference/symbol-library.md](../reference/symbol-library.md)). The
-geometry of the three current definitions is project-owned seed geometry
+geometry of the current definitions is project-owned seed geometry
 ([dev/reference/symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)),
 the canonical source those definitions are authored from. A future
 standards-aligned, company, or custom pack keeps independent provenance and may

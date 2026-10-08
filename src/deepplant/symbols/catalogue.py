@@ -1,13 +1,16 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""The implemented ``generic-iso`` symbol catalogue (Issue #119, first slice).
+"""The implemented ``generic-iso`` symbol catalogue (Issue #119).
 
-This module defines only the three representative representations the first
-Issue #119 slice implements: a connectable piping component (gate valve), an
-equipment symbol with process anchors (centrifugal pump), and the reusable base
-instrumentation graphic (local/field instrument). The catalogue is expanded only
-after the architecture in this slice has been reviewed.
+This module defines the representations the reviewed Issue #119 slices
+implement: connectable piping components (gate, ball, and check valves, and a
+reducer fitting), an equipment symbol with process anchors (centrifugal pump),
+and the reusable base instrumentation graphic (local/field instrument). The
+catalogue is expanded only in narrow, reviewed slices, and every definition
+stays a plain explicit ``SymbolDefinition``: there is no symbol-to-symbol
+composition, inheritance, or template mechanism, and no shared-geometry helper
+worth its own abstraction at this catalogue size.
 
 Geometry provenance
 ------------------
@@ -103,6 +106,100 @@ GATE_VALVE = SymbolDefinition(
     ),
 )
 
+# DeepPlant-authored project seed geometry for the ball valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed D): the same bowtie body as
+# the gate valve, with a circle on the process axis marking the ball. The two
+# horizontal stubs are DeepPlant's connection representation of the adjacent
+# pipeline (a presentation choice, not part of the valve body).
+#
+# Like the gate valve, a generic ball valve is not inherently an inlet/outlet
+# device, so the anchors stay neutral: `port_a`/`port_b` say only where a line
+# connects and which way it leaves the symbol, and no flow direction is encoded.
+BALL_VALVE = SymbolDefinition(
+    symbol_id="valve.ball",
+    name="Ball valve",
+    category="valve",
+    diagram_types=("pid",),
+    profile="generic-iso",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Circle(cx=50.0, cy=50.0, r=8.0),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+    ),
+)
+
+# DeepPlant-authored project seed geometry for the check valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed E): one triangle on the
+# process axis followed by a separate seat line, which is what makes the
+# one-way character readable. The triangle and the seat line are separated by a
+# gap so they never merge into one shape, and the stubs are DeepPlant's
+# connection representation of the adjacent pipeline.
+#
+# This definition separates the two concepts the anchor contract keeps apart:
+# `inlet`/`outlet` are semantic connection *roles*, while `orientation` stays
+# purely geometric (`west`/`east`). No `flow_direction` field exists on a
+# generic anchor, and none is added here.
+CHECK_VALVE = SymbolDefinition(
+    symbol_id="valve.check",
+    name="Check valve",
+    category="valve",
+    diagram_types=("pid",),
+    profile="generic-iso",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (58.0, 50.0))),
+        Line(x1=62.0, y1=34.0, x2=62.0, y2=66.0),
+        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="inlet", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="outlet", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+    ),
+)
+
+# DeepPlant-authored project seed geometry for the reducer
+# (docs/dev/reference/symbol-seed-geometry.md, seed F): a tapered body that
+# narrows from the large end to the small end, with a process stub on each side.
+#
+# `large_end`/`small_end` name the canonical geometry, which is what the drawing
+# actually fixes. They deliberately do not imply process flow direction: a
+# reducer may be used in either orientation, so the anchors are not named
+# `inlet`/`outlet` and carry only geometric orientation.
+FITTING_REDUCER = SymbolDefinition(
+    symbol_id="fitting.reducer",
+    name="Reducer",
+    category="fitting",
+    diagram_types=("pid",),
+    profile="generic-iso",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (72.0, 42.0), (72.0, 58.0), (28.0, 66.0))),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="large_end", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="small_end", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+    ),
+)
+
 # DeepPlant-authored project seed geometry for the centrifugal pump
 # (docs/dev/reference/symbol-seed-geometry.md, seed B): a circular casing with a
 # full horizontal line through it, plus a line from the casing top and a line
@@ -164,8 +261,13 @@ INSTRUMENT_LOCAL = SymbolDefinition(
 )
 
 #: The definitions the implemented ``generic-iso`` profile currently exposes.
+#: Declaration order here is not significant: the registry exposes them in
+#: stable symbol-id order.
 IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     GATE_VALVE,
+    BALL_VALVE,
+    CHECK_VALVE,
     PUMP_CENTRIFUGAL,
+    FITTING_REDUCER,
     INSTRUMENT_LOCAL,
 )
