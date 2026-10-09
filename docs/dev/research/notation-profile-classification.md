@@ -530,7 +530,7 @@ No change in this task.
 |---|---|---|---|---|
 | `valve.gate` | `generic-iso` | Candidate / suitable | Family relevant (ISO 10628-2 / ISO 14617-2); exact geometry unresolved; external recognizability insufficiently evidenced | Migrate to `deepplant-default` (geometry unchanged); defer any standards profile pending evidence/verification |
 | `pump.centrifugal` | `generic-iso` | Unresolved / insufficient evidence | Family relevant; exact geometry unresolved | Focused review before migration; redesign possible but not established; no standards profile yet |
-| `instrument.local` | `generic-iso` | Candidate / suitable | Instrumentation-specific context clearly relevant (ISO 15519-2 / ISA-5.1); exact geometry unresolved; role of ISO 10628-2 unresolved | Migrate to `deepplant-default`; later an instrumentation standards profile |
+| `instrument.local` | `generic-iso` | Candidate / suitable | Instrumentation-specific context clearly relevant (ISO 15519-2 / ISA-5.1); exact geometry unresolved; role of ISO 10628-2 unresolved | Migrate to `deepplant-default`; defer standards-specific profile composition to #124 |
 
 ### Evidence-strength distinction (not compressed into one score)
 
