@@ -235,12 +235,15 @@ agent. That is a result, not a failure.
 
 ## Standards / notation landscape
 
-The three current symbols cannot be classified against one standard family,
-because the process-diagram standards **layer rather than compete**: one family
-addresses the diagram and its equipment/piping glyphs, another addresses
-instrumentation, measurement, and control. This section quotes no ISO/ISA/IEC
-source text; it restates only what the **DeepPlant standards registry** already
-records as each standard's role.
+The current DeepPlant standards registry records different standards-family
+references for the three symbols: equipment/process-symbol references for
+`valve.gate` and `pump.centrifugal`, and an instrumentation/measurement-control
+reference for `instrument.local`. This is sufficient to **question** whether one
+standards-specific profile identity can represent all three concerns, but not to
+determine the final composition model: whether these standards families overlap,
+compose, or require distinct profile representation remains **unresolved** under
+Issue #124. This section quotes no ISO/ISA/IEC source text; it restates only what
+the **DeepPlant standards registry** already records as each standard's role.
 
 | Family (as recorded by DeepPlant) | Document(s) | Registry role summary | Relevance here |
 |---|---|---|---|
