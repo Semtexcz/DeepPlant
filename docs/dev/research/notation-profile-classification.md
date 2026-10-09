@@ -78,9 +78,25 @@ superseded_by: null
   available; or the catalogue changes materially.
 
 **This document does not own current rules and does not authorize a migration.**
-It records what was investigated and found. Which profile a representation
-belongs to is decided by [profiles.py](../../../src/deepplant/symbols/profiles.py)
-and the migration authorized by Issue #124; the symbol contract is
+It records what was investigated and found. Issue #124 defines the governing
+notation-profile architecture; any concrete migration requires a separately
+scoped and authorized implementation Issue that is consistent with #124.
+
+```text
+profiles.py
+    which notation profiles exist
+    what policy applies to them
+SymbolDefinition
+    which profile this representation belongs to
+authorized migration
+    changes that assignment
+```
+
+[profiles.py](../../../src/deepplant/symbols/profiles.py) defines the recognised
+notation-profile vocabulary and profile policy. A concrete representation's
+`notation_profile` is carried by its `SymbolDefinition`; changing that assignment
+is a production migration and requires a separately scoped and authorized
+implementation Issue. The symbol contract is
 [symbol-library.md](../reference/symbol-library.md).
 
 ## Research question
@@ -692,10 +708,15 @@ change**, not part of this research.
 These are recommendations, not created Issues. The smallest next bounded slices,
 in dependency order:
 
+These are a **research recommendation (YES)** with **implementation
+authorization: NO**. They are not authorized by this research document and not
+authorized merely by #124 (which is architecture/planning only); each slice
+requires its own separately scoped and **Ready** implementation Issue.
+
 | # | Slice | Category | Depends on |
 |---|---|---|---|
 | 1 | Focused review of `pump.centrifugal` geometry (nozzle/through-line/internal treatment), keeping the same `symbol_id` and anchors; redesign only if the review concludes it is warranted | B — review before migration | — |
-| 2 | Migrate `valve.gate` and `instrument.local` to `deepplant-default` with **no geometry change**; keep the existing (optional) standards relationship as an intent record | A — migrate to default | #124 authorizes the migration |
+| 2 | Migrate `valve.gate` and `instrument.local` to `deepplant-default` with **no geometry change**; keep the existing (optional) standards relationship as an intent record | A — migrate to default | #124 architecture; separate Ready implementation Issue required |
 | 3 | Under #124, decide how equipment/process-symbol standards and instrumentation/control standards compose in one drawing | C — profile architecture | #124; this evidence |
 | 4 | Obtain human verification against authorized copies before any `human-verified` / standards-profile representation | D — human verification | 1–3 |
 | 5 | Make the coverage matrix (and gallery) profile-aware | E — matrix/gallery | 3 |
