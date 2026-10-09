@@ -18,7 +18,8 @@ decision:
   - docs/dev/decisions/ADR-0007-standards-and-symbol-provenance.md
   - docs/dev/decisions/ADR-0017-machine-rendered-symbol-definitions.md
 evidence:
-  - DeepPlant MVP drawing support profile v0.1 (private reference bundle)
+  - operator-selected MVP reference directory (private; neutral identifiers only)
+  - DeepPlant MVP drawing support profile v0.1 (operator-bundled, status proposed)
 superseded_by: null
 ---
 
@@ -35,30 +36,53 @@ is [symbol-library.md](symbol-library.md).
 
 ## MVP Core selection
 
-Issue #119 scopes the MVP to a deliberate vocabulary subset, the **MVP Core**:
-the concepts the PFD and P&ID acceptance scenes must be able to draw, and nothing
-else. The selection is derived from the operator-authored MVP drawing profile and
-confirmed against production usage in
+Issue #119 scopes the MVP to a deliberate vocabulary subset, the **MVP Core**: the
+concepts the selected MVP reference content must be able to represent. The
+operator-selected MVP reference directory is the **authoritative requirements
+boundary**; the bundled MVP drawing profile v0.1 and this matrix are
+interpretation, classification, and implementation-status aids, and neither
+overrides it. The derivation is owned by
 [../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md);
-that evidence document owns the derivation, and this matrix owns each concept's
-classification and status.
+this matrix owns each concept's classification and status.
+
+That evidence document was corrected on 2026-10-09 (its first revision derived the
+Core from the profile and demoted operator-selected content to "usage evidence
+only"). Under the corrected derivation the Core is:
 
 ```text
-28 Core entries    base symbols, composites, connections, annotations
- 3 implemented     valve.gate, pump.centrifugal, instrument.local
-25 remaining       planned, deferred, or out of the base library
+41 Core entries    18 base symbols, 5 composed representations,
+                    7 connections, 11 annotations
+13                  project conventions               (tracked outside the Core)
+ 6                  semantic gaps                     (tracked outside the Core)
+10                  representation-design questions   (tracked outside the Core)
+
+capability-specific implementation state
+  base symbols    3 implemented / 15 missing
+  composed        0 implemented /  5 missing
+  connections     1 implemented / 1 partial / 5 missing
+  annotations     1 implemented / 1 partial / 9 missing
 ```
+
+The former summary — "28 Core entries / 3 implemented / 25 remaining" — is
+withdrawn: it counted project conventions as a partition while excluding them from
+the arithmetic, and it reported annotations, connections, and compositions as if
+they were remaining symbol definitions.
 
 Two rules follow from the selection, and both are already this matrix's rules:
 
 - one representation per engineering concept — never one symbol per project code
-  (`PI`, `PIT`, `TI`, `FIC`, `LIC` stay text composed onto a base graphic);
+  (`PI`, `PIT`, `TI`, `FIC`, `LIC` stay text composed onto a base graphic), and
+  never one symbol per repeated instance;
 - company tag prefixes, fluid and insulation codes, line-designation rules,
   DCS/SIS practice, and corporate title blocks are `project-convention`, never
   base-library assets.
 
-The Core is closed for MVP acceptance purposes: widening it is a profile change,
-not a symbol implementation.
+The `MVP` column in the tables below follows the corrected derivation: `yes` means
+required by the selected MVP reference content, `optional` means allowed but not
+needed to preserve the selected information, and `no` means not required for the
+selected MVP information, with the reason recorded in the evidence document.
+Widening the Core is an operator selection decision, not a symbol implementation
+and not a repository preference.
 
 ## Three different facts
 
@@ -119,12 +143,16 @@ representation was located, inspected, or assessed.
 
 ## Reference material handling
 
-The MVP reference bundle (the YARA / Chemoproject PFD, P&ID, and stretch
-drawings, summarised by the *DeepPlant MVP drawing support profile v0.1*) is
-private project material. It answers **what must be drawable**; it is never a
-source of geometry. No symbol is copied, vectorised, traced, or measured from
-it, and no title block, tag, note, or symbol sheet is reproduced
-([standards.md](../workflow/standards.md), ADR-0007).
+The operator-selected MVP reference bundle — one PFD sheet, two P&ID sheets, and
+the project's piping-elements and instrumentation-and-control notation legends,
+summarised by the operator-bundled *DeepPlant MVP drawing support profile v0.1* —
+is private project material, and it is the authoritative MVP requirements
+boundary. It answers **what must be representable** and **how the selected project
+draws it**; it is never a source of geometry. No symbol is copied, vectorised,
+traced, or measured from it, and no title block, tag, note, document identifier,
+drawing title, or symbol sheet is reproduced
+([standards.md](../workflow/standards.md), ADR-0007). It is referenced only by
+neutral role identifiers ([../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md)).
 
 The companies' own conventions (tag prefixes, line designation, DCS/SIS
 practice, interlock numbering) are recorded here as `project-convention` so they
@@ -141,11 +169,11 @@ cannot be mistaken for a standard base library.
 | Mixer | mixing | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with multiple process anchors | 2-inlet / multi-inlet | no | yes | planned |
 | Burner / reactor | reaction | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with anchored connections | burner / vessel reactor | no | yes | planned |
 | Pump | pumping | `symbol` | equipment | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a circular casing with a horizontal process line and two internal lines, recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | centrifugal implemented; other pump types planned | no | yes | **implemented** (`pump.centrifugal`) |
-| Storage / hold-up tank | storing material | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | containment outline with process anchors | tank / vessel forms | no | optional | planned |
+| Storage / hold-up tank | storing material | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | containment outline with process anchors | tank / vessel forms | no | yes (re-derived: required) | planned |
 | Directional process stream | process stream | `connection` | piping | ISO 15519-2:2015 (connection conventions); `reference` | routed line plus an arrowhead | arrow forms | no | yes | already drawn by the process renderer as output, not as a symbol definition |
 | Stream number label | process stream annotation | `annotation` | annotation | not a graphical symbol; numbering practice is company-specific | text placed along a stream | — | yes | yes | planned (text, never geometry) |
 | Equipment tag label | equipment annotation | `annotation` | annotation | not a graphical symbol | text placed beside the representation | — | prefix rules are project-specific | yes | planned (text, never geometry) |
-| Automatic stream property table | annotation | `annotation` | annotation | — | the MVP Properties panel, not an automatic drawing table | — | no | out of scope for v0.1 | deferred |
+| Automatic stream property table | annotation | `annotation` | annotation | — | the MVP Properties panel, not an automatic drawing table | — | no | no (the data is required — semantic gap F1; the automatic table is not) | deferred |
 
 
 ## P&ID / physical concepts
@@ -173,11 +201,11 @@ cannot be mistaken for a standard base library.
 | Instrument function letter codes | measurement / control function | `annotation` | annotation | ISO 15519-2:2015 (instrument identification); `reference` | text composed onto a base symbol; **never** one symbol definition per code such as PIT, TI, or FIC | process variables / control functions / modifiers | tag values are project-specific | yes | planned (text, never geometry) |
 | Signal / instrument connection lines | signal connection | `connection` | signal | ISO 15519-2:2015 (connection conventions); `reference` | line convention separate from piping, attached through an anchor whose kind is `signal` on a composed instrument function, never on the reusable base graphic | electric / pneumatic / hydraulic | media conventions are project-specific | yes | planned |
 | Measurement sensors and elements | measurement sensor | `symbol` | instrument | ISO 15519-2:2015 (measurement symbols); `reference` | small measurement graphic placed on the piping or equipment | by measured variable | no | yes | planned |
-| Instrument with integrated display | instrument display | `composed-symbol` | instrument | ISO 15519-2:2015 (display indication); `reference` | base circle composed with the display indication | form 1 / form 2 | no | optional | planned (composition deferred) |
-| Multifunction instrument | multiple functions in one housing | `composed-symbol` | instrument | ISO 15519-2:2015 (multifunction housing); `reference` | two base circles placed side by side inside one envelope | by function count | no | optional | planned (composition deferred) |
+| Instrument with integrated display | instrument display | `composed-symbol` | instrument | ISO 15519-2:2015 (display indication); `reference` | base circle composed with the display indication | form 1 / form 2 | no | yes (re-derived: required as the control-system instrument variant, evidence entry B04) | planned (composition deferred) |
+| Multifunction instrument | multiple functions in one housing | `composed-symbol` | instrument | ISO 15519-2:2015 (multifunction housing); `reference` | two base circles placed side by side inside one envelope | by function count | no | no (legend-only; not required for the selected MVP information) | planned (composition deferred) |
 | DCS / SIS representation | control-system participation | `project-convention` | control system | company practice, not a standard library asset | project convention; never part of a base symbol | DCS / SIS | yes | yes | out of the base library |
 | Interlock, trip and SIF numbering | safety function annotation | `project-convention` | annotation | company practice, not a standard library asset | project text and numbering | interlock / trip / SIF | yes | yes | out of the base library |
-| Reference to a typical diagram | project typical reference | `composite-typical` | annotation | ISO 15519-2:2015 (typical references); `reference` | a reference marker pointing at a documented typical, not a copy of it | — | yes | yes | deferred |
+| Reference to a typical diagram | project typical reference | `composite-typical` | annotation | ISO 15519-2:2015 (typical references); `reference` | a reference marker pointing at a documented typical, not a copy of it | — | yes | no (not evidenced in the selected MVP content; tracked as a project convention) | deferred |
 
 ## Project conventions (deliberately not a symbol library)
 
@@ -198,7 +226,10 @@ cannot be mistaken for a standard base library.
 | `pump.centrifugal` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `suction` → west, process; `discharge` → east, process |
 | `instrument.local` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 15519-2:2015 | `candidate-alignment` | `tap` → south, process |
 
-Everything else above is `planned`, `deferred`, or `out of the base library`. No
+Everything else above is `planned`, `deferred`, or `out of the base library`; the
+MVP Core reports that remainder per capability instead of as one total (see
+[MVP Core selection](#mvp-core-selection) and the
+[evidence document](../research/mvp-symbol-core-selection.md)). No
 concept outside these three is implemented, no standards relationship is
 `human-verified`, and the three implemented geometries are DeepPlant-authored
 project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not

@@ -22,7 +22,8 @@ decision:
   - docs/dev/decisions/ADR-0007-standards-and-symbol-provenance.md
   - docs/dev/decisions/ADR-0017-machine-rendered-symbol-definitions.md
 evidence:
-  - DeepPlant MVP drawing support profile v0.1 (private reference bundle)
+  - operator-selected MVP reference directory (private; neutral identifiers only)
+  - DeepPlant MVP drawing support profile v0.1 (operator-bundled, status proposed)
 superseded_by: null
 ---
 
@@ -31,46 +32,52 @@ superseded_by: null
 ## Outcome card
 
 - **Question investigated:** which concrete graphical vocabulary — base symbols,
-  composites, connections, annotations, and project conventions — must the MVP be
-  able to draw, given the operator-authored MVP drawing profile and the private
-  reference set it was derived from?
-- **Status:** closed evidence. The selection is bounded and reproducible from
-  material already recorded in the repository plus one operator-selected private
-  reference set; it establishes *what is in the MVP Core*, not how any of it is
-  drawn.
-- **Scope of investigation:** the DeepPlant-authored MVP drawing profile v0.1,
-  the operator-selected private MVP reference set (one PFD sheet, one P&ID sheet,
-  its two legend sheets, and the stretch P&ID sheet), and the DeepPlant-authored
-  repository material listed under [Sources](#sources). Assessed on **2026-10-09**.
-  No restricted ISO/ISA/IEC content was inspected, and no standards locator,
-  figure, table, or item number is recorded.
+  composed representations, connections, and annotations — must the MVP be able to
+  represent, given the reference set the operator selected as the MVP
+  product-requirements boundary?
+- **Status:** closed evidence, **corrected**. The first revision of this document
+  had the scope authority reversed; this revision re-derives the MVP Core from the
+  operator-selected reference set itself and supersedes that revision's 28-entry
+  result, its partition counts, and its remainder metric.
+- **Inspection scope and date:** the operator-selected MVP reference directory
+  (three drawing sheets, two notation legend sheets, one duplicate legend copy,
+  and the operator-bundled MVP drawing profile v0.1) plus the DeepPlant-authored
+  repository material listed under [Sources](#sources). Re-inspected and
+  recomputed **2026-10-09**. No restricted ISO/ISA/IEC content was inspected, and
+  no standards locator, figure, table, or item number is recorded.
 - **Conclusions:**
-  - The MVP Core is a **vocabulary subset, not a standards implementation**: the
-    profile deliberately selects "the smallest semantically correct drawing subset"
-    for the two golden scenes, and everything else in the reference set is
-    *evidenced but deliberately outside the Core*.
-  - The Core spans **five partitions** — base symbols, composites, connections,
-    annotations, and project conventions — and each entry carries exactly one
-    [coverage-matrix](../reference/mvp-symbol-coverage.md) classification.
-  - **28 selected Core entries** are recorded below; **three** exist as
-    `SymbolDefinition`s today (`valve.gate`, `pump.centrifugal`,
-    `instrument.local`). The remaining 25 are `planned`, `deferred`, or
-    deliberately `out of the base library`.
-  - The reference set is **richer than the Core in every partition** (duty/standby
-    pumps, interlocks and trip diamonds, voting, specialty valves, alarm states,
-    title block and revision table). That gap is the scoping decision, and it is
-    recorded as *excluded*, not as an oversight.
+  - The operator-selected reference directory is the **authoritative requirements
+    boundary**. The bundled profile and the repository coverage matrix are
+    interpretation, classification, and implementation-status aids: they may
+    confirm, classify, and explain a requirement, but they never silently remove
+    engineering content the operator placed inside that boundary.
+  - Re-derived from that boundary, the MVP Core is **41 entries**: **18** base
+    symbols, **5** composed representations, **7** connections, and **11**
+    annotations. Project conventions (13), semantic gaps (6), and
+    representation-design questions (10) are tracked **outside** the Core count.
+  - Capability-specific implementation state: base symbols 3 implemented / 15
+    missing; composed representations 0 implemented / 5 missing; connections 1
+    implemented / 1 partial / 5 missing; annotations 1 implemented / 1 partial / 9
+    missing. The earlier single "25 remaining" metric is withdrawn, because it
+    mixed capabilities that are not SymbolDefinitions at all.
+  - Everything the profile called nice-to-have, was silent about, or excluded
+    without reference to the selected *drawing* content — storage, pumping,
+    filter/strainer, heat exchanger, control-system instruments, ball and
+    safety valves, alarm/fail-state/interlock annotation, general notes, and the
+    complexity-gate vocabulary — is re-derived here as **required**, **optional**,
+    or **not required**, with the selected evidence or the recorded reason stated.
   - The three implemented representations keep the classification given them by
     [notation-profile-classification.md](notation-profile-classification.md):
     `valve.gate` and `instrument.local` are `deepplant-default` candidates;
     `pump.centrifugal` stays `REVIEW_BEFORE_MIGRATION / INSUFFICIENT_EVIDENCE`.
     **This document changes neither the profile assignment nor the geometry.**
-- **Resulting decision:** none in production code. The selection is scope
-  evidence for the [coverage matrix](../reference/mvp-symbol-coverage.md), which
-  now names the MVP Core explicitly.
-- **Conditions for revisiting:** the profile is approved or revised
-  (its status is currently `proposed`); the active milestone changes; a Core
-  concept's implementation changes; or a new reference set is supplied.
+- **Resulting decision:** none in production code. The selection is scope evidence
+  for the [coverage matrix](../reference/mvp-symbol-coverage.md), which names the
+  MVP Core explicitly.
+- **Conditions for revisiting:** the operator widens or narrows the selected
+  reference directory; a recorded discrepancy or scope question below is
+  answered; the bundled profile is approved or revised; the active milestone
+  changes; or a Core concept's implementation changes.
 
 **This document owns no current rule and implements no symbol.** It records what
 was selected and why. The rendering contract stays
@@ -87,243 +94,477 @@ concept has been implemented*; this document answers *which concepts the MVP Cor
 contains at all*.
 
 ```text
-reference set            what the operator's production drawings contain
-MVP drawing profile      the deliberate subset selected from them  (authoritative)
-MVP Core (this document) the vocabulary that subset needs
-coverage matrix          per-concept classification and status
-catalogue.py             the three representations implemented so far
+operator-selected reference directory  the requirements boundary      (authoritative)
+MVP drawing profile v0.1               interpretation / classification aid
+MVP Core (this document)               the minimal reusable vocabulary that represents it
+coverage matrix                        per-concept classification and implementation status
+catalogue.py                           the three representations implemented so far
 ```
 
-## Scope and method
+## Scope authority (corrected)
 
-Two inputs, with deliberately unequal authority:
+The inputs, and their deliberately unequal authority:
 
 | Input | Authority | Used for |
 |---|---|---|
-| *DeepPlant MVP drawing support profile v0.1* (operator-authored, `proposed`) | **authoritative scope** | what the MVP Core contains |
-| Operator-selected private MVP reference set | **usage evidence only** | confirming that each selected concept is actually used in production drawings, and bounding what is excluded |
+| Operator-selected MVP reference directory (three drawing sheets plus the project notation legends) | **authoritative requirements boundary** | what the MVP must be able to represent |
+| *DeepPlant MVP drawing support profile v0.1* (bundled in that directory, status `proposed`) | **classification and interpretation aid** | naming the subset the operator proposed, its required / nice-to-have / explicitly excluded vocabulary, and explaining why a concept matters |
+| Repository coverage matrix and symbol contract | classification vocabulary and implementation status | each concept's classification, its current support, and the rendering contract |
+| Implemented catalogue (read-only) | current capability | what exists today |
 
-The profile is the scoping instrument. The reference set is never used to *add* a
-concept to the Core; it may only confirm a Core entry or evidence an exclusion.
-Where the reference set contains more than the profile requires, the profile
-wins and the extra content is recorded as out of scope.
+The profile may classify, explain, and propose. It must not override the operator's
+selection: where the two disagree, the discrepancy is recorded (see
+[Recorded discrepancies and scope questions](#recorded-discrepancies-and-scope-questions)).
+
+### Derivation rule
 
 ```text
-profile says "required"          → Core entry
-profile says "nice-to-have"      → Core entry, after the golden scene
-profile says "out of scope"      → excluded, with the reference-set usage noted
-profile is silent, set uses it   → excluded, recorded as an evidence gap
+A concept belongs to the MVP requirements when:
+    it occurs in the operator-selected reference set
+AND
+    DeepPlant must represent it to preserve the intended engineering
+    information of that selected MVP content.
 ```
+
+It is minimized only at the **reusable representation level**:
+
+```text
+PIT, PIC, TI, FIC   ->  one instrument base graphic
+                        + function-letter composition
+                        + the relevant connection capabilities
+                    !=  four base symbols
+```
+
+Repeated use of one concept does not multiply the vocabulary either: the selected
+content contains many valves, many instruments, several parallel equipment items
+and repeated control loops, and each of those deduplicates to one representation
+plus, where needed, composition, annotation, or project data.
+
+The rule the first revision applied is **withdrawn**:
+
+```text
+withdrawn   profile silent + selected set uses concept   ->  excluded
+corrected   profile silent + selected set uses concept   ->  requirement,
+                                                             or a recorded gap
+```
+
+How the profile's own statements are used:
+
+```text
+profile says "required"      ->  requirement (confirms the selected content)
+profile says "nice-to-have"  ->  requirement when the selected drawings need it;
+                                 otherwise optional for the selected information
+profile is silent            ->  requirement, or a recorded evidence / semantic /
+                                 graphical / composition gap — never a silent exclusion
+profile says "out of scope"  ->  a recorded reason for "not required", valid only
+                                 when the selected drawing content itself does not
+                                 need the concept represented
+```
+
+## Recorded discrepancies and scope questions
+
+- **Complexity-gate sheet.** The bundled profile designates the second P&ID sheet
+  as the post-MVP complexity gate ("not part of MVP acceptance"). That sheet sits
+  inside the directory the operator selected as the MVP requirements boundary, so
+  its content is treated here as *inside* the boundary, and the profile's
+  designation is recorded as a discrepancy for the operator to resolve. This
+  document does not resolve it by excluding the sheet.
+- **Legend vocabulary.** The selected bundles contain the project's notation
+  legends, which define a wider vocabulary than the selected drawings use. This
+  selection treats a legend definition that no selected drawing uses as
+  *not required for the selected MVP information*, and records it explicitly (see
+  [Not required for the selected MVP information](#not-required-for-the-selected-mvp-information))
+  so that nothing is dropped silently. If the operator intends the selected
+  **legend vocabulary itself** to be MVP-required, the Core widens by that
+  recorded list; that is an operator decision, not a repository one.
+- **Unused "supported in the data model" claim.** The profile states that detailed
+  stream properties (density, volumetric flow, composition, molecular weight) are
+  supported in the data model. The current `ProcessStream` carries only `id`,
+  `name`, `source`, and `target` ([contracts/process-model.md](../../contracts/process-model.md)),
+  and the physical layer records no unit/quantity typing yet, so no such carrier
+  exists today. That discrepancy is recorded as a semantic gap rather than
+  accepted as a profile fact.
+- **Profile status.** The profile is `proposed`, not approved. That remains useful
+  context, and it is **no longer** a prerequisite for recognizing requirements the
+  operator already selected.
 
 ## Reference material handling
 
-The reference set is a private company bundle, selected by the operator for MVP
-scoping. It is **never a source of geometry**, and it is not redistributed:
+The reference set is a private company bundle, selected by the operator as the MVP
+requirements boundary. Its drawings state requirements; they are **never a source
+of geometry**, and they are not redistributed:
 
 - Nothing from it is committed, quoted, traced, vectorised, or measured. No
   symbol artwork, layout, title block, revision table, equipment data block, note
   text, tag value, line-tag value, or symbol-sheet item is reproduced here or in
   the repository.
+- The selected material is referenced **only by neutral role identifiers** (see
+  [Inspected evidence](#inspected-evidence)). No source filename, document number,
+  drawing title, private path, title-block value, customer or project identifier,
+  tag, line number, or copied legend text is recorded.
 - Only **concept-level vocabulary** is recorded: generic engineering concepts
   ("gate valve", "centrifugal pump", "off-page connector") that the repository
   already names. The sheets name standard families; **no standard locator, figure
   reference, table number, or item number observed on them is recorded**, because
   only a permitted source or a recorded human verification may supply that
   ([standards.md](../workflow/standards.md), ADR-0007).
-- The three implemented geometries remain DeepPlant-authored project seed
-  geometry ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). No
-  geometry was derived from this bundle before or after this inspection.
+- The three implemented geometries remain DeepPlant-authored project seed geometry
+  ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). No geometry was
+  derived from this bundle before or after this inspection.
 
 ```text
-used as      scoping and usage evidence (does the concept occur in production?)
+used as      the requirements boundary (which engineering concepts must the MVP represent?)
+             and notation evidence (how does the selected project draw them?)
 not used as  geometry, locator, naming, layout, or compliance evidence
 ```
 
 ## Inspected evidence
 
-| Source | Role | Inspected for |
+Seven PDF pages across three documents, plus one bundled profile document. Listed
+by neutral role, not by content.
+
+| Neutral identifier | What it is | Role in this evidence |
 |---|---|---|
-| *DeepPlant MVP drawing support profile v0.1* | authoritative scope | required / optional / out-of-scope vocabulary per section 1–5 |
-| PFD reference sheet (`AMMONIA BURNING`) | usage evidence | PFD step kinds, boundaries, stream labels, tag presentation |
-| P&ID reference sheet (`PROCESS WATER`) | usage evidence | equipment, inline components, nozzles, loop topology, line tags |
-| P&ID legend sheet (piping elements) | usage evidence | the piping-component and line-treatment vocabulary actually used |
-| P&ID legend sheet (instrumentation and control) | usage evidence | instrument functions, signal lines, control-system participation |
-| Stretch P&ID sheet (`AMMONIA EVAPORATION I`) | usage evidence | the complexity gate's vocabulary, at concept level only |
-| [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md), [symbol-library.md](../reference/symbol-library.md), [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md), [notation-profile-classification.md](notation-profile-classification.md) | repository evidence | classification vocabulary, per-concept status, the three implemented definitions, the current profile classification |
+| MVP PFD reference A | one PFD sheet | process-side requirements |
+| MVP P&ID reference A | one P&ID sheet | physical and instrumentation requirements |
+| MVP P&ID reference B | one P&ID sheet (the sheet the bundled profile designates as the complexity gate) | richer physical and instrumentation requirements |
+| Supporting P&ID legend A | the project's piping-elements notation legend | valve/fitting vocabulary and piping, line-number and insulation conventions |
+| Supporting P&ID legend B | the project's instrumentation-and-control notation legend | instrument, signal-line, actuator and letter-code notation |
+| Duplicate legend copy | the same two legend sheets appear again in the second bundle in the directory | counted **once**: the two copies' inspected text layers are identical, so they are duplicate copies, not a distinct revision |
+| MVP drawing profile v0.1 | the operator-bundled profile document | classification and interpretation aid only |
+
+The sheets also carry project document apparatus (revision tables, title blocks,
+equipment data tables, connector lists). It was inspected only to classify it as
+project convention; none of it is recorded.
 
 Read-only inspection also covered
-[catalogue.py](../../../src/deepplant/symbols/catalogue.py) and
-[profiles.py](../../../src/deepplant/symbols/profiles.py) to confirm that exactly
-three representations exist and that their `notation_profile` is `generic-iso`.
+[mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md), [symbol-library.md](../reference/symbol-library.md),
+[symbol-seed-geometry.md](../reference/symbol-seed-geometry.md),
+[notation-profile-classification.md](notation-profile-classification.md),
+[catalogue.py](../../../src/deepplant/symbols/catalogue.py),
+[profiles.py](../../../src/deepplant/symbols/profiles.py), and
+[contracts/process-model.md](../../contracts/process-model.md) to confirm the
+implemented definitions, their `notation_profile` and `diagram_types`, the
+classification vocabulary, and the current model's stream contract.
 
 ## Observed reference-set vocabulary (concept level)
 
-Recorded so the Core selection can be read against real production usage. This is
-a *superset* of the Core; nothing here is added to the Core by being observed.
+Recorded so the Core can be read against the selected content. This is a
+*superset* of the Core: nothing here is added to the Core by being observed, and
+nothing here is removed from consideration silently.
 
-| Partition | Observed in the reference set |
+| Capability class | Observed in the selected drawing sheets (concept level) |
 |---|---|
-| PFD process representations | filter, compressor, air heater / heat exchanger, mixer, reactor / burner, pump, tank / hold-up, boundary connectors, stream labels, equipment data blocks |
-| P&ID equipment | vertical vessel / tank with lettered nozzles, centrifugal pumps in parallel, filters / strainers, heat exchangers, separator, ejector, scrubber, expansion joint |
-| P&ID inline components | gate valve, globe valve, ball valve, check valve, control valve with actuator, restriction orifice, pressure / temperature relief valve, relief and vacuum / breath valves, steam trap, automatic vent valve, flame arrestor, sight glass, spectacles / blinds, caps / plugs, flanges, funnel / drain |
-| Instrumentation | pressure, temperature, level, and flow indicators, transmitters, controllers, and control-valve functions; primary flow element; level gauges; panel and DCS instruments; alarms (high / high-high / low / low-low); trip and interlock references; voting |
-| Connections | process piping lines with authored line tags, branches and junctions, off-page connectors between sheets, electrical signal lines, instrument functional taps, line treatment (insulation, heat conservation, tracing) |
-| Annotations | equipment tags with type letters, lettered nozzle designations, line tags, instrument loop designations, notes, drawing frames, title block and revision table |
+| PFD process steps | filtration; compression; heat exchange in several duties (heating, superheating, preheating, evaporation); mixing; reaction / burning; pumping; hold-up / storage; a vessel or drum item |
+| P&ID equipment | storage tank with lettered nozzles; centrifugal pumps (duty and stand-by instances); heat exchangers / evaporators; filters; vessels and drums with internals |
+| P&ID inline components | gate, globe, check, ball, three-way and control valves; restriction orifices; spring-loaded safety / relief valves; reducers; flanged joints |
+| Instrumentation | flow, level, pressure, differential-pressure and temperature measurement with indicator / transmitter / controller / element functions; locally mounted, panel-mounted and safety-system instruments; alarms (high, high-high, low, low-low), set points; interlocks |
+| Connections | directional process streams; battery-limit boundaries; off-page / continuation connectors; routed piping with branches; functional instrument taps; electric signal lines |
+| Annotations | stream numbers and a stream property / composition table; equipment tags and names; nozzle designations; line tags; instrument loop designations; alarm and fail-state annotations; drawing notes |
+| Project notation defined by the legends | valve, fitting, actuator, instrument and signal-line vocabulary; the instrument letter-code system; fluid and equipment code lists; line-designation rules; insulation and heating codes; safety-interlock and trip numbering systems; title block and revision table |
 
-Two findings matter for scoping:
+Findings that matter for scoping:
 
 ```text
-1. the reference set contains control and safety functions the MVP does not
-   require (PIC/TIC-style loops, relief-device philosophy, voting, interlocks)
-2. the reference set contains layout, tag, and code data that is project-owned
-   and that the MVP must not embed in symbol geometry
+1. the selected drawing content is wider than the bundled profile's "required"
+   list: storage, pumping, filters, exchangers, ball and safety valves,
+   control-system instruments, alarms, fail-state and interlock annotation, and
+   notes all occur in the selected drawing content
+2. the selected content also contains the complexity-gate sheet's richer vocabulary
+3. the legends define a vocabulary wider than any selected drawing sheet uses
+4. tag, code, numbering and layout data in the selected content is project-owned
+   and must never be embedded in symbol geometry
 ```
-
-Both are consistent with the profile's own exclusions (section 1.4, 2.6, 3, 5)
-and with the coverage matrix's rule that company conventions are recorded as
-`project-convention`.
 
 ## The MVP Core vocabulary
 
-Five partitions, one table each. Column meanings:
+Four capability classes are counted in the Core, and three cross-cutting lists are
+tracked separately. Classification values are exactly the coverage matrix's
+vocabulary; every row below also has (or gains) a row there.
 
 ```text
-Core        core            the profile requires it for MVP acceptance
-            core-optional   the profile allows it "if already cheap" / nice-to-have
-            excluded        the profile or an evidence gap keeps it out of the Core
-Observed    yes / partial / —   whether the inspected reference set uses the concept
-Implemented the current DeepPlant implementation state, from mvp-symbol-coverage.md
+counted in the Core (four capability classes)
+    required      symbols, composed representations, connections, annotations
+    optional      same classes, allowed but not needed for the selected information
+    not required  same classes, with the reason recorded
+
+tracked outside the Core (never added to the Core total)
+    project conventions
+    semantic gaps
+    representation-design questions
 ```
 
-Classification values are exactly the coverage matrix's vocabulary; every row
-below also has (or gains) a row there.
+Column meanings:
 
-### 1. Base symbols — PFD process representations
+```text
+Context         the diagram context the selected content needs the concept in
+Requirement     required / optional / not required, per the derivation rule above
+Selected evidence  the neutral reference(s) that establish the requirement
+Current support implemented / partial / missing, from mvp-symbol-coverage.md
+Gap type        the precise gap where support is not implemented
+```
 
-| Concept | Classification | Core | Observed | Implemented |
-|---|---|---|---|---|
-| Filter | `symbol` | core | yes | planned |
-| Compressor | `symbol` | core | yes | planned |
-| Heater / heat exchanger (PFD step form) | `symbol` | core | yes | planned |
-| Mixer, two or more inlets | `symbol` | core | yes | planned |
-| Reactor / burner | `symbol` | core | yes | planned |
-| Pump (PFD step form) | `symbol` | core-optional | yes | planned — not the same representation as `pump.centrifugal` |
-| Storage / hold-up tank (PFD step form) | `symbol` | core-optional | yes | planned |
+### 1. Base symbols (18 required)
 
-### 2. Base symbols — P&ID equipment and inline components
+| # | Concept (stable identity) | Context | Classification | Requirement | Selected evidence | Current support | Gap type |
+|---|---|---|---|---|---|---|---|
+| A01 | Filter | pfd + pid | `symbol` | required | PFD A (gas and liquid filtration steps); P&ID B (filter equipment) | missing | missing base SymbolDefinition |
+| A02 | Compressor | pfd | `symbol` | required | PFD A | missing | missing base SymbolDefinition |
+| A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (one reusable representation for the duty variants) | pfd + pid | `symbol` | required | PFD A (several heat-transfer duties); P&ID B (evaporator equipment) | missing | missing base SymbolDefinition |
+| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | PFD A | missing | missing base SymbolDefinition |
+| A05 | Reactor / burner | pfd | `symbol` | required | PFD A | missing | missing base SymbolDefinition |
+| A06 | Pump | pfd + pid | `symbol` | required | PFD A; P&ID A (duty and stand-by instances) | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`) | — (geometry review before any profile migration, per #127) |
+| A07 | Vessel / tank / drum with nozzles | pfd + pid | `symbol` | required | PFD A; P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A08 | Gate valve | pid | `symbol` | required | P&ID A; P&ID B | **implemented** (`valve.gate`) | — (external recognizability and exact geometry unresolved, per #127) |
+| A09 | Globe valve | pid | `symbol` | required | P&ID A | missing | missing base SymbolDefinition |
+| A10 | Check valve | pid | `symbol` | required | P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A11 | Ball valve | pid | `symbol` | required | P&ID B | missing | missing base SymbolDefinition |
+| A12 | Three-way valve | pid | `symbol` | required | P&ID A | missing | missing base SymbolDefinition |
+| A13 | Control valve body (the actuator is composed onto it, entry B01) | pfd + pid | `symbol` | required | P&ID A; P&ID B; PFD A (a control valve is drawn on the PFD too) | missing | missing base SymbolDefinition |
+| A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
+| A15 | Restriction orifice | pid | `symbol` | required | P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | P&ID B (a reducer in series with a check valve) | missing | missing base SymbolDefinition |
+| A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | P&ID A; P&ID B; PFD A (instruments drawn on the PFD too) | **implemented** (`instrument.local`) | — (profile composition unresolved, #124) |
+| A18 | Measurement sensor / primary element (inline on the process) | pid | `symbol` | required | P&ID A (a flow element); P&ID B | missing | missing base SymbolDefinition |
 
-| Concept | Classification | Core | Observed | Implemented |
-|---|---|---|---|---|
-| Vertical vessel / tank with nozzles | `symbol` | core | yes | planned |
-| Centrifugal pump | `symbol` | core | yes | **implemented** (`pump.centrifugal`) |
-| Gate valve | `symbol` | core | yes | **implemented** (`valve.gate`) |
-| Globe valve | `symbol` | core | yes | planned |
-| Check valve | `symbol` | core | yes | planned |
-| Restriction orifice | `symbol` | core | yes | planned |
-| Pressure / relief valve | `symbol` | core | yes | planned |
-| Filter / strainer | `symbol` | core-optional (after the golden scene) | yes | planned |
-| Heat exchanger | `symbol` | core-optional (after the golden scene) | yes | planned |
-| Ball / needle / other specialty valve | `symbol` | excluded (profile requires only the five above) | yes | deferred — PR #123 concepts stay unmerged |
+### 2. Composed representations (5 required)
 
-### 3. Composed symbols
+| # | Concept | Context | Classification | Requirement | Selected evidence | Current support | Gap type |
+|---|---|---|---|---|---|---|---|
+| B01 | Control valve with actuator (body + actuator graphic) | pfd + pid | `composed-symbol` | required | P&ID A; P&ID B; PFD A | missing | composition gap |
+| B02 | On/off actuated valve with position indication | pid | `composed-symbol` | required | P&ID A; P&ID B | missing | composition gap |
+| B03 | Instrument function composition (base graphic + function letter code + loop designation) | pfd + pid | `composed-symbol` | required | P&ID A; P&ID B; PFD A | missing | composition gap (the base graphic exists; the letter-code annotation does not) |
+| B04 | Control-system instrument variant (panel / shared display / control-system participation) | pid | `composed-symbol` | required | P&ID A; P&ID B (control-system functions, alarms and set points are reported rather than local) | missing | composition gap |
+| B05 | Safety-system instrument variant (instrument marked as part of the safety system) | pid | `composed-symbol` | required | P&ID B (safe-location routing, safety interlocks, safety valves) | missing | composition gap (the referenced logic is a semantic gap, F3) |
 
-| Concept | Classification | Core | Observed | Implemented |
-|---|---|---|---|---|
-| Control valve with actuator | `composed-symbol` | core | yes | planned — composition framework deferred |
-| Local / field instrument base graphic | `symbol` | core | yes | **implemented** (`instrument.local`) |
-| Instrument function letter code composed onto the base graphic | `annotation` | core | yes | planned — text, never one symbol per code |
-| Measurement sensor / primary element | `symbol` | core | yes | planned |
-| Panel / central instrument | `symbol` | core-optional (after the golden scene) | yes | planned |
-| Instrument with integrated display, multifunction instrument | `composed-symbol` | excluded (profile: optional) | yes | deferred |
-| Alarm, trip, voting and fail-state indication | `annotation` | excluded (stretch profile only) | yes | deferred |
-| DCS / SIS participation | `project-convention` | excluded from the base library | yes | out of the base library |
+### 3. Connections (7 required)
 
-### 4. Connections
+| # | Concept | Context | Classification | Requirement | Selected evidence | Current support | Gap type |
+|---|---|---|---|---|---|---|---|
+| C01 | Directional process stream | pfd | `connection` | required | PFD A (direction arrows on every stream) | implemented — drawn by the process renderer as output, not as a SymbolDefinition | — |
+| C02 | Process boundary connector (battery limit, labelled) | pfd + pid | `annotation` (boundary) | required | PFD A; P&ID A (incoming and outgoing boundaries) | missing | connection-rendering gap (marker plus label, never equipment geometry) |
+| C03 | Off-page connector (sheet-to-sheet continuation with a reference) | pfd + pid | `connection` | required | PFD A; P&ID A; P&ID B | missing | connection-rendering gap |
+| C04 | Piping line — orthogonal routing, branch / junction, direction indication | pid | `connection` | required | P&ID A (branches, parallel branches); P&ID B | missing | connection-rendering gap (routing exists for process streams only) |
+| C05 | Instrument process connection (functional tap) | pid | `connection` | required | P&ID A; P&ID B | partial — the `tap` anchor exists on `instrument.local`; the line convention does not | connection-rendering gap |
+| C06 | Instrument signal line, electric | pid | `connection` | required | P&ID A; P&ID B (reported functions) | missing | connection-rendering gap (signal lines must not become `Connection`) |
+| C07 | Line treatment — insulation, heating, tracing, as **authored data** | pid | `connection` (line treatment) | required as data; graphical decoration optional (not needed to preserve the selected information; the selected content states treatment as a property or note) | P&ID A (a selected note requires tracing); legend A (insulation and heating codes) | missing (no authored carrier) | semantic-model gap (F5) |
 
-| Concept | Classification | Core | Observed | Implemented |
-|---|---|---|---|---|
-| Directional process stream | `connection` | core | yes | already drawn by the process renderer as output |
-| Process boundary connector | `annotation` (boundary) | core | yes | planned — marker plus label, never equipment geometry |
-| Piping line with orthogonal routing, branch / junction, direction | `connection` | core | yes | planned |
-| Off-page connector | `connection` | core | yes | planned |
-| Signal / instrument connection line (electric) | `connection` | core | yes | planned |
-| Instrument process connection (functional tap) | `connection` | core | yes | implemented as the `tap` anchor of `instrument.local`; the line convention is planned |
-| Insulation / heat-tracing line treatment | `connection` (line treatment) | core as authored property, excluded as graphical decoration | yes | planned as data |
+### 4. Annotations (11 required)
 
-### 5. Annotations
+| # | Concept | Context | Classification | Requirement | Selected evidence | Current support | Gap type |
+|---|---|---|---|---|---|---|---|
+| D01 | Stream number label | pfd | `annotation` | required | PFD A (every stream numbered) | implemented — the renderer's label layer draws the process stream id | — |
+| D02 | Stream property / composition data (medium, phase, mass / volume / molar flow, temperature, pressure, density, molecular weight, composition, duty) | pfd + pid | `annotation` | required as data; an automatic drawing table is optional (the information is preserved without it) | PFD A (a full stream property and composition table) | missing | semantic-model gap (F1) |
+| D03 | Equipment tag / name label (with the project equipment-code prefix) | pfd + pid | `annotation` | required | PFD A; P&ID A; P&ID B | partial — step id and name labels are drawn for process steps only | annotation gap |
+| D04 | Duty / rating / set-point annotation (heat duty, relief set pressure) | pfd + pid | `annotation` | required | PFD A (heat duty per equipment item); P&ID B (relief set pressure) | missing | semantic-model gap (F6) |
+| D05 | Nozzle designation | pid | `annotation` | required | P&ID A; P&ID B (equipment nozzles carry lettered role designations) | missing | annotation gap |
+| D06 | Line tag (medium + sequence + nominal size + piping class) | pfd + pid | `annotation` | required | PFD A; P&ID A; P&ID B | missing | annotation gap (values are project conventions) |
+| D07 | Instrument loop designation (function letters + loop number, with plant / location code) | pid | `annotation` | required | P&ID A; P&ID B | missing | semantic-model gap (F2) |
+| D08 | Instrument alarm / limit annotation (high, high-high, low, low-low) | pid | `annotation` | required | P&ID A; P&ID B | missing | annotation gap |
+| D09 | Fail-state annotation (fail-closed / fail-open / fail-lock / normally-closed) | pfd + pid | `annotation` | required | P&ID B; PFD A (a normally-closed valve state); legend B | missing | annotation gap |
+| D10 | Interlock / trip / permissive reference annotation | pid | `annotation` | required | P&ID B (interlock references) | missing | annotation gap plus semantic-model gap (F3) |
+| D11 | Drawing note / general note (authored text annotation) | pfd + pid | `annotation` | required | PFD A; P&ID A; P&ID B (notes carry engineering information needed to read the content) | missing | semantic-model gap (F4) |
 
-| Concept | Classification | Core | Observed | Implemented |
-|---|---|---|---|---|
-| Stream number label | `annotation` | core | yes | planned — text, never geometry |
-| Stream property values (medium, phase, flow, T, P) | `annotation` | core — rendered in the Properties panel, not as a drawing table | yes | planned |
-| Equipment tag / label | `annotation` | core | yes | planned — text, never geometry |
-| Nozzle designation | `annotation` | core | yes | planned — text, never geometry |
-| Line tag (medium + sequence + nominal size + piping class) | `annotation` | core — stored semantically | yes | planned |
-| Instrument loop designation | `annotation` | core | yes | planned — text, never geometry |
-| Automatic stream property table | `annotation` | excluded for v0.1 | yes | deferred |
-| General notes block | `annotation` | excluded (not required by the profile) | yes | deferred — an evidence gap, see below |
-| Corporate title block, revision table, drawing frame | `annotation` | excluded for v0.1 | yes | deferred |
+### 5. Project conventions (13, tracked outside the base symbol library)
 
-### Project conventions (deliberately not a symbol library)
-
-| Convention | Classification | Handling |
+| # | Convention | Handling |
 |---|---|---|
-| Equipment and valve tag prefix rules | `project-convention` | Tag text is composed by the project; never embedded in base geometry. |
-| Fluid / medium code list | `project-convention` | Values are authored data; the code list itself is not a DeepPlant vocabulary. |
-| Line-number and line-designation rules | `project-convention` | Authoring and validation concern outside the symbol library. |
-| Insulation, tracing and piping-class codes | `project-convention` | Values are authored data; geometry carries only the decoration. |
-| DCS / SIS conventions, interlock / trip / SIF numbering | `project-convention` | Company-specific; excluded from the base library. |
-| Composite project typicals | `composite-typical` | Resolution of a typical reference is deferred entirely. |
-| Corporate title block, revision table and drawing frames | `project-convention` | Out of scope for v0.1; not a symbol-library concern. |
+| E01 | Equipment and valve tag prefixes, equipment-code letters | Tag text is composed by the project; never embedded in base geometry. |
+| E02 | Fluid / medium code list | Values are authored data; the code list is not DeepPlant vocabulary. |
+| E03 | Line-number and line-designation rules | Authoring and validation concern outside the symbol library. |
+| E04 | Piping-class and nominal-size designation | Authored data, validated per project practice. |
+| E05 | Insulation, heating and tracing codes | Authored data; geometry may later carry only decoration. |
+| E06 | Nozzle-role letter designations | Project text; the nozzle annotation itself is a Core entry (D05). |
+| E07 | Instrument letter-code system (measured variable, succeeding functions, modifiers) | Drives the annotation composed onto the base graphic (B03); the code list is project notation. |
+| E08 | Instrument loop and plant / location numbering | Project numbering; the designation itself is a Core entry (D07). |
+| E09 | Alarm, trip, permissive, safety-interlock and trip-group numbering systems | Company-specific; excluded from the base library. |
+| E10 | Control-system (DCS) and safety-system (SIS) participation, including the software-link convention | Project notation; the instrument *variant* is a Core entry (B04, B05), the convention is not. |
+| E11 | Actuator and control-system marking conventions (mounted location, fail position, positioner, solenoid, motor) | Project notation layered on Core composition (B01, B02) and annotation (D09). |
+| E12 | Corporate title block, revision table, drawing frame, equipment data table | Document production; out of scope as symbol vocabulary. |
+| E13 | Composite project typicals | Resolution of a typical reference is deferred; the reference marker is not a copy of the typical. |
 
-Every partition shows the same pattern: the Core keeps **one representation per
-engineering concept**, and every project-specific code, tag, or numbering scheme
-stays *data*, exactly as the coverage matrix already requires.
+### Not required for the selected MVP information
+
+Recorded explicitly, so that no operator-selected vocabulary is dropped silently.
+Each entry is defined by the selected project notation but is not needed to
+represent the selected *drawing* content.
+
+| Concept (concept level) | Reason it is not required |
+|---|---|
+| Specialty valves defined by legend A but not used by the selected drawings: butterfly, plug, needle, injection, angle, stop-check, automatic-recirculating check, backflow preventer, vacuum breaker, breath valve, automatic vent valve, valve with built-in bypass | Defined by the selected notation legend only; no selected drawing needs it represented. Limitation: a purely graphical occurrence cannot be fully confirmed from the inspected text layer, so this list is recorded rather than assumed. |
+| Piping fittings and accessories defined by legend A but not used by the selected drawings: spectacle blind / blank, cap and plug, screwed cap, sight glass, funnel / drain, steam trap / condensate trap, flame arrestor, flexible hose, expansion joint, mechanical coupling, sprayer, dividing chute, hose connection, silencer / damper | Same reason and same limitation. |
+| Instrument letter-code combinations not used by the selected drawings: record, integrate / totalise, scan, multivariable / multifunction instrument, and position or limit switches beyond the evidenced ones | Same reason: defined by legend B, not evidenced in the selected drawing content. Multivariable and multifunction instruments also stay out of the Core because the selected content reports single-function loops. |
+| Detailed electrical and motor-control representation | The selected drawings show actuators, position indications and fail states, but no detailed electrical schematic content. |
+| Voting indication (2-out-of-2 / 2-out-of-3), trip / permissive diamond markers | Named by the bundled profile for the complexity gate, and not evidenced in the inspected text layer of the selected sheets. Recorded as an **evidence gap and semantic-gap candidate**, not as a profile-driven exclusion. |
+| Vendor / package detail, title-block and revision content | Document production, not symbol vocabulary (see E12). |
+| Duplicate / parallel equipment and repeated control loops | Not a representation question: they deduplicate to one representation plus project numbering (E01, E08) and repeated instances. |
+
+### Pumping across the PFD and the P&ID
+
+The process model's `ProcessStep` must stay distinct from the physical `Equipment`
+([contracts/process-model.md](../../contracts/process-model.md)), and the PFD and
+the P&ID are separate diagram contexts. That semantic distinction does **not**
+create a second graphical identity:
+
+```text
+different semantic object   =/=>  different graphical symbol identity
+```
+
+`pump.centrifugal` is the graphical representation the repository implements
+today, and its contract already declares `diagram_types = ("pfd", "pid")`, so it is
+the available representation in **both** diagram contexts. This selection
+therefore records **one** pumping entry (A06) and does **not** introduce a
+PFD-specific pump `SymbolDefinition`. Its #127 conclusion — geometry review before
+any notation-profile migration, redesign possible but not established — is
+unchanged. If the selected references genuinely require a different PFD graphical
+concept for pumping, that is a representation-design question, not a new identity
+declared here.
+
+### Valve identity
+
+```text
+shared graphical construction primitive  !=  shared stable symbol identity
+```
+
+The gate valve's neutral `port_a` / `port_b` anchors are reusable,
+notation-independent connection points: they mean only that this representation
+does not embed inlet/outlet flow semantics. Other valve concepts may reuse
+graphical construction primitives where appropriate, but they retain distinct
+stable symbol identities and representations. `valve.gate` represents a gate
+valve; it does **not** represent globe, check, ball, three-way, control, or
+safety / relief valve concepts, and this selection keeps those entries distinct
+(A09-A14).
+
+The correct distinctions used in this document:
+
+```text
+distinct engineering / graphical concept  ->  distinct stable symbol identity
+shared visual construction                ->  reusable primitive / composition
+state, tag, code, numbering               ->  annotation, composition, or project data
+```
+
+No valve identity architecture is redesigned here.
+
+## Semantic gaps (6, tracked outside the Core)
+
+A selected MVP requirement with no valid current DeepPlant semantic
+representation. Recorded, **not solved**: no domain-model solution is invented
+here, and the preserved boundaries are `ProcessStep != Equipment`,
+`ProcessStream != physical Connection / PipingLine`, and
+`ProcessPort != physical Port / Nozzle`.
+
+| # | Concept | Diagram context | Why the current model is insufficient | Neutral MVP reference that requires it | Future decision needed |
+|---|---|---|---|---|---|
+| F1 | Stream properties and composition (medium, phase, flow, temperature, pressure, density, molecular weight, composition, duty) | PFD | `ProcessStream` carries only `id`, `name`, `source`, `target`; no quantity/unit typing exists yet | MVP PFD reference A (Core D02) | How qualified engineering quantities attach to a stream without turning it into a table |
+| F2 | Instrument as a semantic object, and its loop designation | P&ID | No instrument entity exists; only a graphical base representation does, so a designation has nothing to attach to | MVP P&ID references A and B (Core D07, B03) | Whether an instrument/loop object belongs in the model or in a presentation layer |
+| F3 | Safety-interlock / trip / permissive reference and the logic it refers to | P&ID | No representation for the referenced logic; `ProcessStream`/`Connection` are the wrong carriers | MVP P&ID reference B (Core D10, B05) | Where interlock references live without becoming piping or signals |
+| F4 | Authored drawing notes | PFD and P&ID | The model has no note / annotation carrier at all | MVP PFD reference A; MVP P&ID references A and B (Core D11) | Whether notes are model objects or a document layer |
+| F5 | Line treatment as authored data (insulation, heating, tracing) | P&ID | No authored carrier on the piping layer | MVP P&ID reference A (Core C07) | Where treatment data lives, given the code values stay project conventions |
+| F6 | Equipment duty and device set-point values (heat duty, relief set pressure) | PFD and P&ID | No quantity typing on equipment or devices | MVP PFD reference A; MVP P&ID reference B (Core D04) | Whether the qualified-quantity work (research: [qualified-engineering-quantities.md](qualified-engineering-quantities.md)) is the carrier |
+
+## Representation-design questions (10, tracked outside the Core)
+
+Recorded rather than decided. None of them authorizes a new identity.
+
+| # | Question | Raised by |
+|---|---|---|
+| G1 | One cross-context representation per equipment concept, or context-specific forms? Four concepts are required in both the PFD and the P&ID (A01, A03, A07, A13); only `pump.centrifugal` currently establishes that one representation can be available in both contexts | Selected PFD and P&ID content |
+| G2 | Does the selected PFD's column / tower item need a representation distinct from the vessel / tank identity (A07)? | MVP PFD reference A |
+| G3 | Are both concentric and eccentric reducer forms required (A16)? | MVP P&ID reference B |
+| G4 | One reusable measurement-sensor representation, or one graphic per measured variable (A18)? | MVP P&ID references A and B |
+| G5 | Which actuator graphics does the selected content require (diaphragm, cylinder, motor, solenoid, manual, positioner)? | MVP P&ID references A and B; legend B |
+| G6 | Straight or angle relief-valve forms, and where the set pressure is carried (A14, D04)? | MVP P&ID reference B |
+| G7 | Does the MVP need automatic stream-table rendering, or only the authored data (D02)? The selected PFD draws a property table; the information is preserved without it | MVP PFD reference A |
+| G8 | Does line treatment need graphical decoration, or only the authored property (C07)? | MVP P&ID reference A |
+| G9 | Is the selected *legend* vocabulary itself MVP-required, widening the Core by the not-required list above? | Recorded scope question |
+| G10 | Which family is the boundary connector (C02) — annotation or connection? The coverage matrix stays authoritative | MVP PFD reference A; MVP P&ID reference A |
+
+## Implementation coverage
+
+Capability-specific, mechanically reconciled with the tables above. An annotation or
+a connection is never reported as a "missing SymbolDefinition".
+
+```text
+base SymbolDefinitions
+type    required       18
+        implemented     3   valve.gate, pump.centrifugal, instrument.local
+        missing        15
+
+composed representations
+        required        5
+        implemented     0
+        missing         5
+
+connection capabilities / styles
+        required        7
+        implemented     1   directional process stream (renderer output, not a SymbolDefinition)
+        partial         1   instrument process connection (tap anchor exists; line convention missing)
+        missing         5
+
+annotation capabilities
+        required       11
+        implemented     1   stream number label (process renderer label layer)
+        partial         1   equipment / step id-and-name labels (process steps only)
+        missing         9
+
+tracked outside the Core
+        project conventions                  13
+        semantic gaps                         6
+        representation-design questions      10
+```
 
 ## Selection summary
 
 ```text
-28 Core entries across five partitions
-    5  PFD process representations
-    7  P&ID base symbols            (2 equipment + 5 inline)
-    4  composed / instrument entries
-    6  connections                  (+1 Core-as-property line treatment)
-    6  annotations
-   --  project conventions          not Core entries (7 recorded)
+41  MVP Core entries
+   18  base symbols
+    5  composed representations
+    7  connections
+   11  annotations
 
-recorded but outside the Core
-    5  core-optional entries        (2 PFD, 2 P&ID equipment, 1 instrument)
-    7  excluded entries             (1 specialty valve, 3 composite/instrument,
-                                     3 annotation)
-    7  project conventions           never base-library assets
+13  project conventions            tracked outside the Core
+ 6  semantic gaps                  tracked outside the Core
+10  representation-design questions tracked outside the Core
 
- 3 implemented as SymbolDefinitions
-    valve.gate, pump.centrifugal, instrument.local
-25 Core entries planned / deferred / out of the base library
+ 3  implemented base symbols       valve.gate, pump.centrifugal, instrument.local
+15  missing base symbols
 ```
 
-The Core is closed for MVP acceptance purposes: adding a concept to it requires a
-profile change, not a symbol implementation.
+Reconciliation: `18 + 5 + 7 + 11 = 41`; base `3 + 15 = 18`; composed `0 + 5 = 5`;
+connections `1 + 1 + 5 = 7`; annotations `1 + 1 + 9 = 11`.
+
+The previous revision of this document recorded **28** Core entries across five
+"partitions", counted project conventions as a partition while excluding them from
+the arithmetic, and reported a single "25 remaining" metric. All three statements
+are withdrawn: the Core total now counts only the four representation-capability
+classes, project conventions are tracked separately, and implementation state is
+reported per capability.
+
+The Core is closed for MVP acceptance purposes only through the same operator
+decision as the reference set: widening it requires an operator selection or an
+answer to a recorded discrepancy — not a symbol implementation, and not a
+repository preference.
 
 ## Relationship to the three implemented representations
 
 | Symbol | Keeps the classification from #127 | MVP Core role |
 |---|---|---|
-| `valve.gate` | `deepplant-default` candidate (internal design grounds) | the Core's on/off isolation base symbol |
-| `pump.centrifugal` | `REVIEW_BEFORE_MIGRATION / INSUFFICIENT_EVIDENCE` | the Core's pumping equipment base symbol |
-| `instrument.local` | `deepplant-default` candidate | the Core's reusable instrument base graphic |
+| `valve.gate` | `deepplant-default` candidate (internal design grounds); external recognizability insufficiently evidenced; exact standards geometry unresolved | the Core's gate-valve base symbol (A08) — one of several distinct valve identities |
+| `pump.centrifugal` | `REVIEW_BEFORE_MIGRATION / INSUFFICIENT_EVIDENCE`; redesign possible but not established; exact standards geometry unresolved | the Core's pumping representation (A06), available in both the PFD and the P&ID context |
+| `instrument.local` | `deepplant-default` candidate; instrumentation-specific context relevant; exact standards geometry unresolved; standards-specific profile composition unresolved under #124 | the Core's reusable instrument base graphic (A17) |
 
 Three properties of these definitions are load-bearing for the Core and are not
 reopened here:
 
-- the valve's anchors are notation-independent (`port_a` / `port_b`), so the same
-  definition serves isolation, throttling, and check-duty bodies as variants
-  rather than new symbols;
+- the gate valve's neutral `port_a` / `port_b` anchors are reusable,
+  notation-independent connection points; they express only that this
+  representation embeds no inlet/outlet flow semantics, and they do not make
+  `valve.gate` a shared identity for throttling, check, ball, or other valve duty;
 - the pump's `suction` / `discharge` anchors are engineering names for a pump,
   with anchor geometry recording only where a line leaves the symbol;
 - the instrument base graphic deliberately carries **no** function letters, tag,
   and no mandatory signal anchor, because letter composition and signal
-  connections belong to composition, not to the base graphic.
+  connections belong to composition (B03, B04, B05), not to the base graphic.
 
 ```text
 this document    selects vocabulary        no production change
@@ -333,39 +574,50 @@ this document    selects vocabulary        no production change
 
 ## Explicit non-goals
 
-- No symbol is implemented, redesigned, or re-anchored by this document.
+- No symbol is implemented, redesigned, or re-anchored by this document; no new
+  PFD-specific or valve-family identity is introduced.
 - No `notation_profile` assignment changes; `generic-iso` stays the transitional
   profile for all three definitions.
 - No geometry is authored, adjusted, or measured — and none is taken from the
   reference set.
 - No standard is claimed, no locator recorded, and no compliance inferred from
-  visual similarity ([standards.md](../workflow/standards.md)).
-- No project-specific value (tag, line number, note, code, title block field)
+  visual similarity, from a production drawing, or from a project legend
+  ([standards.md](../workflow/standards.md)).
+- No verification state is promoted: nothing in this document compares any
+  geometry with any standard.
+- No project-specific value (tag, line number, note, code, title-block field)
   becomes part of DeepPlant's vocabulary; those stay authored data.
+- No private drawing identity — filename, document number, drawing title, path,
+  title-block value, customer or project identifier — is recorded.
 
-## Evidence gaps and unresolved questions
+## Evidence gaps and limitations
 
-- **The profile is `proposed`, not approved.** The MVP Core in this document
-  inherits that status: it is the selection the profile implies, and a profile
-  revision changes it. Nothing here approves the profile.
-- **The general notes block is a scoping gap.** The reference sheets carry general
-  notes and the profile neither requires nor excludes them; they are recorded as
-  excluded-not-required rather than silently dropped.
-- **Construction details are a deliberate gap.** Weld, flange, cap/plug, funnel
-  and drain symbols occur in the reference set but appear in neither the MVP
-  requirements nor the stretch list. Their exclusion is recorded, not decided.
-- **Whether a driver / energy anchor belongs on the pump symbol** stays open
-  (same question as the coverage matrix's unresolved list).
+- **The complexity-gate discrepancy is unresolved.** The selected directory
+  contains the sheet the bundled profile calls the post-MVP gate; this selection
+  treats it as inside the boundary and records the discrepancy for the operator.
+- **The legend scope question is unresolved.** Whether the selected legend
+  vocabulary is itself MVP-required is an operator decision; until it is answered,
+  legend-only concepts stay in the recorded not-required list.
+- **Text-layer limitation.** The inspected sheets were read at concept level;
+  purely graphical occurrences (a blind, a sight glass, a signal-line style) cannot
+  be fully confirmed from the text layer, which is why those classifications are
+  recorded with their limitation instead of being assumed.
+- **Voting and trip markers.** The bundled profile names voting and trip/permissive
+  markers for the complexity gate; they are not evidenced in the inspected text
+  layer, and no model representation exists. Recorded as an evidence gap and a
+  semantic-gap candidate.
+- **Construction details** (weld, flange, cap/plug, funnel, drain) occur in the
+  selected notation but are not needed to represent the selected drawing content;
+  their exclusion is recorded in the not-required list, not silently decided.
+- **Whether a driver / energy anchor belongs on the pump symbol** stays open (same
+  question as the coverage matrix's unresolved list).
 - **How a control valve's actuator composition is modelled** (variant of a valve
   body, or a separate actuator graphic composed at render time) is not settled by
-  this selection; the profile requires only that the semantic subtype remain
-  explicit.
-- **Which annotation family the boundary connector belongs to** is recorded here
-  as `annotation` per the coverage matrix, while it is arguably a connection
-  convention. The matrix stays authoritative.
-- **The stretch vocabulary is scoped, not designed.** Section 3 of the profile
-  lists the complexity gate's capabilities; this document confirms that they are
-  outside the Core and does not decide their representation.
+  this selection; the requirement is only that the semantic subtype stay explicit.
+- **The bundled profile's stream-property claim** does not match the current model
+  (see [Recorded discrepancies and scope questions](#recorded-discrepancies-and-scope-questions)).
+- **The bundled profile remains `proposed`.** That is now context, not a gate: it
+  no longer decides whether an operator-selected requirement is recognized.
 
 ## Recommended follow-up slices
 
@@ -374,15 +626,17 @@ authorization. Each requires its own separately scoped and Ready Issue.
 
 | # | Slice | Category | Depends on |
 |---|---|---|---|
-| 1 | Approve or revise the MVP drawing profile so the Core stops being `proposed` | A — scope | operator decision |
-| 2 | Implement the P&ID golden-scene base symbols from the Core (vessel/tank with nozzles, gate/globe/check valve, restriction orifice, relief valve), one small slice each | B — Core implementation | 1; existing symbol contract |
-| 3 | Implement the PFD step representations the process model needs, keeping `ProcessStep` distinct from `Equipment` | C — Core implementation | 1; [contracts/process-model.md](../../contracts/process-model.md) |
-| 4 | Deliver composition machinery (letter-code composition, signal anchors, control valve with actuator) | D — composition | 2, 3 |
-| 5 | Focused review of `pump.centrifugal` geometry, per the [notation-profile classification](notation-profile-classification.md) | E — review before migration | — |
-| 6 | Make the coverage matrix profile-aware and tag each row with its MVP Core status | F — matrix | 1; #124 |
+| 1 | Resolve the recorded discrepancies: confirm whether the complexity-gate sheet is inside the MVP boundary, and whether the selected legend vocabulary is MVP-required | A — scope | operator decision |
+| 2 | Implement the P&ID base symbols the selected drawings use most (vessel / tank with nozzles, globe, check and ball valve, restriction orifice, safety / relief valve, reducer), one small slice each | B — base symbols | 1; existing symbol contract |
+| 3 | Implement the PFD process-step representations the process model needs, keeping `ProcessStep` distinct from `Equipment` | C — base symbols | 1; [contracts/process-model.md](../../contracts/process-model.md) |
+| 4 | Deliver composition machinery (function-letter composition, actuator composition, control-system and safety-system instrument variants) | D — composition | 2, 3 |
+| 5 | Deliver the connection capabilities (boundary connector, off-page connector, branching routed piping, electric signal line) | E — connections | 2, 3 |
+| 6 | Deliver the annotation capabilities, with the semantic carriers F1-F4 scoped in their own model Issue | F — annotations and model gaps | 4; a model Issue for the carriers |
+| 7 | Focused review of `pump.centrifugal` geometry before any notation-profile migration, per the [notation-profile classification](notation-profile-classification.md) | G — review before migration | — |
+| 8 | Make the coverage matrix carry the MVP Core status per row and stay profile-aware | H — matrix | 1; #124 |
 
-Explicitly not recommended: creating these Issues automatically, or expanding the
-Core by observing the reference set.
+Explicitly not recommended: creating these Issues automatically, or widening the
+Core by observing the reference set without recording the selection decision.
 
 ## Sources
 
@@ -390,12 +644,16 @@ Core by observing the reference set.
 
 - [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md) — classification
   vocabulary, per-concept status, and the reference-material handling rules.
-- [symbol-library.md](../reference/symbol-library.md) — the symbol contract and
-  the three implemented representations.
+- [symbol-library.md](../reference/symbol-library.md) — the symbol contract, the
+  three implemented representations, and their `diagram_types`.
 - [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) — the
   DeepPlant-owned geometry spec the three definitions are authored from.
 - [notation-profile-classification.md](notation-profile-classification.md) — the
   current profile classification, preserved unchanged.
+- [contracts/process-model.md](../../contracts/process-model.md) — the stream and
+  step contract, and therefore the basis for semantic gaps F1, F2, F4 and F6.
+- [qualified-engineering-quantities.md](qualified-engineering-quantities.md) — the
+  quantity/unit evidence relevant to F1 and F6.
 - [standards.md](../workflow/standards.md),
   [standards-registry.md](../reference/standards-registry.md) — standards usage
   and provenance policy.
@@ -404,26 +662,31 @@ Core by observing the reference set.
   [ADR-0017](../decisions/ADR-0017-machine-rendered-symbol-definitions.md).
 - [catalogue.py](../../../src/deepplant/symbols/catalogue.py) and
   [profiles.py](../../../src/deepplant/symbols/profiles.py) — read-only
-  confirmation of the implemented catalogue and profile vocabulary.
-- Issues #119, #123, #124, #127 — scoping context.
+  confirmation of the implemented catalogue, its anchors, and its profile
+  vocabulary.
+- Issues #119, #124, #127 and PR #123 — scoping context.
 
-### Private reference set actually inspected (usage evidence only)
+### Private reference set actually inspected (requirements boundary)
 
-Listed by role, not by content. The bundle is not committed, and no artwork,
-locator, item number, layout, tag, code, or note text from it is reproduced here.
+Listed by neutral role in [Inspected evidence](#inspected-evidence). The bundle is
+not committed, and no artwork, locator, item number, layout, tag, code, note text,
+document identifier, or drawing title from it is reproduced here.
 
 ```text
-DeepPlant MVP drawing support profile v0.1     operator-authored scope
-PFD reference (one sheet)                      process-side usage
-P&ID reference (one sheet + two legend sheets) physical + instrumentation usage
-P&ID stretch reference (one sheet)             complexity-gate usage
+MVP PFD reference A                     process-side requirements
+MVP P&ID reference A                    physical and instrumentation requirements
+MVP P&ID reference B                    complexity-gate requirements
+supporting P&ID legend A                piping-elements notation
+supporting P&ID legend B                instrumentation-and-control notation
+duplicate legend copy                   counted once (identical inspected text layer)
+MVP drawing profile v0.1                operator-bundled interpretation aid
 ```
 
 ### External AI-usable material actually inspected
 
 None. No external source was used as evidence: no restricted ISO/ISA/IEC content
 was inspected, and the reference set is company-private material used only for
-scoping and usage confirmation.
+scoping and notation interpretation.
 
 ## Related
 
