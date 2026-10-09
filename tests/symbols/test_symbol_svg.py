@@ -17,9 +17,11 @@ import pytest
 
 from deepplant.symbols import (
     SYMBOLS,
+    AssetProvenance,
     Circle,
     Line,
     Polygon,
+    StandardsReference,
     SymbolDefinition,
     render_symbol_svg,
 )
@@ -64,7 +66,8 @@ CHECK_VALVE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
     '<polygon points="28,34 28,66 50,50" /><polygon points="50,50 72,34 72,66" />'
-    '<circle cx="28" cy="34" r="8" /><line x1="72" y1="50" x2="100" y2="50" /></svg>\n'
+    '<circle cx="28" cy="34" r="8" fill="currentColor" />'
+    '<line x1="72" y1="50" x2="100" y2="50" /></svg>\n'
 )
 
 #: Fragments that would prove a project/company tag or convention leaked into
@@ -78,6 +81,23 @@ def _root(document: str) -> Element:
 
 def _local_name(element: Element) -> str:
     return element.tag.rsplit("}", 1)[-1]
+
+
+def _single_circle_symbol(circle: Circle) -> SymbolDefinition:
+    """Build a minimal valid definition around one circle, for fill rendering."""
+    return SymbolDefinition(
+        symbol_id="shape.circle",
+        name="Circle",
+        category="shape",
+        diagram_types=("pid",),
+        profile="generic-iso",
+        primitives=(circle,),
+        anchors=(),
+        provenance=AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only"),
+        standards=(
+            StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+        ),
+    )
 
 
 def _elements(definition: SymbolDefinition, name: str) -> list[Element]:
@@ -181,6 +201,74 @@ def test_generated_documents_carry_no_project_or_company_text() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Circle fill: one binary graphical fact
+# ---------------------------------------------------------------------------
+
+
+def test_a_circle_is_hollow_by_default() -> None:
+    circle = Circle(cx=50.0, cy=50.0, r=8.0)
+
+    assert circle.filled is False
+
+    definition = _single_circle_symbol(circle)
+    rendered = _elements(definition, "circle")
+
+    # A hollow circle emits no child-level fill attribute, so it inherits the
+    # document fill="none" and keeps the exact SVG it had before the capability
+    # existed.
+    assert len(rendered) == 1
+    assert rendered[0].get("fill") is None
+    assert 'fill="currentColor"' not in render_symbol_svg(definition)
+
+
+def test_a_filled_circle_paints_with_current_color() -> None:
+    definition = _single_circle_symbol(Circle(cx=50.0, cy=50.0, r=8.0, filled=True))
+    rendered = _elements(definition, "circle")
+
+    assert len(rendered) == 1
+    assert rendered[0].get("fill") == "currentColor"
+    assert 'fill="currentColor"' in render_symbol_svg(definition)
+
+
+@pytest.mark.parametrize("filled", [False, True])
+def test_fill_stays_themeable_and_never_a_literal_colour(filled: bool) -> None:
+    document = render_symbol_svg(
+        _single_circle_symbol(Circle(cx=50.0, cy=50.0, r=8.0, filled=filled))
+    ).lower()
+
+    # No literal colour, CSS, or style/class hook: the only fill vocabulary is
+    # none | currentColor, so the marker stays themeable.
+    for literal in ("black", "#000", "rgb(", "hsl(", "style=", "class="):
+        assert literal not in document, literal
+
+
+def test_only_the_check_valve_closure_marker_is_filled() -> None:
+    for definition in SYMBOLS.list():
+        filled = [
+            item for item in definition.primitives if isinstance(item, Circle) and item.filled
+        ]
+        assert len(filled) == (1 if definition.symbol_id == "valve.check" else 0)
+
+
+@pytest.mark.parametrize(
+    ("symbol_id", "cx", "cy", "radius"),
+    [
+        ("valve.ball", 50.0, 50.0, 8.0),
+        ("pump.centrifugal", 50.0, 50.0, 24.0),
+        ("instrument.local", 50.0, 40.0, 20.0),
+    ],
+)
+def test_other_circles_stay_hollow(symbol_id: str, cx: float, cy: float, radius: float) -> None:
+    definition = SYMBOLS.get(symbol_id)
+    circles = [item for item in definition.primitives if isinstance(item, Circle)]
+
+    assert circles == [Circle(cx=cx, cy=cy, r=radius)]
+    assert all(item.filled is False for item in circles)
+    for element in _elements(definition, "circle"):
+        assert element.get("fill") is None
+
+
+# ---------------------------------------------------------------------------
 # Structural contracts of the implemented representations
 # ---------------------------------------------------------------------------
 
@@ -261,16 +349,18 @@ def test_check_valve_contract() -> None:
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
         Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
         Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
-        Circle(cx=28.0, cy=34.0, r=8.0),
+        Circle(cx=28.0, cy=34.0, r=8.0, filled=True),
         Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
     )
 
-    # The marker carries the meaning through its position and is drawn with the
-    # existing primitives: no fill-capable primitive and no renderer change were
-    # introduced for it.
+    # The marker carries the meaning through its position, and it is the one
+    # primitive that needs an explicit binary fill: the closure element is solid,
+    # so the rendered circle carries the themeable currentColor fill.
     markers = [item for item in definition.primitives if isinstance(item, Circle)]
-    assert markers == [Circle(cx=28.0, cy=34.0, r=8.0)]
-    assert len(_elements(definition, "circle")) == 1
+    assert markers == [Circle(cx=28.0, cy=34.0, r=8.0, filled=True)]
+    rendered_circles = _elements(definition, "circle")
+    assert len(rendered_circles) == 1
+    assert rendered_circles[0].get("fill") == "currentColor"
     assert _elements(definition, "text") == []
 
     # The check valve is the case where a semantic connection *role* is

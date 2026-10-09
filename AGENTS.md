@@ -82,13 +82,16 @@ and ADR-0007.
 - Do not commit restricted standards content or standards PDFs unless the
   applicable licence explicitly permits redistribution.
 - Do not provide licensed ISO, IEC, ISA, or other restricted standards content
-  to AI tools unless the applicable licence explicitly permits that use, or the
-  operator has explicitly authorized a private local reference bundle for the
-  task. Operator-authorized private engineering references — restricted standards
-  material and company/project drawings alike — may be inspected only under the
-  rules in `docs/dev/workflow/standards.md`; they must never be redistributed or
-  committed, and an authorized inspection never produces a `human-verified`
-  state.
+  to AI tools unless the applicable licence or terms explicitly permit that use.
+  Restricted material whose terms do not permit that use — and
+  operator-authorized private engineering references such as company/project
+  drawings — may be inspected only when both hold: the applicable rights permit
+  the use, and the operator explicitly authorizes the material for the task.
+  Operator authorization is project authorization, not a licence override: it
+  cannot override applicable licence or contractual restrictions. Inspection
+  follows the rules in `docs/dev/workflow/standards.md`; such material must never
+  be redistributed or committed, and an authorized inspection never produces a
+  `human-verified` state.
 - Agents may use openly licensed specifications (for example DEXPI under CC BY
   4.0, with attribution), project-authored summaries, and public material whose
   applicable terms explicitly permit AI use. For ISO, use only ISO Open Data or

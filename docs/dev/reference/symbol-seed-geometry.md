@@ -38,12 +38,15 @@ definition currently in the `deepplant.symbols` catalogue.
 
 - They are **DeepPlant-original** and are **not** derived from normative standard
   artwork.
-- They were **not** traced, measured for dimensions, extracted, auto-vectorized,
-  or otherwise mechanically derived from the standard's artwork or from the
-  company reference drawings. Where an operator-authorized private reference was
-  inspected for a concept, it informed the *engineering reading* only — which
-  features carry the meaning and what the glyph must be recognizable as — and the
-  geometry was then authored independently from the DeepPlant primitives
+- They were **not** traced, extracted, auto-vectorized, or otherwise
+  mechanically derived from the standard's artwork or from the company reference
+  drawings, and no source coordinates or dimensions were mechanically transferred
+  into a DeepPlant definition. The previous engineering review consulted relative
+  visual proportions as reference evidence; the final normalized coordinates are
+  independently selected DeepPlant project coordinates. Where an
+  operator-authorized private reference was inspected for a concept, it informed
+  the *engineering reading* only — which features carry the meaning and what the
+  glyph must be recognizable as
   ([Authorized reference inspection](#authorized-reference-inspection)).
 - They are **not** exact ISO geometry, and no ISO correspondence is claimed as
   verified.
@@ -69,7 +72,9 @@ generated SVG                 render_symbol_svg(definition)
 
 The geometry here is authored, not copied, but two authoring tasks were informed
 by material the operator explicitly authorized for a specific task as a **private
-local reference bundle** (policy:
+local reference bundle**. Private-reference inspection is a project workflow gate,
+not a licence override: it applies only when the operator is also entitled to
+permit that AI use under the applicable rights (policy:
 [workflow/standards.md](../workflow/standards.md#operator-authorized-private-reference-material)):
 
 - the relevant **engineering standard**, inspected as the technical reference for
@@ -84,10 +89,13 @@ authorization to redistribute, and inspection is not verification:
 
 - no source file, page, screenshot, crop, extracted image, table, title block, or
   project identifier is stored, quoted, or committed anywhere in this repository;
-- no source artwork was traced, auto-vectorized, imported, or measured for
-  dimensions. The coordinates below are DeepPlant's own normalized design on the
-  canonical `0 0 100 100` box, and a standardized engineering shape naturally
-  resembles the reference;
+- no source artwork was traced, auto-vectorized, imported, or reproduced. No
+  source coordinates or dimensions were mechanically transferred into the
+  DeepPlant definition: the previous review consulted relative visual proportions
+  as reference evidence, and the coordinates below are independently selected
+  DeepPlant project coordinates on the canonical `0 0 100 100` box. No
+  source-specific measured ratio is recorded here, and a standardized engineering
+  shape naturally resembles the reference;
 - no company-specific convention is adopted into the `generic-iso` profile: the
   reference material says *what* must be recognizable, while a project-specific
   representation would belong to a separate, explicitly scoped profile;
@@ -172,7 +180,8 @@ whose one-way character is carried by the geometry alone.
 line    (0, 50) → (28, 50)              process connection stub
 polygon (28, 34), (28, 66), (50, 50)    upstream body half
 polygon (50, 50), (72, 34), (72, 66)    downstream body half
-circle  centre (28, 34), radius 8       closure-element marker, upstream corner
+circle  centre (28, 34), radius 8,      closure-element marker, upstream corner
+        filled=True                     (solid; the only filled primitive)
 line    (72, 50) → (100, 50)            process connection stub
 ```
 
@@ -198,13 +207,13 @@ Design notes:
   closure-element mark the reference notation draws. Scale consistency inside the
   catalogue is deliberate: the marker's *position*, not its size, is what makes
   the glyph a check valve rather than a ball valve.
-- The marker is drawn as a stroked circle. The library renderer emits strokes
-  only (`fill="none"` at the document root, and no fill attribute on a
-  primitive), so the reference's solid closure mark cannot be reproduced with the
-  current primitives. Drawing it as a stroked circle of the same size and
-  position preserves the topology and the meaning, needs no new primitive, and
-  changes no renderer behaviour; the fill difference is a documented
-  rendering-style deviation, not a different engineering statement.
+- The marker is drawn as a **solid** `currentColor` circle:
+  `Circle(center=(28, 34), radius=8, filled=True)`. The renderer paints that
+  primitive's interior with the themeable `currentColor` fill, so the closure
+  element matches the reference's solid closure mark. It is the only filled
+  primitive this slice requires, and `filled` is one binary graphical fact —
+  hollow versus solid — not a styling option; every other circle in the catalogue
+  stays hollow.
 - The two body halves are `Polygon`s and the marker is a `Circle`, so the
   definition stays inside the existing `Line` / `Polygon` / `Circle` primitives.
 

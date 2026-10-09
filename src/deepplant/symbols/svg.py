@@ -7,8 +7,10 @@ The definition is the canonical geometry and this renderer is the only producer
 of symbol SVG: generated output is never hand-edited and never checked in as the
 source of truth (ADR-0017). Rendering is restricted by construction — one SVG
 namespace, no text, scripts, external references, raster data, embedded fonts,
-or fixed pixel dimensions, and a themeable ``currentColor``/``none`` line style
-that later style injection can build on without a styling engine.
+or fixed pixel dimensions, and a themeable ``currentColor``/``none`` style. Most
+primitives stay hollow; a primitive with an explicit binary fill requirement may
+opt into ``fill="currentColor"`` where the canonical geometry requires a solid
+marker. That is one graphical fact, not a styling engine.
 """
 
 from __future__ import annotations
@@ -62,14 +64,17 @@ def _primitive_element(primitive: GraphicPrimitive) -> Element:
             },
         )
     if isinstance(primitive, Circle):
-        return _element(
-            "circle",
-            {
-                "cx": _number(primitive.cx),
-                "cy": _number(primitive.cy),
-                "r": _number(primitive.r),
-            },
-        )
+        attributes = {
+            "cx": _number(primitive.cx),
+            "cy": _number(primitive.cy),
+            "r": _number(primitive.r),
+        }
+        if primitive.filled:
+            # The one binary fill fact canonical geometry can require: a solid
+            # marker painted with the themeable currentColor. A hollow circle
+            # emits no fill attribute at all, so its SVG stays byte-identical.
+            attributes["fill"] = "currentColor"
+        return _element("circle", attributes)
     return _element("polygon", {"points": _point_pairs(primitive.points)})
 
 

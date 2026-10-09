@@ -216,11 +216,13 @@ cannot carry the profile ([symbol-library.md](symbol-library.md)).
 - Whether generated symbol SVG should also carry the hidden anchor slots used by
   the existing process symbol-pack contract is unresolved; in this slice anchors
   remain definition data only.
-- Restricted standard material is never committed to the repository, and it is
-  provided to AI tooling only under an explicit operator authorization for a
-  specific task, on the terms of
-  [standards.md](../workflow/standards.md#operator-authorized-private-reference-material);
-  an authorized inspection is engineering evidence and never verification. The
+- Restricted standard material is never committed to the repository. It reaches
+  AI tooling only through the operator-authorized private-reference workflow in
+  [standards.md](../workflow/standards.md#operator-authorized-private-reference-material),
+  which requires both an explicit operator authorization for the specific task
+  and the operator's confirmation that the applicable rights permit that AI use;
+  operator authorization cannot override licence or contractual restrictions. An
+  authorized inspection is engineering evidence and never verification. The
   identifiers recorded here should still be confirmed against the official ISO
   catalogue by a human before any compliance-sensitive claim, and DeepPlant never
   claims compliance from visual similarity

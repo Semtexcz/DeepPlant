@@ -319,9 +319,15 @@ document with a trailing newline. Its output contract:
 - **Restricted.** One SVG namespace, and only `<svg>`, `<line>`, `<circle>`, and
   `<polygon>`: no text, scripts, event handlers, external references, `data:`
   URIs, raster images, or embedded fonts.
-- **Themeable.** `fill="none"`, `stroke="currentColor"`, and a fixed
-  `stroke-width` on the root, so a consumer themes it through `currentColor`.
-  There is no styling engine, and none is planned until a consumer needs one.
+- **Themeable.** The root defaults to `fill="none"` and `stroke="currentColor"`
+  with a fixed `stroke-width`, so a consumer themes it through `currentColor`.
+  Normal primitives inherit that hollow, stroked representation. A primitive with
+  an explicit binary fill requirement may opt into `fill="currentColor"` on the
+  child element where the canonical symbol definition requires a solid marker;
+  the only current need is the check-valve closure marker. That is one binary
+  graphical fact, **not** a general style system: there is no fill string, stroke
+  string, style dictionary, class, theme object, or renderer style option, and
+  none is planned until a consumer needs one.
 - **Anchor-free.** Anchors are definition data and are deliberately *not*
   written into the document; a consumer reads them from the definition instead
   of inferring them from geometry.

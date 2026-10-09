@@ -69,8 +69,11 @@ DeepPlant assets   → independent implementation assets with provenance
 
 - **restricted normative reference** — the normative content is copyright
   restricted; it is never redistributed, and it is not fed to AI systems unless
-  the applicable licence permits that use or the operator has explicitly
-  authorized a private local reference for a specific task
+  the applicable licence or terms explicitly permit that use. Where they do not,
+  it reaches AI tooling only through the operator-authorized private-reference
+  workflow, which requires **both** an explicit per-task operator authorization
+  **and** the operator's confirmation that they are entitled to permit that AI
+  use under the applicable rights
   ([Operator-authorized private reference material](#operator-authorized-private-reference-material)).
   DeepPlant references it by identifier and verifies it by hand when alignment
   matters.
@@ -87,7 +90,7 @@ DeepPlant assets   → independent implementation assets with provenance
 |---|---|
 | Which standards guide DeepPlant? | The current reference set and each standard's role are recorded in the [standards registry](../reference/standards-registry.md); this policy governs how that material may be used. |
 | Which standard content may be stored in the repository? | Official metadata, identifiers, and DeepPlant-authored summaries only. No normative tables, figures, symbol artwork, or substantial text from ISO/ISA/IEC publications. DEXPI 2.0 content may be stored where its CC BY 4.0 licence covers it, with attribution. |
-| Which material may AI agents inspect? | Openly licensed specifications (DEXPI under CC BY 4.0), DeepPlant-authored summaries, and public material whose licence/terms explicitly permit AI use. For ISO, only ISO Open Data or other explicitly permitted material. Public availability alone is not permission for AI ingestion. One bounded exception exists: material inside an operator-authorized private local reference bundle, for the specific task that was authorized — see [Operator-authorized private reference material](#operator-authorized-private-reference-material). That authorization permits inspection only, never redistribution, and it never produces a `human-verified` state. |
+| Which material may AI agents inspect? | Openly licensed specifications (DEXPI under CC BY 4.0), DeepPlant-authored summaries, and public material whose licence/terms explicitly permit AI use. For ISO, only ISO Open Data or other explicitly permitted material. Public availability alone is not permission for AI ingestion. Material whose terms do not permit AI use is governed by a separate **bounded operator-authorized private-reference workflow**, which requires both an explicit per-task operator authorization and the operator's confirmation that the applicable rights permit that use — see [Operator-authorized private reference material](#operator-authorized-private-reference-material). Such authorization permits inspection only, never redistribution, and it never produces a `human-verified` state. Operator authorization is a project workflow gate, not a licence override. |
 | Where may graphical assets come from? | DeepPlant-original geometry and clearly permissively licensed sources with explicit provenance. Not from tracing or extracting restricted standard artwork. See [Symbol Provenance Policy](#symbol-provenance-policy). |
 | When may DeepPlant claim standards alignment or compliance? | Only after human verification against an authorized copy. Until then the vocabulary is `reference` / `candidate-alignment`. Visual similarity is not compliance. See [Verification vocabulary](#verification-vocabulary). |
 | How must symbol provenance and licensing be recorded? | Every distributed symbol needs a provenance record covering author/origin, licence, modification state, upstream revision, intended standard, and verification state. See [Symbol Provenance Policy](#symbol-provenance-policy). |
@@ -124,8 +127,10 @@ not open-licensed.
 - Trace their symbol images.
 - Embed screenshots from them.
 - Reproduce substantial text from them.
-- Send purchased/licensed standards to an AI system, except under an explicit
-  operator authorization for a specific task
+- Send purchased/licensed standards to an AI system, except through the
+  operator-authorized private-reference workflow — an explicit per-task operator
+  authorization together with the operator's confirmation that the applicable
+  rights permit that use
   ([Operator-authorized private reference material](#operator-authorized-private-reference-material)).
 - Ask an AI system to derive SVG assets from those PDFs. Authorized inspection
   may inform the engineering reading, but the asset itself is still authored
@@ -138,7 +143,7 @@ Humans may manually use official catalogue pages to verify a standard's
 identifier, edition, status, and official source. That manual verification does
 not authorize AI ingestion of the page. For ISO, agents may use only ISO Open
 Data or other material whose applicable terms explicitly permit AI use, plus the
-bounded operator-authorized private-reference exception below.
+bounded operator-authorized private-reference workflow below.
 
 An authorized private inspection is not a verification either. `human-verified`
 remains a named-human record against an authorized copy; an agent's inspection
@@ -161,8 +166,14 @@ This policy has **two modes**, and they must never be conflated.
 ```text
 default mode                          restricted material stays out of AI workflows
 operator-authorized private-reference mode   one authorized local bundle, one task,
-                                              inspection only, no redistribution
+                                              rights-confirmed, inspection only,
+                                              no redistribution
 ```
+
+The private-reference mode is a **workflow gate, not a copyright/licence
+exception**. It is available only when the operator confirms that the applicable
+rights permit that use; it can never override a licence, a contract, or another
+rights holder's terms.
 
 ### Default mode — no operator authorization
 
@@ -175,9 +186,12 @@ of AI workflows, and public availability is still not permission.
 ### Operator-authorized private-reference mode
 
 An operator may explicitly authorize a **private local reference set** for one
-specific DeepPlant task. Within that authorization, and only for that task, an
-agent may inspect the authorized local material for engineering analysis and
-implementation:
+specific DeepPlant task. Operator authorization is a **project workflow gate**: it
+is necessary, but not sufficient. The material may be inspected only when the
+operator *also* confirms that they are entitled to permit that AI use under the
+applicable licence, contract, organizational authorization, or other relevant
+rights. With both present, and only for that task, an agent may inspect the
+authorized local material for engineering analysis and implementation:
 
 - open, search, and read the material;
 - inspect figures, tables, and symbols visually, including rendering a document
@@ -192,6 +206,34 @@ implementation:
 The authorization belongs to the **task or session**, not to the material: it is
 what permits the use, it does not carry over to another task, and the presence of
 private material never implies its own authorization.
+
+```text
+operator authorization     a project workflow gate (necessary)
+                        !=
+rights-holder permission   a licence / contract / rights question
+
+project authorization != rights-holder permission
+operator authorization cannot override applicable licence or contractual restrictions
+```
+
+### Required governance flow
+
+```text
+is the material openly licensed / explicitly AI-permitted?
+        yes -> use according to its terms
+        no  -> has the operator explicitly authorized this private material for
+               this task?
+                 no  -> do not inspect
+                 yes -> has the operator confirmed they are entitled to permit
+                        this AI use under the applicable licence / contract /
+                        rights?
+                          no / unknown -> do not inspect
+                          yes -> private inspection permitted for the authorized task
+                                 no redistribution
+                                 no source-artwork extraction
+                                 no compliance claim
+                                 AI inspection != human verification
+```
 
 ### Authorization to inspect is not permission to redistribute
 
@@ -231,9 +273,11 @@ extracted, or imported.
 ### Company and project engineering material
 
 Operator-authorized private company/project engineering material — PFD and P&ID
-drawings, legends, and similar project documents — may likewise be inspected by
-agents for requirements, engineering context, notation, symbol identification,
-topology, visual QA, and implementation review.
+drawings, legends, and similar project documents — is governed by exactly the same
+two-condition workflow: the operator must both authorize the material for the
+specific task and confirm that the applicable rights permit that AI use. When both
+hold, it may be inspected by agents for requirements, engineering context,
+notation, symbol identification, topology, visual QA, and implementation review.
 
 It must not be redistributed, and the same prohibitions apply: no committed
 drawings, screenshots, legends, title blocks, tags, or project identifiers, and no
@@ -253,12 +297,16 @@ is intentionally ignored by Git and stays untracked:
 
 - the path is private local configuration and is never committed;
 - the pointer file's presence does **not** itself grant an agent authorization;
-- authorization must still be explicit for the task or session;
+- authorization must still be explicit for the task or session, together with
+  the operator's confirmation that the applicable rights permit that AI use;
 - the contents of any referenced bundle remain subject to this section and must
   not be redistributed.
 
 ### What this does not change
 
+- Operator authorization is a project workflow gate, never a licence override: it
+  cannot override a licence, a contract, or another rights holder's terms, so
+  project authorization is not rights-holder permission.
 - `human-verified` remains reserved for a **named human** verification record
   against an authorized copy. An authorized inspection, however useful, never
   produces that state, and no `verified_by`/`verified_on` evidence may be

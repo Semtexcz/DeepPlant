@@ -218,6 +218,19 @@ def test_circle_radius_must_be_positive(radius: float) -> None:
         Circle(cx=50.0, cy=50.0, r=radius)
 
 
+def test_circle_fill_defaults_to_hollow() -> None:
+    # The one binary fill fact defaults to hollow, so adding it leaves every
+    # existing definition and its rendered SVG unchanged.
+    assert Circle(cx=50.0, cy=50.0, r=8.0).filled is False
+    assert Circle(cx=50.0, cy=50.0, r=8.0, filled=True).filled is True
+
+
+@pytest.mark.parametrize("filled", ["yes", 1, 0, None])
+def test_circle_fill_must_be_a_boolean(filled: object) -> None:
+    with pytest.raises(SymbolDefinitionError, match="boolean"):
+        Circle(cx=50.0, cy=50.0, r=8.0, filled=cast(bool, filled))
+
+
 def test_geometry_outside_the_view_box_is_rejected() -> None:
     with pytest.raises(SymbolDefinitionError, match="outside the view box"):
         _symbol(primitives=(Line(x1=0.0, y1=50.0, x2=101.0, y2=50.0),))

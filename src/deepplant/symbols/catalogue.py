@@ -152,11 +152,11 @@ BALL_VALVE = SymbolDefinition(
 # where the marker sits rather than by an arrow, and the two stubs are
 # DeepPlant's connection representation of the adjacent pipeline.
 #
-# The reference marks that closure element as a solid dot. This library renders
-# strokes only (`fill="none"` at the document root, and no fill attribute on a
-# primitive), so the marker is the same circle drawn as a stroke: position and
-# meaning are preserved, the fill difference is a rendering-style deviation, and
-# it needs no new primitive and no renderer change.
+# The reference marks that closure element as a solid dot, and the check valve is
+# the one definition that needs a solid marker: its circle is authored with
+# `filled=True`, which the renderer paints with the themeable `currentColor` fill
+# (the only fill the SVG vocabulary allows). That binary fact is not a styling
+# option, and every other circle in the catalogue stays hollow by default.
 #
 # This definition separates the two concepts the anchor contract keeps apart:
 # `inlet`/`outlet` are semantic connection *roles*, while `orientation` stays
@@ -172,7 +172,7 @@ CHECK_VALVE = SymbolDefinition(
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
         Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
         Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
-        Circle(cx=28.0, cy=34.0, r=8.0),
+        Circle(cx=28.0, cy=34.0, r=8.0, filled=True),
         Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
     ),
     anchors=(

@@ -131,13 +131,23 @@ class Line:
 
 @dataclass(frozen=True)
 class Circle:
-    """A stroked circle: a symbol-local centre and a positive radius."""
+    """A circle: a symbol-local centre and a positive radius.
+
+    ``filled`` is one binary graphical fact, not a styling option: ``False`` (the
+    default) leaves the interior hollow by inheriting the document's
+    ``fill="none"``, while ``True`` paints the interior with the themeable
+    ``currentColor``. It exists only because one canonical symbol requires a solid
+    marker; it is not a fill string, a colour, a style dictionary, or the start of
+    a styling system.
+    """
 
     cx: float
     cy: float
     r: float
+    filled: bool = False
 
     def __post_init__(self) -> None:
+        _require_bool(self.filled, "circle filled")
         if self.r <= 0:
             raise SymbolDefinitionError(f"circle radius must be positive, got {self.r!r}")
 
@@ -385,6 +395,17 @@ class SymbolDefinition:
         _require_anchors(self.symbol_id, self.anchors, bounds)
         _require_unique_standards(self.symbol_id, self.standards)
         _require_profile_standards(self.symbol_id, self.profile, self.standards)
+
+
+def _require_bool(value: object, label: str) -> None:
+    """Fail closed when a binary flag is not an actual boolean.
+
+    ``filled`` must be a real ``bool``: ``0``/``1`` or any other truthy value is
+    not a silent yes/no, because a truthy non-bool would let unintended data
+    change rendered geometry.
+    """
+    if not isinstance(value, bool):
+        raise SymbolDefinitionError(f"{label} must be a boolean, got {value!r}")
 
 
 def _is_number(value: object) -> bool:
