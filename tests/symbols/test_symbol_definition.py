@@ -3,13 +3,14 @@
 A :class:`SymbolDefinition` is the canonical geometry source, so its invariants
 are exercised directly: stable identity, closed vocabularies, the normalized
 coordinate system, explicit anchors, asset provenance, and the standards
-relationship its drawing profile requires. Nothing here depends on the renderer
+relationship its notation profile requires. Nothing here depends on the renderer
 or on YAML.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import inspect
 from datetime import date
 from typing import Literal, cast
 
@@ -55,7 +56,7 @@ def _symbol(
     name: str = "Gate valve",
     category: str = "valve",
     diagram_types: tuple[str, ...] = ("pid",),
-    profile: str = "generic-iso",
+    notation_profile: str = "generic-iso",
     primitives: tuple[Line | Circle | Polygon, ...] = (Line(x1=0.0, y1=50.0, x2=100.0, y2=50.0),),
     anchors: tuple[SymbolAnchor, ...] = (),
     provenance: AssetProvenance = PROVENANCE,
@@ -68,7 +69,7 @@ def _symbol(
         name=name,
         category=category,
         diagram_types=diagram_types,
-        profile=profile,
+        notation_profile=notation_profile,
         primitives=primitives,
         anchors=anchors,
         provenance=provenance,
@@ -83,7 +84,7 @@ def test_a_valid_definition_keeps_its_declared_values() -> None:
     )
 
     assert definition.symbol_id == "valve.gate"
-    assert definition.profile == "generic-iso"
+    assert definition.notation_profile == "generic-iso"
     assert definition.diagram_types == ("pid",)
     assert definition.view_box == CANONICAL_VIEW_BOX
     assert definition.provenance == PROVENANCE
@@ -109,13 +110,16 @@ def test_blank_symbol_category_is_rejected() -> None:
         _symbol(category="")
 
 
-def test_unknown_drawing_profile_is_rejected() -> None:
-    with pytest.raises(SymbolDefinitionError, match="drawing profile"):
-        _symbol(profile="yara-chpn")
+def test_unknown_notation_profile_is_rejected() -> None:
+    # Only the recognised production notation profiles are accepted, and the closed
+    # vocabulary comes from the profile policy registry; an unrecognised profile
+    # fails deterministically instead of rendering (Issues #124, #125).
+    with pytest.raises(SymbolDefinitionError, match="unknown notation profile"):
+        _symbol(notation_profile="yara-chpn")
 
 
 # ---------------------------------------------------------------------------
-# The `generic-iso` profile invariant
+# The `generic-iso` notation-profile invariant
 # ---------------------------------------------------------------------------
 
 
@@ -158,18 +162,73 @@ def test_generic_iso_accepts_an_intended_correspondence(verification: str) -> No
 
     definition = _symbol(standards=(reference,))
 
-    assert definition.profile == "generic-iso"
+    assert definition.notation_profile == "generic-iso"
     assert definition.standards == (reference,)
 
 
 def test_the_standards_field_stays_optional_at_the_definition_level() -> None:
-    # The requirement is profile-specific, not blanket: `standards` has no imposed
-    # default, and a future company, project, or custom profile may legitimately
-    # record none. The current `generic-iso` profile is what requires an intended
-    # correspondence.
+    # The requirement is notation-profile-specific, not blanket: `standards` has no
+    # imposed default, and `deepplant-default` or a future company, project, or
+    # custom profile may legitimately record none. The current `generic-iso` profile
+    # is what requires an intended correspondence.
     fields = {field.name: field for field in dataclasses.fields(SymbolDefinition)}
 
     assert fields["standards"].default == ()
+
+
+# ---------------------------------------------------------------------------
+# The `deepplant-default` notation profile
+# ---------------------------------------------------------------------------
+
+
+def test_deepplant_default_accepts_a_definition_with_no_standards_reference() -> None:
+    # `deepplant-default` is the DeepPlant-owned practical notation family: it makes
+    # no ISO/ISA/PIP conformance claim, so it must never force invented standards
+    # metadata onto DeepPlant-authored geometry (Issues #124, #125).
+    definition = _symbol(notation_profile="deepplant-default", standards=())
+
+    assert definition.notation_profile == "deepplant-default"
+    assert definition.standards == ()
+
+
+def test_deepplant_default_accepts_a_bare_reference() -> None:
+    # No intended correspondence is required in `deepplant-default`, so a bare
+    # `reference` relationship is a valid voluntary record there.
+    reference = StandardsReference(standard="ISO 10628-2:2012")
+    definition = _symbol(notation_profile="deepplant-default", standards=(reference,))
+
+    assert definition.standards == (reference,)
+
+
+def test_deepplant_default_still_validates_voluntary_standards_metadata() -> None:
+    # The profile relaxes the *requirement*, not the validation: a relationship
+    # recorded anyway is still subject to the normal StandardsReference rules.
+    definition = _symbol(notation_profile="deepplant-default", standards=(CORRESPONDENCE,))
+
+    assert definition.standards == (CORRESPONDENCE,)
+    with pytest.raises(SymbolDefinitionError, match="standards reference 'standard'"):
+        _symbol(
+            notation_profile="deepplant-default",
+            standards=(StandardsReference(standard="   "),),
+        )
+
+
+# ---------------------------------------------------------------------------
+# The renamed canonical field
+# ---------------------------------------------------------------------------
+
+
+def test_the_canonical_field_is_notation_profile_not_profile() -> None:
+    # Issue #125 renamed the canonical field and deliberately keeps no competing
+    # `.profile` alias: the symbol library is still early enough for a clean rename,
+    # and two canonical fields would make the meaning ambiguous.
+    field_names = {field.name for field in dataclasses.fields(SymbolDefinition)}
+    parameters = inspect.signature(SymbolDefinition).parameters
+
+    assert "notation_profile" in field_names
+    assert "profile" not in field_names
+    assert "notation_profile" in parameters
+    assert "profile" not in parameters
 
 
 @pytest.mark.parametrize("diagram_types", [(), ("pfd", "pfd"), ("pfd", "p&id")])

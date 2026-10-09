@@ -21,7 +21,7 @@ anchors are validated to lie inside the declared box.
 Vocabularies
 ------------
 
-The drawing ``profile``, the ``diagram_types`` a symbol may be drawn in, the
+The ``notation_profile``, the ``diagram_types`` a symbol may be drawn in, the
 anchor ``orientation`` and connection ``kind``, the standards ``verification``
 state, and the asset ``origin`` are closed vocabularies. Each is defined once as
 a frozenset here and validated when a definition is constructed, so an unknown
@@ -30,10 +30,12 @@ catalogue-defined subject area (like ``ProcessStep.function``, ADR-0009): the
 catalogue grows with the reference material, not with a code change.
 
 Two further invariants are enforced alongside those vocabularies, because the
-current slice deliberately supports exactly one asset origin and one drawing
-profile: ``deepplant-original`` geometry is accepted only under
-``AGPL-3.0-only``, and :data:`GENERIC_ISO_PROFILE` requires at least one
-standards relationship recording an *intended* correspondence.
+current slice deliberately supports exactly one asset origin: ``deepplant-original``
+geometry is accepted only under ``AGPL-3.0-only``, and a notation profile may
+require at least one standards relationship recording an *intended*
+correspondence. That profile question is owned by
+:mod:`deepplant.symbols.profiles`, the single source of truth for the recognised
+notation-profile set (Issue #125).
 """
 
 from __future__ import annotations
@@ -44,24 +46,15 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Literal
 
+from deepplant.symbols.profiles import NOTATION_PROFILES, notation_profile_policy
+
 #: The canonical normalized symbol view box ``(min_x, min_y, width, height)``.
 CANONICAL_VIEW_BOX: tuple[float, float, float, float] = (0.0, 0.0, 100.0, 100.0)
-
-#: The profile whose meaning is "this DeepPlant-authored geometry is *intended*
-#: to correspond to the named standards". It is the only profile that imposes a
-#: standards requirement, because that requirement belongs to the meaning of the
-#: profile and not to :class:`SymbolDefinition` in general. A company, project,
-#: or custom profile would not have it.
-GENERIC_ISO_PROFILE = "generic-iso"
-
-#: Drawing profiles a symbol may belong to. ``generic-iso`` is the canonical MVP
-#: profile; a company or project profile is not defined yet.
-PROFILES: frozenset[str] = frozenset({GENERIC_ISO_PROFILE})
 
 #: Standards-correspondence states that record an *intended* correspondence for a
 #: concrete geometry. A bare ``reference`` is deliberately absent: it claims no
 #: correspondence for any concrete geometry, so it can never make a symbol part of
-#: the ``generic-iso`` profile.
+#: the ``generic-iso`` notation profile.
 INTENDED_CORRESPONDENCE_STATES: frozenset[str] = frozenset(
     {"candidate-alignment", "human-verified"}
 )
@@ -313,8 +306,8 @@ class SymbolDefinition:
         human-readable name and open catalogue subject area;
     ``diagram_types``
         the diagram types the representation may be drawn in;
-    ``profile``
-        the drawing profile the geometry belongs to;
+    ``notation_profile``
+        the notation profile the geometry is drawn in;
     ``primitives``
         the geometry, in symbol-local coordinates;
     ``anchors``
@@ -323,17 +316,19 @@ class SymbolDefinition:
         where the geometry came from and under which licence;
     ``standards``
         the standards relationship and its verification state; optional at this
-        level, but required by the ``generic-iso`` profile;
+        level, but required by the ``generic-iso`` notation profile;
     ``view_box``
         the normalized local coordinate box, canonical ``0 0 100 100``.
 
     Asset provenance is always required, and standards correspondence is optional
     *at this level*: a future company, project, or custom symbol is a valid
     definition without a standards reference, and nothing here invents one for it.
-    A profile may require one, and :data:`GENERIC_ISO_PROFILE` does, because that
+    A notation profile may require one, and ``generic-iso`` does, because that
     profile *means* intended standards correspondence: it demands at least one
     :class:`StandardsReference` recording an intended correspondence, so a bare
-    ``reference`` cannot make a symbol part of it.
+    ``reference`` cannot make a symbol part of it. The recognised notation
+    profiles and that requirement live in
+    :mod:`deepplant.symbols.profiles`.
 
     The definition carries no tags, line numbers, or project annotations: a
     project-specific label is never part of base symbol geometry.
@@ -343,7 +338,7 @@ class SymbolDefinition:
     name: str
     category: str
     diagram_types: tuple[str, ...]
-    profile: str
+    notation_profile: str
     primitives: tuple[GraphicPrimitive, ...]
     anchors: tuple[SymbolAnchor, ...]
     provenance: AssetProvenance
@@ -358,16 +353,12 @@ class SymbolDefinition:
         _require_non_blank(self.name, "symbol name")
         _require_non_blank(self.category, "symbol category")
         _require_diagram_types(self.diagram_types)
-        if self.profile not in PROFILES:
-            raise SymbolDefinitionError(
-                f"symbol '{self.symbol_id}' has unknown drawing profile {self.profile!r}; "
-                f"expected one of {sorted(PROFILES)}"
-            )
+        _require_known_notation_profile(self.symbol_id, self.notation_profile)
         bounds = _view_box_bounds(self.symbol_id, self.view_box)
         _require_primitives(self.symbol_id, self.primitives, bounds)
         _require_anchors(self.symbol_id, self.anchors, bounds)
         _require_unique_standards(self.symbol_id, self.standards)
-        _require_profile_standards(self.symbol_id, self.profile, self.standards)
+        _require_notation_profile_standards(self.symbol_id, self.notation_profile, self.standards)
 
 
 def _is_number(value: object) -> bool:
@@ -536,8 +527,8 @@ def _require_unique_standards(symbol_id: str, standards: tuple[StandardsReferenc
     A standards relationship is optional at this level: a future company,
     project, or custom symbol may legitimately record none, and each supplied
     :class:`StandardsReference` validates itself on construction. Whether a symbol
-    must record one is a profile question, decided by
-    :func:`_require_profile_standards` (ADR-0007).
+    must record one is a notation-profile question, decided by
+    :func:`_require_notation_profile_standards` (ADR-0007).
     """
     seen: set[str] = set()
     for reference in standards:
@@ -564,25 +555,41 @@ def _require_origin_license(origin: str, license_id: str) -> None:
         )
 
 
-def _require_profile_standards(
-    symbol_id: str, profile: str, standards: tuple[StandardsReference, ...]
-) -> None:
-    """Fail closed when a drawing profile requires a correspondence it lacks.
+def _require_known_notation_profile(symbol_id: str, notation_profile: str) -> None:
+    """Fail closed when a definition declares an unrecognised notation profile.
 
-    Standards correspondence stays optional at the :class:`SymbolDefinition`
-    level, because a future company, project, or custom profile may legitimately
-    record none. :data:`GENERIC_ISO_PROFILE` is different: it *means*
-    DeepPlant-authored geometry intended to correspond to the named references, so
-    it requires at least one :class:`StandardsReference`, every recorded
-    relationship must record that intended correspondence, and a bare
-    ``reference`` is not sufficient - it claims no correspondence for a concrete
-    geometry (ADR-0007).
+    The closed vocabulary is the policy registry in
+    :mod:`deepplant.symbols.profiles`, so an unknown profile fails
+    deterministically instead of being accepted and rendered (Issue #125).
     """
-    if profile != GENERIC_ISO_PROFILE:
+    if notation_profile_policy(notation_profile) is None:
+        raise SymbolDefinitionError(
+            f"symbol '{symbol_id}' has unknown notation profile {notation_profile!r}; "
+            f"expected one of {sorted(NOTATION_PROFILES)}"
+        )
+
+
+def _require_notation_profile_standards(
+    symbol_id: str, notation_profile: str, standards: tuple[StandardsReference, ...]
+) -> None:
+    """Fail closed when a notation profile requires a correspondence it lacks.
+
+    Standards correspondence stays optional at the :class:`SymbolDefinition` level
+    because ``deepplant-default`` - and any future company, project, or custom
+    profile - may legitimately record none. ``generic-iso`` is different: it
+    *means* DeepPlant-authored geometry intended to correspond to the named
+    references, so it requires at least one :class:`StandardsReference`, every
+    recorded relationship must record that intended correspondence, and a bare
+    ``reference`` is not sufficient - it claims no correspondence for a concrete
+    geometry (ADR-0007). Whether a profile requires it at all is decided by
+    :class:`~deepplant.symbols.profiles.NotationProfilePolicy`.
+    """
+    policy = notation_profile_policy(notation_profile)
+    if policy is None or not policy.requires_intended_standards:
         return
     if not standards:
         raise SymbolDefinitionError(
-            f"symbol '{symbol_id}' is profile {GENERIC_ISO_PROFILE!r} but records no "
+            f"symbol '{symbol_id}' is notation profile {notation_profile!r} but records no "
             "standards reference; that profile means intended standards correspondence"
         )
     without_correspondence = [
@@ -592,7 +599,7 @@ def _require_profile_standards(
     ]
     if without_correspondence:
         raise SymbolDefinitionError(
-            f"symbol '{symbol_id}' is profile {GENERIC_ISO_PROFILE!r} but the "
+            f"symbol '{symbol_id}' is notation profile {notation_profile!r} but the "
             f"standard(s) {sorted(without_correspondence)} record no intended "
             "correspondence; a bare 'reference' claims no correspondence for a "
             "concrete geometry"

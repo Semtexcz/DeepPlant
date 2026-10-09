@@ -404,7 +404,7 @@ def _render_marker(
 
 
 def _render_identity(definition: SymbolDefinition) -> str:
-    """Render the definition's identity, diagram types, and drawing profile."""
+    """Render the definition's identity, diagram types, and notation profile."""
     return (
         "<h3>Identity</h3>\n"
         '<dl class="meta">\n'
@@ -412,7 +412,7 @@ def _render_identity(definition: SymbolDefinition) -> str:
         f"<dt>Name</dt><dd>{escape(definition.name)}</dd>\n"
         f"<dt>Category</dt><dd>{escape(definition.category)}</dd>\n"
         f"<dt>Diagram types</dt><dd>{escape(', '.join(definition.diagram_types))}</dd>\n"
-        f"<dt>Profile</dt><dd>{escape(definition.profile)}</dd>\n"
+        f"<dt>Notation profile</dt><dd>{escape(definition.notation_profile)}</dd>\n"
         f"<dt>View box</dt><dd>{_render_view_box(definition.view_box)}</dd>\n"
         "</dl>\n"
     )

@@ -187,10 +187,10 @@ Rules:
   copyright works with their own provenance; resemblance does not transfer the
   standard's copyright or grant any rights.
 - `candidate-alignment` never requires a human check, and `reference` never claims
-  correspondence for a concrete asset. A drawing profile may additionally require
+  correspondence for a concrete asset. A notation profile may additionally require
   an intended correspondence: a `deepplant.symbols` definition in the
-  `generic-iso` profile must record at least one standards relationship at
-  `candidate-alignment` or `human-verified`, because `reference` alone claims
+  `generic-iso` notation profile must record at least one standards relationship
+  at `candidate-alignment` or `human-verified`, because `reference` alone claims
   nothing about that concrete geometry
   ([symbol-library.md](../reference/symbol-library.md)).
 

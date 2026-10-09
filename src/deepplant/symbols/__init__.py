@@ -7,7 +7,8 @@ A symbol's canonical geometry is a typed, machine-readable
 :class:`~deepplant.symbols.definition.SymbolDefinition`, not an SVG file:
 :func:`~deepplant.symbols.svg.render_symbol_svg` generates SVG from the
 definition deterministically, and :data:`~deepplant.symbols.registry.SYMBOLS`
-looks definitions up by stable symbol id.
+looks a graphical representation up by notation profile and stable symbol id
+(Issue #125).
 
 The package holds presentation data only: it carries no project tags, line
 numbers, or company conventions, nothing it defines enters the semantic model,

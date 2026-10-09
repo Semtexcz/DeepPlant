@@ -69,7 +69,7 @@ def _hostile_definition() -> SymbolDefinition:
         name=HOSTILE_NAME,
         category=HOSTILE_CATEGORY,
         diagram_types=("pid",),
-        profile="generic-iso",
+        notation_profile="generic-iso",
         primitives=(Line(x1=0.0, y1=50.0, x2=100.0, y2=50.0),),
         anchors=(SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),),
         provenance=AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only"),
@@ -292,7 +292,7 @@ def test_the_page_carries_the_registry_metadata(tmp_path: Path) -> None:
         assert f"<dt>Symbol id</dt><dd>{escape(definition.symbol_id)}</dd>" in page
         assert f"<dt>Name</dt><dd>{escape(definition.name)}</dd>" in page
         assert f"<dt>Category</dt><dd>{escape(definition.category)}</dd>" in page
-        assert f"<dt>Profile</dt><dd>{escape(definition.profile)}</dd>" in page
+        assert f"<dt>Notation profile</dt><dd>{escape(definition.notation_profile)}</dd>" in page
         assert f"<dt>Origin</dt><dd>{escape(provenance.origin)}</dd>" in page
         assert f"<dt>Licence</dt><dd>{escape(provenance.license)}</dd>" in page
         diagram_types = escape(", ".join(definition.diagram_types))
