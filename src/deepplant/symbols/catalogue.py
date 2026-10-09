@@ -82,7 +82,7 @@ GATE_VALVE = SymbolDefinition(
     name="Gate valve",
     category="valve",
     diagram_types=("pid",),
-    profile="generic-iso",
+    notation_profile="generic-iso",
     primitives=(
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
         Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
@@ -118,7 +118,7 @@ PUMP_CENTRIFUGAL = SymbolDefinition(
     name="Centrifugal pump",
     category="equipment",
     diagram_types=("pfd", "pid"),
-    profile="generic-iso",
+    notation_profile="generic-iso",
     primitives=(
         Circle(cx=50.0, cy=50.0, r=24.0),
         Line(x1=0.0, y1=50.0, x2=100.0, y2=50.0),
@@ -151,7 +151,7 @@ INSTRUMENT_LOCAL = SymbolDefinition(
     name="Local/field instrument",
     category="instrument",
     diagram_types=("pid",),
-    profile="generic-iso",
+    notation_profile="generic-iso",
     primitives=(
         Circle(cx=50.0, cy=40.0, r=20.0),
         Line(x1=50.0, y1=60.0, x2=50.0, y2=100.0),
@@ -163,7 +163,7 @@ INSTRUMENT_LOCAL = SymbolDefinition(
     ),
 )
 
-#: The definitions the implemented ``generic-iso`` profile currently exposes.
+#: The definitions the implemented ``generic-iso`` notation profile currently exposes.
 IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     GATE_VALVE,
     PUMP_CENTRIFUGAL,

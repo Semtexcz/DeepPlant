@@ -42,7 +42,7 @@ Two different symbol mechanisms exist, and they are not the same thing:
 | Scope | standard PFD/P&ID representations | DeepPlant-original process/PFD fallback glyphs |
 | Identity | stable symbol id (`valve.gate`) | presentation symbol role (`pump`) |
 | Asset provenance | required per definition (`origin`, `license`) | recorded in the packaged pack README |
-| Standards relationship | required by the `generic-iso` profile; `candidate-alignment` (intended, not human-verified) | `reference` / non-normative |
+| Standards relationship | required by the `generic-iso` notation profile; `candidate-alignment` (intended, not human-verified) | `reference` / non-normative |
 
 `docs/dev/reference/svg-symbols.md` and ADR-0008 remain in force for the
 process pack. ADR-0017 records why the standard library takes the
@@ -103,15 +103,15 @@ svg: str = render_symbol_svg(definition)
 
 | Field | Purpose |
 |---|---|
-| `symbol_id` | stable identity, a lowercase dotted name (`valve.gate`) |
+| `symbol_id` | stable, notation-independent identity: a lowercase dotted name (`valve.gate`) |
 | `name` | human-readable name |
 | `category` | open catalogue subject area (`valve`, `equipment`, `instrument`) |
 | `diagram_types` | the diagram types the representation may be drawn in |
-| `profile` | the drawing profile the geometry belongs to |
+| `notation_profile` | the notation profile the geometry is drawn in, i.e. which graphical notation selects it |
 | `primitives` | the geometry, in symbol-local coordinates |
 | `anchors` | the explicit connection slots, in stable declaration order |
 | `provenance` | required: where the geometry came from and under which licence |
-| `standards` | the standards relationship and its verification state; optional at this level, but the `generic-iso` profile requires at least one intended correspondence |
+| `standards` | the standards relationship and its verification state; optional at this level, but the `generic-iso` notation profile requires at least one intended correspondence |
 | `view_box` | the normalized local coordinate box, canonical `0 0 100 100` |
 
 `category` is an open string, like `ProcessStep.function` (ADR-0009): the
@@ -135,23 +135,47 @@ A further primitive is added when a verified symbol requires one. `Rect`,
 
 | Constant | Values |
 |---|---|
-| `PROFILES` | `generic-iso` |
+| `NOTATION_PROFILES` | `deepplant-default`, `generic-iso` |
 | `DIAGRAM_TYPES` | `pfd`, `pid` |
 | `ANCHOR_ORIENTATIONS` | `north`, `east`, `south`, `west` |
 | `CONNECTION_KINDS` | `process`, `signal` |
 | `ASSET_ORIGINS` | `deepplant-original` |
 | `VERIFICATION_STATES` | `reference`, `candidate-alignment`, `human-verified` |
 
-`generic-iso` is the canonical MVP drawing profile. It means DeepPlant-authored
-geometry that is *intended* to correspond to the named standards, so the profile
-itself requires at least one `StandardsReference` recording an intended
-correspondence (`candidate-alignment` or `human-verified`); a bare `reference` is
-not sufficient, because it claims no correspondence for a concrete geometry.
-Company and project profiles (for example a Yara/CHPN profile) do not exist yet,
-and adding one is a deliberate change to `PROFILES` plus its own provenance
-rules. Standards correspondence stays **optional at the definition level** for
-exactly that reason: a future company, project, or custom profile may legitimately
-record none, and nothing invents a standards reference for it.
+### Notation profiles
+
+A **notation profile** selects *which* graphical notation represents a stable
+symbol id. It is presentation-layer configuration only — never semantic
+engineering state — and is distinct from visual theme and from project/company
+annotation conventions. A project or document presentation context may later
+select and persist a notation-profile id, but that selection context is not itself
+another notation profile (Issue #124, ADR-0003):
+
+```text
+symbol_id          stable, notation-independent representation concept
+notation_profile   selects the graphical notation
+representation     (notation_profile, symbol_id)
+```
+
+`NOTATION_PROFILES` is the closed set of recognised profiles, and Issue #125
+recognises exactly two:
+
+| Profile | Meaning | Standards relationship |
+|---|---|---|
+| `deepplant-default` | DeepPlant-owned practical notation family, and the *future product default* (Issue #124) | **optional**: the profile makes no ISO/ISA/PIP conformance claim, so a definition in it may record no standards reference at all |
+| `generic-iso` | the legacy/transitional profile the current built-in catalogue is authored in | **required**: the profile means DeepPlant-authored geometry *intended* to correspond to the named standards, so at least one `StandardsReference` must record an intended correspondence, and a bare `reference` is never sufficient |
+
+The recognised profiles and their policy live in
+`src/deepplant/symbols/profiles.py` (`NOTATION_PROFILE_POLICIES`, a small
+immutable record plus a fixed tuple). That module is the single source of truth
+for both the vocabulary and the standards requirement, so the two cannot drift
+apart. Company and project profiles (for example a Yara/CHPN profile) do not
+exist yet, and adding one is a deliberate change to that policy set plus its own
+provenance rules. Standards correspondence stays **optional at the definition
+level** for exactly that reason: `deepplant-default`, or a future company,
+project, or custom profile, may legitimately record none, and nothing invents a
+standards reference for it. An unrecognised `notation_profile` fails closed at
+construction with the closed vocabulary.
 
 ## Anchors
 
@@ -195,9 +219,9 @@ identifier, coordinates are finite and inside or on the view box, and
 ## Standards relationship
 
 The standards relationship is **optional at the definition level** and separate
-from asset provenance; the `generic-iso` profile requires it (see
-[profile requirement](#profile-requirement)). Each `StandardsReference` is
-self-validating:
+from asset provenance; the `generic-iso` notation profile requires it (see
+[notation-profile requirement](#notation-profile-requirement)). Each
+`StandardsReference` is self-validating:
 
 ```python
 StandardsReference(standard="ISO 10628-2:2012")  # -> verification="reference"
@@ -225,11 +249,12 @@ check may only be performed against material the verifier is entitled to use.
 Until a symbol is `human-verified`, the repository must not present it as
 standards-conformant (ADR-0007).
 
-### Profile requirement
+### Notation-profile requirement
 
-`reference` claims no correspondence for a concrete geometry, so it can never
-make a symbol part of the profile whose meaning *is* intended correspondence. A
-definition in `profile="generic-iso"` must therefore satisfy:
+Whether standards correspondence is required is decided by the notation profile,
+not by the class. `generic-iso` *means* intended correspondence, and `reference`
+claims no correspondence for a concrete geometry, so a definition in
+`notation_profile="generic-iso"` must satisfy:
 
 ```text
 at least one StandardsReference
@@ -241,16 +266,30 @@ every recorded relationship is an intended correspondence
 Construction fails closed otherwise, so this is invalid:
 
 ```python
-SymbolDefinition(..., profile="generic-iso", standards=())  # no standards
+SymbolDefinition(..., notation_profile="generic-iso", standards=())  # no standards
 SymbolDefinition(
-    ..., profile="generic-iso", standards=(StandardsReference(standard="ISO 10628-2:2012"),)
+    ...,
+    notation_profile="generic-iso",
+    standards=(StandardsReference(standard="ISO 10628-2:2012"),),
 )
 # -> bare `reference`: no intended correspondence
 ```
 
+`deepplant-default` imposes no standards requirement at all, so this is valid:
+
+```python
+SymbolDefinition(..., notation_profile="deepplant-default", standards=())
+```
+
+A relationship supplied voluntarily in `deepplant-default` is still validated
+normally: a `candidate-alignment`, `human-verified`, or `reference` record must
+still satisfy the `StandardsReference` rules above, and the profile never
+requires invented standards metadata.
+
 The requirement belongs to the profile, not to the class: standards
-correspondence stays optional in `SymbolDefinition` for a future company,
-project, or custom profile that has no standards relationship at all.
+correspondence stays optional in `SymbolDefinition` for `deepplant-default` and
+for a future company, project, or custom profile that has no standards
+relationship at all.
 
 ## Asset provenance
 
@@ -290,7 +329,7 @@ Consequences:
   `origin="deepplant-original"`, `license="AGPL-3.0-only"`;
 - a future company, project, or custom definition is a perfectly valid definition
   without a standards reference and must not be given a fake ISO reference, while
-  the `generic-iso` profile requires an intended correspondence;
+  the `generic-iso` notation profile requires an intended correspondence;
 - copyright/licence provenance never implies a verification state, and vice
   versa.
 
@@ -318,22 +357,75 @@ document with a trailing newline. Its output contract:
 - **Themeable.** `fill="none"`, `stroke="currentColor"`, and a fixed
   `stroke-width` on the root, so a consumer themes it through `currentColor`.
   There is no styling engine, and none is planned until a consumer needs one.
+- **Notation-profile agnostic.** The renderer renders the definition it was given
+  and never branches on `notation_profile`, so two definitions that differ only
+  in profile render identical geometry. Profile-specific geometry belongs in
+  distinct definitions, and `svg.py` needs no notation knowledge at all
+  (Issue #125).
 - **Anchor-free.** Anchors are definition data and are deliberately *not*
   written into the document; a consumer reads them from the definition instead
   of inferring them from geometry.
 
 ## Registry
 
-```python
-SYMBOLS.get(symbol_id)  # -> SymbolDefinition, or SymbolDefinitionError
-SYMBOLS.list()  # -> tuple[SymbolDefinition, ...] in symbol-id order
+A registry resolves a graphical representation, and a representation is
+identified by the pair `(notation_profile, symbol_id)`, so one stable symbol id
+may hold one representation per notation profile (Issue #125). The flow is
+always:
+
+```text
+(symbol_id, notation_profile)
+            ↓
+         registry                 resolves the representation
+            ↓
+    SymbolDefinition
+            ↓
+render_symbol_svg(definition)     profile-agnostic
+            ↓
+           SVG
 ```
 
-`SYMBOLS` is the built-in registry over the implemented catalogue;
-`SymbolRegistry(definitions)` builds one over any definition iterable, which is
-what the tests use. A duplicate symbol id is rejected at construction, and an
-unknown id fails closed. There is no search, filter, variant, pack, or plugin
-API: nothing needs one yet.
+```python
+SYMBOLS.get(symbol_id)  # -> SymbolDefinition, or SymbolDefinitionError
+SYMBOLS.get(symbol_id, notation_profile="generic-iso")
+SYMBOLS.list()  # -> every registered representation, deterministic order
+SYMBOLS.list(notation_profile="generic-iso")  # -> only that profile
+SYMBOLS.default_notation_profile  # -> read-only, construction-time
+```
+
+- **Identity.** The registry indexes by `(notation_profile, symbol_id)`, so the
+  same `symbol_id` may coexist in two notation profiles. `SymbolRegistry(
+  definitions, default_notation_profile=...)` builds a registry over any
+  definition iterable (what the tests use), and `default_notation_profile` is
+  construction-time configuration exposed through a read-only property — there is
+  no mutable global profile selection.
+- **Ordering.** `list()` is ordered by `notation_profile` then `symbol_id`, so it
+  is deterministic regardless of catalogue declaration order. Every current
+  built-in representation is `generic-iso`, so its effective symbol-id order is
+  unchanged.
+- **Duplicate representation.** Registering the same
+  `(notation_profile, symbol_id)` pair twice is rejected at construction, and the
+  error names both parts of the identity. The same `symbol_id` in a *different*
+  profile is legitimate and is not a duplicate.
+- **Fail-closed lookup.** A requested representation that is absent fails with an
+  error naming the requested `symbol_id` and `notation_profile`. A missing
+  notation is never permission to substitute another one, so
+  `get(id, notation_profile=X)` never silently returns the `Y` representation, and
+  a missing-profile lookup is never indistinguishable from a successful fallback.
+- **Unknown profile.** An unrecognised profile id fails closed wherever it is
+  given — in `get()`, in `list()`, or as the constructor's default — while a
+  recognised profile with zero registered representations is a valid empty result
+  rather than an error.
+- **Temporary default.** The built-in registry's convenience default is still
+  `generic-iso`, because the current catalogue contains no `deepplant-default`
+  representation yet; `deepplant-default` is the *future product default* defined
+  by Issue #124. This is the migration state, not the target state, and it is the
+  single reason `SYMBOLS.get("valve.gate")` keeps resolving.
+
+The registry only resolves a graphical representation: selecting and persisting
+the notation profile of a project or document is a separate concern that lives
+outside `deepplant.symbols`. There is no search, filter, variant, pack, plugin,
+per-symbol override, or provider API: nothing needs one yet.
 
 ## Generating the symbol gallery
 
@@ -432,6 +524,11 @@ verification, and none of the three is `reference` or `human-verified`. The
 coverage matrix records the concepts still to come
 ([mvp-symbol-coverage.md](mvp-symbol-coverage.md)).
 
+Issue #125 makes the symbol model and registry notation-profile aware but does
+**not** migrate, reclassify, or redraw any existing symbol: all three
+representations stay `generic-iso`, `deepplant-default` has no built-in
+representation yet, and the rendered SVG output is byte-for-byte unchanged.
+
 The gate valve deliberately has no semantic inlet/outlet anchor contract: a
 generic gate valve is not inherently an inlet/outlet device, so its ports are
 named neutrally and carry only a geometric orientation. The pump keeps the
@@ -452,11 +549,12 @@ created.
    ([mvp-symbol-coverage.md](mvp-symbol-coverage.md)); if it is not there, add
    it first.
 2. Record the standard identifier (and edition) the representation is intended to
-   align with: required for `generic-iso`, where the relationship must be at
-   `candidate-alignment` or `human-verified`, and recorded together with the asset
-   provenance (`deepplant-original` under `AGPL-3.0-only`). Do **not** record a
-   locator, table/figure reference, registration number, or the standard's own
-   name unless it comes from a permitted source or a recorded human verification.
+   align with: required for the `generic-iso` notation profile, where the
+   relationship must be at `candidate-alignment` or `human-verified`, and recorded
+   together with the asset provenance (`deepplant-original` under
+   `AGPL-3.0-only`). Do **not** record a locator, table/figure reference,
+   registration number, or the standard's own name unless it comes from a
+   permitted source or a recorded human verification.
 3. Author the geometry independently from the primitives. Do not trace, extract,
    or reproduce standard artwork, and do not derive geometry from a company
    reference drawing.
@@ -474,7 +572,13 @@ created.
 ## Explicitly deferred
 
 - The rest of the MVP catalogue, full valve families, all pump types, DCS/SIS
-  symbols, and company/Yara-CHPN profiles.
+  symbols, and company/Yara-CHPN notation profiles.
+- The rest of the notation-profile architecture (Issue #124): persisted
+  project/document notation-profile selection, profile-aware gallery grouping and
+  coverage-matrix restructuring, evidence-based reclassification of the current
+  `generic-iso` representations, the `iso-10628` profile, and retiring
+  `generic-iso`. Issue #125 delivers only the notation-profile-aware model, policy,
+  and registry — no symbol has been reclassified yet.
 - Composition and variant machinery: instrument letter-code composition, signal
   connections for instrument functions that have one, control valves with
   actuators, instruments with displays, multifunction instruments.

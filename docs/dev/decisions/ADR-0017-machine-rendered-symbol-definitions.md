@@ -1,7 +1,61 @@
 # ADR-0017: Machine-Rendered Symbol Definitions
 
-> Status: Accepted
+> Status: Accepted; extended by the 2026-10-09 revisit note below (Issues #124 / #125)
 > Date: 2026-10-08
+
+> **Revisit note (2026-10-09, Issues #124 / #125).** This ADR's 2026-10-08 decision
+> text below is retained unmodified as the historical record. Its own revisit
+> trigger — *a second drawing profile is introduced* — has since fired: Issue #124
+> defines the notation-profile architecture and Issue #125 makes the symbol model
+> and registry notation-profile aware. The historical text describes a registry
+> keyed by `symbol_id` with every profile other than `generic-iso` deferred; the
+> current architecture generalises that, so the historical statements are read as
+> the 2026-10-08 record, not as the current rules.
+>
+> **Durable architecture added by #124 / #125:**
+>
+> ```text
+> symbol_id
+>     stable, notation-independent identity
+> notation_profile
+>     presentation-layer notation selection
+> graphical representation identity
+>     (notation_profile, symbol_id)
+> same symbol_id
+>     may coexist across notation profiles
+> duplicate identity
+>     only when both notation_profile and symbol_id match
+> missing requested representation
+>     fails closed
+> implicit cross-profile fallback
+>     forbidden
+> renderer
+>     remains notation-profile agnostic
+> registry
+>     resolves representations only
+> project/document persistence
+>     remains outside SymbolRegistry
+> deepplant-default
+>     recognised DeepPlant-owned notation profile
+>     standards relationship optional
+> generic-iso
+>     transitional notation profile
+>     intended standards correspondence required
+>     temporary built-in convenience default
+> ```
+>
+> **Profiles recognised is not the same as profiles populated.** The symbol model
+> now recognises multiple notation profiles and the registry can hold
+> representations for more than one profile, so the identity above replaces the
+> historical `symbol_id`-only identity. The current production catalogue, however,
+> remains entirely `generic-iso`: `deepplant-default` is recognised by the
+> architecture yet has **zero built-in production symbol definitions**, and no
+> existing symbol is reclassified by #125. This is a second *recognised* profile,
+> not a second *populated built-in catalogue*. Organisation and project profiles
+> (for example a Yara/CHPN profile) still do not exist, and the registry
+> resolves representations only — selecting and persisting the notation profile
+> of a project or document stays outside this package. The operational contract for
+> the current mechanism is [symbol-library.md](../reference/symbol-library.md).
 
 ## Context
 

@@ -14,7 +14,16 @@ from xml.etree.ElementTree import Element
 
 import pytest
 
-from deepplant.symbols import SYMBOLS, Circle, Polygon, SymbolDefinition, render_symbol_svg
+from deepplant.symbols import (
+    SYMBOLS,
+    AssetProvenance,
+    Circle,
+    Line,
+    Polygon,
+    StandardsReference,
+    SymbolDefinition,
+    render_symbol_svg,
+)
 
 CANONICAL_VIEW_BOX = "0 0 100 100"
 ALLOWED_ELEMENT_NAMES = {"svg", "line", "circle", "polygon"}
@@ -75,7 +84,7 @@ def test_a_rebuilt_definition_renders_identically(symbol_id: str) -> None:
         name=definition.name,
         category=definition.category,
         diagram_types=definition.diagram_types,
-        profile=definition.profile,
+        notation_profile=definition.notation_profile,
         primitives=definition.primitives,
         anchors=definition.anchors,
         provenance=definition.provenance,
@@ -88,6 +97,39 @@ def test_a_rebuilt_definition_renders_identically(symbol_id: str) -> None:
 
 def test_the_rendered_gate_valve_document_is_unchanged() -> None:
     assert render_symbol_svg(SYMBOLS.get("valve.gate")) == GATE_VALVE_DOCUMENT
+
+
+def test_the_renderer_stays_notation_profile_agnostic() -> None:
+    # Issue #125 keeps the renderer profile-agnostic: it renders the definition it is
+    # given and never branches on `notation_profile`, so two definitions that differ
+    # only in profile render identical geometry. Profile-specific geometry belongs in
+    # distinct definitions, not in renderer conditionals.
+    default = SymbolDefinition(
+        symbol_id="valve.example",
+        name="Example valve",
+        category="valve",
+        diagram_types=("pid",),
+        notation_profile="deepplant-default",
+        primitives=(Line(x1=0.0, y1=50.0, x2=100.0, y2=50.0),),
+        anchors=(),
+        provenance=AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only"),
+        standards=(),
+    )
+    generic = SymbolDefinition(
+        symbol_id="valve.example",
+        name="Example valve",
+        category="valve",
+        diagram_types=("pid",),
+        notation_profile="generic-iso",
+        primitives=(Line(x1=0.0, y1=50.0, x2=100.0, y2=50.0),),
+        anchors=(),
+        provenance=AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only"),
+        standards=(
+            StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+        ),
+    )
+
+    assert render_symbol_svg(default) == render_symbol_svg(generic)
 
 
 def test_every_registered_symbol_renders_a_well_formed_document() -> None:
@@ -158,7 +200,7 @@ def test_gate_valve_contract() -> None:
 
     assert definition.name == "Gate valve"
     assert definition.category == "valve"
-    assert definition.profile == "generic-iso"
+    assert definition.notation_profile == "generic-iso"
     assert definition.diagram_types == ("pid",)
 
     # Neutral graphical connection ports with geometric orientations. A generic
@@ -307,6 +349,8 @@ def test_no_restricted_derived_standards_detail_is_recorded(symbol_id: str) -> N
         assert reference.verified_on is None
 
 
-def test_every_implemented_symbol_declares_the_generic_iso_profile() -> None:
+def test_every_implemented_symbol_declares_the_generic_iso_notation_profile() -> None:
+    # Issue #125 renames the field and makes the registry profile-aware but migrates
+    # no geometry: the three built-in representations all stay `generic-iso`.
     for definition in SYMBOLS.list():
-        assert definition.profile == "generic-iso"
+        assert definition.notation_profile == "generic-iso"
