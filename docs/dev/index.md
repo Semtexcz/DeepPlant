@@ -92,7 +92,7 @@ table, not an orchestration engine.
 | Change YAML load/save | [contracts/yaml-format.md](../contracts/yaml-format.md) |
 | Change the renderer | [contracts/rendering.md](../contracts/rendering.md) — the shared headless process-renderer contract |
 | Change symbols or the symbol pack | [reference/svg-symbols.md](reference/svg-symbols.md) — the developer-only SVG + anchor contract |
-| Add or change a standard PFD/P&ID symbol | [reference/symbol-library.md](reference/symbol-library.md) — the machine-rendered symbol library contract; then [reference/mvp-symbol-coverage.md](reference/mvp-symbol-coverage.md) — coverage matrix and per-concept status; the implemented geometry is authored from [reference/symbol-seed-geometry.md](reference/symbol-seed-geometry.md) |
+| Add or change a standard PFD/P&ID symbol | [reference/symbol-library.md](reference/symbol-library.md) — the machine-rendered symbol library contract; then [reference/mvp-symbol-coverage.md](reference/mvp-symbol-coverage.md) — coverage matrix and per-concept status; the implemented geometry is authored from [reference/symbol-seed-geometry.md](reference/symbol-seed-geometry.md); the MVP Core subset and the evidence behind it are in [research/mvp-symbol-core-selection.md](research/mvp-symbol-core-selection.md) |
 | Change the DEXPI adapter | [reference/dexpi-process-adapter.md](reference/dexpi-process-adapter.md) — the developer-only DEXPI Process adapter contract |
 | Work with standards material or symbol assets | [workflow/standards.md](workflow/standards.md), then [reference/standards-registry.md](reference/standards-registry.md) |
 | Investigate a symbol-asset source or licence | [research/standards-licensing-evidence.md](research/standards-licensing-evidence.md) |

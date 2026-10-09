@@ -33,6 +33,33 @@ This is the Phase 0 coverage analysis behind
 and routing data, not a contract: the rendering contract for implemented symbols
 is [symbol-library.md](symbol-library.md).
 
+## MVP Core selection
+
+Issue #119 scopes the MVP to a deliberate vocabulary subset, the **MVP Core**:
+the concepts the PFD and P&ID acceptance scenes must be able to draw, and nothing
+else. The selection is derived from the operator-authored MVP drawing profile and
+confirmed against production usage in
+[../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md);
+that evidence document owns the derivation, and this matrix owns each concept's
+classification and status.
+
+```text
+28 Core entries    base symbols, composites, connections, annotations
+ 3 implemented     valve.gate, pump.centrifugal, instrument.local
+25 remaining       planned, deferred, or out of the base library
+```
+
+Two rules follow from the selection, and both are already this matrix's rules:
+
+- one representation per engineering concept — never one symbol per project code
+  (`PI`, `PIT`, `TI`, `FIC`, `LIC` stay text composed onto a base graphic);
+- company tag prefixes, fluid and insulation codes, line-designation rules,
+  DCS/SIS practice, and corporate title blocks are `project-convention`, never
+  base-library assets.
+
+The Core is closed for MVP acceptance purposes: widening it is a profile change,
+not a symbol implementation.
+
 ## Three different facts
 
 The matrix keeps three separate statements apart, because they advance
@@ -222,6 +249,8 @@ cannot carry the profile ([symbol-library.md](symbol-library.md)).
 - [../workflow/standards.md](../workflow/standards.md) and
   [standards-registry.md](standards-registry.md) — standards usage policy and
   the project reference set.
+- [../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md)
+  — the evidence behind the MVP Core selection named above.
 - [../research/standards-licensing-evidence.md](../research/standards-licensing-evidence.md)
   — the source and licence investigation behind those rules.
 
