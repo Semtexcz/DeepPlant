@@ -185,10 +185,7 @@ the repository (ADR-0007).
 - **Scope is the three representative representations of the first slice**, plus
   the minimum registry (`get`, `list`) and deterministic renderer around them.
   Composition, variants, profiles other than `generic-iso`, a gallery, and editor
-  integration are deferred. *(Partly superseded by the 2026-10-09 revisit note
-  above: a second notation profile — `deepplant-default` — is now recognised, and
-  the gallery shipped separately in #121. The three built-in representations
-  themselves are unchanged.)*
+  integration are deferred.
 
 ## Consequences
 
@@ -240,10 +237,8 @@ the repository (ADR-0007).
 
 A human verification promotes a symbol's standards relationship to
 `human-verified`, a symbol needs a further primitive, a second drawing profile is
-introduced *(fired — see the 2026-10-09 revisit note above; #124 defines the
-notation-profile architecture and #125 makes the model and registry
-notation-profile aware)*, a consumer needs the anchors inside the SVG, or a
-gallery becomes the cheapest way to review the catalogue.
+introduced, a consumer needs the anchors inside the SVG, or a gallery becomes the
+cheapest way to review the catalogue.
 
 ## Related
 
