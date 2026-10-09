@@ -3,11 +3,11 @@
 
 """Notation-profile policy for the machine-rendered symbol library (Issue #125).
 
-A **notation profile** selects *which* graphical representation draws a stable
-symbol id. It is presentation configuration only: it never enters the semantic
-engineering model, and it is deliberately distinct from a visual theme, from a
-project/company annotation convention, and from the notation profile a persisted
-document selects (Issue #124, ADR-0003).
+A **notation profile** selects *which* graphical notation represents a stable
+symbol id. It is presentation-layer configuration and is distinct from visual
+theme and from project/company annotation conventions. A project or document
+presentation context may later select and persist a notation-profile id, but that
+selection context is not itself another notation profile (Issue #124, ADR-0003).
 
 This module is the single source of truth for the closed set of notation profiles
 this slice recognises and for the one policy question the definition model has to

@@ -144,11 +144,12 @@ A further primitive is added when a verified symbol requires one. `Rect`,
 
 ### Notation profiles
 
-A **notation profile** selects *which* graphical notation draws a stable symbol
-id. It is presentation configuration only — never semantic engineering state, and
-deliberately distinct from a visual theme, from a project/company annotation
-convention, and from the notation profile a persisted document selects
-(Issue #124, ADR-0003):
+A **notation profile** selects *which* graphical notation represents a stable
+symbol id. It is presentation-layer configuration only — never semantic
+engineering state — and is distinct from visual theme and from project/company
+annotation conventions. A project or document presentation context may later
+select and persist a notation-profile id, but that selection context is not itself
+another notation profile (Issue #124, ADR-0003):
 
 ```text
 symbol_id          stable, notation-independent representation concept

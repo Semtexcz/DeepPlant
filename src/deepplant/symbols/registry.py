@@ -40,10 +40,12 @@ class SymbolRegistry:
     A graphical representation is identified by the pair
     ``(notation_profile, symbol_id)``, so one symbol id may hold one definition per
     notation profile. ``default_notation_profile`` is construction-time
-    configuration for the convenience ``get``/``list`` forms; the registry holds no
-    mutable runtime profile selection. Definitions are ordered by notation profile
-    and then symbol id, so ``list`` is deterministic no matter what order the
-    catalogue declared them in.
+    configuration that applies to :meth:`get` when ``notation_profile`` is omitted;
+    :meth:`list` returns every registered representation across all notation
+    profiles unless a notation profile is passed explicitly to filter it. The
+    registry holds no mutable runtime profile selection. Definitions are ordered by
+    notation profile and then symbol id, so ``list`` is deterministic no matter what
+    order the catalogue declared them in.
     """
 
     def __init__(
