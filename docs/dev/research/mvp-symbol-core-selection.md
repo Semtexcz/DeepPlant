@@ -51,15 +51,22 @@ superseded_by: null
     interpretation, classification, and implementation-status aids: they may
     confirm, classify, and explain a requirement, but they never silently remove
     engineering content the operator placed inside that boundary.
-  - Re-derived from that boundary, the MVP Core is **41 entries**: **18** base
-    symbols, **5** composed representations, **7** connections, and **11**
-    annotations. Project conventions (13), semantic gaps (6), and
-    representation-design questions (10) are tracked **outside** the Core count.
-  - Capability-specific implementation state: base symbols 3 implemented / 15
-    missing; composed representations 0 implemented / 5 missing; connections 1
-    implemented / 1 partial / 5 missing; annotations 1 implemented / 1 partial / 9
-    missing. The earlier single "25 remaining" metric is withdrawn, because it
-    mixed capabilities that are not SymbolDefinitions at all.
+  - Re-derived from that boundary, the MVP Core is **40 requirement entries**:
+    **17** base graphical requirement families, **5** composed representations,
+    **7** connections, and **11** annotations. Project conventions (13), semantic
+    gaps (6), and representation-design questions (12) are tracked **outside** the
+    Core count.
+  - Base requirement families separate two states: **14** carry a resolved stable
+    graphical identity (3 implemented, 11 resolved but missing), and **3** carry an
+    unresolved identity / granularity (heat-transfer equipment, vessel / tank /
+    drum, measurement sensor / primary element), so those three are not counted as
+    exact missing `SymbolDefinition`s. Composed representations 0 implemented / 5
+    missing; connections 1 implemented / 1 partial / 5 missing; annotations 1
+    implemented / 1 partial / 9 missing. The earlier single "25 remaining" metric
+    is withdrawn, because it mixed capabilities that are not SymbolDefinitions at
+    all; the earlier "18 base symbols / 15 missing" count is withdrawn too, because
+    it claimed an unresolved control-valve body identity and three unresolved
+    families as exact symbols.
   - Everything the profile called nice-to-have, was silent about, or excluded
     without reference to the selected *drawing* content — storage, pumping,
     filter/strainer, heat exchanger, control-system instruments, ball and
@@ -89,9 +96,11 @@ was selected and why. The rendering contract stays
 > Which concrete graphical vocabulary must the MVP be able to draw, and which
 > parts of the inspected reference set are deliberately outside it?
 
-This is the scoping half of Issue #119. The coverage matrix answers *how far each
-concept has been implemented*; this document answers *which concepts the MVP Core
-contains at all*.
+This is the scoping half of Issue #119. This document derives the selection and
+records its evidence; the canonical per-concept Core inventory and its
+implementation status live in [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md).
+The matrix states *what the Core requires and how far each entry is supported*;
+this document records *why each entry is required*.
 
 ```text
 operator-selected reference directory  the requirements boundary      (authoritative)
@@ -299,39 +308,52 @@ Column meanings:
 ```text
 Context         the diagram context the selected content needs the concept in
 Requirement     required / optional / not required, per the derivation rule above
+Stable identity resolved / unresolved, from mvp-symbol-coverage.md — whether one
+                graphical identity is decided, as distinct from whether the
+                capability is required
 Selected evidence  the neutral reference(s) that establish the requirement
 Current support implemented / partial / missing, from mvp-symbol-coverage.md
 Gap type        the precise gap where support is not implemented
 ```
 
-### 1. Base symbols (18 required)
+### 1. Base graphical requirements (17 families: 14 resolved identities, 3 unresolved)
 
-| # | Concept (stable identity) | Context | Classification | Requirement | Selected evidence | Current support | Gap type |
-|---|---|---|---|---|---|---|---|
-| A01 | Filter | pfd + pid | `symbol` | required | PFD A (gas and liquid filtration steps); P&ID B (filter equipment) | missing | missing base SymbolDefinition |
-| A02 | Compressor | pfd | `symbol` | required | PFD A | missing | missing base SymbolDefinition |
-| A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (one reusable representation for the duty variants) | pfd + pid | `symbol` | required | PFD A (several heat-transfer duties); P&ID B (evaporator equipment) | missing | missing base SymbolDefinition |
-| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | PFD A | missing | missing base SymbolDefinition |
-| A05 | Reactor / burner | pfd | `symbol` | required | PFD A | missing | missing base SymbolDefinition |
-| A06 | Pump | pfd + pid | `symbol` | required | PFD A; P&ID A (duty and stand-by instances) | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`) | — (geometry review before any profile migration, per #127) |
-| A07 | Vessel / tank / drum with nozzles | pfd + pid | `symbol` | required | PFD A; P&ID A; P&ID B | missing | missing base SymbolDefinition |
-| A08 | Gate valve | pid | `symbol` | required | P&ID A; P&ID B | **implemented** (`valve.gate`) | — (external recognizability and exact geometry unresolved, per #127) |
-| A09 | Globe valve | pid | `symbol` | required | P&ID A | missing | missing base SymbolDefinition |
-| A10 | Check valve | pid | `symbol` | required | P&ID A; P&ID B | missing | missing base SymbolDefinition |
-| A11 | Ball valve | pid | `symbol` | required | P&ID B | missing | missing base SymbolDefinition |
-| A12 | Three-way valve | pid | `symbol` | required | P&ID A | missing | missing base SymbolDefinition |
-| A13 | Control valve body (the actuator is composed onto it, entry B01) | pfd + pid | `symbol` | required | P&ID A; P&ID B; PFD A (a control valve is drawn on the PFD too) | missing | missing base SymbolDefinition |
-| A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
-| A15 | Restriction orifice | pid | `symbol` | required | P&ID A; P&ID B | missing | missing base SymbolDefinition |
-| A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | P&ID B (a reducer in series with a check valve) | missing | missing base SymbolDefinition |
-| A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | P&ID A; P&ID B; PFD A (instruments drawn on the PFD too) | **implemented** (`instrument.local`) | — (profile composition unresolved, #124) |
-| A18 | Measurement sensor / primary element (inline on the process) | pid | `symbol` | required | P&ID A (a flow element); P&ID B | missing | missing base SymbolDefinition |
+A **required concept family** and a **resolved symbol identity** are separate
+states: a family may be required while its graphical identity or granularity is
+still a representation-design question. Only a resolved identity can be a
+`missing base SymbolDefinition`.
+
+| # | Concept | Context | Classification | Requirement | Stable identity | Selected evidence | Current support | Gap type |
+|---|---|---|---|---|---|---|---|---|
+| A01 | Filter | pfd + pid | `symbol` | required | resolved | PFD A (gas and liquid filtration steps); P&ID B (filter equipment) | missing | missing base SymbolDefinition |
+| A02 | Compressor | pfd | `symbol` | required | resolved | PFD A | missing | missing base SymbolDefinition |
+| A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (requirement family) | pfd + pid | `symbol` | required | **unresolved** | PFD A (several heat-transfer duties); P&ID B (evaporator equipment) | missing | representation identity unresolved — one reusable identity vs several duty / equipment identities is not decided (question G11) |
+| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | PFD A | missing | missing base SymbolDefinition |
+| A05 | Reactor / burner | pfd | `symbol` | required | resolved | PFD A | missing | missing base SymbolDefinition |
+| A06 | Pump | pfd + pid | `symbol` | required | resolved | PFD A; P&ID A (duty and stand-by instances) | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`) | — (geometry review before any profile migration, per #127) |
+| A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | PFD A; P&ID A; P&ID B | missing | representation identity unresolved — one reusable identity vs separate vessel / tank / drum / column identities is not decided (question G2) |
+| A08 | Gate valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`valve.gate`) | — (external recognizability and exact geometry unresolved, per #127) |
+| A09 | Globe valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
+| A10 | Check valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | missing | missing base SymbolDefinition |
+| A12 | Three-way valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
+| A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | P&ID B (a reducer in series with a check valve) | missing | missing base SymbolDefinition |
+| A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | P&ID A; P&ID B; PFD A (instruments drawn on the PFD too) | **implemented** (`instrument.local`) | — (profile composition unresolved, #124) |
+| A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | P&ID A (a flow element); P&ID B | missing | representation identity unresolved — one reusable identity vs one graphic per measured variable is not decided (question G4) |
+
+The identifier `A13` is retired. Earlier revisions recorded a standalone
+control-valve *body* here; the selected evidence requires a **control valve**
+(composed representation `B01`) and does not establish a stable standalone body
+identity, so that requirement is tracked with `B01` and the body's identity model
+is recorded as a representation-design question (G12).
 
 ### 2. Composed representations (5 required)
 
 | # | Concept | Context | Classification | Requirement | Selected evidence | Current support | Gap type |
 |---|---|---|---|---|---|---|---|
-| B01 | Control valve with actuator (body + actuator graphic) | pfd + pid | `composed-symbol` | required | P&ID A; P&ID B; PFD A | missing | composition gap |
+| B01 | Control valve with actuator (body composed with an actuator graphic; the body component is required, but its standalone stable identity is a representation-design question, G12) | pfd + pid | `composed-symbol` | required | P&ID A; P&ID B; PFD A | missing | composition gap |
 | B02 | On/off actuated valve with position indication | pid | `composed-symbol` | required | P&ID A; P&ID B | missing | composition gap |
 | B03 | Instrument function composition (base graphic + function letter code + loop designation) | pfd + pid | `composed-symbol` | required | P&ID A; P&ID B; PFD A | missing | composition gap (the base graphic exists; the letter-code annotation does not) |
 | B04 | Control-system instrument variant (panel / shared display / control-system participation) | pid | `composed-symbol` | required | P&ID A; P&ID B (control-system functions, alarms and set points are reported rather than local) | missing | composition gap |
@@ -462,14 +484,14 @@ here, and the preserved boundaries are `ProcessStep != Equipment`,
 | F5 | Line treatment as authored data (insulation, heating, tracing) | P&ID | No authored carrier on the piping layer | MVP P&ID reference A (Core C07) | Where treatment data lives, given the code values stay project conventions |
 | F6 | Equipment duty and device set-point values (heat duty, relief set pressure) | PFD and P&ID | No quantity typing on equipment or devices | MVP PFD reference A; MVP P&ID reference B (Core D04) | Whether the qualified-quantity work (research: [qualified-engineering-quantities.md](qualified-engineering-quantities.md)) is the carrier |
 
-## Representation-design questions (10, tracked outside the Core)
+## Representation-design questions (12, tracked outside the Core)
 
 Recorded rather than decided. None of them authorizes a new identity.
 
 | # | Question | Raised by |
 |---|---|---|
-| G1 | One cross-context representation per equipment concept, or context-specific forms? Four concepts are required in both the PFD and the P&ID (A01, A03, A07, A13); only `pump.centrifugal` currently establishes that one representation can be available in both contexts | Selected PFD and P&ID content |
-| G2 | Does the selected PFD's column / tower item need a representation distinct from the vessel / tank identity (A07)? | MVP PFD reference A |
+| G1 | One cross-context representation per equipment concept, or context-specific forms? Three base concepts are required in both the PFD and the P&ID (A01, A03, A07), and the composed control-valve requirement (B01) is required in both contexts too; only `pump.centrifugal` currently establishes that one representation can be available in both contexts | Selected PFD and P&ID content |
+| G2 | Does the A07 family need one reusable identity, or separate vessel / tank / drum / column identities (the selected PFD draws a column / tower item)? | MVP PFD reference A |
 | G3 | Are both concentric and eccentric reducer forms required (A16)? | MVP P&ID reference B |
 | G4 | One reusable measurement-sensor representation, or one graphic per measured variable (A18)? | MVP P&ID references A and B |
 | G5 | Which actuator graphics does the selected content require (diaphragm, cylinder, motor, solenoid, manual, positioner)? | MVP P&ID references A and B; legend B |
@@ -478,17 +500,23 @@ Recorded rather than decided. None of them authorizes a new identity.
 | G8 | Does line treatment need graphical decoration, or only the authored property (C07)? | MVP P&ID reference A |
 | G9 | Is the selected *legend* vocabulary itself MVP-required, widening the Core by the not-required list above? | Recorded scope question |
 | G10 | Which family is the boundary connector (C02) — annotation or connection? The coverage matrix stays authoritative | MVP PFD reference A; MVP P&ID reference A |
+| G11 | Does the heat-transfer family (A03) map to one stable identity, or to several duty / equipment identities (heater, superheater, preheater, evaporator, exchanger)? | MVP PFD reference A; MVP P&ID reference B |
+| G12 | Which representation model gives the control-valve composition (B01) a stable body identity — a dedicated `valve.control` body identity, another reusable valve-body identity, an explicitly typed composition primitive, or another representation model? Not decided by the requirements evidence | MVP P&ID references A and B |
 
 ## Implementation coverage
 
-Capability-specific, mechanically reconciled with the tables above. An annotation or
-a connection is never reported as a "missing SymbolDefinition".
+Capability-specific, mechanically reconciled with the tables above. An annotation, a
+connection, or an identity-unresolved requirement family is never reported as a
+"missing SymbolDefinition".
 
 ```text
-base SymbolDefinitions
-type    required       18
-        implemented     3   valve.gate, pump.centrifugal, instrument.local
-        missing        15
+base graphical requirements        17 families
+  stable identities resolved       14
+    implemented                     3   valve.gate, pump.centrifugal, instrument.local
+    resolved but missing           11
+  identity / granularity unresolved  3   heat-transfer equipment (A03),
+                                         vessel / tank / drum (A07),
+                                         measurement sensor / primary element (A18)
 
 composed representations
         required        5
@@ -510,35 +538,44 @@ annotation capabilities
 tracked outside the Core
         project conventions                  13
         semantic gaps                         6
-        representation-design questions      10
+        representation-design questions      12
 ```
 
 ## Selection summary
 
 ```text
-41  MVP Core entries
-   18  base symbols
+40  MVP Core requirement entries
+   17  base graphical requirement families
     5  composed representations
     7  connections
    11  annotations
 
-13  project conventions            tracked outside the Core
- 6  semantic gaps                  tracked outside the Core
-10  representation-design questions tracked outside the Core
+13  project conventions             tracked outside the Core
+ 6  semantic gaps                   tracked outside the Core
+12  representation-design questions tracked outside the Core
 
- 3  implemented base symbols       valve.gate, pump.centrifugal, instrument.local
-15  missing base symbols
+base graphical requirement families  17
+  stable identities resolved         14
+    implemented                       3   valve.gate, pump.centrifugal, instrument.local
+    resolved but missing             11
+  identity / granularity unresolved   3
 ```
 
-Reconciliation: `18 + 5 + 7 + 11 = 41`; base `3 + 15 = 18`; composed `0 + 5 = 5`;
-connections `1 + 1 + 5 = 7`; annotations `1 + 1 + 9 = 11`.
+Reconciliation: `17 + 5 + 7 + 11 = 40`; base `14 + 3 = 17`; resolved base
+`3 + 11 = 14`; composed `0 + 5 = 5`; connections `1 + 1 + 5 = 7`; annotations
+`1 + 1 + 9 = 11`.
 
 The previous revision of this document recorded **28** Core entries across five
 "partitions", counted project conventions as a partition while excluding them from
 the arithmetic, and reported a single "25 remaining" metric. All three statements
 are withdrawn: the Core total now counts only the four representation-capability
 classes, project conventions are tracked separately, and implementation state is
-reported per capability.
+reported per capability. The corrected revision that followed still reported
+**41** entries with **18** base symbols and **15** missing; that is withdrawn too,
+because it counted a standalone control-valve *body* identity the evidence does
+not establish and reported three identity-unresolved requirement families as exact
+missing `SymbolDefinition`s. The Core now separates a required capability from a
+resolved stable graphical identity.
 
 The Core is closed for MVP acceptance purposes only through the same operator
 decision as the reference set: widening it requires an operator selection or an
@@ -613,7 +650,9 @@ this document    selects vocabulary        no production change
   question as the coverage matrix's unresolved list).
 - **How a control valve's actuator composition is modelled** (variant of a valve
   body, or a separate actuator graphic composed at render time) is not settled by
-  this selection; the requirement is only that the semantic subtype stay explicit.
+  this selection, and neither is the standalone stable identity of the valve body
+  (G12); the requirement is only that the control-valve representation stay
+  required and its semantic subtype stay explicit.
 - **The bundled profile's stream-property claim** does not match the current model
   (see [Recorded discrepancies and scope questions](#recorded-discrepancies-and-scope-questions)).
 - **The bundled profile remains `proposed`.** That is now context, not a gate: it
@@ -627,9 +666,9 @@ authorization. Each requires its own separately scoped and Ready Issue.
 | # | Slice | Category | Depends on |
 |---|---|---|---|
 | 1 | Resolve the recorded discrepancies: confirm whether the complexity-gate sheet is inside the MVP boundary, and whether the selected legend vocabulary is MVP-required | A — scope | operator decision |
-| 2 | Implement the P&ID base symbols the selected drawings use most (vessel / tank with nozzles, globe, check and ball valve, restriction orifice, safety / relief valve, reducer), one small slice each | B — base symbols | 1; existing symbol contract |
-| 3 | Implement the PFD process-step representations the process model needs, keeping `ProcessStep` distinct from `Equipment` | C — base symbols | 1; [contracts/process-model.md](../../contracts/process-model.md) |
-| 4 | Deliver composition machinery (function-letter composition, actuator composition, control-system and safety-system instrument variants) | D — composition | 2, 3 |
+| 2 | Implement the P&ID base symbols whose stable identity is resolved (globe, check and ball valve, restriction orifice, safety / relief valve, reducer), one small slice each; resolve the vessel / tank / drum identity / granularity question (G2) before implementing that family | B — base symbols | 1; existing symbol contract |
+| 3 | Implement the PFD process-step representations the process model needs, keeping `ProcessStep` distinct from `Equipment`; resolve the heat-transfer identity / granularity question (G11) before implementing that family | C — base symbols | 1; [contracts/process-model.md](../../contracts/process-model.md) |
+| 4 | Deliver composition machinery (function-letter composition, actuator composition, control-system and safety-system instrument variants), resolving the control-valve body representation model (G12) | D — composition | 2, 3 |
 | 5 | Deliver the connection capabilities (boundary connector, off-page connector, branching routed piping, electric signal line) | E — connections | 2, 3 |
 | 6 | Deliver the annotation capabilities, with the semantic carriers F1-F4 scoped in their own model Issue | F — annotations and model gaps | 4; a model Issue for the carriers |
 | 7 | Focused review of `pump.centrifugal` geometry before any notation-profile migration, per the [notation-profile classification](notation-profile-classification.md) | G — review before migration | — |

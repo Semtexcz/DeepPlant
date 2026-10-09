@@ -30,8 +30,9 @@ superseded_by: null
 > far has each one actually been implemented?
 
 This is the Phase 0 coverage analysis behind
-[Issue #119](https://github.com/Semtexcz/DeepPlant/issues/119). It is evidence
-and routing data, not a contract: the rendering contract for implemented symbols
+[Issue #119](https://github.com/Semtexcz/DeepPlant/issues/119). It is the
+canonical per-concept inventory of the final MVP Core and its current support
+state, not a rendering contract: the rendering contract for implemented symbols
 is [symbol-library.md](symbol-library.md).
 
 ## MVP Core selection
@@ -41,32 +42,61 @@ concepts the selected MVP reference content must be able to represent. The
 operator-selected MVP reference directory is the **authoritative requirements
 boundary**; the bundled MVP drawing profile v0.1 and this matrix are
 interpretation, classification, and implementation-status aids, and neither
-overrides it. The derivation is owned by
-[../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md);
-this matrix owns each concept's classification and status.
+overrides it.
+
+Ownership splits cleanly between the two documents:
+
+```text
+research/mvp-symbol-core-selection.md   evidence, derivation and reasoning
+                                        (why each concept is in the Core)
+this matrix                             canonical current Core coverage inventory
+                                        and per-concept status
+                                        (what the Core requires and how far it is supported)
+```
+
+Every final Core requirement therefore has its own canonical entry here, and the
+evidence document does not own a current rule: it explains why an entry is
+required, and this matrix states that it is required and what its current support
+is. Core entry identifiers (`A…`, `B…`, `C…`, `D…`) are shared between the two
+documents, so the Core reconciles mechanically.
 
 That evidence document was corrected on 2026-10-09 (its first revision derived the
 Core from the profile and demoted operator-selected content to "usage evidence
-only"). Under the corrected derivation the Core is:
+only"), and refined in the same change: a **required engineering concept family**
+is no longer reported as one resolved `SymbolDefinition` while its graphical
+identity is still undecided. Under that derivation the Core is:
 
 ```text
-41 Core entries    18 base symbols, 5 composed representations,
-                    7 connections, 11 annotations
-13                  project conventions               (tracked outside the Core)
- 6                  semantic gaps                     (tracked outside the Core)
-10                  representation-design questions   (tracked outside the Core)
+40 Core requirement entries
+   17 base graphical requirement families
+    5 composed representations
+    7 connections
+   11 annotations
+13                   project conventions               (tracked outside the Core)
+ 6                   semantic gaps                     (tracked outside the Core)
+12                   representation-design questions   (tracked outside the Core)
 
 capability-specific implementation state
-  base symbols    3 implemented / 15 missing
-  composed        0 implemented /  5 missing
+  base graphical requirements   17 families
+    stable identities resolved  14
+      implemented                3   (valve.gate, pump.centrifugal, instrument.local)
+      resolved but missing      11
+    identity / granularity unresolved  3
+  composed        0 implemented / 5 missing
   connections     1 implemented / 1 partial / 5 missing
   annotations     1 implemented / 1 partial / 9 missing
 ```
 
-The former summary — "28 Core entries / 3 implemented / 25 remaining" — is
-withdrawn: it counted project conventions as a partition while excluding them from
-the arithmetic, and it reported annotations, connections, and compositions as if
-they were remaining symbol definitions.
+Arithmetic: `17 = 14 + 3`; `14 = 3 + 11`; `40 = 17 + 5 + 7 + 11`.
+
+Two earlier summaries are withdrawn. "28 Core entries / 3 implemented / 25
+remaining" counted project conventions as a partition while excluding them from
+the arithmetic, and reported annotations, connections, and compositions as if they
+were remaining symbol definitions. "41 Core entries / 18 base symbols / 3
+implemented / 15 missing" counted a standalone control-valve *body* identity the
+selected evidence does not establish, and reported three identity-unresolved
+requirement families as exact missing `SymbolDefinition`s (see
+[Requirement status and stable identity](#requirement-status-and-stable-identity)).
 
 Two rules follow from the selection, and both are already this matrix's rules:
 
@@ -77,12 +107,12 @@ Two rules follow from the selection, and both are already this matrix's rules:
   DCS/SIS practice, and corporate title blocks are `project-convention`, never
   base-library assets.
 
-The `MVP` column in the tables below follows the corrected derivation: `yes` means
-required by the selected MVP reference content, `optional` means allowed but not
-needed to preserve the selected information, and `no` means not required for the
-selected MVP information, with the reason recorded in the evidence document.
-Widening the Core is an operator selection decision, not a symbol implementation
-and not a repository preference.
+The `Requirement` column in the tables below follows the corrected derivation:
+`required` means required by the selected MVP reference content, `optional` means
+allowed but not needed to preserve the selected information, and `not required`
+means not needed for the selected MVP information, with the reason recorded in the
+evidence document. Widening the Core is an operator selection decision, not a
+symbol implementation and not a repository preference.
 
 ## Three different facts
 
@@ -141,6 +171,30 @@ figures, and item numbers are not. The repository records no restricted-derived
 symbol locator for the current symbols, so no row may claim that a standard's own
 representation was located, inspected, or assessed.
 
+## Requirement status and stable identity
+
+Two independent questions are recorded for every Core entry:
+
+```text
+Requirement      is this engineering / graphical capability in the MVP Core?
+Stable identity  is there one decided graphical identity (SymbolDefinition) for it?
+```
+
+A base graphical requirement is therefore classified by its identity state:
+
+| Stable identity | Meaning | How it is reported |
+|---|---|---|
+| `resolved` | the project has one stable graphical identity for the concept | `implemented`, or `missing base SymbolDefinition` |
+| `unresolved` | the identity, or its granularity, is still a representation-design question | `representation identity unresolved — design decision required before SymbolDefinition implementation` |
+
+`missing SymbolDefinition` is only ever used for a **resolved** identity. An
+unresolved family is a required capability, not an exact missing symbol: three of
+the base requirement families (heat-transfer equipment, vessel / tank / drum,
+measurement sensor / primary element) and the control-valve composition's body are
+in that state. A requirement family may also be `required` while its identity is
+resolved, and a shared graphical primitive never by itself creates a shared stable
+identity.
+
 ## Reference material handling
 
 The operator-selected MVP reference bundle — one PFD sheet, two P&ID sheets, and
@@ -158,64 +212,117 @@ The companies' own conventions (tag prefixes, line designation, DCS/SIS
 practice, interlock numbering) are recorded here as `project-convention` so they
 cannot be mistaken for a standard base library.
 
-## PFD / process concepts
+## MVP Core coverage
 
-| Reference concept | Semantic concept | Classification | Category | Standard evidence & verification | Representation strategy | Variants | Project-specific | MVP | Status |
-|---|---|---|---|---|---|---|---|---|---|
-| Process boundary feed / product | process boundary connector | `annotation` | boundary | `generic-iso`; no standards relationship recorded yet; `reference` | boundary marker plus a label, never equipment geometry | incoming / outgoing | label text is project-specific | yes | planned |
-| Filter | separation by filtration | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with process anchors | liquid / gas | no | yes | planned |
-| Compressor | compression | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with process anchors | centrifugal / reciprocating | no | yes | planned |
-| Air heater / superheater | heat exchange | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with process anchors | heater / exchanger forms | no | yes | planned |
-| Mixer | mixing | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with multiple process anchors | 2-inlet / multi-inlet | no | yes | planned |
-| Burner / reactor | reaction | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with anchored connections | burner / vessel reactor | no | yes | planned |
-| Pump | pumping | `symbol` | equipment | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a circular casing with a horizontal process line and two internal lines, recorded in [symbol-seed-geometry.md](symbol-seed-geometry.md) and [symbol-library.md](symbol-library.md) | centrifugal implemented; other pump types planned | no | yes | **implemented** (`pump.centrifugal`) |
-| Storage / hold-up tank | storing material | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | containment outline with process anchors | tank / vessel forms | no | yes (re-derived: required) | planned |
-| Directional process stream | process stream | `connection` | piping | ISO 15519-2:2015 (connection conventions); `reference` | routed line plus an arrowhead | arrow forms | no | yes | already drawn by the process renderer as output, not as a symbol definition |
-| Stream number label | process stream annotation | `annotation` | annotation | not a graphical symbol; numbering practice is company-specific | text placed along a stream | — | yes | yes | planned (text, never geometry) |
-| Equipment tag label | equipment annotation | `annotation` | annotation | not a graphical symbol | text placed beside the representation | — | prefix rules are project-specific | yes | planned (text, never geometry) |
-| Automatic stream property table | annotation | `annotation` | annotation | — | the MVP Properties panel, not an automatic drawing table | — | no | no (the data is required — semantic gap F1; the automatic table is not) | deferred |
+Canonical per-concept inventory of the final MVP Core. Every entry is one
+requirement from the selected MVP reference content, and the identifiers match the
+[evidence document](../research/mvp-symbol-core-selection.md). `Requirement` and
+`Stable identity` are separate states (see
+[Requirement status and stable identity](#requirement-status-and-stable-identity)).
+
+### 1. Base graphical requirements (17 families)
+
+| # | Concept | Context | Classification | Requirement | Stable identity | Standards evidence & verification | Current support & representation | Gap type |
+|---|---|---|---|---|---|---|---|---|
+| A01 | Filter | pfd + pid | `symbol` | required | resolved | `generic-iso`; no standards relationship recorded yet; `reference` | missing; equipment outline with process anchors | missing base SymbolDefinition |
+| A02 | Compressor | pfd | `symbol` | required | resolved | `generic-iso`; no standards relationship recorded yet; `reference` | missing; equipment outline with process anchors | missing base SymbolDefinition |
+| A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (requirement family) | pfd + pid | `symbol` | required | **unresolved** | `generic-iso`; no standards relationship recorded yet; `reference` | missing; a heat-transfer duty family must be representable, and one reusable identity vs several duty / equipment identities is not decided (G11) | representation identity unresolved — design decision required before SymbolDefinition implementation |
+| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | `generic-iso`; no standards relationship recorded yet; `reference` | missing; equipment outline with multiple process anchors | missing base SymbolDefinition |
+| A05 | Reactor / burner | pfd | `symbol` | required | resolved | `generic-iso`; no standards relationship recorded yet; `reference` | missing; equipment outline with anchored connections | missing base SymbolDefinition |
+| A06 | Pump | pfd + pid | `symbol` | required | resolved | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`); DeepPlant-authored project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)) | — (geometry review before any notation-profile migration, per #127) |
+| A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | `generic-iso`; no standards relationship recorded yet; `reference` | missing; a containment outline with nozzles, and one reusable identity vs separate vessel / tank / drum / column identities is not decided (G2) | representation identity unresolved — design decision required before SymbolDefinition implementation |
+| A08 | Gate valve | pid | `symbol` | required | resolved | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | **implemented** (`valve.gate`); DeepPlant-authored project seed geometry, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (external recognizability and exact geometry unresolved, per #127) |
+
+| A09 | Globe valve | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; valve body with the variant's internal mark | missing base SymbolDefinition |
+| A10 | Check valve | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; valve body with the variant's flow mark | missing base SymbolDefinition |
+| A11 | Ball valve | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; valve body with the variant's internal mark | missing base SymbolDefinition |
+| A12 | Three-way valve | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; three-port valve body | missing base SymbolDefinition |
+| A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; valve body with a spring-loaded indication | missing base SymbolDefinition |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; small inline graphic on the piping axis | missing base SymbolDefinition |
+| A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | ISO 10628-2:2012 (reference direction); `reference` | missing; inline fitting on the piping axis | missing base SymbolDefinition |
+| A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | **ISO 15519-2:2015** (intended correspondence, not human-verified); `candidate-alignment` | **implemented** (`instrument.local`); DeepPlant-authored project seed geometry, with no function letters, tag, or mandatory signal anchor embedded | — (profile composition unresolved, #124) |
+| A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | ISO 15519-2:2015 (measurement symbols); `reference` | missing; a small measurement graphic, and one reusable identity vs one graphic per measured variable is not decided (G4) | representation identity unresolved — design decision required before SymbolDefinition implementation |
+
+The base-symbol identifier `A13` is retired. Earlier revisions counted a
+standalone control-valve *body* identity here; the selected evidence requires a
+**control valve** — the composed representation `B01` — and does not establish a
+stable standalone identity named "control valve body", so the body requirement is
+tracked with `B01` instead of as a resolved base symbol. Nothing is counted twice.
+
+### 2. Composed representations (5)
+
+| # | Concept | Context | Classification | Requirement | Current support | Gap type |
+|---|---|---|---|---|---|---|
+| B01 | Control valve with actuator (body composed with an actuator graphic) | pfd + pid | `composed-symbol` | required | missing; the body component is required, but the representation model that gives it a stable identity is not decided (G12) | composition gap; body identity a representation-design question |
+| B02 | On/off actuated valve with position indication | pid | `composed-symbol` | required | missing | composition gap |
+| B03 | Instrument function composition (base graphic + function letter code + loop designation) | pfd + pid | `composed-symbol` | required | missing (the base graphic exists; the letter-code and loop-designation annotations do not) | composition gap |
+| B04 | Control-system instrument variant (panel / shared display / control-system participation) | pid | `composed-symbol` | required | missing | composition gap |
+| B05 | Safety-system instrument variant (instrument marked as part of the safety system) | pid | `composed-symbol` | required | missing | composition gap (the referenced logic is semantic gap F3) |
 
 
-## P&ID / physical concepts
+### 3. Connections (7)
 
-| Reference concept | Semantic concept | Classification | Category | Standard evidence & verification | Representation strategy | Variants | Project-specific | MVP | Status |
-|---|---|---|---|---|---|---|---|---|---|
-| Piping line | piping connection | `connection` | piping | ISO 15519-2:2015 (connection conventions); `reference` | routed line between connection points | line-width conventions | no | yes | planned |
-| Gate valve | on/off isolation | `symbol` | valve | **ISO 10628-2:2012** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a bowtie of two triangles meeting apex to apex on the process axis, with two neutral process ports (`port_a` west / `port_b` east) and no flow semantics, in [symbol-seed-geometry.md](symbol-seed-geometry.md) | none implemented | no | yes | **implemented** (`valve.gate`) |
-| Globe / ball / needle valve | throttling isolation | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the variant's internal mark | globe / ball / needle | no | yes | planned |
-| Check valve | one-way flow | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | bowtie body with the variant's flow mark | swing / globe | no | yes | planned |
-| Safety / relief valve | overpressure protection | `symbol` | valve | ISO 10628-2:2012 (reference direction); `reference` | valve body with a spring-loaded indication | straight / angle | no | yes | planned |
-| Control valve with actuator | control function | `composed-symbol` | valve | ISO 10628-2:2012 and ISO 15519-2:2015 (actuator conventions); `reference` | a valve body composed with an actuator graphic, not a new standalone symbol | diaphragm / cylinder / motor | no | yes | planned (composition framework deferred) |
-| Fittings: strainer, reducer, blind, orifice plate | inline fitting | `symbol` | fitting | ISO 10628-2:2012 (reference direction); `reference` | small inline graphic on the piping axis | by fitting type | no | yes | planned |
-| Process equipment in P&ID: vessel, column, exchanger, filter | equipment item | `symbol` | equipment | `generic-iso`; no standards relationship recorded yet; `reference` | equipment outline with nozzles and process anchors | by equipment type | no | yes | planned |
-| Insulation / tracing / jacketing conventions | line treatment | `connection` | annotation | ISO 10628-1:2014 (diagram structure); `reference` | line decoration derived from authored data, never a tag embedded in geometry | insulation / tracing | code values are project-specific | yes | planned |
-| Nozzle designation | equipment annotation | `annotation` | annotation | not a graphical symbol | text beside a nozzle | — | yes | yes | planned (text, never geometry) |
+| # | Concept | Context | Classification | Requirement | Current support | Gap type |
+|---|---|---|---|---|---|---|
+| C01 | Directional process stream | pfd | `connection` | required | implemented — drawn by the process renderer as output, not as a `SymbolDefinition` | — |
+| C02 | Process boundary connector (battery limit, labelled) | pfd + pid | `annotation` (boundary) | required | missing | connection-rendering gap (marker plus label, never equipment geometry) |
+| C03 | Off-page connector (sheet-to-sheet continuation with a reference) | pfd + pid | `connection` | required | missing | connection-rendering gap |
+| C04 | Piping line — orthogonal routing, branch / junction, direction indication | pid | `connection` | required | missing (routing exists for process streams only) | connection-rendering gap |
+| C05 | Instrument process connection (functional tap) | pid | `connection` | required | partial — the `tap` anchor exists on `instrument.local`; the line convention does not | connection-rendering gap |
+| C06 | Instrument signal line, electric | pid | `connection` | required | missing (signal lines must not become `Connection`) | connection-rendering gap |
+| C07 | Line treatment — insulation, heating, tracing, as authored data | pid | `connection` (line treatment) | required as data; graphical decoration optional | missing (no authored carrier) | semantic-model gap (F5) |
 
+### 4. Annotations (11)
 
-## I&C / instrumentation concepts
+| # | Concept | Context | Classification | Requirement | Current support | Gap type |
+|---|---|---|---|---|---|---|
+| D01 | Stream number label | pfd | `annotation` | required | implemented — the renderer's label layer draws the process stream id | — |
+| D02 | Stream property / composition data (medium, phase, flows, temperature, pressure, density, molecular weight, composition, duty) | pfd + pid | `annotation` | required as data; an automatic drawing table is optional | missing | semantic-model gap (F1) |
+| D03 | Equipment tag / name label (with the project equipment-code prefix) | pfd + pid | `annotation` | required | partial — step id and name labels are drawn for process steps only | annotation gap |
+| D04 | Duty / rating / set-point annotation (heat duty, relief set pressure) | pfd + pid | `annotation` | required | missing | semantic-model gap (F6) |
+| D05 | Nozzle designation | pid | `annotation` | required | missing | annotation gap |
+| D06 | Line tag (medium + sequence + nominal size + piping class) | pfd + pid | `annotation` | required | missing (values are project conventions) | annotation gap |
+| D07 | Instrument loop designation (function letters + loop number, with plant / location code) | pid | `annotation` | required | missing | semantic-model gap (F2) |
+| D08 | Instrument alarm / limit annotation (high, high-high, low, low-low) | pid | `annotation` | required | missing | annotation gap |
+| D09 | Fail-state annotation (fail-closed / fail-open / fail-lock / normally-closed) | pfd + pid | `annotation` | required | missing | annotation gap |
+| D10 | Interlock / trip / permissive reference annotation | pid | `annotation` | required | missing | annotation gap plus semantic-model gap (F3) |
+| D11 | Drawing note / general note (authored text annotation) | pfd + pid | `annotation` | required | missing | semantic-model gap (F4) |
 
-| Reference concept | Semantic concept | Classification | Category | Standard evidence & verification | Representation strategy | Variants | Project-specific | MVP | Status |
-|---|---|---|---|---|---|---|---|---|---|
-| Local / field instrument | measurement point on a field-mounted instrument | `symbol` | instrument | **ISO 15519-2:2015** (intended correspondence, not human-verified); `candidate-alignment` | DeepPlant-authored project seed geometry: a plain instrument circle connected to the process by one functional connection line, with no letter code or tag embedded; one process tap anchor and no mandatory signal anchor, in [symbol-seed-geometry.md](symbol-seed-geometry.md) | none implemented; this is the reusable base graphic | no | yes | **implemented** (`instrument.local`) |
-| Panel / central instrument | measurement point reported to the control system | `symbol` | instrument | ISO 15519-2:2015 (reference direction); `reference` | the same base circle with an internal additional graphic, resolved as a variant rather than a new symbol | panel / subsidiary control system | no | yes | planned |
-| Instrument function letter codes | measurement / control function | `annotation` | annotation | ISO 15519-2:2015 (instrument identification); `reference` | text composed onto a base symbol; **never** one symbol definition per code such as PIT, TI, or FIC | process variables / control functions / modifiers | tag values are project-specific | yes | planned (text, never geometry) |
-| Signal / instrument connection lines | signal connection | `connection` | signal | ISO 15519-2:2015 (connection conventions); `reference` | line convention separate from piping, attached through an anchor whose kind is `signal` on a composed instrument function, never on the reusable base graphic | electric / pneumatic / hydraulic | media conventions are project-specific | yes | planned |
-| Measurement sensors and elements | measurement sensor | `symbol` | instrument | ISO 15519-2:2015 (measurement symbols); `reference` | small measurement graphic placed on the piping or equipment | by measured variable | no | yes | planned |
-| Instrument with integrated display | instrument display | `composed-symbol` | instrument | ISO 15519-2:2015 (display indication); `reference` | base circle composed with the display indication | form 1 / form 2 | no | yes (re-derived: required as the control-system instrument variant, evidence entry B04) | planned (composition deferred) |
-| Multifunction instrument | multiple functions in one housing | `composed-symbol` | instrument | ISO 15519-2:2015 (multifunction housing); `reference` | two base circles placed side by side inside one envelope | by function count | no | no (legend-only; not required for the selected MVP information) | planned (composition deferred) |
-| DCS / SIS representation | control-system participation | `project-convention` | control system | company practice, not a standard library asset | project convention; never part of a base symbol | DCS / SIS | yes | yes | out of the base library |
-| Interlock, trip and SIF numbering | safety function annotation | `project-convention` | annotation | company practice, not a standard library asset | project text and numbering | interlock / trip / SIF | yes | yes | out of the base library |
-| Reference to a typical diagram | project typical reference | `composite-typical` | annotation | ISO 15519-2:2015 (typical references); `reference` | a reference marker pointing at a documented typical, not a copy of it | — | yes | no (not evidenced in the selected MVP content; tracked as a project convention) | deferred |
+## Outside the Core (retained concept inventory)
 
-## Project conventions (deliberately not a symbol library)
+Retained so that broader reference-set vocabulary stays traceable. None of these
+is an MVP Core requirement, and none is counted in the Core totals above.
 
-| Reference convention | Classification | Handling |
+| Concept | Classification | Why it is outside the Core |
 |---|---|---|
-| Equipment / valve tag prefixes | `project-convention` | Tag text is composed by the project, never embedded in base symbol geometry. |
-| Line designation rules | `project-convention` | Authoring/validation concern outside the symbol library. |
-| Insulation, tracing and piping-class codes | `project-convention` | Values are authored data; symbol geometry only carries the decoration. |
-| DCS / SIS conventions, interlock and trip numbering | `project-convention` | Company-specific; excluded from the `generic-iso` profile. |
-| Composite project typicals | `composite-typical` | Resolution of a typical reference is deferred entirely. |
+| Automatic stream property table | `annotation` | The stream property *data* is required (D02); rendering it as an automatic drawing table is not. |
+| Multifunction / multivariable instrument | `composed-symbol` | The selected content reports single-function loops. |
+| Specialty valves defined by the piping legend but unused by the selected drawings (butterfly, plug, needle, injection, angle, stop-check, automatic-recirculating check, backflow preventer, vacuum breaker, breath valve, automatic vent valve, valve with built-in bypass) | `symbol` | Defined by the project notation legend only; no selected drawing needs them represented. |
+| Piping fittings and accessories defined by the piping legend but unused by the selected drawings (spectacle blind / blank, strainer, cap and plug, sight glass, funnel / drain, steam trap, flame arrestor, flexible hose, expansion joint, mechanical coupling, sprayer, hose connection, silencer / damper) | `symbol` | Same reason: legend vocabulary, not selected drawing content. |
+| Reference to a typical diagram | `composite-typical` | Not evidenced in the selected MVP content; tracked as a project convention. |
+| Detailed electrical / motor-control representation | — | The selected drawings show actuators, position indications and fail states, but no detailed electrical schematic content. |
+| Voting indication and trip / permissive diamond markers | `annotation` | Named by the bundled profile for the complexity gate but not evidenced in the inspected content; recorded as a semantic-gap candidate, not a Core requirement. |
+
+## Project conventions (13, deliberately not a symbol library)
+
+Company or project practice, tracked outside the Core. These values stay authored
+data, and base-symbol geometry must not embed them.
+
+| # | Convention | Classification | Handling |
+|---|---|---|---|
+| E01 | Equipment and valve tag prefixes, equipment-code letters | `project-convention` | Tag text is composed by the project, never embedded in base geometry. |
+| E02 | Fluid / medium code list | `project-convention` | Values are authored data; the code list is not DeepPlant vocabulary. |
+| E03 | Line-number and line-designation rules | `project-convention` | Authoring and validation concern outside the symbol library. |
+| E04 | Piping-class and nominal-size designation | `project-convention` | Authored data, validated per project practice. |
+| E05 | Insulation, heating and tracing codes | `project-convention` | Authored data; geometry may later carry only decoration. |
+| E06 | Nozzle-role letter designations | `project-convention` | Project text; the nozzle annotation itself is a Core entry (D05). |
+| E07 | Instrument letter-code system (measured variable, succeeding functions, modifiers) | `project-convention` | Drives the annotation composed onto the base graphic (B03); the code list is project notation. |
+| E08 | Instrument loop and plant / location numbering | `project-convention` | Project numbering; the designation itself is a Core entry (D07). |
+| E09 | Alarm, trip, permissive, safety-interlock and trip-group numbering systems | `project-convention` | Company-specific; excluded from the base library. |
+| E10 | Control-system (DCS) and safety-system (SIS) participation, including the software-link convention | `project-convention` | Project notation; the instrument *variant* is a Core entry (B04, B05), the convention is not. |
+| E11 | Actuator and control-system marking conventions (mounted location, fail position, positioner, solenoid, motor) | `project-convention` | Project notation layered on Core composition (B01, B02) and annotation (D09). |
+| E12 | Corporate title block, revision table, drawing frame, equipment data table | `project-convention` | Document production; out of scope as symbol vocabulary. |
+| E13 | Composite project typicals | `composite-typical` | Resolution of a typical reference is deferred; the reference marker is not a copy of the typical. |
 
 
 ## Current implementation status
@@ -226,10 +333,11 @@ cannot be mistaken for a standard base library.
 | `pump.centrifugal` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `suction` → west, process; `discharge` → east, process |
 | `instrument.local` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 15519-2:2015 | `candidate-alignment` | `tap` → south, process |
 
-Everything else above is `planned`, `deferred`, or `out of the base library`; the
-MVP Core reports that remainder per capability instead of as one total (see
-[MVP Core selection](#mvp-core-selection) and the
-[evidence document](../research/mvp-symbol-core-selection.md)). No
+Everything else is reported per capability in
+[MVP Core coverage](#mvp-core-coverage): each Core entry records its own support
+state and gap type, and no identity-unresolved requirement family is counted as an
+exact missing `SymbolDefinition`. See also the
+[evidence document](../research/mvp-symbol-core-selection.md). No
 concept outside these three is implemented, no standards relationship is
 `human-verified`, and the three implemented geometries are DeepPlant-authored
 project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not
@@ -260,6 +368,12 @@ cannot carry the profile ([symbol-library.md](symbol-library.md)).
 - The pump representation currently treats suction and discharge as its only
   process anchors. Whether a driver/energy anchor belongs on the pump symbol or
   on a separate composed symbol is unresolved.
+- Whether each identity-unresolved requirement family — heat-transfer equipment
+  (A03), vessel / tank / drum (A07), measurement sensor / primary element (A18) —
+  maps to one stable `SymbolDefinition` or to several, and which representation
+  model gives the control-valve body a stable identity (B01), are unresolved; the
+  specific questions are recorded as representation-design questions G2, G4, G11
+  and G12 in the [evidence document](../research/mvp-symbol-core-selection.md).
 - Whether generated symbol SVG should also carry the hidden anchor slots used by
   the existing process symbol-pack contract is unresolved; in this slice anchors
   remain definition data only.
