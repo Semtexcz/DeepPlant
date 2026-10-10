@@ -141,7 +141,10 @@ The matrix keeps separate statements apart, because they advance independently:
 required by the MVP reference      does the MVP need this concept?
 stable graphical identity          is one decided SymbolDefinition identity recorded for it?
 notation profile                   which profile does an implemented representation carry now?
-standards relationship             reference / candidate-alignment / human-verified / —
+standards relationship             the standard named as the reference direction, or `—` when
+                                   none is recorded
+verification                       the state of an existing standards relationship
+                                   (`reference` / `candidate-alignment` / `human-verified`)
 implemented in DeepPlant           does a SymbolDefinition exist yet?
 ```
 
@@ -242,14 +245,29 @@ tables below, and never in the connection total.
 
 ## Verification vocabulary
 
-The verification column uses the canonical states of
-[standards.md](../workflow/standards.md); a concept with no recorded standards
-relationship carries `—` in both the relationship and the verification columns,
-because no correspondence is claimed for it in either direction:
+A verification state only ever describes an **existing standards relationship**. It
+is never a property of a concept that has none. The canonical vocabulary of
+[standards.md](../workflow/standards.md) therefore contains exactly three
+verification states — `reference`, `candidate-alignment`, and `human-verified` —
+and `—` is **not** one of them.
 
-| State | Meaning for a coverage row |
+When no standards relationship is recorded for a concept, both the relationship
+and the verification columns carry `—`:
+
+```text
+Standards relationship = —
+Verification           = —
+```
+
+`—` is not a verification state. It means there is no recorded
+`StandardsReference` for this concept, so there is no standards relationship to
+which a verification state could apply, and no correspondence is claimed in either
+direction.
+
+When a standards relationship does exist, its verification state is exactly one of:
+
+| Verification state | Meaning for a coverage row |
 |---|---|
-| `—` | no standards relationship is recorded for this concept, so no alignment direction and no correspondence are claimed for it |
 | `reference` | the standard is named as the reference direction for this concept; no correspondence is claimed for any concrete geometry |
 | `candidate-alignment` | this concrete geometry is *intended* to correspond to the standard, but no human has compared it against an authorized copy; no human verification is required for this state |
 | `human-verified` | a human compared the DeepPlant geometry against an authorized copy and recorded the result |
