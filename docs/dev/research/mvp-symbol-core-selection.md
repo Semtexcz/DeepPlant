@@ -63,7 +63,7 @@ superseded_by: null
     G10). Project conventions (13), semantic gaps (6), and representation-design
     questions (12) are tracked **outside** the Core count.
   - Base requirement families separate two states: **13** carry a resolved stable
-    graphical identity (4 implemented, 9 resolved but missing), and **4** carry an
+    graphical identity (7 implemented, 6 resolved but missing), and **4** carry an
     unresolved identity / granularity (filter, heat-transfer equipment, vessel /
     tank / drum, measurement sensor / primary element), so those four are not
     counted as exact missing `SymbolDefinition`s. Composed representations 0
@@ -369,9 +369,9 @@ still a representation-design question. Only a resolved identity can be a
 | A06 | Pump | pfd + pid | `symbol` | required | resolved | PFD A; P&ID A (duty and stand-by instances) | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`) | — (geometry review before any profile migration, per #127) |
 | A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | PFD A; P&ID A; P&ID B | missing | representation identity unresolved — one reusable identity vs separate vessel / tank / drum / column identities is not decided (question G2) |
 | A08 | Gate valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`valve.gate`) | — (external recognizability and exact geometry unresolved, per #127) |
-| A09 | Globe valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
-| A10 | Check valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | missing | missing base SymbolDefinition |
-| A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | missing | missing base SymbolDefinition |
+| A09 | Globe valve | pid | `symbol` | required | resolved | P&ID A | **implemented** (`valve.globe`; two-triangle body with a solid central-disc variant mark) | — |
+| A10 | Check valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`valve.check`; rectangular body with a corner-to-corner closing stroke and a solid hinge mark) | — |
+| A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | **implemented** (`valve.ball`; two-triangle body with a large hollow central-circle variant mark) | — |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
 | A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`fitting.restriction_orifice`; two continuous outer strokes framing a centred split restriction stroke) | — |
@@ -627,7 +627,7 @@ base graphical requirement families  17
 ```
 
 Reconciliation, counting every Core row exactly once:
-`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 4 + 9`;
+`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 7 + 6`;
 composed `5 = 0 + 5`; connections `6 = 1 + 1 + 4`; annotations `11 = 1 + 1 + 9`;
 classification-unresolved capability `1`.
 

@@ -1,7 +1,7 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130).
+"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130/#132).
 
 The catalogue intentionally spans two notation profiles. The first Issue #119
 slice implements three representative ``generic-iso`` representations: a
@@ -9,9 +9,18 @@ connectable piping component (gate valve), an equipment symbol with process
 anchors (centrifugal pump), and the reusable base instrumentation graphic
 (local/field instrument). Issue #130 adds the first ``deepplant-default``
 production representation, the restriction orifice
-(``fitting.restriction_orifice``), so this is a deliberately mixed-profile
-catalogue and not a single-profile one. The catalogue is expanded one reviewed
-representation at a time.
+(``fitting.restriction_orifice``), and Issue #132 adds the three basic P&ID
+valve bodies (``valve.globe``, ``valve.check``, ``valve.ball``) in the same
+profile, so this is a deliberately mixed-profile catalogue and not a
+single-profile one. The catalogue is expanded one reviewed representation at a
+time.
+
+The #132 valve bodies are three independent definitions, not a shared valve
+glyph: the curated reference set does not give glob/two-port valves one common
+outer body, so each is authored separately from its own review. Building them
+also established that a solid variant mark cannot be expressed by a stroked
+outline, which is why :class:`~deepplant.symbols.definition.Circle` gained one
+boolean ``filled`` capability rather than a styling system.
 
 Geometry provenance
 ------------------
@@ -34,10 +43,13 @@ The three ``generic-iso`` definitions record the ISO document their geometry is
 *intended* to correspond to, at the canonical ``candidate-alignment`` state,
 because the geometry is DeepPlant-original, the project intends it to correspond
 to that ISO family, and no human has yet compared it against an authorized copy.
-The ``deepplant-default`` restriction orifice records no standards relationship at
-all (``standards=()``): ``deepplant-default`` makes no ISO/ISA/PIP conformance
-claim, so it requires none, and none is invented merely to populate the field
-(ADR-0007). ``candidate-alignment`` claims no human verification, and human
+The four ``deepplant-default`` definitions (the restriction orifice and the three
+#132 basic valves) record no standards relationship at all (``standards=()``):
+``deepplant-default`` makes no ISO/ISA/PIP conformance claim, so it requires none,
+and none is invented merely to populate the field (ADR-0007). The coverage matrix
+may still record a concept-level ISO reference *direction* for a `deepplant-default`
+concept, but a concept-level reference is not a concrete correspondence for this
+geometry. ``candidate-alignment`` claims no human verification, and human
 verification is **not** a prerequisite for it
 (``docs/dev/workflow/standards.md``, ADR-0007).
 Only a recorded human check against an authorized copy may promote a symbol's
@@ -172,6 +184,114 @@ INSTRUMENT_LOCAL = SymbolDefinition(
     ),
 )
 
+# DeepPlant-authored project seed geometry for the globe valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed E): the two-triangle valve
+# body carries a small, solidly filled central disc, so the *variant mark* - not
+# the outer body - distinguishes a globe valve. The two horizontal stubs are
+# DeepPlant's connection representation of the adjacent pipeline (a presentation
+# choice, not part of the valve body).
+#
+# The solid disc is why `Circle` gained `filled`: a stroked outline cannot express
+# a filled mark, and the curated reference distinguishes this solid globe disc
+# from the ball valve's hollow circle by exactly that. No stem, handwheel,
+# actuator, letter code, tag, or flow arrow belongs to the reusable base glyph.
+# The anchors are neutral: the body is symmetric and carries no flow semantics.
+GLOBE_VALVE = SymbolDefinition(
+    symbol_id="valve.globe",
+    name="Globe valve",
+    category="valve",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+        # The variant mark, drawn last so the solid disc reads over the apex.
+        Circle(cx=50.0, cy=50.0, r=8.0, filled=True),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    # No standards relationship: `deepplant-default` makes no ISO/ISA/PIP
+    # conformance claim, so recording none is correct and nothing is invented to
+    # populate the field (ADR-0007). The coverage matrix's concept-level ISO
+    # reference direction is not a correspondence for this geometry.
+    standards=(),
+)
+
+# DeepPlant-authored project seed geometry for the check valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed F): a rectangular valve body
+# whose closing stroke runs corner to corner, hinged at one corner by a small
+# solid peg. The two horizontal stubs are DeepPlant's connection representation
+# of the adjacent pipeline, not part of the valve body.
+#
+# The glyph is deliberately asymmetric because a check valve is recognised by its
+# one-way closing element, but that graphical asymmetry is a recognizability mark
+# and not a semantic flow direction: `SymbolAnchor` carries only a geometric
+# orientation, so the anchors stay the neutral `port_a`/`port_b` pair and no
+# `inlet`/`outlet`/`flow_direction` is encoded. No tag, arrow, or annotation is
+# part of the reusable base glyph.
+CHECK_VALVE = SymbolDefinition(
+    symbol_id="valve.check",
+    name="Check valve",
+    category="valve",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        # Rectangular body, four continuous edges.
+        Line(x1=28.0, y1=34.0, x2=72.0, y2=34.0),
+        Line(x1=72.0, y1=34.0, x2=72.0, y2=66.0),
+        Line(x1=72.0, y1=66.0, x2=28.0, y2=66.0),
+        Line(x1=28.0, y1=66.0, x2=28.0, y2=34.0),
+        # Diagonal closing stroke from the hinge corner to the opposite corner.
+        Line(x1=28.0, y1=34.0, x2=72.0, y2=66.0),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+        # Hinge mark, drawn last so the solid peg reads over the corner.
+        Circle(cx=28.0, cy=34.0, r=5.0, filled=True),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(),
+)
+
+# DeepPlant-authored project seed geometry for the ball valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed G): the two-triangle valve
+# body carries a large, hollow central circle that nearly spans the body height,
+# which is the ball valve's variant mark. The two horizontal stubs are DeepPlant's
+# connection representation of the adjacent pipeline, not part of the valve body.
+#
+# The mark is a stroked outline (not filled), which is exactly what separates it
+# from the globe valve's solid disc. No stem, lever, actuator, tag, or flow arrow
+# belongs to the reusable base glyph, and the anchors stay a symmetric neutral
+# `port_a`/`port_b` pair.
+BALL_VALVE = SymbolDefinition(
+    symbol_id="valve.ball",
+    name="Ball valve",
+    category="valve",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+        Circle(cx=50.0, cy=50.0, r=15.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(),
+)
+
 # DeepPlant-authored project seed geometry for the restriction orifice
 # (docs/dev/reference/symbol-seed-geometry.md, seed D): two continuous outer
 # transverse strokes frame a centred, split restriction stroke. The horizontal
@@ -214,6 +334,9 @@ RESTRICTION_ORIFICE = SymbolDefinition(
 #: declaration order here does not affect lookup.
 IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     GATE_VALVE,
+    GLOBE_VALVE,
+    CHECK_VALVE,
+    BALL_VALVE,
     PUMP_CENTRIFUGAL,
     INSTRUMENT_LOCAL,
     RESTRICTION_ORIFICE,

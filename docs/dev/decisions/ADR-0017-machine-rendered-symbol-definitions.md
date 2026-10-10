@@ -57,6 +57,16 @@
 > profile of a project or document stays outside this package. The operational
 > contract for the current mechanism is
 > [symbol-library.md](../reference/symbol-library.md).
+>
+> **Revisit note (Issue #132).** This ADR's revisit trigger *"a symbol needs a
+> further primitive"* fired: implementing the basic P&ID valves required a solid
+> variant mark (the globe valve's central disc, the check valve's hinge) that a
+> stroked outline cannot express, so the primitive vocabulary gained exactly one
+> boolean capability, `Circle.filled` (default `False`; `True` renders
+> `fill="currentColor"` on that `<circle>` element only, and a hollow circle's
+> output is unchanged). It is deliberately not a styling system: no fill on
+> `Polygon`, and no colour, gradient, opacity, CSS, class, or theme object. The
+> rest of this ADR stands unchanged.
 
 ## Context
 

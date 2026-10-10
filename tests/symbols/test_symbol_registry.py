@@ -31,9 +31,21 @@ from deepplant.symbols.profiles import (
 #: by symbol id.
 BUILTIN_REPRESENTATIONS = (
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),
     (GENERIC_ISO_NOTATION_PROFILE, "instrument.local"),
     (GENERIC_ISO_NOTATION_PROFILE, "pump.centrifugal"),
     (GENERIC_ISO_NOTATION_PROFILE, "valve.gate"),
+)
+
+#: The `deepplant-default`-only ids, which the omitted-profile (generic-iso)
+#: convenience lookup must fail closed for. Issue #132 adds three of them.
+DEEPPLANT_DEFAULT_ONLY_IDS = (
+    "fitting.restriction_orifice",
+    "valve.ball",
+    "valve.check",
+    "valve.globe",
 )
 
 #: An intended-correspondence relationship, which the ``generic-iso`` profile
@@ -110,56 +122,56 @@ def test_every_existing_generic_iso_representation_still_resolves_explicitly() -
         )
 
 
-def test_the_deepplant_default_representation_resolves_explicitly() -> None:
-    definition = SYMBOLS.get(
-        "fitting.restriction_orifice", notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE
-    )
-
-    assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
-    assert definition.symbol_id == "fitting.restriction_orifice"
+def test_the_deepplant_default_representations_resolve_explicitly() -> None:
     assert [
         definition.symbol_id
         for definition in SYMBOLS.list(notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE)
-    ] == ["fitting.restriction_orifice"]
+    ] == list(DEEPPLANT_DEFAULT_ONLY_IDS)
+
+    for symbol_id in DEEPPLANT_DEFAULT_ONLY_IDS:
+        definition = SYMBOLS.get(symbol_id, notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE)
+        assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
+        assert definition.symbol_id == symbol_id
 
 
-def test_omitted_profile_lookup_uses_generic_iso_and_fails_closed() -> None:
+@pytest.mark.parametrize("symbol_id", DEEPPLANT_DEFAULT_ONLY_IDS)
+def test_omitted_profile_lookup_uses_generic_iso_and_fails_closed(symbol_id: str) -> None:
     # The convenience default is still `generic-iso`, so a deepplant-default-only id
     # is absent there: the lookup must fail closed instead of silently substituting
     # the new profile for the requested default.
     with pytest.raises(SymbolDefinitionError) as error:
-        SYMBOLS.get("fitting.restriction_orifice")
+        SYMBOLS.get(symbol_id)
 
     message = str(error.value)
-    assert "'fitting.restriction_orifice'" in message
+    assert repr(symbol_id) in message
     assert GENERIC_ISO_NOTATION_PROFILE in message
 
 
-def test_explicit_generic_iso_lookup_of_the_new_id_fails_closed() -> None:
+@pytest.mark.parametrize("symbol_id", DEEPPLANT_DEFAULT_ONLY_IDS)
+def test_explicit_generic_iso_lookup_of_a_deepplant_default_id_fails_closed(symbol_id: str) -> None:
     with pytest.raises(SymbolDefinitionError) as error:
-        SYMBOLS.get("fitting.restriction_orifice", notation_profile=GENERIC_ISO_NOTATION_PROFILE)
+        SYMBOLS.get(symbol_id, notation_profile=GENERIC_ISO_NOTATION_PROFILE)
 
     message = str(error.value)
-    assert "'fitting.restriction_orifice'" in message
+    assert repr(symbol_id) in message
     assert GENERIC_ISO_NOTATION_PROFILE in message
 
 
-def test_no_cross_profile_fallback_occurs_for_the_new_id() -> None:
+@pytest.mark.parametrize("symbol_id", DEEPPLANT_DEFAULT_ONLY_IDS)
+def test_no_cross_profile_fallback_occurs_for_a_deepplant_default_id(symbol_id: str) -> None:
     # Explicitly requesting the wrong profile never returns the other profile's
     # representation, and the successful `deepplant-default` lookup is the only way
     # to obtain this definition.
-    definition = SYMBOLS.get(
-        "fitting.restriction_orifice", notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE
-    )
+    definition = SYMBOLS.get(symbol_id, notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE)
 
     assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
     with pytest.raises(SymbolDefinitionError):
-        SYMBOLS.get("fitting.restriction_orifice", notation_profile=GENERIC_ISO_NOTATION_PROFILE)
+        SYMBOLS.get(symbol_id, notation_profile=GENERIC_ISO_NOTATION_PROFILE)
 
 
 def test_get_fails_closed_on_an_unknown_symbol_id() -> None:
     with pytest.raises(SymbolDefinitionError, match="unknown symbol representation"):
-        SYMBOLS.get("valve.globe")
+        SYMBOLS.get("valve.plug")
 
 
 # ---------------------------------------------------------------------------

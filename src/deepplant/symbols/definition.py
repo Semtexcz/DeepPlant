@@ -123,15 +123,27 @@ class Line:
 
 @dataclass(frozen=True)
 class Circle:
-    """A stroked circle: a symbol-local centre and a positive radius."""
+    """A circle: a symbol-local centre, a positive radius, and an optional fill.
+
+    ``filled=False`` (the default) is the stroked outline circle every existing
+    definition uses. ``filled=True`` additionally fills the shape with the same
+    themeable ``currentColor`` the stroke uses, which a solid variant mark (for
+    example a valve's central disc) needs. It is a boolean capability, not a
+    styling system: no colour, gradient, opacity, CSS, class, or theme object is
+    expressible through it, and ``Polygon`` deliberately has no equivalent until
+    an implemented symbol requires one.
+    """
 
     cx: float
     cy: float
     r: float
+    filled: bool = False
 
     def __post_init__(self) -> None:
         if self.r <= 0:
             raise SymbolDefinitionError(f"circle radius must be positive, got {self.r!r}")
+        if not _is_bool(self.filled):
+            raise SymbolDefinitionError(f"circle 'filled' must be a bool, got {self.filled!r}")
 
 
 @dataclass(frozen=True)
@@ -366,6 +378,16 @@ def _is_number(value: object) -> bool:
     if isinstance(value, bool):
         return False
     return isinstance(value, int | float) and math.isfinite(value)
+
+
+def _is_bool(value: object) -> bool:
+    """Whether ``value`` is a real ``bool``.
+
+    Checked through an ``object``-typed helper so the runtime guard stays honest
+    for callers that bypass static typing, without an inline ``isinstance`` on an
+    already-typed field (which strict ``pyright`` correctly reads as redundant).
+    """
+    return isinstance(value, bool)
 
 
 def _require_non_blank(value: str, label: str) -> None:
