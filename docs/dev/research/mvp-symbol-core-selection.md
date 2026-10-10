@@ -43,8 +43,12 @@ superseded_by: null
   (three drawing sheets, two notation legend sheets, one duplicate legend copy,
   and the operator-bundled MVP drawing profile v0.1) plus the DeepPlant-authored
   repository material listed under [Sources](#sources). Re-inspected and
-  recomputed **2026-10-09**. No restricted ISO/ISA/IEC content was inspected, and
-  no standards locator, figure, table, or item number is recorded.
+  recomputed **2026-10-09**; the three drawing sheets were then re-inspected as
+  **rendered graphics** with complete tile coverage (**2026-10-10**), so symbol
+  form, marker shape, and signal-line style were inspected directly rather than
+  inferred, and no geometry was measured, traced, or copied. No restricted
+  ISO/ISA/IEC content was inspected, and no standards locator, figure, table, or
+  item number is recorded.
 - **Conclusions:**
   - The operator-selected reference directory is the **authoritative requirements
     boundary**. The bundled profile and the repository coverage matrix are
@@ -85,6 +89,12 @@ superseded_by: null
     `valve.gate` and `instrument.local` are `deepplant-default` candidates;
     `pump.centrifugal` stays `REVIEW_BEFORE_MIGRATION / INSUFFICIENT_EVIDENCE`.
     **This document changes neither the profile assignment nor the geometry.**
+  - The **graphics audit of the three selected drawing sheets confirms occurrence
+    and changes nothing else**: the Core stays **40** requirement entries, no row's
+    requirement, stable identity, profile, or gap type moves, and the two
+    text-layer evidence gaps recorded in the first revision (purely graphical
+    occurrences; voting and trip markers) are corrected rather than carried
+    ([Graphics audit of the selected sheets](#graphics-audit-of-the-selected-sheets)).
 - **Resulting decision:** none in production code. The selection is scope evidence
   for the [coverage matrix](../reference/mvp-symbol-coverage.md), which names the
   MVP Core explicitly.
@@ -267,7 +277,10 @@ classification vocabulary, and the current model's stream contract.
 
 Recorded so the Core can be read against the selected content. This is a
 *superset* of the Core: nothing here is added to the Core by being observed, and
-nothing here is removed from consideration silently.
+nothing here is removed from consideration silently. Each family below was also
+located in the rendered sheets, drawings and legends alike, so the selection is
+not text-layer-only
+([Graphics audit of the selected sheets](#graphics-audit-of-the-selected-sheets)).
 
 | Capability class | Observed in the selected drawing sheets (concept level) |
 |---|---|
@@ -298,7 +311,10 @@ Four representation-capability classes are counted in the Core, one
 **classification-unresolved** capability is counted separately (a required concept
 whose capability family is not yet decided), and three cross-cutting lists are
 tracked separately. Classification values are exactly the coverage matrix's
-vocabulary; every row below also has (or gains) a row there.
+vocabulary; every row below also has (or gains) a row there. The graphics audit
+of the selected sheets confirms that each requirement below occurs in the selected
+drawing content; it adds no row and changes none
+([Graphics audit of the selected sheets](#graphics-audit-of-the-selected-sheets)).
 
 ```text
 counted in the Core (four capability classes + the classification-unresolved class)
@@ -439,11 +455,11 @@ represent the selected *drawing* content.
 
 | Concept (concept level) | Reason it is not required |
 |---|---|
-| Specialty valves defined by legend A but not used by the selected drawings: butterfly, plug, needle, injection, angle, stop-check, automatic-recirculating check, backflow preventer, vacuum breaker, breath valve, automatic vent valve, valve with built-in bypass | Defined by the selected notation legend only; no selected drawing needs it represented. Limitation: a purely graphical occurrence cannot be fully confirmed from the inspected text layer, so this list is recorded rather than assumed. |
-| Piping fittings and accessories defined by legend A but not used by the selected drawings: spectacle blind / blank, cap and plug, screwed cap, sight glass, funnel / drain, steam trap / condensate trap, flame arrestor, flexible hose, expansion joint, mechanical coupling, sprayer, dividing chute, hose connection, silencer / damper | Same reason and same limitation. |
-| Instrument letter-code combinations not used by the selected drawings: record, integrate / totalise, scan, multivariable / multifunction instrument, and position or limit switches beyond the evidenced ones | Same reason: defined by legend B, not evidenced in the selected drawing content. Multivariable and multifunction instruments also stay out of the Core because the selected content reports single-function loops. |
+| Specialty valves defined by legend A but not used by the selected drawings: butterfly, plug, needle, injection, angle, stop-check, automatic-recirculating check, backflow preventer, vacuum breaker, breath valve, automatic vent valve, valve with built-in bypass | Defined by the selected notation legend only; no selected drawing needs it represented. No occurrence of these named forms was located in the graphics audit of the selected sheets. Because a sheet-only inspection cannot name a valve type — the legend's first valve rows are the general valve open / closed forms — this stays a recorded scope statement rather than an assertion about what is absent ([Graphics audit of the selected sheets](#graphics-audit-of-the-selected-sheets)). |
+| Piping fittings and accessories defined by legend A but not used by the selected drawings: spectacle blind / blank, cap and plug, screwed cap, sight glass, funnel / drain, steam trap / condensate trap, flame arrestor, flexible hose, expansion joint, mechanical coupling, sprayer, dividing chute, hose connection, silencer / damper | Same reason: defined by the selected notation legend only, and no occurrence of these named forms was located in the graphics audit. Recorded rather than assumed. |
+| Instrument letter-code combinations not used by the selected drawings: record, integrate / totalise, scan, multivariable / multifunction instrument, and position or limit switches beyond the evidenced ones | Defined by legend B and not located in the selected drawing content. The graphics audit did locate the instrument presentation variants with their letter and loop designations, but not these specific letter-code combinations. Multivariable and multifunction instruments also stay out of the Core because the selected content reports single-function loops. |
 | Detailed electrical and motor-control representation | The selected drawings show actuators, position indications and fail states, but no detailed electrical schematic content. |
-| Voting indication (2-out-of-2 / 2-out-of-3), trip / permissive diamond markers | Named by the bundled profile for the complexity gate, and not evidenced in the inspected text layer of the selected sheets. Recorded as an **evidence gap and semantic-gap candidate**, not as a profile-driven exclusion. |
+| Voting indication (2-out-of-2 / 2-out-of-3), trip / permissive diamond markers | **Corrected after the graphics audit:** these markers do occur in the selected P&ID content, so they are no longer recorded as an evidence gap. They are not a separate requirement: a voting indication and a trip / permissive marker are markings of the interlock / trip / permissive reference annotation already in the Core (D10) and of the safety-system instrument variant (B05), the numbering stays a project convention (E09), and the referenced logic stays semantic gap F3 ([Graphics audit of the selected sheets](#graphics-audit-of-the-selected-sheets)). |
 | Vendor / package detail, title-block and revision content | Document production, not symbol vocabulary (see E12). |
 | Duplicate / parallel equipment and repeated control loops | Not a representation question: they deduplicate to one representation plus project numbering (E01, E08) and repeated instances. |
 
@@ -671,6 +687,63 @@ this document    selects vocabulary        no production change
 - No private drawing identity — filename, document number, drawing title, path,
   title-block value, customer or project identifier — is recorded.
 
+## Graphics audit of the selected sheets
+
+The vocabulary above was first read from the sheets' text layer. Each sheet was
+then re-inspected as **rendered graphics**, tile by tile, so that what a text layer
+cannot carry — symbol form, marker shape, signal-line style, line treatment — was
+inspected directly instead of being recorded as unverifiable. The audit locates
+forms; it does not measure, compare, vectorise, trace, or copy anything, and it
+records no tag, code value, line designation, note text, title-block field, or
+document identifier ([standards.md](../workflow/standards.md), ADR-0007).
+
+```text
+located in the rendered sheets (concept level)
+
+base equipment graphics   compressor; reactor / burner with internals; mixer;
+                          vessel / drum and tank outlines with nozzles; a column;
+                          filters; heat-transfer items with internals; pumps
+inline valve bodies       more than one distinguishable two-triangle body form; a
+                          body carrying an internal mark; a three-port body; an
+                          inline body carrying a mounted operator
+inline fittings           restriction orifice with an expressed bore; reducer;
+                          spring-loaded safety / relief valve
+instruments               a field-mounted base graphic; a control-system
+                          (shared-display) variant; a safety-system variant; alarm
+                          and limit letters; set-point values; functional taps
+connections               routed piping with branches; battery-limit boundaries;
+                          off-page / continuation markers; electric signal lines
+                          drawn distinctly from process lines
+annotations               stream numbers; equipment tags and names; nozzle
+                          designations; line designations; drawing and data notes;
+                          line-treatment (tracing) marks
+markers                   safety-interlock boxes carrying voting indication
+                          (2-out-of-2 / 2-out-of-3); trip / permissive diamond
+                          markers; a composite-typical reference marker
+```
+
+What the audit changes, and nothing else:
+
+```text
+1. occurrence is confirmed; no requirement is added: the Core stays 40 entries and
+   no row's requirement, stable identity, profile, or gap type moves
+2. two text-layer limitations recorded in the first revision are corrected,
+   because the forms they doubted were located directly
+3. a sheet alone cannot name a valve type: the legend's first valve rows are the
+   general valve open / closed forms, so a two-triangle body on a sheet is not
+   evidence for one named valve type in particular — the Core keeps distinct valve
+   requirement rows, and the type-to-form mapping stays legend evidence
+4. voting indication and trip / permissive markers are markings of the interlock /
+   trip / permissive reference annotation already in the Core (D10) and of the
+   safety-system instrument variant (B05), so they are recorded inside those
+   requirements rather than as a new entry
+```
+
+The audit is occurrence evidence only. It is not geometry, naming, layout, or
+compliance evidence, and it promotes no verification state: observing that a sheet
+contains a symbol form establishes no standards relationship
+([standards.md](../workflow/standards.md), ADR-0007).
+
 ## Evidence gaps and limitations
 
 - **The complexity-gate discrepancy is unresolved.** The selected directory
@@ -679,14 +752,24 @@ this document    selects vocabulary        no production change
 - **The legend scope question is unresolved.** Whether the selected legend
   vocabulary is itself MVP-required is an operator decision; until it is answered,
   legend-only concepts stay in the recorded not-required list.
-- **Text-layer limitation.** The inspected sheets were read at concept level;
-  purely graphical occurrences (a blind, a sight glass, a signal-line style) cannot
-  be fully confirmed from the text layer, which is why those classifications are
-  recorded with their limitation instead of being assumed.
-- **Voting and trip markers.** The bundled profile names voting and trip/permissive
-  markers for the complexity gate; they are not evidenced in the inspected text
-  layer, and no model representation exists. Recorded as an evidence gap and a
-  semantic-gap candidate.
+- **Graphics-audit limits (this replaces the former text-layer limitation).** The
+  sheets were re-inspected as **rendered graphics**, not only through their text
+  layer, so the earlier limitation — that a purely graphical occurrence cannot be
+  confirmed — no longer applies to the selected sheets
+  ([Graphics audit of the selected sheets](#graphics-audit-of-the-selected-sheets)).
+  What remains open is naming rather than occurrence: the valve legend's first rows
+  are the general valve open / closed forms, so a two-triangle body on a sheet is
+  not evidence for one named valve type in particular; a sheet-level graphics look
+  cannot measure or compare geometry; and an occurrence that was not located is
+  recorded as a scope statement, never as proof of absence.
+- **Voting and trip markers (corrected).** The graphics audit located voting
+  indication (2-out-of-2 / 2-out-of-3) and trip / permissive diamond markers in the
+  selected content, so they are no longer recorded as an evidence gap and no longer
+  as a semantic-gap candidate by themselves. They are markings of the interlock /
+  trip / permissive reference annotation already in the Core (D10) and of the
+  safety-system instrument variant (B05); the numbering stays a project convention
+  (E09) and the referenced logic stays semantic gap F3. This correction adds no
+  Core entry and changes no count.
 - **Construction details** (weld, flange, cap/plug, funnel, drain) occur in the
   selected notation but are not needed to represent the selected drawing content;
   their exclusion is recorded in the not-required list, not silently decided.

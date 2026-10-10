@@ -141,7 +141,7 @@ The matrix keeps separate statements apart, because they advance independently:
 required by the MVP reference      does the MVP need this concept?
 stable graphical identity          is one decided SymbolDefinition identity recorded for it?
 notation profile                   which profile does an implemented representation carry now?
-standards relationship             reference / candidate-alignment / human-verified
+standards relationship             reference / candidate-alignment / human-verified / —
 implemented in DeepPlant           does a SymbolDefinition exist yet?
 ```
 
@@ -186,13 +186,22 @@ for every new Core concept:
 ```text
 Current profile          the profile an actually-implemented representation carries today
                          (`generic-iso` for the three existing definitions; `—` for a
-                         Core concept whose representation does not exist yet)
+                         Core concept whose representation does not exist yet, and for a
+                         capability that cannot carry a notation profile at all)
 Target MVP notation      the intended notation direction for the required representation
                          (`deepplant-default target` / `deepplant-default candidate` /
-                         `unresolved pending representation design` / `not applicable`)
+                         `unresolved pending representation design`; `not applicable
+                         (<reason>)` where the architecture claims no notation profile
+                         at all — a composed representation, a connection style, or
+                         authored text — and the constituents, not the capability, carry
+                         the notation)
 Standards relationship   the standards family named as the reference direction for the
-                         concept; `none recorded` when no relationship is established
-Verification             `reference` / `candidate-alignment` / `human-verified`
+                         concept; `—` when no relationship is recorded, so no alignment
+                         direction is claimed for it
+Verification             the alignment state for this concept (`reference` /
+                         `candidate-alignment` / `human-verified`); `—` when no standards
+                         relationship is recorded, so no correspondence is claimed for it
+                         in either direction
 ```
 
 Only an **implemented** representation may carry a current production profile. A
@@ -202,14 +211,16 @@ correspondence for geometry that does not exist. `deepplant-default` marks a
 future direction where the architecture supports it, and never claims that a
 concrete geometry has been approved — where a representation's graphical identity
 is still undesigned, the target notation is `unresolved pending representation
-design`. Not every Core capability has a notation profile at all: an annotation, a
-connection style, and a composed arrangement belong to future presentation-profile
-architecture and are `not applicable` until that architecture establishes a profile
-for them ([symbol-library.md](symbol-library.md)).
+design`. Not every Core capability has a notation profile at all: a composed
+arrangement, a connection style, and an annotation belong to future
+presentation-profile architecture, so their target notation is `not applicable
+(<reason>)`, and `deepplant-default` is recorded only for a base graphical
+requirement ([symbol-library.md](symbol-library.md)).
 
 ## Classification vocabulary
 
-Per Issue #119, each concept is classified as exactly one of:
+Per Issue #119, a concept whose classification is **resolved** is classified as
+exactly one of:
 
 | Classification | Meaning |
 |---|---|
@@ -220,22 +231,25 @@ Per Issue #119, each concept is classified as exactly one of:
 | `project-convention` | company/project practice that is not part of a standard library |
 | `composite-typical` | a reusable project-specific arrangement referencing a typical diagram |
 
-A concept whose family is still undecided is recorded as **classification
-unresolved** rather than being forced into one class to preserve a total: whether
-the labelled process boundary connector (C02) is an `annotation` or a `connection`
-is representation-design question G10, so C02 is counted in its own
-classification-unresolved capability class in the tables below, never in the
-connection total.
+**Classification unresolved** is not a seventh class and is not an alternative
+outcome of the six: it is a **temporary status** for a required concept whose
+capability family is not yet decided, and such a concept resolves into exactly one
+of the six. It exists so that no concept is forced prematurely into a class merely
+to preserve a total: the labelled process boundary connector (C02) is an
+`annotation` or a `connection` depending on representation-design question G10, so
+C02 is counted once in its own classification-unresolved capability class in the
+tables below, and never in the connection total.
 
 ## Verification vocabulary
 
-The verification column uses exactly the canonical states of
+The verification column uses the canonical states of
 [standards.md](../workflow/standards.md); a concept with no recorded standards
-relationship is `reference`, because no correspondence is claimed for it either
-way:
+relationship carries `—` in both the relationship and the verification columns,
+because no correspondence is claimed for it in either direction:
 
 | State | Meaning for a coverage row |
 |---|---|
+| `—` | no standards relationship is recorded for this concept, so no alignment direction and no correspondence are claimed for it |
 | `reference` | the standard is named as the reference direction for this concept; no correspondence is claimed for any concrete geometry |
 | `candidate-alignment` | this concrete geometry is *intended* to correspond to the standard, but no human has compared it against an authorized copy; no human verification is required for this state |
 | `human-verified` | a human compared the DeepPlant geometry against an authorized copy and recorded the result |
@@ -292,6 +306,11 @@ traced, or measured from it, and no title block, tag, note, document identifier,
 drawing title, or symbol sheet is reproduced
 ([standards.md](../workflow/standards.md), ADR-0007). It is referenced only by
 neutral role identifiers ([../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md)).
+The concept-level selection this matrix records was additionally verified against
+the sheets' **rendered graphics** (symbol form, marker shape, and signal-line
+style); that audit locates forms only, takes no geometry, and establishes no
+standards correspondence ([mvp-symbol-core-selection.md, graphics
+audit](../research/mvp-symbol-core-selection.md#graphics-audit-of-the-selected-sheets)).
 
 The companies' own conventions (tag prefixes, line designation, DCS/SIS
 practice, interlock numbering) are recorded here as `project-convention` so they
@@ -309,18 +328,18 @@ requirement from the selected MVP reference content, and the identifiers match t
 
 | # | Concept | Context | Classification | Requirement | Stable identity | Current profile | Target MVP notation | Standards relationship | Verification | Current support & representation | Gap type |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| A01 | Filter | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | none recorded | `reference` | missing; equipment outline with process anchors | representation identity unresolved — one cross-context identity vs context-specific forms must be decided before SymbolDefinition implementation (G1) |
-| A02 | Compressor | pfd | `symbol` | required | resolved | — | `deepplant-default` target | none recorded | `reference` | missing; equipment outline with process anchors | missing base SymbolDefinition |
-| A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (requirement family) | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | none recorded | `reference` | missing; a heat-transfer duty family must be representable, and one reusable identity vs several duty / equipment identities is not decided (G11) | representation identity unresolved — design decision required before SymbolDefinition implementation |
-| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | — | `deepplant-default` target | none recorded | `reference` | missing; equipment outline with multiple process anchors | missing base SymbolDefinition |
-| A05 | Reactor / burner | pfd | `symbol` | required | resolved | — | `deepplant-default` target | none recorded | `reference` | missing; equipment outline with anchored connections | missing base SymbolDefinition |
+| A01 | Filter | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | — | — | missing; equipment outline with process anchors | representation identity unresolved — one cross-context identity vs context-specific forms must be decided before SymbolDefinition implementation (G1) |
+| A02 | Compressor | pfd | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; equipment outline with process anchors | missing base SymbolDefinition |
+| A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (requirement family) | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | — | — | missing; a heat-transfer duty family must be representable, and one reusable identity vs several duty / equipment identities is not decided (G11) | representation identity unresolved — design decision required before SymbolDefinition implementation |
+| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; equipment outline with multiple process anchors | missing base SymbolDefinition |
+| A05 | Reactor / burner | pfd | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; equipment outline with anchored connections | missing base SymbolDefinition |
 | A06 | Pump | pfd + pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` unresolved — focused review required before migration (#127) | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`); DeepPlant-authored project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)) | — (geometry review before any notation-profile migration, per #127) |
-| A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | none recorded | `reference` | missing; a containment outline with nozzles, and one reusable identity vs separate vessel / tank / drum / column identities is not decided (G2) | representation identity unresolved — design decision required before SymbolDefinition implementation |
+| A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | — | — | missing; a containment outline with nozzles, and one reusable identity vs separate vessel / tank / drum / column identities is not decided (G2) | representation identity unresolved — design decision required before SymbolDefinition implementation |
 | A08 | Gate valve | pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` candidate — external recognizability unresolved (#127) | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`valve.gate`); DeepPlant-authored project seed geometry, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (external recognizability and exact geometry unresolved, per #127) |
 | A09 | Globe valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with the variant's internal mark | missing base SymbolDefinition |
 | A10 | Check valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with the variant's flow mark | missing base SymbolDefinition |
 | A11 | Ball valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with the variant's internal mark | missing base SymbolDefinition |
-| A12 | Three-way valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | none recorded | `reference` | missing; three-port valve body | missing base SymbolDefinition |
+| A12 | Three-way valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; three-port valve body | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with a spring-loaded indication | missing base SymbolDefinition |
 | A15 | Restriction orifice | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; small inline graphic on the piping axis | missing base SymbolDefinition |
 | A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; inline fitting on the piping axis | missing base SymbolDefinition |
@@ -345,16 +364,18 @@ tracked with `B01` instead of as a resolved base symbol. Nothing is counted twic
 
 | # | Concept | Context | Classification | Requirement | Current profile | Target MVP notation | Standards relationship | Verification | Current support | Gap type |
 |---|---|---|---|---|---|---|---|---|---|---|
-| B01 | Control valve with actuator (body composed with an actuator graphic) | pfd + pid | `composed-symbol` | required | not applicable | `deepplant-default` target — pending body-identity design (G12) | ISO 10628-2:2012; ISO 15519-2:2015 (actuator conventions) | `reference` | missing; the body component is required, but the representation model that gives it a stable identity is not decided (G12) | composition gap; body identity a representation-design question |
-| B02 | On/off actuated valve with position indication | pid | `composed-symbol` | required | not applicable | `deepplant-default` target | none recorded | `reference` | missing | composition gap |
-| B03 | Instrument function composition (base graphic + function letter code + loop designation) | pfd + pid | `composed-symbol` | required | not applicable | `deepplant-default` target | ISO 15519-2:2015 (instrument identification) | `reference` | missing (the base graphic exists; the letter-code and loop-designation annotations do not) | composition gap |
-| B04 | Control-system instrument variant (panel / shared display / control-system participation) | pid | `composed-symbol` | required | not applicable | `deepplant-default` target | ISO 15519-2:2015 (reference direction) | `reference` | missing | composition gap |
-| B05 | Safety-system instrument variant (instrument marked as part of the safety system) | pid | `composed-symbol` | required | not applicable | `deepplant-default` target | none recorded | `reference` | missing | composition gap (the referenced logic is semantic gap F3) |
+| B01 | Control valve with actuator (body composed with an actuator graphic) | pfd + pid | `composed-symbol` | required | not applicable | not applicable (composition; constituents carry notation) | ISO 10628-2:2012; ISO 15519-2:2015 (actuator conventions) | `reference` | missing; the body component is required, but the representation model that gives it a stable identity is not decided (G12) | composition gap; body identity a representation-design question |
+| B02 | On/off actuated valve with position indication | pid | `composed-symbol` | required | not applicable | not applicable (composition; constituents carry notation) | — | — | missing | composition gap |
+| B03 | Instrument function composition (base graphic + function letter code + loop designation) | pfd + pid | `composed-symbol` | required | not applicable | not applicable (composition; constituents carry notation) | ISO 15519-2:2015 (instrument identification) | `reference` | missing (the base graphic exists; the letter-code and loop-designation annotations do not) | composition gap |
+| B04 | Control-system instrument variant (panel / shared display / control-system participation) | pid | `composed-symbol` | required | not applicable | not applicable (composition; constituents carry notation) | ISO 15519-2:2015 (reference direction) | `reference` | missing | composition gap |
+| B05 | Safety-system instrument variant (instrument marked as part of the safety system) | pid | `composed-symbol` | required | not applicable | not applicable (composition; constituents carry notation) | — | — | missing | composition gap (the referenced logic is semantic gap F3) |
 
-A composed representation is not itself a `SymbolDefinition`, so it has no current
-`generic-iso` profile; its notation direction follows the base graphics it
-composes. `deepplant-default` here is the intended direction, never an approved
-geometry.
+A composed representation is not itself a `SymbolDefinition`, so it carries neither
+a current profile nor a notation profile of its own: `Current profile` and
+`Target MVP notation` are both `not applicable (composition; constituents carry
+notation)`, because the notation is carried by the base graphics the
+representation composes. `deepplant-default` is never recorded for a composed
+representation, and no approved geometry is claimed for one.
 
 
 ### 3. Connections (6)
@@ -362,9 +383,9 @@ geometry.
 | # | Concept | Context | Classification | Requirement | Current profile | Target MVP notation | Standards relationship | Verification | Current support | Gap type |
 |---|---|---|---|---|---|---|---|---|---|---|
 | C01 | Directional process stream | pfd | `connection` | required | not applicable | not applicable (connection style) | ISO 15519-2:2015 (connection conventions) | `reference` | implemented — drawn by the process renderer as output, not as a `SymbolDefinition` | — |
-| C03 | Off-page connector (sheet-to-sheet continuation with a reference) | pfd + pid | `connection` | required | not applicable | not applicable (connection style) | none recorded | `reference` | missing | connection-rendering gap |
+| C03 | Off-page connector (sheet-to-sheet continuation with a reference) | pfd + pid | `connection` | required | not applicable | not applicable (connection style) | — | — | missing | connection-rendering gap |
 | C04 | Piping line — orthogonal routing, branch / junction, direction indication | pid | `connection` | required | not applicable | not applicable (connection style) | ISO 15519-2:2015 (connection conventions) | `reference` | missing (routing exists for process streams only) | connection-rendering gap |
-| C05 | Instrument process connection (functional tap) | pid | `connection` | required | not applicable | not applicable (connection style) | none recorded | `reference` | partial — the `tap` anchor exists on `instrument.local`; the line convention does not | connection-rendering gap |
+| C05 | Instrument process connection (functional tap) | pid | `connection` | required | not applicable | not applicable (connection style) | — | — | partial — the `tap` anchor exists on `instrument.local`; the line convention does not | connection-rendering gap |
 | C06 | Instrument signal line, electric | pid | `connection` | required | not applicable | not applicable (connection style) | ISO 15519-2:2015 (connection conventions) | `reference` | missing (signal lines must not become `Connection`) | connection-rendering gap |
 | C07 | Line treatment — insulation, heating, tracing, as authored data | pid | `connection` (line treatment) | required as data; graphical decoration optional | not applicable | not applicable (connection style) | ISO 10628-1:2014 (diagram structure) | `reference` | missing (no authored carrier) | semantic-model gap (F5) |
 
@@ -373,7 +394,7 @@ connector is an annotation or a connection is unresolved, so it is counted in it
 own [classification-unresolved capability class](#4-classification-unresolved-core-capability-1).
 A connection style belongs to future presentation-profile architecture and is not a
 `SymbolDefinition` notation profile today, so its target notation is `not
-applicable` rather than a fabricated profile.
+applicable (connection style)` rather than a fabricated profile.
 
 
 ### 4. Classification-unresolved Core capability (1)
@@ -387,28 +408,30 @@ marker + label behaviour.
 
 | # | Concept | Context | Classification | Requirement | Current profile | Target MVP notation | Standards relationship | Verification | Current support & representation | Gap type |
 |---|---|---|---|---|---|---|---|---|---|---|
-| C02 | Process boundary connector (battery limit, labelled) | pfd + pid | **unresolved** (annotation vs connection) | required | not applicable | unresolved pending representation design | none recorded | `reference` | missing; a marker plus a label associated with a boundary / stream endpoint, never equipment geometry | classification unresolved — which capability family owns a labelled boundary connector is representation-design question G10 |
+| C02 | Process boundary connector (battery limit, labelled) | pfd + pid | **unresolved** (annotation vs connection) | required | not applicable | unresolved pending representation design | — | — | missing; a marker plus a label associated with a boundary / stream endpoint, never equipment geometry | classification unresolved — which capability family owns a labelled boundary connector is representation-design question G10 |
 
 ### 5. Annotations (11)
 
 | # | Concept | Context | Classification | Requirement | Current profile | Target MVP notation | Standards relationship | Verification | Current support | Gap type |
 |---|---|---|---|---|---|---|---|---|---|---|
-| D01 | Stream number label | pfd | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | implemented — the renderer's label layer draws the process stream id | — |
-| D02 | Stream property / composition data (medium, phase, flows, temperature, pressure, density, molecular weight, composition, duty) | pfd + pid | `annotation` | required as data; an automatic drawing table is optional | not applicable | not applicable (authored text) | none recorded | `reference` | missing | semantic-model gap (F1) |
-| D03 | Equipment tag / name label (with the project equipment-code prefix) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | partial — step id and name labels are drawn for process steps only | annotation gap |
-| D04 | Duty / rating / set-point annotation (heat duty, relief set pressure) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing | semantic-model gap (F6) |
-| D05 | Nozzle designation | pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing | annotation gap |
-| D06 | Line tag (medium + sequence + nominal size + piping class) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing (values are project conventions) | annotation gap |
+| D01 | Stream number label | pfd | `annotation` | required | not applicable | not applicable (authored text) | — | — | implemented — the renderer's label layer draws the process stream id | — |
+| D02 | Stream property / composition data (medium, phase, flows, temperature, pressure, density, molecular weight, composition, duty) | pfd + pid | `annotation` | required as data; an automatic drawing table is optional | not applicable | not applicable (authored text) | — | — | missing | semantic-model gap (F1) |
+| D03 | Equipment tag / name label (with the project equipment-code prefix) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | partial — step id and name labels are drawn for process steps only | annotation gap |
+| D04 | Duty / rating / set-point annotation (heat duty, relief set pressure) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing | semantic-model gap (F6) |
+| D05 | Nozzle designation | pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing | annotation gap |
+| D06 | Line tag (medium + sequence + nominal size + piping class) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing (values are project conventions) | annotation gap |
 | D07 | Instrument loop designation (function letters + loop number, with plant / location code) | pid | `annotation` | required | not applicable | not applicable (authored text) | ISO 15519-2:2015 (instrument identification) | `reference` | missing | semantic-model gap (F2) |
-| D08 | Instrument alarm / limit annotation (high, high-high, low, low-low) | pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing | annotation gap |
-| D09 | Fail-state annotation (fail-closed / fail-open / fail-lock / normally-closed) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing | annotation gap |
-| D10 | Interlock / trip / permissive reference annotation | pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing | annotation gap plus semantic-model gap (F3) |
-| D11 | Drawing note / general note (authored text annotation) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | none recorded | `reference` | missing | semantic-model gap (F4) |
+| D08 | Instrument alarm / limit annotation (high, high-high, low, low-low) | pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing | annotation gap |
+| D09 | Fail-state annotation (fail-closed / fail-open / fail-lock / normally-closed) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing | annotation gap |
+| D10 | Interlock / trip / permissive reference annotation | pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing | annotation gap plus semantic-model gap (F3) |
+| D11 | Drawing note / general note (authored text annotation) | pfd + pid | `annotation` | required | not applicable | not applicable (authored text) | — | — | missing | semantic-model gap (F4) |
 
 An annotation is authored text, not a `SymbolDefinition`, so it carries no notation
-profile today: profile is `not applicable`, and a standards relationship is
-recorded only where the earlier broad matrix already named one (`reference`
-direction only, never a correspondence claim).
+profile today: its current profile is `not applicable` and its target notation is
+`not applicable (authored text)`. A standards relationship is recorded only where
+the earlier broad matrix already named one (`reference` direction only, never a
+correspondence claim); every other annotation row carries `—` in the relationship
+and verification columns, because no relationship is recorded for it.
 
 ## Outside the Core (retained concept inventory)
 
