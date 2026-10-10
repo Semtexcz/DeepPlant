@@ -34,11 +34,12 @@ The three ``generic-iso`` definitions record the ISO document their geometry is
 *intended* to correspond to, at the canonical ``candidate-alignment`` state,
 because the geometry is DeepPlant-original, the project intends it to correspond
 to that ISO family, and no human has yet compared it against an authorized copy.
-The ``deepplant-default`` restriction orifice instead records ISO 10628-2:2012 at
-the weaker ``reference`` state: it claims no correspondence for the concrete
-geometry, which ``deepplant-default`` permits and ``generic-iso`` would not.
-``candidate-alignment`` claims no human verification, and human verification is
-**not** a prerequisite for it (``docs/dev/workflow/standards.md``, ADR-0007).
+The ``deepplant-default`` restriction orifice records no standards relationship at
+all (``standards=()``): ``deepplant-default`` makes no ISO/ISA/PIP conformance
+claim, so it requires none, and none is invented merely to populate the field
+(ADR-0007). ``candidate-alignment`` claims no human verification, and human
+verification is **not** a prerequisite for it
+(``docs/dev/workflow/standards.md``, ADR-0007).
 Only a recorded human check against an authorized copy may promote a symbol's
 correspondence to ``human-verified``, and until then no locator, standard-authored
 name, or other detail that is only available from restricted material is recorded
@@ -173,12 +174,12 @@ INSTRUMENT_LOCAL = SymbolDefinition(
 
 # DeepPlant-authored project seed geometry for the restriction orifice
 # (docs/dev/reference/symbol-seed-geometry.md, seed D): the process axis is
-# interrupted by one small circle that expresses the restriction / bore, with the
-# two horizontal stubs drawn as DeepPlant's connection representation of the
-# adjacent pipeline up to the bore edge. This is the first built-in
-# `deepplant-default` representation, so its standards relationship is deliberately
-# the weaker `reference` state: the profile claims no correspondence for the
-# concrete geometry, and recording `reference` here must not be read as alignment.
+# interrupted by a pair of short transverse strokes around the restriction
+# location, with the two horizontal stubs drawn as DeepPlant's connection
+# representation of the adjacent pipeline up to the restriction. This is the first
+# built-in `deepplant-default` representation, so it records no standards
+# relationship at all: the profile makes no ISO/ISA/PIP conformance claim, and no
+# relationship is invented merely to populate the field.
 #
 # Deliberately absent: any valve body or control primitive, any tag or line
 # number, and any inlet/outlet or flow-direction semantics. `port_a` / `port_b`
@@ -191,7 +192,8 @@ RESTRICTION_ORIFICE = SymbolDefinition(
     notation_profile="deepplant-default",
     primitives=(
         Line(x1=0.0, y1=50.0, x2=42.0, y2=50.0),
-        Circle(cx=50.0, cy=50.0, r=8.0),
+        Line(x1=42.0, y1=34.0, x2=42.0, y2=66.0),
+        Line(x1=58.0, y1=34.0, x2=58.0, y2=66.0),
         Line(x1=58.0, y1=50.0, x2=100.0, y2=50.0),
     ),
     anchors=(
@@ -199,12 +201,10 @@ RESTRICTION_ORIFICE = SymbolDefinition(
         SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
     ),
     provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
-    standards=(
-        # Reference direction only: `deepplant-default` requires no intended
-        # correspondence, so no locator, standard-authored name, or verifier
-        # evidence is recorded and no alignment is claimed (ADR-0007).
-        StandardsReference(standard="ISO 10628-2:2012", verification="reference"),
-    ),
+    # No standards relationship: `deepplant-default` makes no ISO/ISA/PIP
+    # conformance claim, so recording none is the correct state and no
+    # relationship, locator, or verifier evidence is invented here (ADR-0007).
+    standards=(),
 )
 
 #: The definitions the built-in catalogue currently exposes, across both notation

@@ -362,7 +362,7 @@ requirement from the selected MVP reference content, and the identifiers match t
 | A11 | Ball valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with the variant's internal mark | missing base SymbolDefinition |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; three-port valve body | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with a spring-loaded indication | missing base SymbolDefinition |
-| A15 | Restriction orifice | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`fitting.restriction_orifice`); DeepPlant-authored project seed geometry, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (standards relationship remains `reference` only; no correspondence claimed) |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | — | — | **implemented** (`fitting.restriction_orifice`); DeepPlant-authored practical representation (a pair of short transverse strokes interrupting the process axis, with no circle), with neutral `port_a` / `port_b` process anchors that embed no flow semantics; no tag or bore annotation is embedded | — (no standards relationship is recorded, and `—` is the absence of a recorded relationship, not a verification state) |
 | A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; inline fitting on the piping axis | missing base SymbolDefinition |
 | A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` candidate — standards-specific composition unresolved (#124) | ISO 15519-2:2015 | `candidate-alignment` | **implemented** (`instrument.local`); DeepPlant-authored project seed geometry, with no function letters, tag, or mandatory signal anchor embedded | — (profile composition unresolved, #124) |
 | A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | ISO 15519-2:2015 (measurement symbols) | `reference` | missing; a small measurement graphic, and one reusable identity vs one graphic per measured variable is not decided (G4) | representation identity unresolved — design decision required before SymbolDefinition implementation |
@@ -498,7 +498,7 @@ data, and base-symbol geometry must not embed them.
 | `valve.gate` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `port_a` → west, process; `port_b` → east, process |
 | `pump.centrifugal` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `suction` → west, process; `discharge` → east, process |
 | `instrument.local` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 15519-2:2015 | `candidate-alignment` | `tap` → south, process |
-| `fitting.restriction_orifice` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `reference` | `port_a` → west, process; `port_b` → east, process |
+| `fitting.restriction_orifice` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
 
 Everything else is reported per capability in
 [MVP Core coverage](#mvp-core-coverage): each Core entry records its own support
@@ -514,8 +514,8 @@ the named ISO family, with no human check claimed: because `generic-iso` *means*
 that intended correspondence, a definition in that profile must record at least one
 relationship at `candidate-alignment` or `human-verified`, and a bare `reference`
 cannot carry the profile. The `deepplant-default` restriction orifice (A15)
-records ISO 10628-2:2012 at `reference` only, which claims no correspondence for
-the concrete geometry and satisfies its profile
+records **no** standards relationship at all: `deepplant-default` makes no
+ISO/ISA/PIP conformance claim, so none is required and none is invented
 ([symbol-library.md](symbol-library.md)).
 
 The #127 profile classification for the three `generic-iso` definitions is
@@ -547,8 +547,8 @@ instrument.local
   comparison against an authorized copy, recorded with the standard, the symbol,
   the date, and the verifier ([standards.md](../workflow/standards.md)).
   `candidate-alignment` itself requires no human check. The `deepplant-default`
-  restriction orifice records only `reference`, so no correspondence question is
-  open for it.
+  restriction orifice records no standards relationship at all, so no
+  correspondence question is open for it.
 - A permitted or human-recorded locator for each representation has not been
   recorded, so `StandardsReference.locator`, `.name`, `.verified_by`, and
   `.verified_on` stay unset; human verification can add that evidence later.

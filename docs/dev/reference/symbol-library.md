@@ -45,7 +45,7 @@ Two different symbol mechanisms exist, and they are not the same thing:
 | Scope | standard PFD/P&ID representations | DeepPlant-original process/PFD fallback glyphs |
 | Identity | stable symbol id (`valve.gate`) | presentation symbol role (`pump`) |
 | Asset provenance | required per definition (`origin`, `license`) | recorded in the packaged pack README |
-| Standards relationship | required by the `generic-iso` notation profile; the three legacy representations record `candidate-alignment` (intended, not human-verified), while the `deepplant-default` restriction orifice records only `reference` | `reference` / non-normative |
+| Standards relationship | required by the `generic-iso` notation profile, which the three legacy representations satisfy at `candidate-alignment` (intended, not human-verified); optional in `deepplant-default`, where the restriction orifice records **no** standards relationship | `reference` / non-normative |
 
 `docs/dev/reference/svg-symbols.md` and ADR-0008 remain in force for the
 process pack. ADR-0017 records why the standard library takes the
@@ -514,7 +514,7 @@ PR review
 | `valve.gate` | `generic-iso` | Gate valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two triangles meeting apex to apex on the process axis, with a process line to each view-box edge. |
 | `pump.centrifugal` | `generic-iso` | Centrifugal pump | `pfd`, `pid` | `suction` → `west`, `process`; `discharge` → `east`, `process` | A circular casing with a full horizontal line through it and two lines running from the casing top and bottom to the casing's right-hand point. |
 | `instrument.local` | `generic-iso` | Local/field instrument | `pid` | `tap` → `south`, `process` | A plain instrument circle joined to the process by one vertical functional connection line. |
-| `fitting.restriction_orifice` | `deepplant-default` | Restriction orifice | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | The process axis interrupted by one small bore circle, with the connection stubs stopping at the bore edge. |
+| `fitting.restriction_orifice` | `deepplant-default` | Restriction orifice | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | The process axis interrupted by a pair of short parallel transverse strokes around the restriction, with the connection stubs stopping at the restriction and no circle. |
 
 Each representation is identified by `(notation_profile, symbol_id)`. The exact
 primitive construction of each is recorded in
@@ -530,10 +530,22 @@ their standards relationship conservatively at `candidate-alignment` — ISO
 meaning the geometry is *intended* to correspond to that document, but no human
 has checked it against an authorized copy; `candidate-alignment` claims no human
 verification, and none of the three is `reference` or `human-verified`. The
-`deepplant-default` restriction orifice records ISO 10628-2:2012 at `reference`
-only, which claims no correspondence for the concrete geometry and satisfies its
-profile. The coverage matrix records the concepts still to come
+`deepplant-default` restriction orifice records **no** standards relationship at
+all: the profile makes no ISO/ISA/PIP conformance claim, so none is required and
+none is invented. Its geometry is an independently DeepPlant-authored practical
+form and is not presented as corresponding to any standard. The coverage matrix
+records the concepts still to come
 ([mvp-symbol-coverage.md](mvp-symbol-coverage.md)).
+
+```text
+generic-iso legacy definitions (valve.gate, pump.centrifugal, instrument.local)
+    standards relationship   candidate-alignment required — an intended correspondence
+    verification             candidate-alignment (no human check claimed)
+
+deepplant-default restriction orifice (fitting.restriction_orifice)
+    standards relationship   none recorded
+    verification             not applicable (`—` is not a verification state)
+```
 
 The notation-profile architecture is notation-aware without migrating anything:
 Issue #125 made the model and registry profile-aware, and Issue #130 added the
@@ -563,8 +575,9 @@ created.
 2. Record the standard identifier (and edition) the representation is intended to
    align with: required for the `generic-iso` notation profile, where the
    relationship must be at `candidate-alignment` or `human-verified`, and optional
-   for `deepplant-default`, where a `reference` direction (or none at all) is
-   valid. Record it together with the asset provenance (`deepplant-original` under
+   for `deepplant-default`, where recording no standards relationship at all is
+   valid. Never invent a relationship merely to populate the field. Record it
+   together with the asset provenance (`deepplant-original` under
    `AGPL-3.0-only`). Do **not** record a locator, table/figure reference,
    registration number, or the standard's own name unless it comes from a
    permitted source or a recorded human verification.

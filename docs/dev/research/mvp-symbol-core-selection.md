@@ -368,7 +368,7 @@ still a representation-design question. Only a resolved identity can be a
 | A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | missing | missing base SymbolDefinition |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
-| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`fitting.restriction_orifice`) | — |
 | A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | P&ID B (a reducer in series with a check valve) | missing | missing base SymbolDefinition |
 | A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | P&ID A; P&ID B; PFD A (instruments drawn on the PFD too) | **implemented** (`instrument.local`) | — (profile composition unresolved, #124) |
 | A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | P&ID A (a flow element); P&ID B | missing | representation identity unresolved — one reusable identity vs one graphic per measured variable is not decided (question G4) |
@@ -563,8 +563,9 @@ connection, or an identity-unresolved requirement family is never reported as a
 ```text
 base graphical requirements        17 families
   stable identities resolved       13
-    implemented                     3   valve.gate, pump.centrifugal, instrument.local
-    resolved but missing           10
+    implemented                     4   valve.gate, pump.centrifugal, instrument.local,
+                                       fitting.restriction_orifice
+    resolved but missing            9
   identity / granularity unresolved  4   filter (A01, cross-context identity, G1),
                                          heat-transfer equipment (A03),
                                          vessel / tank / drum (A07),
@@ -613,13 +614,14 @@ tracked outside the Core
 
 base graphical requirement families  17
   stable identities resolved         13
-    implemented                       3   valve.gate, pump.centrifugal, instrument.local
-    resolved but missing             10
+    implemented                       4   valve.gate, pump.centrifugal, instrument.local,
+                                          fitting.restriction_orifice
+    resolved but missing              9
   identity / granularity unresolved   4
 ```
 
 Reconciliation, counting every Core row exactly once:
-`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 3 + 10`;
+`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 4 + 9`;
 composed `5 = 0 + 5`; connections `6 = 1 + 1 + 4`; annotations `11 = 1 + 1 + 9`;
 classification-unresolved capability `1`.
 

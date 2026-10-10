@@ -56,7 +56,8 @@ ISO_15519_2 = "ISO 15519-2:2015"
 RESTRICTION_ORIFICE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="42" y2="50" />'
-    '<circle cx="50" cy="50" r="8" /><line x1="58" y1="50" x2="100" y2="50" /></svg>\n'
+    '<line x1="42" y1="34" x2="42" y2="66" /><line x1="58" y1="34" x2="58" y2="66" />'
+    '<line x1="58" y1="50" x2="100" y2="50" /></svg>\n'
 )
 
 
@@ -246,15 +247,15 @@ def test_restriction_orifice_contract() -> None:
     assert {anchor.name for anchor in definition.anchors}.isdisjoint({"inlet", "outlet"})
 
     # The exact DeepPlant-authored primitive tuple: the process axis is interrupted
-    # by one bore circle, with the connection stubs stopping at the bore edge.
+    # by a pair of short transverse strokes, with the connection stubs stopping at
+    # the restriction. No circle is part of this representation (seed D).
     assert definition.primitives == (
         Line(x1=0.0, y1=50.0, x2=42.0, y2=50.0),
-        Circle(cx=50.0, cy=50.0, r=8.0),
+        Line(x1=42.0, y1=34.0, x2=42.0, y2=66.0),
+        Line(x1=58.0, y1=34.0, x2=58.0, y2=66.0),
         Line(x1=58.0, y1=50.0, x2=100.0, y2=50.0),
     )
-    assert [item for item in definition.primitives if isinstance(item, Circle)] == [
-        Circle(cx=50.0, cy=50.0, r=8.0)
-    ]
+    assert [item for item in definition.primitives if isinstance(item, Circle)] == []
 
 
 def test_the_rendered_restriction_orifice_document_is_unchanged() -> None:
@@ -266,25 +267,18 @@ def test_the_rendered_restriction_orifice_document_is_unchanged() -> None:
     assert render_symbol_svg(definition) == RESTRICTION_ORIFICE_DOCUMENT
 
 
-def test_the_restriction_orifice_records_only_a_reference_direction() -> None:
-    # `deepplant-default` needs no intended correspondence, so this definition must
-    # record `reference` only: never `candidate-alignment`, never `human-verified`,
-    # and no verifier evidence or locator (ADR-0007).
+def test_the_restriction_orifice_records_no_standards_relationship() -> None:
+    # `deepplant-default` makes no ISO/ISA/PIP conformance claim, so the correct
+    # state is that no StandardsReference is recorded at all — not a `reference`
+    # relationship. `—` is the absence of a recorded relationship, not a
+    # verification state, and no standards family is invented to populate it
+    # (ADR-0007).
     definition = SYMBOLS.get(
         "fitting.restriction_orifice",
         notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE,
     )
 
-    assert len(definition.standards) == 1
-    reference = definition.standards[0]
-    assert reference.standard == ISO_10628_2
-    assert reference.verification == "reference"
-    assert reference.verification != "candidate-alignment"
-    assert reference.verification != "human-verified"
-    assert reference.locator is None
-    assert reference.name is None
-    assert reference.verified_by is None
-    assert reference.verified_on is None
+    assert definition.standards == ()
 
 
 def test_gate_valve_contract() -> None:
