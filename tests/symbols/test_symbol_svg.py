@@ -2,9 +2,11 @@
 
 These tests pin the Issue #119 rendering contract: SVG is generated from a
 definition deterministically, output is a restricted, themeable subset, anchors
-are definition data rather than SVG inference, and the three implemented
-representations keep their structural shape, their neutral geometric anchors, and
-their asset provenance.
+are definition data rather than SVG inference, and the built-in representations
+keep their structural shape, their neutral geometric anchors, and their asset
+provenance. The catalogue spans two notation profiles (Issue #130), so lookups
+resolve each representation by its explicit ``(notation_profile, symbol_id)``
+identity.
 """
 
 from __future__ import annotations
@@ -24,6 +26,10 @@ from deepplant.symbols import (
     SymbolDefinition,
     render_symbol_svg,
 )
+from deepplant.symbols.profiles import (
+    DEEPPLANT_DEFAULT_NOTATION_PROFILE,
+    GENERIC_ISO_NOTATION_PROFILE,
+)
 
 CANONICAL_VIEW_BOX = "0 0 100 100"
 ALLOWED_ELEMENT_NAMES = {"svg", "line", "circle", "polygon"}
@@ -31,11 +37,35 @@ ALLOWED_ROOT_ATTRIBUTES = {"viewBox", "fill", "stroke", "stroke-width"}
 THEMEABLE_COLOR_VALUES = {"none", "currentColor"}
 FORBIDDEN_ATTRIBUTES = {"href", "style", "class", "font-family", "onload"}
 
-#: The three representations the first Issue #119 slice implements.
-IMPLEMENTED_IDS = ("instrument.local", "pump.centrifugal", "valve.gate")
+#: Every built-in graphical representation, as ``(notation_profile, symbol_id)``.
+BUILTIN_REPRESENTATIONS = (
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
+    (GENERIC_ISO_NOTATION_PROFILE, "instrument.local"),
+    (GENERIC_ISO_NOTATION_PROFILE, "pump.centrifugal"),
+    (GENERIC_ISO_NOTATION_PROFILE, "valve.gate"),
+)
+
+#: The ``generic-iso`` subset, which the built-in convenience default also resolves.
+GENERIC_ISO_IDS = ("instrument.local", "pump.centrifugal", "valve.gate")
 
 ISO_10628_2 = "ISO 10628-2:2012"
 ISO_15519_2 = "ISO 15519-2:2015"
+
+#: The exact restriction-orifice document the re-authored project seed geometry
+#: produces (seed D). Pinned so a contract change cannot silently alter geometry.
+RESTRICTION_ORIFICE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="38" y2="50" />'
+    '<line x1="38" y1="32" x2="38" y2="68" /><line x1="50" y1="20" x2="50" y2="43" />'
+    '<line x1="50" y1="57" x2="50" y2="80" /><line x1="62" y1="32" x2="62" y2="68" />'
+    '<line x1="62" y1="50" x2="100" y2="50" /></svg>\n'
+)
+
+
+def _builtin(notation_profile: str, symbol_id: str) -> SymbolDefinition:
+    """Resolve one built-in representation explicitly by its full identity."""
+    return SYMBOLS.get(symbol_id, notation_profile=notation_profile)
+
 
 #: The exact gate-valve document the re-authored project seed geometry produces.
 #: Pinned so a contract change cannot silently alter rendered geometry: the
@@ -69,16 +99,16 @@ def _elements(definition: SymbolDefinition, name: str) -> list[Element]:
     ]
 
 
-@pytest.mark.parametrize("symbol_id", IMPLEMENTED_IDS)
-def test_rendering_is_deterministic(symbol_id: str) -> None:
-    definition = SYMBOLS.get(symbol_id)
+@pytest.mark.parametrize(("notation_profile", "symbol_id"), BUILTIN_REPRESENTATIONS)
+def test_rendering_is_deterministic(notation_profile: str, symbol_id: str) -> None:
+    definition = _builtin(notation_profile, symbol_id)
 
     assert render_symbol_svg(definition) == render_symbol_svg(definition)
 
 
-@pytest.mark.parametrize("symbol_id", IMPLEMENTED_IDS)
-def test_a_rebuilt_definition_renders_identically(symbol_id: str) -> None:
-    definition = SYMBOLS.get(symbol_id)
+@pytest.mark.parametrize(("notation_profile", "symbol_id"), BUILTIN_REPRESENTATIONS)
+def test_a_rebuilt_definition_renders_identically(notation_profile: str, symbol_id: str) -> None:
+    definition = _builtin(notation_profile, symbol_id)
     rebuilt = SymbolDefinition(
         symbol_id=definition.symbol_id,
         name=definition.name,
@@ -191,8 +221,68 @@ def test_generated_documents_carry_no_project_or_company_text() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Structural contracts of the three implemented representations
+# Structural contracts of the built-in representations
 # ---------------------------------------------------------------------------
+
+
+def test_restriction_orifice_contract() -> None:
+    definition = SYMBOLS.get(
+        "fitting.restriction_orifice",
+        notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE,
+    )
+
+    assert definition.name == "Restriction orifice"
+    assert definition.category == "fitting"
+    assert definition.diagram_types == ("pid",)
+    assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
+
+    # Two neutral process anchors on the piping axis, with geometric orientations
+    # only. No inlet/outlet or flow direction may be encoded (seed D).
+    assert [
+        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
+        for anchor in definition.anchors
+    ] == [
+        ("port_a", "west", "process", 0.0, 50.0),
+        ("port_b", "east", "process", 100.0, 50.0),
+    ]
+    assert {anchor.name for anchor in definition.anchors}.isdisjoint({"inlet", "outlet"})
+
+    # The exact DeepPlant-authored primitive tuple: continuous outer transverse
+    # strokes frame a centered split restriction stroke; connection stubs stop at
+    # the outer strokes. No circle or annotation primitive is part of this
+    # representation (seed D).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=38.0, y2=50.0),
+        Line(x1=38.0, y1=32.0, x2=38.0, y2=68.0),
+        Line(x1=50.0, y1=20.0, x2=50.0, y2=43.0),
+        Line(x1=50.0, y1=57.0, x2=50.0, y2=80.0),
+        Line(x1=62.0, y1=32.0, x2=62.0, y2=68.0),
+        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
+    )
+    assert [item for item in definition.primitives if isinstance(item, Circle)] == []
+
+
+def test_the_rendered_restriction_orifice_document_is_unchanged() -> None:
+    definition = SYMBOLS.get(
+        "fitting.restriction_orifice",
+        notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE,
+    )
+
+    assert render_symbol_svg(definition) == RESTRICTION_ORIFICE_DOCUMENT
+
+
+def test_the_restriction_orifice_records_no_standards_relationship() -> None:
+    # `deepplant-default` makes no ISO/ISA/PIP conformance claim, so the correct
+    # state is that no StandardsReference is recorded at all — not a `reference`
+    # relationship. `—` is the absence of a recorded relationship, not a
+    # verification state, and no standards family is invented to populate it
+    # (ADR-0007).
+    definition = SYMBOLS.get(
+        "fitting.restriction_orifice",
+        notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE,
+    )
+
+    assert definition.standards == ()
 
 
 def test_gate_valve_contract() -> None:
@@ -330,27 +420,38 @@ def test_each_symbol_records_the_standard_it_is_intended_to_align_with(
     assert definition.standards[0].verification == "candidate-alignment"
 
 
-@pytest.mark.parametrize("symbol_id", IMPLEMENTED_IDS)
-def test_no_symbol_claims_human_verification(symbol_id: str) -> None:
-    for reference in SYMBOLS.get(symbol_id).standards:
+@pytest.mark.parametrize(("notation_profile", "symbol_id"), BUILTIN_REPRESENTATIONS)
+def test_no_symbol_claims_human_verification(notation_profile: str, symbol_id: str) -> None:
+    for reference in _builtin(notation_profile, symbol_id).standards:
         assert reference.verification != "human-verified"
 
 
-@pytest.mark.parametrize("symbol_id", IMPLEMENTED_IDS)
-def test_no_restricted_derived_standards_detail_is_recorded(symbol_id: str) -> None:
+@pytest.mark.parametrize(("notation_profile", "symbol_id"), BUILTIN_REPRESENTATIONS)
+def test_no_restricted_derived_standards_detail_is_recorded(
+    notation_profile: str, symbol_id: str
+) -> None:
     # A locator, the standard's own name for a representation, or a verifier may
     # only be recorded from a permitted source or by a human verifier; neither
     # exists yet, so all stay unrecorded rather than carrying restricted-derived
     # detail or falsely implying a human check.
-    for reference in SYMBOLS.get(symbol_id).standards:
+    for reference in _builtin(notation_profile, symbol_id).standards:
         assert reference.locator is None
         assert reference.name is None
         assert reference.verified_by is None
         assert reference.verified_on is None
 
 
-def test_every_implemented_symbol_declares_the_generic_iso_notation_profile() -> None:
-    # Issue #125 renames the field and makes the registry profile-aware but migrates
-    # no geometry: the three built-in representations all stay `generic-iso`.
-    for definition in SYMBOLS.list():
-        assert definition.notation_profile == "generic-iso"
+@pytest.mark.parametrize("symbol_id", GENERIC_ISO_IDS)
+def test_every_generic_iso_symbol_declares_the_generic_iso_notation_profile(
+    symbol_id: str,
+) -> None:
+    # Issue #130 adds the first `deepplant-default` representation but migrates no
+    # existing geometry: the three legacy built-in representations all stay
+    # `generic-iso`, and only the restriction orifice is `deepplant-default`.
+    assert SYMBOLS.get(symbol_id).notation_profile == "generic-iso"
+
+
+def test_the_builtin_catalogue_spans_two_notation_profiles() -> None:
+    profiles = {definition.notation_profile for definition in SYMBOLS.list()}
+
+    assert profiles == {DEEPPLANT_DEFAULT_NOTATION_PROFILE, GENERIC_ISO_NOTATION_PROFILE}

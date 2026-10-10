@@ -130,13 +130,15 @@ def _require_notation_profile(notation_profile: str, label: str) -> str:
 
 #: The built-in registry over the implemented symbol catalogue.
 #:
-#: Its convenience default is deliberately ``generic-iso`` - the notation profile
-#: the current built-in catalogue is authored in - because no built-in
-#: ``deepplant-default`` representation exists yet. ``deepplant-default`` is the
-#: future product default defined by Issue #124, but switching the built-in runtime
-#: default before a catalogue migration would change what
-#: ``SYMBOLS.get("valve.gate")`` resolves to. This is the temporary migration state,
-#: not the target state (Issue #125).
+#: Its convenience default is deliberately ``generic-iso``: the three legacy
+#: representations are still authored in it, so ``SYMBOLS.get("valve.gate")`` keeps
+#: resolving to the same definition. ``deepplant-default`` is the target product
+#: default defined by Issue #124 and now holds its first built-in representation
+#: (``fitting.restriction_orifice``, Issue #130), but this slice migrates no
+#: definition and does not switch the convenience default: a ``deepplant-default``
+#: lookup must request the profile explicitly, and an omitted-profile lookup of a
+#: ``deepplant-default``-only symbol fails closed instead of falling back. This is
+#: the migration state, not the target state (Issues #124, #125, #130).
 SYMBOLS: Final[SymbolRegistry] = SymbolRegistry(
     IMPLEMENTED_SYMBOLS,
     default_notation_profile=GENERIC_ISO_NOTATION_PROFILE,

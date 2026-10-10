@@ -63,7 +63,7 @@ superseded_by: null
     G10). Project conventions (13), semantic gaps (6), and representation-design
     questions (12) are tracked **outside** the Core count.
   - Base requirement families separate two states: **13** carry a resolved stable
-    graphical identity (3 implemented, 10 resolved but missing), and **4** carry an
+    graphical identity (4 implemented, 9 resolved but missing), and **4** carry an
     unresolved identity / granularity (filter, heat-transfer equipment, vessel /
     tank / drum, measurement sensor / primary element), so those four are not
     counted as exact missing `SymbolDefinition`s. Composed representations 0
@@ -85,7 +85,7 @@ superseded_by: null
     safety valves, alarm/fail-state/interlock annotation, general notes, and the
     complexity-gate vocabulary — is re-derived here as **required**, **optional**,
     or **not required**, with the selected evidence or the recorded reason stated.
-  - The three implemented representations keep the classification given them by
+  - The three `generic-iso` implementations keep the classification given them by
     [notation-profile-classification.md](notation-profile-classification.md):
     `valve.gate` and `instrument.local` are `deepplant-default` candidates;
     `pump.centrifugal` stays `REVIEW_BEFORE_MIGRATION / INSUFFICIENT_EVIDENCE`.
@@ -125,7 +125,7 @@ operator-selected reference directory  the requirements boundary      (authorita
 MVP drawing profile v0.1               interpretation / classification aid
 MVP Core (this document)               the minimal reusable vocabulary that represents it
 coverage matrix                        per-concept classification and implementation status
-catalogue.py                           the three representations implemented so far
+catalogue.py                           the representations implemented so far
 ```
 
 ## Scope authority (corrected)
@@ -218,8 +218,9 @@ profile says "out of scope"  ->  a recorded reason for "not required", valid onl
 ## Reference material handling
 
 The reference set is a private company bundle, selected by the operator as the MVP
-requirements boundary. Its drawings state requirements; they are **never a source
-of geometry**, and they are not redistributed:
+requirements boundary. Its drawings state requirements and supply qualitative
+notation/form evidence; they are **never a source of copied or measured geometry**,
+and they are not redistributed:
 
 - Nothing from it is committed, quoted, traced, vectorised, or measured. No
   symbol artwork, layout, title block, revision table, equipment data block, note
@@ -235,14 +236,19 @@ of geometry**, and they are not redistributed:
   reference, table number, or item number observed on them is recorded**, because
   only a permitted source or a recorded human verification may supply that
   ([standards.md](../workflow/standards.md), ADR-0007).
-- The three implemented geometries remain DeepPlant-authored project seed geometry
-  ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). No geometry was
-  derived from this bundle before or after this inspection.
+- The implemented geometries remain DeepPlant-authored project seed geometry
+  ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). The bundle
+  supplies qualitative notation/form evidence only: no coordinate, proportion,
+  path, pixel, dimension, or piece of artwork is measured, traced, vectorised, or
+  copied from it, before or after this inspection, and no normalized seed
+  coordinate is a derivative copy of its artwork.
 
 ```text
 used as      the requirements boundary (which engineering concepts must the MVP represent?)
-             and notation evidence (how does the selected project draw them?)
-not used as  geometry, locator, naming, layout, or compliance evidence
+             and qualitative notation/form evidence (how the selected project depicts
+             them, and which linework is intrinsic glyph versus connection versus
+             annotation)
+not used as  copied or measured geometry, locator, naming, layout, or compliance evidence
 ```
 
 ## Inspected evidence
@@ -368,7 +374,7 @@ still a representation-design question. Only a resolved identity can be a
 | A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | missing | missing base SymbolDefinition |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
-| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | missing | missing base SymbolDefinition |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`fitting.restriction_orifice`; two continuous outer strokes framing a centred split restriction stroke) | — |
 | A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | P&ID B (a reducer in series with a check valve) | missing | missing base SymbolDefinition |
 | A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | P&ID A; P&ID B; PFD A (instruments drawn on the PFD too) | **implemented** (`instrument.local`) | — (profile composition unresolved, #124) |
 | A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | P&ID A (a flow element); P&ID B | missing | representation identity unresolved — one reusable identity vs one graphic per measured variable is not decided (question G4) |
@@ -563,8 +569,9 @@ connection, or an identity-unresolved requirement family is never reported as a
 ```text
 base graphical requirements        17 families
   stable identities resolved       13
-    implemented                     3   valve.gate, pump.centrifugal, instrument.local
-    resolved but missing           10
+    implemented                     4   valve.gate, pump.centrifugal, instrument.local,
+                                       fitting.restriction_orifice
+    resolved but missing            9
   identity / granularity unresolved  4   filter (A01, cross-context identity, G1),
                                          heat-transfer equipment (A03),
                                          vessel / tank / drum (A07),
@@ -613,13 +620,14 @@ tracked outside the Core
 
 base graphical requirement families  17
   stable identities resolved         13
-    implemented                       3   valve.gate, pump.centrifugal, instrument.local
-    resolved but missing             10
+    implemented                       4   valve.gate, pump.centrifugal, instrument.local,
+                                          fitting.restriction_orifice
+    resolved but missing              9
   identity / granularity unresolved   4
 ```
 
 Reconciliation, counting every Core row exactly once:
-`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 3 + 10`;
+`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 4 + 9`;
 composed `5 = 0 + 5`; connections `6 = 1 + 1 + 4`; annotations `11 = 1 + 1 + 9`;
 classification-unresolved capability `1`.
 
@@ -643,7 +651,7 @@ decision as the reference set: widening it requires an operator selection or an
 answer to a recorded discrepancy — not a symbol implementation, and not a
 repository preference.
 
-## Relationship to the three implemented representations
+## Relationship to the three `generic-iso` representations
 
 | Symbol | Keeps the classification from #127 | MVP Core role |
 |---|---|---|
@@ -675,9 +683,9 @@ this document    selects vocabulary        no production change
 - No symbol is implemented, redesigned, or re-anchored by this document; no new
   PFD-specific or valve-family identity is introduced.
 - No `notation_profile` assignment changes; `generic-iso` stays the transitional
-  profile for all three definitions.
-- No geometry is authored, adjusted, or measured — and none is taken from the
-  reference set.
+  profile for all three `generic-iso` definitions.
+- No geometry is authored, adjusted, or measured — and no copied or measured
+  geometry is taken from the reference set.
 - No standard is claimed, no locator recorded, and no compliance inferred from
   visual similarity, from a production drawing, or from a project legend
   ([standards.md](../workflow/standards.md)).
@@ -740,9 +748,9 @@ What the audit changes, and nothing else:
    requirements rather than as a new entry
 ```
 
-The audit is occurrence evidence only. It is not geometry, naming, layout, or
-compliance evidence, and it promotes no verification state: observing that a sheet
-contains a symbol form establishes no standards relationship
+The audit is occurrence evidence only. It takes no copied or measured geometry, and
+it is not naming, layout, or compliance evidence; it promotes no verification state:
+observing that a sheet contains a symbol form establishes no standards relationship
 ([standards.md](../workflow/standards.md), ADR-0007).
 
 ## Evidence gaps and limitations
@@ -816,9 +824,9 @@ Core by observing the reference set without recording the selection decision.
 - [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md) — classification
   vocabulary, per-concept status, and the reference-material handling rules.
 - [symbol-library.md](../reference/symbol-library.md) — the symbol contract, the
-  three implemented representations, and their `diagram_types`.
+  implemented representations, and their `diagram_types`.
 - [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) — the
-  DeepPlant-owned geometry spec the three definitions are authored from.
+  DeepPlant-owned geometry spec the definitions are authored from.
 - [notation-profile-classification.md](notation-profile-classification.md) — the
   current profile classification, preserved unchanged.
 - [contracts/process-model.md](../../contracts/process-model.md) — the stream and
@@ -857,17 +865,18 @@ MVP drawing profile v0.1                operator-bundled interpretation aid
 
 None. No external source was used as evidence: no restricted ISO/ISA/IEC content
 was inspected, and the reference set is company-private material used only for
-scoping and notation interpretation.
+scoping and qualitative notation/form interpretation.
 
 ## Related
 
 - [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md) — the per-concept
   matrix; the MVP Core named there is derived from this document.
 - [symbol-library.md](../reference/symbol-library.md) — the rendering contract and
-  the three implemented definitions.
+  the implemented definitions.
 - [notation-profile-classification.md](notation-profile-classification.md) — the
   profile classification this selection preserves.
 - [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) — the geometry
-  spec for the three implemented representations.
+  spec for the implemented representations.
 - [standards-licensing-evidence.md](standards-licensing-evidence.md) — why the
-  reference set may inform scope but never supply geometry or standard detail.
+  reference set may inform scope and qualitative form but never supply copied or
+  measured geometry or standard detail.

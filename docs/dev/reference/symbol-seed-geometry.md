@@ -18,12 +18,11 @@ superseded_by: null
 
 # Project-Owned Symbol Seed Geometry
 
-> **Question this document answers:** where did the geometry of the three
-> implemented `generic-iso` symbols come from, and what may DeepPlant claim
-> about it?
+> **Question this document answers:** where did the geometry of the built-in
+> symbol definitions come from, and what may DeepPlant claim about it?
 
-This is the DeepPlant **project specification** the three current symbol
-geometries are authored from. It is the provenance record behind
+This is the DeepPlant **project specification** the built-in symbol geometries
+are authored from. It is the provenance record behind
 `AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")` in
 [symbol-library.md](symbol-library.md).
 
@@ -40,11 +39,14 @@ definition → registry → renderer architecture, not to reproduce a standard.
   verified.
 - No standard figure, table, symbol artwork, locator, or normative wording is
   copied, traced, extracted, or recorded here.
-- The standards relationship of each symbol is recorded separately, at the
-  conservative `candidate-alignment` state — an *intended* correspondence with no
-  human check claimed ([workflow/standards.md](../workflow/standards.md)). That
-  state, and not a bare `reference`, is what the `generic-iso` profile requires,
-  because `reference` claims no correspondence for a concrete geometry.
+- The standards relationship of each symbol is recorded separately. The three
+  `generic-iso` geometries record the conservative `candidate-alignment` state — an
+  *intended* correspondence with no human check claimed — which is what that
+  profile requires, because a bare `reference` claims no correspondence for a
+  concrete geometry. The `deepplant-default` restriction orifice records **no**
+  standards relationship at all, which its profile permits because it makes no
+  ISO/ISA/PIP conformance claim
+  ([workflow/standards.md](../workflow/standards.md)).
 
 ```text
 project-owned seed geometry   this document
@@ -99,6 +101,42 @@ line    (50, 60) → (50, 100)   process attachment
 Anchor: `tap` at `(50, 100)`, orientation `south`, kind `process`. No signal
 anchor, no function letter code (PIT, TIT, FIC), no tag, and no control-system
 semantics are part of this base graphic.
+
+## Seed D — restriction orifice
+
+ID: `fitting.restriction_orifice`. Purpose: recognizable inline restriction
+presentation, and the first `deepplant-default` production representation (Issue
+#130).
+
+```text
+line    (0, 50)  → (38, 50)     west process connection stub
+line    (38, 32) → (38, 68)     west outer intrinsic stroke
+line    (50, 20) → (50, 43)     upper half of the centred intrinsic restriction stroke
+line    (50, 57) → (50, 80)     lower half of the centred intrinsic restriction stroke
+line    (62, 32) → (62, 68)     east outer intrinsic stroke
+line    (62, 50) → (100, 50)    east process connection stub
+```
+
+The intrinsic glyph is the three transverse strokes between the stubs: two
+continuous outer strokes framing a centred stroke split above and below the process
+axis. There is deliberately **no** horizontal process-axis line between `x = 38`
+and `x = 62`; the gap and central split distinguish the restriction indication from
+the adjacent process connection geometry. The canonical normalized form is
+DeepPlant-authored and drawn horizontally (`port_a` west, `port_b` east); a document
+that draws the component on a vertical process line rotates the placement, which is
+presentation, not this geometry. Private reference material was visually inspected
+only to understand this qualitative form; no private artwork was measured, traced,
+or reproduced, and these coordinates are independently DeepPlant-authored.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The two stubs stop at the outer
+glyph strokes, so the process axis is visibly interrupted; inlet/outlet and flow
+direction are again deliberately not encoded. This is an independently authored
+DeepPlant practical `deepplant-default` representation — it reproduces no standard
+figure and no company glyph, and it records **no** standards relationship. It
+deliberately carries no project/document annotation: a tag such as `RO`, an item
+number, a bore value, a tag bubble, and a leader line are authored document data,
+not reusable base geometry, so none is embedded here.
 
 ## Provenance consequence
 
