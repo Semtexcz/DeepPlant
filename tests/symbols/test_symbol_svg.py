@@ -107,7 +107,8 @@ BALL_VALVE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="8" y2="50" />'
     '<line x1="8" y1="25" x2="8" y2="75" /><line x1="8" y1="25" x2="30" y2="35" />'
-    '<line x1="8" y1="75" x2="30" y2="65" /><line x1="70" y1="35" x2="92" y2="25" />'
+    '<line x1="8" y1="75" x2="30" y2="65" /><line x1="92" y1="25" x2="92" y2="75" />'
+    '<line x1="70" y1="35" x2="92" y2="25" />'
     '<line x1="70" y1="65" x2="92" y2="75" />'
     '<line x1="92" y1="50" x2="100" y2="50" /><circle cx="50" cy="50" r="25" /></svg>\n'
 )
@@ -514,6 +515,7 @@ def test_valve_ball_contract() -> None:
         Line(x1=8.0, y1=25.0, x2=8.0, y2=75.0),
         Line(x1=8.0, y1=25.0, x2=30.0, y2=35.0),
         Line(x1=8.0, y1=75.0, x2=30.0, y2=65.0),
+        Line(x1=92.0, y1=25.0, x2=92.0, y2=75.0),
         Line(x1=70.0, y1=35.0, x2=92.0, y2=25.0),
         Line(x1=70.0, y1=65.0, x2=92.0, y2=75.0),
         Line(x1=92.0, y1=50.0, x2=100.0, y2=50.0),
@@ -524,7 +526,9 @@ def test_valve_ball_contract() -> None:
     ]
     # Every side-body diagonal ends on the central circle, never inside it.
     body_diagonals = tuple(
-        primitive for primitive in definition.primitives[2:6] if isinstance(primitive, Line)
+        primitive
+        for primitive in definition.primitives[2:7]
+        if isinstance(primitive, Line) and primitive.x1 != primitive.x2
     )
     assert len(body_diagonals) == 4
     assert [

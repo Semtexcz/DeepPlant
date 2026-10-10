@@ -228,6 +228,7 @@ line    (0, 50)  → (8, 50)      west process connection stub
 line    (8, 25)  → (8, 75)      left outer vertical body edge
 line    (8, 25)  → (30, 35)     upper-left side edge to circle circumference
 line    (8, 75)  → (30, 65)     lower-left side edge to circle circumference
+line    (92, 25) → (92, 75)     right outer vertical body edge
 line    (70, 35) → (92, 25)     upper-right side edge from circle circumference
 line    (70, 65) → (92, 75)     lower-right side edge from circle circumference
 line    (92, 50) → (100, 50)    east process connection stub
@@ -238,9 +239,10 @@ The intrinsic glyph is a **large hollow central circle** and left/right body-sid
 geometry: the outer vertical body edges connect by four diagonals that terminate
 on the circle circumference. The circle is a structural body element, not a mark
 painted over a completed bowtie, so its interior remains clean and no line passes
-through it. Its hollow outline distinguishes the ball valve from the globe valve's
-solid disc. The two horizontal stubs are DeepPlant's connection representation of
-the adjacent pipeline.
+through it. The vertical outer edges join both diagonals on their respective sides,
+forming continuous, symmetric wedges. Its hollow outline distinguishes the ball
+valve from the globe valve's solid disc. The two horizontal stubs are DeepPlant's
+connection representation of the adjacent pipeline.
 
 Deliberately absent: any stem, lever, actuator, tag, annotation, or flow arrow.
 
