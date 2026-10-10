@@ -34,9 +34,10 @@ from typing import Final
 #: ``deepplant-default``: the DeepPlant-owned practical notation family, and the
 #: target product default (Issue #124). Its standards relationship is *optional*:
 #: the profile makes no ISO/ISA/PIP conformance claim, so a definition in it may
-#: legitimately record no standards reference at all. No built-in representation
-#: uses this profile yet - Issue #125 recognises it without migrating, redrawing,
-#: or reclassifying any existing geometry.
+#: legitimately record no standards reference at all. Its first built-in
+#: representation is the restriction orifice (``fitting.restriction_orifice``,
+#: Issue #130); the three legacy definitions stay in ``generic-iso`` and were not
+#: migrated, redrawn, or reclassified.
 DEEPPLANT_DEFAULT_NOTATION_PROFILE: Final[str] = "deepplant-default"
 
 #: ``generic-iso``: the legacy/transitional profile the current built-in

@@ -45,17 +45,18 @@
 > ```
 >
 > **Profiles recognised is not the same as profiles populated.** The symbol model
-> now recognises multiple notation profiles and the registry can hold
+> recognises multiple notation profiles and the registry can hold
 > representations for more than one profile, so the identity above replaces the
-> historical `symbol_id`-only identity. The current production catalogue, however,
-> remains entirely `generic-iso`: `deepplant-default` is recognised by the
-> architecture yet has **zero built-in production symbol definitions**, and no
-> existing symbol is reclassified by #125. This is a second *recognised* profile,
-> not a second *populated built-in catalogue*. Organisation and project profiles
-> (for example a Yara/CHPN profile) still do not exist, and the registry
-> resolves representations only — selecting and persisting the notation profile
-> of a project or document stays outside this package. The operational contract for
-> the current mechanism is [symbol-library.md](../reference/symbol-library.md).
+> historical `symbol_id`-only identity. The three legacy definitions were not
+> reclassified by #125; Issue #130 later added the first built-in
+> `deepplant-default` representation (`fitting.restriction_orifice`) without
+> migrating them, so the built-in catalogue is now deliberately mixed-profile
+> while the convenience default still resolves `generic-iso`. Organisation and
+> project profiles (for example a Yara/CHPN profile) still do not exist, and the
+> registry resolves representations only — selecting and persisting the notation
+> profile of a project or document stays outside this package. The operational
+> contract for the current mechanism is
+> [symbol-library.md](../reference/symbol-library.md).
 
 ## Context
 

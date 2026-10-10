@@ -26,8 +26,15 @@ from deepplant.symbols.profiles import (
     NOTATION_PROFILES,
 )
 
-#: The three representations the reviewed first Issue #119 slice implements.
-IMPLEMENTED_IDS = ("instrument.local", "pump.centrifugal", "valve.gate")
+#: The exact built-in representations, as ``(notation_profile, symbol_id)`` in the
+#: deterministic registry order: ``deepplant-default`` before ``generic-iso``, then
+#: by symbol id.
+BUILTIN_REPRESENTATIONS = (
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
+    (GENERIC_ISO_NOTATION_PROFILE, "instrument.local"),
+    (GENERIC_ISO_NOTATION_PROFILE, "pump.centrifugal"),
+    (GENERIC_ISO_NOTATION_PROFILE, "valve.gate"),
+)
 
 #: An intended-correspondence relationship, which the ``generic-iso`` profile
 #: requires. It records no restricted-derived locator, name, or verifier evidence.
@@ -59,14 +66,17 @@ def _definition(
 # ---------------------------------------------------------------------------
 
 
-def test_the_builtin_registry_exposes_exactly_the_implemented_symbols() -> None:
-    assert tuple(definition.symbol_id for definition in SYMBOLS.list()) == IMPLEMENTED_IDS
+def test_the_builtin_registry_exposes_exactly_the_implemented_representations() -> None:
+    assert [
+        (definition.notation_profile, definition.symbol_id) for definition in SYMBOLS.list()
+    ] == list(BUILTIN_REPRESENTATIONS)
 
 
 def test_the_builtin_convenience_default_is_still_generic_iso() -> None:
-    # Issue #125 neither migrates the existing catalogue nor switches the built-in
-    # runtime default: `deepplant-default` is the future product default (#124), but
-    # the current catalogue contains no `deepplant-default` representation yet.
+    # Issue #130 adds the first `deepplant-default` representation without migrating
+    # the existing catalogue or switching the built-in runtime default:
+    # `deepplant-default` is the future product default (#124), but the legacy
+    # definitions stay `generic-iso`, so `SYMBOLS.get("valve.gate")` keeps resolving.
     assert SYMBOLS.default_notation_profile == GENERIC_ISO_NOTATION_PROFILE
 
 
@@ -84,15 +94,67 @@ def test_get_resolves_explicitly_through_the_builtin_default_profile() -> None:
     )
 
 
-def test_every_builtin_symbol_keeps_its_generic_iso_representation() -> None:
-    for definition in SYMBOLS.list():
-        assert definition.notation_profile == GENERIC_ISO_NOTATION_PROFILE
+def test_every_builtin_representation_carries_its_declared_profile() -> None:
+    for notation_profile, symbol_id in BUILTIN_REPRESENTATIONS:
+        definition = SYMBOLS.get(symbol_id, notation_profile=notation_profile)
+        assert definition.notation_profile == notation_profile
+        assert definition.symbol_id == symbol_id
 
 
-def test_the_builtin_registry_registers_no_deepplant_default_representation() -> None:
-    # Issue #125 recognises the profile without migrating any geometry into it, so a
-    # known profile with zero definitions must be a valid empty result (#124, #125).
-    assert SYMBOLS.list(notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE) == ()
+def test_every_existing_generic_iso_representation_still_resolves_explicitly() -> None:
+    for notation_profile, symbol_id in BUILTIN_REPRESENTATIONS:
+        if notation_profile != GENERIC_ISO_NOTATION_PROFILE:
+            continue
+        assert SYMBOLS.get(symbol_id, notation_profile=GENERIC_ISO_NOTATION_PROFILE).symbol_id == (
+            symbol_id
+        )
+
+
+def test_the_deepplant_default_representation_resolves_explicitly() -> None:
+    definition = SYMBOLS.get(
+        "fitting.restriction_orifice", notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE
+    )
+
+    assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
+    assert definition.symbol_id == "fitting.restriction_orifice"
+    assert [
+        definition.symbol_id
+        for definition in SYMBOLS.list(notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE)
+    ] == ["fitting.restriction_orifice"]
+
+
+def test_omitted_profile_lookup_uses_generic_iso_and_fails_closed() -> None:
+    # The convenience default is still `generic-iso`, so a deepplant-default-only id
+    # is absent there: the lookup must fail closed instead of silently substituting
+    # the new profile for the requested default.
+    with pytest.raises(SymbolDefinitionError) as error:
+        SYMBOLS.get("fitting.restriction_orifice")
+
+    message = str(error.value)
+    assert "'fitting.restriction_orifice'" in message
+    assert GENERIC_ISO_NOTATION_PROFILE in message
+
+
+def test_explicit_generic_iso_lookup_of_the_new_id_fails_closed() -> None:
+    with pytest.raises(SymbolDefinitionError) as error:
+        SYMBOLS.get("fitting.restriction_orifice", notation_profile=GENERIC_ISO_NOTATION_PROFILE)
+
+    message = str(error.value)
+    assert "'fitting.restriction_orifice'" in message
+    assert GENERIC_ISO_NOTATION_PROFILE in message
+
+
+def test_no_cross_profile_fallback_occurs_for_the_new_id() -> None:
+    # Explicitly requesting the wrong profile never returns the other profile's
+    # representation, and the successful `deepplant-default` lookup is the only way
+    # to obtain this definition.
+    definition = SYMBOLS.get(
+        "fitting.restriction_orifice", notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE
+    )
+
+    assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
+    with pytest.raises(SymbolDefinitionError):
+        SYMBOLS.get("fitting.restriction_orifice", notation_profile=GENERIC_ISO_NOTATION_PROFILE)
 
 
 def test_get_fails_closed_on_an_unknown_symbol_id() -> None:

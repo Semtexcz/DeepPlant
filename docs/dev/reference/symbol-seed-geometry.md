@@ -18,12 +18,11 @@ superseded_by: null
 
 # Project-Owned Symbol Seed Geometry
 
-> **Question this document answers:** where did the geometry of the three
-> implemented `generic-iso` symbols come from, and what may DeepPlant claim
-> about it?
+> **Question this document answers:** where did the geometry of the built-in
+> symbol definitions come from, and what may DeepPlant claim about it?
 
-This is the DeepPlant **project specification** the three current symbol
-geometries are authored from. It is the provenance record behind
+This is the DeepPlant **project specification** the built-in symbol geometries
+are authored from. It is the provenance record behind
 `AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")` in
 [symbol-library.md](symbol-library.md).
 
@@ -40,11 +39,14 @@ definition → registry → renderer architecture, not to reproduce a standard.
   verified.
 - No standard figure, table, symbol artwork, locator, or normative wording is
   copied, traced, extracted, or recorded here.
-- The standards relationship of each symbol is recorded separately, at the
-  conservative `candidate-alignment` state — an *intended* correspondence with no
-  human check claimed ([workflow/standards.md](../workflow/standards.md)). That
-  state, and not a bare `reference`, is what the `generic-iso` profile requires,
-  because `reference` claims no correspondence for a concrete geometry.
+- The standards relationship of each symbol is recorded separately. The three
+  `generic-iso` geometries record the conservative `candidate-alignment` state — an
+  *intended* correspondence with no human check claimed — which is what that
+  profile requires, because a bare `reference` claims no correspondence for a
+  concrete geometry. The `deepplant-default` restriction orifice instead records
+  the weaker `reference` direction, which its profile permits and which likewise
+  claims no correspondence for the concrete geometry
+  ([workflow/standards.md](../workflow/standards.md)).
 
 ```text
 project-owned seed geometry   this document
@@ -99,6 +101,25 @@ line    (50, 60) → (50, 100)   process attachment
 Anchor: `tap` at `(50, 100)`, orientation `south`, kind `process`. No signal
 anchor, no function letter code (PIT, TIT, FIC), no tag, and no control-system
 semantics are part of this base graphic.
+
+## Seed D — restriction orifice
+
+ID: `fitting.restriction_orifice`. Purpose: recognizable inline restriction / bore
+presentation, and the first `deepplant-default` production representation (Issue
+#130).
+
+```text
+line    (0, 50) → (42, 50)              process connection stub to the bore
+circle  centre (50, 50), radius 8       expressed restriction / bore
+line    (58, 50) → (100, 50)            process connection stub from the bore
+```
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The two stubs stop at the bore
+edge, so the process axis is visibly interrupted by the restriction; inlet/outlet
+and flow direction are again deliberately not encoded. This is an independently
+authored DeepPlant practical `deepplant-default` representation — it reproduces no
+standard figure and no company glyph, and it records no standards correspondence.
 
 ## Provenance consequence
 

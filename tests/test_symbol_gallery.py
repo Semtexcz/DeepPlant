@@ -308,6 +308,22 @@ def test_the_page_carries_the_registry_metadata(tmp_path: Path) -> None:
             assert reference.verification in page
 
 
+def test_the_page_exposes_the_deepplant_default_representation(tmp_path: Path) -> None:
+    result = _generate(tmp_path)
+    page = _page(result)
+
+    # Issue #130 adds the first `deepplant-default` representation. The card and its
+    # notation profile are derived from `SYMBOLS.list()`, not from a parallel list.
+    assert "fitting.restriction_orifice" in page
+    assert "<dt>Notation profile</dt><dd>deepplant-default</dd>" in page
+    assert _preview(result, "fitting.restriction_orifice").is_file()
+    assert _preview(result, "fitting.restriction_orifice").read_text(
+        encoding="utf-8"
+    ) == render_symbol_svg(
+        SYMBOLS.get("fitting.restriction_orifice", notation_profile="deepplant-default")
+    )
+
+
 def test_the_page_positions_each_anchor_marker_from_the_view_box(tmp_path: Path) -> None:
     result = _generate(tmp_path)
     page = _page(result)

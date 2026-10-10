@@ -63,7 +63,7 @@ superseded_by: null
     G10). Project conventions (13), semantic gaps (6), and representation-design
     questions (12) are tracked **outside** the Core count.
   - Base requirement families separate two states: **13** carry a resolved stable
-    graphical identity (3 implemented, 10 resolved but missing), and **4** carry an
+    graphical identity (4 implemented, 9 resolved but missing), and **4** carry an
     unresolved identity / granularity (filter, heat-transfer equipment, vessel /
     tank / drum, measurement sensor / primary element), so those four are not
     counted as exact missing `SymbolDefinition`s. Composed representations 0
@@ -85,7 +85,7 @@ superseded_by: null
     safety valves, alarm/fail-state/interlock annotation, general notes, and the
     complexity-gate vocabulary — is re-derived here as **required**, **optional**,
     or **not required**, with the selected evidence or the recorded reason stated.
-  - The three implemented representations keep the classification given them by
+  - The three `generic-iso` implementations keep the classification given them by
     [notation-profile-classification.md](notation-profile-classification.md):
     `valve.gate` and `instrument.local` are `deepplant-default` candidates;
     `pump.centrifugal` stays `REVIEW_BEFORE_MIGRATION / INSUFFICIENT_EVIDENCE`.
@@ -125,7 +125,7 @@ operator-selected reference directory  the requirements boundary      (authorita
 MVP drawing profile v0.1               interpretation / classification aid
 MVP Core (this document)               the minimal reusable vocabulary that represents it
 coverage matrix                        per-concept classification and implementation status
-catalogue.py                           the three representations implemented so far
+catalogue.py                           the representations implemented so far
 ```
 
 ## Scope authority (corrected)
@@ -235,7 +235,7 @@ of geometry**, and they are not redistributed:
   reference, table number, or item number observed on them is recorded**, because
   only a permitted source or a recorded human verification may supply that
   ([standards.md](../workflow/standards.md), ADR-0007).
-- The three implemented geometries remain DeepPlant-authored project seed geometry
+- The implemented geometries remain DeepPlant-authored project seed geometry
   ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). No geometry was
   derived from this bundle before or after this inspection.
 
@@ -643,7 +643,7 @@ decision as the reference set: widening it requires an operator selection or an
 answer to a recorded discrepancy — not a symbol implementation, and not a
 repository preference.
 
-## Relationship to the three implemented representations
+## Relationship to the three `generic-iso` representations
 
 | Symbol | Keeps the classification from #127 | MVP Core role |
 |---|---|---|
@@ -675,7 +675,7 @@ this document    selects vocabulary        no production change
 - No symbol is implemented, redesigned, or re-anchored by this document; no new
   PFD-specific or valve-family identity is introduced.
 - No `notation_profile` assignment changes; `generic-iso` stays the transitional
-  profile for all three definitions.
+  profile for all three `generic-iso` definitions.
 - No geometry is authored, adjusted, or measured — and none is taken from the
   reference set.
 - No standard is claimed, no locator recorded, and no compliance inferred from
@@ -816,9 +816,9 @@ Core by observing the reference set without recording the selection decision.
 - [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md) — classification
   vocabulary, per-concept status, and the reference-material handling rules.
 - [symbol-library.md](../reference/symbol-library.md) — the symbol contract, the
-  three implemented representations, and their `diagram_types`.
+  implemented representations, and their `diagram_types`.
 - [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) — the
-  DeepPlant-owned geometry spec the three definitions are authored from.
+  DeepPlant-owned geometry spec the definitions are authored from.
 - [notation-profile-classification.md](notation-profile-classification.md) — the
   current profile classification, preserved unchanged.
 - [contracts/process-model.md](../../contracts/process-model.md) — the stream and
@@ -864,10 +864,10 @@ scoping and notation interpretation.
 - [mvp-symbol-coverage.md](../reference/mvp-symbol-coverage.md) — the per-concept
   matrix; the MVP Core named there is derived from this document.
 - [symbol-library.md](../reference/symbol-library.md) — the rendering contract and
-  the three implemented definitions.
+  the implemented definitions.
 - [notation-profile-classification.md](notation-profile-classification.md) — the
   profile classification this selection preserves.
 - [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) — the geometry
-  spec for the three implemented representations.
+  spec for the implemented representations.
 - [standards-licensing-evidence.md](standards-licensing-evidence.md) — why the
   reference set may inform scope but never supply geometry or standard detail.

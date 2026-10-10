@@ -1,13 +1,17 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""The implemented ``generic-iso`` symbol catalogue (Issue #119, first slice).
+"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130).
 
-This module defines only the three representative representations the first
-Issue #119 slice implements: a connectable piping component (gate valve), an
-equipment symbol with process anchors (centrifugal pump), and the reusable base
-instrumentation graphic (local/field instrument). The catalogue is expanded only
-after the architecture in this slice has been reviewed.
+The catalogue intentionally spans two notation profiles. The first Issue #119
+slice implements three representative ``generic-iso`` representations: a
+connectable piping component (gate valve), an equipment symbol with process
+anchors (centrifugal pump), and the reusable base instrumentation graphic
+(local/field instrument). Issue #130 adds the first ``deepplant-default``
+production representation, the restriction orifice
+(``fitting.restriction_orifice``), so this is a deliberately mixed-profile
+catalogue and not a single-profile one. The catalogue is expanded one reviewed
+representation at a time.
 
 Geometry provenance
 ------------------
@@ -25,16 +29,20 @@ not claimed to be exact ISO geometry.
 Standards relationship
 ----------------------
 
-The standards relationship is conservative and independent of that provenance:
-each definition records the ISO document its geometry is *intended* to correspond
-to, at the canonical ``candidate-alignment`` state, because the geometry is
-DeepPlant-original, the project intends it to correspond to that ISO family, and
-no human has yet compared it against an authorized copy. ``candidate-alignment``
-claims no human verification, and human verification is **not** a prerequisite
-for it (``docs/dev/workflow/standards.md``, ADR-0007). Only a recorded human check
-against an authorized copy may promote a symbol's correspondence to
-``human-verified``, and until then no locator, standard-authored name, or other
-detail that is only available from restricted material is recorded here.
+The standards relationship is conservative and independent of that provenance.
+The three ``generic-iso`` definitions record the ISO document their geometry is
+*intended* to correspond to, at the canonical ``candidate-alignment`` state,
+because the geometry is DeepPlant-original, the project intends it to correspond
+to that ISO family, and no human has yet compared it against an authorized copy.
+The ``deepplant-default`` restriction orifice instead records ISO 10628-2:2012 at
+the weaker ``reference`` state: it claims no correspondence for the concrete
+geometry, which ``deepplant-default`` permits and ``generic-iso`` would not.
+``candidate-alignment`` claims no human verification, and human verification is
+**not** a prerequisite for it (``docs/dev/workflow/standards.md``, ADR-0007).
+Only a recorded human check against an authorized copy may promote a symbol's
+correspondence to ``human-verified``, and until then no locator, standard-authored
+name, or other detail that is only available from restricted material is recorded
+here.
 
 Anchors
 -------
@@ -163,9 +171,48 @@ INSTRUMENT_LOCAL = SymbolDefinition(
     ),
 )
 
-#: The definitions the implemented ``generic-iso`` notation profile currently exposes.
+# DeepPlant-authored project seed geometry for the restriction orifice
+# (docs/dev/reference/symbol-seed-geometry.md, seed D): the process axis is
+# interrupted by one small circle that expresses the restriction / bore, with the
+# two horizontal stubs drawn as DeepPlant's connection representation of the
+# adjacent pipeline up to the bore edge. This is the first built-in
+# `deepplant-default` representation, so its standards relationship is deliberately
+# the weaker `reference` state: the profile claims no correspondence for the
+# concrete geometry, and recording `reference` here must not be read as alignment.
+#
+# Deliberately absent: any valve body or control primitive, any tag or line
+# number, and any inlet/outlet or flow-direction semantics. `port_a` / `port_b`
+# are neutral process anchors whose orientation is routing geometry only.
+RESTRICTION_ORIFICE = SymbolDefinition(
+    symbol_id="fitting.restriction_orifice",
+    name="Restriction orifice",
+    category="fitting",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=42.0, y2=50.0),
+        Circle(cx=50.0, cy=50.0, r=8.0),
+        Line(x1=58.0, y1=50.0, x2=100.0, y2=50.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        # Reference direction only: `deepplant-default` requires no intended
+        # correspondence, so no locator, standard-authored name, or verifier
+        # evidence is recorded and no alignment is claimed (ADR-0007).
+        StandardsReference(standard="ISO 10628-2:2012", verification="reference"),
+    ),
+)
+
+#: The definitions the built-in catalogue currently exposes, across both notation
+#: profiles. The registry orders them by ``(notation_profile, symbol_id)``, so the
+#: declaration order here does not affect lookup.
 IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     GATE_VALVE,
     PUMP_CENTRIFUGAL,
     INSTRUMENT_LOCAL,
+    RESTRICTION_ORIFICE,
 )

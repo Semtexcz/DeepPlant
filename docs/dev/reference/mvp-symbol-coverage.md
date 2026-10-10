@@ -80,8 +80,9 @@ identity is still undecided. Under that derivation the Core is:
 capability-specific implementation state
   base graphical requirements   17 families
     stable identities resolved  13
-      implemented                3   (valve.gate, pump.centrifugal, instrument.local)
-      resolved but missing      10
+      implemented                4   (valve.gate, pump.centrifugal, instrument.local,
+                                      fitting.restriction_orifice)
+      resolved but missing       9
     identity / granularity unresolved  4
   composed        0 implemented / 5 missing
   connections     1 implemented / 1 partial / 4 missing
@@ -91,7 +92,7 @@ capability-specific implementation state
                                   connection is representation-design question G10)
 ```
 
-Arithmetic: `17 = 13 + 4`; `13 = 3 + 10`; `6 = 1 + 1 + 4`; `11 = 1 + 1 + 9`;
+Arithmetic: `17 = 13 + 4`; `13 = 4 + 9`; `6 = 1 + 1 + 4`; `11 = 1 + 1 + 9`;
 `40 = 17 + 5 + 6 + 11 + 1`.
 
 Three earlier summaries are withdrawn. "28 Core entries / 3 implemented / 25
@@ -160,9 +161,9 @@ implementation state
 
 A concept can be required and unimplemented, or implemented with no human check
 claimed. Only the implementation state produces a symbol. The repository
-deliberately records no restricted-derived symbol locator for the three current
-symbols, so no row claims that a standard's own representation was located,
-inspected, or assessed.
+deliberately records no restricted-derived symbol locator for the current symbols,
+so no row claims that a standard's own representation was located, inspected, or
+assessed.
 
 ## Notation profile and target notation
 
@@ -181,14 +182,16 @@ deepplant-default          future MVP product default, where approved (#124)
 standards relationship     separate evidence axis, never a profile
 ```
 
-`generic-iso` is the **transitional profile of the three currently implemented
-representations** — `valve.gate`, `pump.centrifugal`, `instrument.local` — because
-#125 did not migrate them. It is **not** the automatic future MVP target notation
-for every new Core concept:
+The three legacy representations — `valve.gate`, `pump.centrifugal`,
+`instrument.local` — are `generic-iso` because #125 did not migrate them, and
+`fitting.restriction_orifice` (A15) is the first built-in `deepplant-default`
+representation (Issue #130). `generic-iso` is **not** the automatic future MVP
+target notation for every new Core concept:
 
 ```text
 Current profile          the profile an actually-implemented representation carries today
-                         (`generic-iso` for the three existing definitions; `—` for a
+                         (`generic-iso` for the three legacy definitions and
+                         `deepplant-default` for `fitting.restriction_orifice`; `—` for a
                          Core concept whose representation does not exist yet, and for a
                          capability that cannot carry a notation profile at all)
 Target MVP notation      the intended notation direction for the required representation
@@ -359,7 +362,7 @@ requirement from the selected MVP reference content, and the identifiers match t
 | A11 | Ball valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with the variant's internal mark | missing base SymbolDefinition |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; three-port valve body | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with a spring-loaded indication | missing base SymbolDefinition |
-| A15 | Restriction orifice | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; small inline graphic on the piping axis | missing base SymbolDefinition |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`fitting.restriction_orifice`); DeepPlant-authored project seed geometry, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (standards relationship remains `reference` only; no correspondence claimed) |
 | A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; inline fitting on the piping axis | missing base SymbolDefinition |
 | A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` candidate — standards-specific composition unresolved (#124) | ISO 15519-2:2015 | `candidate-alignment` | **implemented** (`instrument.local`); DeepPlant-authored project seed geometry, with no function letters, tag, or mandatory signal anchor embedded | — (profile composition unresolved, #124) |
 | A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | ISO 15519-2:2015 (measurement symbols) | `reference` | missing; a small measurement graphic, and one reusable identity vs one graphic per measured variable is not decided (G4) | representation identity unresolved — design decision required before SymbolDefinition implementation |
@@ -495,25 +498,29 @@ data, and base-symbol geometry must not embed them.
 | `valve.gate` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `port_a` → west, process; `port_b` → east, process |
 | `pump.centrifugal` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `suction` → west, process; `discharge` → east, process |
 | `instrument.local` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 15519-2:2015 | `candidate-alignment` | `tap` → south, process |
+| `fitting.restriction_orifice` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `reference` | `port_a` → west, process; `port_b` → east, process |
 
 Everything else is reported per capability in
 [MVP Core coverage](#mvp-core-coverage): each Core entry records its own support
 state and gap type, and no identity-unresolved requirement family is counted as an
 exact missing `SymbolDefinition`. See also the
-[evidence document](../research/mvp-symbol-core-selection.md). No
-concept outside these three is implemented, no standards relationship is
-`human-verified`, and the three implemented geometries are DeepPlant-authored
-project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not
-derived from a standard's artwork or from a company drawing. They are recorded at
-`candidate-alignment` because the project intends them to correspond to the named
-ISO family, with no human check claimed. Because `generic-iso` *means* that
-intended correspondence, a definition in that profile must record at least one
-relationship at `candidate-alignment` or `human-verified`; a bare `reference`
-cannot carry the profile ([symbol-library.md](symbol-library.md)).
+[evidence document](../research/mvp-symbol-core-selection.md). No concept outside
+these four is implemented, and no standards relationship is `human-verified`. All
+four geometries are DeepPlant-authored project seed geometry
+([symbol-seed-geometry.md](symbol-seed-geometry.md)), not derived from a standard's
+artwork or from a company drawing. The three `generic-iso` representations are
+recorded at `candidate-alignment` because the project intends them to correspond to
+the named ISO family, with no human check claimed: because `generic-iso` *means*
+that intended correspondence, a definition in that profile must record at least one
+relationship at `candidate-alignment` or `human-verified`, and a bare `reference`
+cannot carry the profile. The `deepplant-default` restriction orifice (A15)
+records ISO 10628-2:2012 at `reference` only, which claims no correspondence for
+the concrete geometry and satisfies its profile
+([symbol-library.md](symbol-library.md)).
 
-The #127 profile classification for exactly these three definitions is preserved
-unchanged, and keeps DeepPlant-default suitability apart from standards-specific
-evidence:
+The #127 profile classification for the three `generic-iso` definitions is
+preserved unchanged, and keeps DeepPlant-default suitability apart from
+standards-specific evidence:
 
 ```text
 valve.gate
@@ -534,12 +541,14 @@ instrument.local
 
 ## Unresolved questions
 
-- Whether these three DeepPlant-authored representations are close enough to the
-  standards they name is open: the symbols are recorded at `candidate-alignment`,
-  and any promotion to `human-verified` requires a human comparison against an
-  authorized copy, recorded with the standard, the symbol, the date, and the
-  verifier ([standards.md](../workflow/standards.md)). `candidate-alignment`
-  itself requires no human check.
+- Whether the three `generic-iso` DeepPlant-authored representations are close
+  enough to the standards they name is open: those symbols are recorded at
+  `candidate-alignment`, and any promotion to `human-verified` requires a human
+  comparison against an authorized copy, recorded with the standard, the symbol,
+  the date, and the verifier ([standards.md](../workflow/standards.md)).
+  `candidate-alignment` itself requires no human check. The `deepplant-default`
+  restriction orifice records only `reference`, so no correspondence question is
+  open for it.
 - A permitted or human-recorded locator for each representation has not been
   recorded, so `StandardsReference.locator`, `.name`, `.verified_by`, and
   `.verified_on` stay unset; human verification can add that evidence later.
@@ -583,7 +592,7 @@ instrument.local
 - [symbol-library.md](symbol-library.md) — the machine-rendered symbol library
   contract and the implemented definitions.
 - [symbol-seed-geometry.md](symbol-seed-geometry.md) — the project-owned spec the
-  three implemented geometries are authored from.
+  built-in geometries are authored from.
 - [svg-symbols.md](svg-symbols.md) — the separate, DeepPlant-original process
   symbol-pack and anchor contract.
 - [../workflow/standards.md](../workflow/standards.md) and
