@@ -569,9 +569,10 @@ connection, or an identity-unresolved requirement family is never reported as a
 ```text
 base graphical requirements        17 families
   stable identities resolved       13
-    implemented                     4   valve.gate, pump.centrifugal, instrument.local,
-                                       fitting.restriction_orifice
-    resolved but missing            9
+    implemented                     7   valve.gate, pump.centrifugal, instrument.local,
+                                       fitting.restriction_orifice, valve.globe,
+                                       valve.check, valve.ball
+    resolved but missing            6
   identity / granularity unresolved  4   filter (A01, cross-context identity, G1),
                                          heat-transfer equipment (A03),
                                          vessel / tank / drum (A07),
@@ -620,9 +621,10 @@ tracked outside the Core
 
 base graphical requirement families  17
   stable identities resolved         13
-    implemented                       4   valve.gate, pump.centrifugal, instrument.local,
-                                          fitting.restriction_orifice
-    resolved but missing              9
+    implemented                       7   valve.gate, pump.centrifugal, instrument.local,
+                                          fitting.restriction_orifice, valve.globe,
+                                          valve.check, valve.ball
+    resolved but missing              6
   identity / granularity unresolved   4
 ```
 
