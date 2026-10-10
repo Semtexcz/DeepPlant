@@ -224,14 +224,14 @@ ID: `valve.ball`. Purpose: recognizable two-port ball-valve presentation, and on
 of the three basic valve representations added by Issue #132.
 
 ```text
-line    (0, 50)  → (28, 50)     west process connection stub
-line    (28, 34) → (28, 66)     left outer vertical body edge
-line    (28, 34) → (38, 41)     upper-left side edge to circle circumference
-line    (28, 66) → (38, 59)     lower-left side edge to circle circumference
-line    (62, 41) → (72, 34)     upper-right side edge from circle circumference
-line    (62, 59) → (72, 66)     lower-right side edge from circle circumference
-line    (72, 50) → (100, 50)    east process connection stub
-circle  centre (50, 50), radius 15     hollow central body element
+line    (0, 50)  → (8, 50)      west process connection stub
+line    (8, 25)  → (8, 75)      left outer vertical body edge
+line    (8, 25)  → (30, 35)     upper-left side edge to circle circumference
+line    (8, 75)  → (30, 65)     lower-left side edge to circle circumference
+line    (70, 35) → (92, 25)     upper-right side edge from circle circumference
+line    (70, 65) → (92, 75)     lower-right side edge from circle circumference
+line    (92, 50) → (100, 50)    east process connection stub
+circle  centre (50, 50), radius 25     hollow central body element
 ```
 
 The intrinsic glyph is a **large hollow central circle** and left/right body-side
