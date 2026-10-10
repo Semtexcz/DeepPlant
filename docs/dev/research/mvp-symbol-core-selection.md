@@ -44,7 +44,8 @@ superseded_by: null
   and the operator-bundled MVP drawing profile v0.1) plus the DeepPlant-authored
   repository material listed under [Sources](#sources). Re-inspected and
   recomputed **2026-10-09**; the three drawing sheets were then re-inspected as
-  **rendered graphics** with complete tile coverage (**2026-10-10**), so symbol
+  **rendered graphics**, sheet by sheet at tile resolution and with targeted
+  crops of the symbol forms in question (**2026-10-10**), so symbol
   form, marker shape, and signal-line style were inspected directly rather than
   inferred, and no geometry was measured, traced, or copied. No restricted
   ISO/ISA/IEC content was inspected, and no standards locator, figure, table, or
