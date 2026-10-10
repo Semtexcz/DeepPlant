@@ -31,8 +31,8 @@ superseded_by: null
 This is the developer-only contract for `deepplant.symbols` (Issue #119). It is
 deliberately narrow: it describes the built-in representations and the minimum
 machinery around them. The catalogue spans two notation profiles — three legacy
-`generic-iso` representations and, since Issue #130, the first
-`deepplant-default` representation — and a representation is identified by
+`generic-iso` representations and, since Issues #130 and #132, four
+`deepplant-default` representations — and a representation is identified by
 `(notation_profile, symbol_id)`.
 
 ## Where this sits
@@ -128,11 +128,17 @@ Only the primitives the implemented symbols need exist:
 | Primitive | Fields |
 |---|---|
 | `Line` | `x1`, `y1`, `x2`, `y2` |
-| `Circle` | `cx`, `cy`, `r` (radius must be positive) |
+| `Circle` | `cx`, `cy`, `r` (radius must be positive), `filled` (strict `bool`, default `False`; `True` fills the outline with the themeable `currentColor`) |
 | `Polygon` | `points` (at least three vertices, stroked outline) |
 
 A further primitive is added when a verified symbol requires one. `Rect`,
 `Ellipse`, `Polyline`, and grouping are deliberately not defined yet.
+
+A primitive *capability* is added the same way, and only from a concrete
+requirement. Issue #132 added the single boolean `Circle.filled`, because the
+globe-valve central disc and the check-valve hinge are solid marks a stroked
+outline cannot express, and added nothing else: no fill on `Polygon`, and no
+colour, gradient, opacity, CSS, class, or theme object anywhere.
 
 ### Vocabularies
 
@@ -328,7 +334,7 @@ asset provenance (origin, licence)  !=  standards correspondence (reference, sta
 
 Consequences:
 
-- all four definitions in the implemented catalogue are
+- all seven definitions in the implemented catalogue are
   `origin="deepplant-original"`, `license="AGPL-3.0-only"`;
 - a future company, project, or custom definition is a perfectly valid definition
   without a standards reference and must not be given a fake ISO reference, while
@@ -358,8 +364,11 @@ document with a trailing newline. Its output contract:
   `<polygon>`: no text, scripts, event handlers, external references, `data:`
   URIs, raster images, or embedded fonts.
 - **Themeable.** `fill="none"`, `stroke="currentColor"`, and a fixed
-  `stroke-width` on the root, so a consumer themes it through `currentColor`.
-  There is no styling engine, and none is planned until a consumer needs one.
+  `stroke-width` on the root, so a consumer themes it through `currentColor`. A
+  filled circle additionally carries `fill="currentColor"` on that `<circle>`
+  element, and only there; a hollow circle emits no child-level `fill` at all, so
+  its output stays byte-for-byte unchanged. There is no styling engine, and none
+  is planned until a consumer needs one.
 - **Notation-profile agnostic.** The renderer renders the definition it was given
   and never branches on `notation_profile`, so two definitions that differ only
   in profile render identical geometry. Profile-specific geometry belongs in
@@ -404,8 +413,9 @@ SYMBOLS.default_notation_profile  # -> read-only, construction-time
   no mutable global profile selection.
 - **Ordering.** `list()` is ordered by `notation_profile` then `symbol_id`, so it
   is deterministic regardless of catalogue declaration order. The mixed-profile
-  catalogue therefore lists `fitting.restriction_orifice` (`deepplant-default`)
-  first, followed by the three `generic-iso` representations in symbol-id order.
+  catalogue therefore lists the four `deepplant-default` representations
+  (`fitting.restriction_orifice`, `valve.ball`, `valve.check`, `valve.globe`) first,
+  followed by the three `generic-iso` representations in symbol-id order.
 - **Duplicate representation.** Registering the same
   `(notation_profile, symbol_id)` pair twice is rejected at construction, and the
   error names both parts of the identity. The same `symbol_id` in a *different*
@@ -451,7 +461,10 @@ build/symbol-gallery/
     ├── fitting.restriction_orifice.svg
     ├── instrument.local.svg
     ├── pump.centrifugal.svg
-    └── valve.gate.svg
+    ├── valve.ball.svg
+    ├── valve.check.svg
+    ├── valve.gate.svg
+    └── valve.globe.svg
 ```
 
 The source-of-truth hierarchy stays one-way:
@@ -512,6 +525,9 @@ PR review
 | Symbol id | Notation profile | Name | Diagram types | Anchors (name → orientation, kind) | Geometry |
 |---|---|---|---|---|---|
 | `valve.gate` | `generic-iso` | Gate valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two triangles meeting apex to apex on the process axis, with a process line to each view-box edge. |
+| `valve.globe` | `deepplant-default` | Globe valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two triangles meeting apex to apex on the process axis with a small **solid** central disc; a process stub to each view-box edge. |
+| `valve.check` | `deepplant-default` | Check valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | A rectangular body with a corner-to-corner closing stroke and a small **solid** hinge peg at one corner; a process stub to each view-box edge. |
+| `valve.ball` | `deepplant-default` | Ball valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | A large **hollow** central circle is the structural body element; left/right outer vertical edges connect to its circumference by side diagonals, leaving its interior clean; a process stub reaches each view-box edge. |
 | `pump.centrifugal` | `generic-iso` | Centrifugal pump | `pfd`, `pid` | `suction` → `west`, `process`; `discharge` → `east`, `process` | A circular casing with a full horizontal line through it and two lines running from the casing top and bottom to the casing's right-hand point. |
 | `instrument.local` | `generic-iso` | Local/field instrument | `pid` | `tap` → `south`, `process` | A plain instrument circle joined to the process by one vertical functional connection line. |
 | `fitting.restriction_orifice` | `deepplant-default` | Restriction orifice | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two continuous outer transverse strokes frame a centred split restriction stroke; process stubs stop at the outer strokes, and there is no circle or annotation. |
@@ -519,9 +535,9 @@ PR review
 Each representation is identified by `(notation_profile, symbol_id)`. The exact
 primitive construction of each is recorded in
 [symbol-seed-geometry.md](symbol-seed-geometry.md) — the project-owned spec all
-four are authored from.
+seven are authored from.
 
-All four are DeepPlant-authored project seed geometry under `AGPL-3.0-only`
+All seven are DeepPlant-authored project seed geometry under `AGPL-3.0-only`
 (`AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")`): no
 standard figure or company asset was copied, traced, or embedded, and none is
 claimed to be exact ISO geometry. The three `generic-iso` representations record
@@ -529,12 +545,15 @@ their standards relationship conservatively at `candidate-alignment` — ISO
 10628-2:2012 for the valve and the pump, ISO 15519-2:2015 for the instrument —
 meaning the geometry is *intended* to correspond to that document, but no human
 has checked it against an authorized copy; `candidate-alignment` claims no human
-verification, and none of the three is `reference` or `human-verified`. The
-`deepplant-default` restriction orifice records **no** standards relationship at
-all: the profile makes no ISO/ISA/PIP conformance claim, so none is required and
-none is invented. Its geometry is an independently DeepPlant-authored practical
-form and is not presented as corresponding to any standard. The coverage matrix
-records the concepts still to come
+verification, and none of the three is `reference` or `human-verified`. The four
+`deepplant-default` representations — the restriction orifice and the three basic
+P&ID valves — record **no** standards relationship at all: the profile makes no
+ISO/ISA/PIP conformance claim, so none is required and none is invented. Their
+geometry is an independently DeepPlant-authored practical form and is not
+presented as corresponding to any standard. A concept-level ISO reference
+*direction* may still be recorded for a `deepplant-default` concept in the coverage
+matrix, but that is not a correspondence for a concrete geometry. The coverage
+matrix records the concepts still to come
 ([mvp-symbol-coverage.md](mvp-symbol-coverage.md)).
 
 ```text
@@ -542,16 +561,18 @@ generic-iso legacy definitions (valve.gate, pump.centrifugal, instrument.local)
     standards relationship   candidate-alignment required — an intended correspondence
     verification             candidate-alignment (no human check claimed)
 
-deepplant-default restriction orifice (fitting.restriction_orifice)
+deepplant-default definitions
+    (fitting.restriction_orifice, valve.globe, valve.check, valve.ball)
     standards relationship   none recorded
     verification             not applicable (`—` is not a verification state)
 ```
 
 The notation-profile architecture is notation-aware without migrating anything:
-Issue #125 made the model and registry profile-aware, and Issue #130 added the
-first `deepplant-default` representation while changing no existing definition.
-The three legacy representations stay `generic-iso`, their rendered SVG stays
-byte-for-byte unchanged, and the built-in convenience default stays `generic-iso`.
+Issue #125 made the model and registry profile-aware, Issue #130 added the first
+`deepplant-default` representation, and Issue #132 added three more, each time
+changing no existing definition. The three legacy representations stay
+`generic-iso`, their rendered SVG stays byte-for-byte unchanged, and the built-in
+convenience default stays `generic-iso`.
 
 The gate valve deliberately has no semantic inlet/outlet anchor contract: a
 generic gate valve is not inherently an inlet/outlet device, so its ports are

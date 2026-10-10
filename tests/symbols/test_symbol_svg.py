@@ -11,6 +11,7 @@ identity.
 
 from __future__ import annotations
 
+import dataclasses
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
@@ -40,6 +41,9 @@ FORBIDDEN_ATTRIBUTES = {"href", "style", "class", "font-family", "onload"}
 #: Every built-in graphical representation, as ``(notation_profile, symbol_id)``.
 BUILTIN_REPRESENTATIONS = (
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),
     (GENERIC_ISO_NOTATION_PROFILE, "instrument.local"),
     (GENERIC_ISO_NOTATION_PROFILE, "pump.centrifugal"),
     (GENERIC_ISO_NOTATION_PROFILE, "valve.gate"),
@@ -76,6 +80,44 @@ GATE_VALVE_DOCUMENT = (
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
     '<polygon points="28,34 28,66 50,50" /><polygon points="50,50 72,34 72,66" />'
     '<line x1="72" y1="50" x2="100" y2="50" /></svg>\n'
+)
+
+#: The exact #132 basic valve documents the independently authored project seed
+#: geometry produces (seeds E/F/G). Pinned so a contract change cannot silently
+#: alter geometry, and so the one filled mark each of globe/check carries - and the
+#: ball's hollow circle - are visible in the pinned bytes.
+GLOBE_VALVE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
+    '<polygon points="28,34 28,66 50,50" /><polygon points="50,50 72,34 72,66" />'
+    '<line x1="72" y1="50" x2="100" y2="50" />'
+    '<circle cx="50" cy="50" r="8" fill="currentColor" /></svg>\n'
+)
+
+CHECK_VALVE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
+    '<line x1="28" y1="34" x2="72" y2="34" /><line x1="72" y1="34" x2="72" y2="66" />'
+    '<line x1="72" y1="66" x2="28" y2="66" /><line x1="28" y1="66" x2="28" y2="34" />'
+    '<line x1="28" y1="34" x2="72" y2="66" /><line x1="72" y1="50" x2="100" y2="50" />'
+    '<circle cx="28" cy="34" r="5" fill="currentColor" /></svg>\n'
+)
+
+BALL_VALVE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="18" y2="50" />'
+    '<line x1="18" y1="34" x2="18" y2="66" /><line x1="18" y1="34" x2="38" y2="41" />'
+    '<line x1="18" y1="66" x2="38" y2="59" /><line x1="82" y1="34" x2="82" y2="66" />'
+    '<line x1="62" y1="41" x2="82" y2="34" />'
+    '<line x1="62" y1="59" x2="82" y2="66" />'
+    '<line x1="82" y1="50" x2="100" y2="50" /><circle cx="50" cy="50" r="15" /></svg>\n'
+)
+
+#: The three #132 `deepplant-default` valve ids, with their pinned documents.
+BASIC_VALVES = (
+    ("valve.globe", GLOBE_VALVE_DOCUMENT),
+    ("valve.check", CHECK_VALVE_DOCUMENT),
+    ("valve.ball", BALL_VALVE_DOCUMENT),
 )
 
 #: Fragments that would prove a project/company tag or convention leaked into
@@ -370,6 +412,161 @@ def test_the_local_field_instrument_stays_a_reusable_base_graphic() -> None:
     ]
     assert len(_elements(definition, "circle")) == 1
     assert _elements(definition, "text") == []
+
+
+# ---------------------------------------------------------------------------
+# The #132 basic P&ID valves (deepplant-default)
+# ---------------------------------------------------------------------------
+
+
+def _basic_valve(symbol_id: str) -> SymbolDefinition:
+    """Resolve one #132 valve representation by its explicit identity."""
+    return SYMBOLS.get(symbol_id, notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE)
+
+
+@pytest.mark.parametrize(("symbol_id", "document"), BASIC_VALVES)
+def test_the_rendered_basic_valve_document_is_unchanged(symbol_id: str, document: str) -> None:
+    assert render_symbol_svg(_basic_valve(symbol_id)) == document
+
+
+@pytest.mark.parametrize(("symbol_id", "_document"), BASIC_VALVES)
+def test_basic_valve_identity_contract(symbol_id: str, _document: str) -> None:
+    definition = _basic_valve(symbol_id)
+
+    assert definition.name in {"Globe valve", "Check valve", "Ball valve"}
+    assert definition.category == "valve"
+    assert definition.diagram_types == ("pid",)
+    assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
+    # `deepplant-default` makes no conformance claim, so no standards relationship is
+    # recorded and none is invented; the coverage matrix's concept-level ISO
+    # reference direction is not a correspondence for this geometry (ADR-0007).
+    assert definition.standards == ()
+    assert definition.provenance == AssetProvenance(
+        origin="deepplant-original", license="AGPL-3.0-only"
+    )
+
+
+@pytest.mark.parametrize(("symbol_id", "_document"), BASIC_VALVES)
+def test_basic_valve_uses_neutral_process_anchors(symbol_id: str, _document: str) -> None:
+    definition = _basic_valve(symbol_id)
+
+    # Neutral two-port graphical connection points with geometric orientations only.
+    # A check valve's glyph is asymmetric, but that is a recognizability mark, not a
+    # flow-direction contract: no `inlet`/`outlet`/`upstream`/`downstream` name and
+    # no flow-direction field is encoded.
+    assert [
+        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
+        for anchor in definition.anchors
+    ] == [
+        ("port_a", "west", "process", 0.0, 50.0),
+        ("port_b", "east", "process", 100.0, 50.0),
+    ]
+    assert {anchor.name for anchor in definition.anchors}.isdisjoint(
+        {"inlet", "outlet", "upstream", "downstream"}
+    )
+    assert "flow_direction" not in {
+        field.name for field in dataclasses.fields(definition.anchors[0])
+    }
+
+
+def test_valve_globe_contract() -> None:
+    definition = _basic_valve("valve.globe")
+
+    assert definition.name == "Globe valve"
+    # Two-triangle body on the axis with a small solid central disc as the variant
+    # mark, and the disc drawn last so it reads over the apex (seed E).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
+        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+        Circle(cx=50.0, cy=50.0, r=8.0, filled=True),
+    )
+
+
+def test_valve_check_contract() -> None:
+    definition = _basic_valve("valve.check")
+
+    assert definition.name == "Check valve"
+    # Rectangular body with a corner-to-corner closing stroke and a small solid
+    # hinge peg at one corner (seed F). The asymmetry is the valve's recognizability,
+    # never its anchor semantics.
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
+        Line(x1=28.0, y1=34.0, x2=72.0, y2=34.0),
+        Line(x1=72.0, y1=34.0, x2=72.0, y2=66.0),
+        Line(x1=72.0, y1=66.0, x2=28.0, y2=66.0),
+        Line(x1=28.0, y1=66.0, x2=28.0, y2=34.0),
+        Line(x1=28.0, y1=34.0, x2=72.0, y2=66.0),
+        Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
+        Circle(cx=28.0, cy=34.0, r=5.0, filled=True),
+    )
+
+
+def test_valve_ball_contract() -> None:
+    definition = _basic_valve("valve.ball")
+
+    assert definition.name == "Ball valve"
+    # The hollow central circle is a structural body element. Four side-body
+    # diagonals terminate at its circumference, preserving its clean interior
+    # (seed G); the hollow outline distinguishes it from the globe's solid disc.
+    assert definition.primitives == (
+        Line(x1=0.0, y1=50.0, x2=18.0, y2=50.0),
+        Line(x1=18.0, y1=34.0, x2=18.0, y2=66.0),
+        Line(x1=18.0, y1=34.0, x2=38.0, y2=41.0),
+        Line(x1=18.0, y1=66.0, x2=38.0, y2=59.0),
+        Line(x1=82.0, y1=34.0, x2=82.0, y2=66.0),
+        Line(x1=62.0, y1=41.0, x2=82.0, y2=34.0),
+        Line(x1=62.0, y1=59.0, x2=82.0, y2=66.0),
+        Line(x1=82.0, y1=50.0, x2=100.0, y2=50.0),
+        Circle(cx=50.0, cy=50.0, r=15.0),
+    )
+    assert [item for item in definition.primitives if isinstance(item, Circle)] == [
+        Circle(cx=50.0, cy=50.0, r=15.0)
+    ]
+    # Every side-body diagonal ends on the central circle, never inside it.
+    body_diagonals = tuple(
+        primitive
+        for primitive in definition.primitives[2:7]
+        if isinstance(primitive, Line) and primitive.x1 != primitive.x2
+    )
+    assert len(body_diagonals) == 4
+    assert [
+        (line.x2, line.y2) if line.x1 < 50.0 else (line.x1, line.y1) for line in body_diagonals
+    ] == [(38.0, 41.0), (38.0, 59.0), (62.0, 41.0), (62.0, 59.0)]
+
+
+def test_only_the_globe_and_check_valves_use_a_filled_circle() -> None:
+    # The `filled` capability exists for a concrete requirement (the globe disc and
+    # the check hinge), so YAGNI is pinned: no other representation fills a circle.
+    for definition in SYMBOLS.list():
+        filled = [
+            item for item in definition.primitives if isinstance(item, Circle) and item.filled
+        ]
+        if definition.symbol_id == "valve.globe":
+            assert filled == [Circle(cx=50.0, cy=50.0, r=8.0, filled=True)]
+        elif definition.symbol_id == "valve.check":
+            assert filled == [Circle(cx=28.0, cy=34.0, r=5.0, filled=True)]
+        else:
+            assert filled == [], definition.symbol_id
+
+
+def test_a_hollow_circle_renders_no_child_level_fill() -> None:
+    circles = _elements(_basic_valve("valve.ball"), "circle")
+
+    assert len(circles) == 1
+    assert circles[0].get("fill") is None
+    assert set(circles[0].attrib) == {"cx", "cy", "r"}
+
+
+def test_a_filled_circle_renders_only_the_themeable_current_colour_fill() -> None:
+    circles = _elements(_basic_valve("valve.globe"), "circle")
+
+    assert len(circles) == 1
+    assert circles[0].get("fill") == "currentColor"
+    # Exactly one extra attribute, and only the themeable `currentColor`: no literal
+    # colour, CSS, `style`, or `class` is introduced by the capability.
+    assert set(circles[0].attrib) == {"cx", "cy", "r", "fill"}
 
 
 # ---------------------------------------------------------------------------

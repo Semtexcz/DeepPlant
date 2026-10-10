@@ -62,14 +62,18 @@ def _primitive_element(primitive: GraphicPrimitive) -> Element:
             },
         )
     if isinstance(primitive, Circle):
-        return _element(
-            "circle",
-            {
-                "cx": _number(primitive.cx),
-                "cy": _number(primitive.cy),
-                "r": _number(primitive.r),
-            },
-        )
+        attributes = {
+            "cx": _number(primitive.cx),
+            "cy": _number(primitive.cy),
+            "r": _number(primitive.r),
+        }
+        # A circle is the only primitive that can be filled, so the renderer stays
+        # a boolean toggle rather than a styling engine: the fill is the same
+        # themeable `currentColor` as the stroke, and a hollow circle keeps its
+        # byte-for-byte previous output (no child-level `fill` at all).
+        if primitive.filled:
+            attributes["fill"] = "currentColor"
+        return _element("circle", attributes)
     return _element("polygon", {"points": _point_pairs(primitive.points)})
 
 

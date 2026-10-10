@@ -288,6 +288,45 @@ def test_circle_extremes_are_checked_against_the_view_box() -> None:
 
 
 # ---------------------------------------------------------------------------
+# The optional circle fill (Issue #132)
+# ---------------------------------------------------------------------------
+
+
+def test_circle_filled_defaults_to_false() -> None:
+    # The default keeps every existing definition hollow and its construction
+    # unchanged: a circle authored without `filled` is a stroked outline.
+    assert Circle(cx=50.0, cy=50.0, r=10.0).filled is False
+
+
+def test_circle_filled_accepts_a_real_bool() -> None:
+    assert Circle(cx=50.0, cy=50.0, r=10.0, filled=True).filled is True
+    assert Circle(cx=50.0, cy=50.0, r=10.0, filled=False).filled is False
+
+
+@pytest.mark.parametrize("bad", [1, 0, "yes", None])
+def test_circle_filled_must_be_a_real_bool(bad: object) -> None:
+    # A truthy non-bool must not silently become a fill: the capability is a strict
+    # boolean, so a caller cannot smuggle in a string, a number, or a missing value.
+    with pytest.raises(SymbolDefinitionError, match="'filled' must be a bool"):
+        Circle(cx=50.0, cy=50.0, r=10.0, filled=cast(bool, bad))
+
+
+def test_circle_filled_default_preserves_construction_equality() -> None:
+    assert Circle(cx=1.0, cy=2.0, r=3.0) == Circle(cx=1.0, cy=2.0, r=3.0, filled=False)
+
+
+def test_a_filled_circle_is_distinct_from_a_hollow_one() -> None:
+    assert Circle(cx=50.0, cy=50.0, r=8.0, filled=True) != Circle(cx=50.0, cy=50.0, r=8.0)
+
+
+def test_the_circle_fill_is_the_only_primitive_fill_capability() -> None:
+    # YAGNI: the reported blocking marks were circles, so `Polygon` deliberately has
+    # no fill field and the primitive vocabulary stays unchanged otherwise.
+    assert "filled" not in {field.name for field in dataclasses.fields(Polygon)}
+    assert "filled" not in {field.name for field in dataclasses.fields(Line)}
+
+
+# ---------------------------------------------------------------------------
 # Anchors
 # ---------------------------------------------------------------------------
 

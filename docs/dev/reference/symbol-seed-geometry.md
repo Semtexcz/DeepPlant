@@ -43,10 +43,13 @@ definition → registry → renderer architecture, not to reproduce a standard.
   `generic-iso` geometries record the conservative `candidate-alignment` state — an
   *intended* correspondence with no human check claimed — which is what that
   profile requires, because a bare `reference` claims no correspondence for a
-  concrete geometry. The `deepplant-default` restriction orifice records **no**
-  standards relationship at all, which its profile permits because it makes no
+  concrete geometry. The four `deepplant-default` geometries (the restriction
+  orifice and the three Issue #132 basic valves) record **no** standards
+  relationship at all, which their profile permits because they make no
   ISO/ISA/PIP conformance claim
-  ([workflow/standards.md](../workflow/standards.md)).
+  ([workflow/standards.md](../workflow/standards.md)). A coverage-matrix entry may
+  still name a concept-level ISO reference *direction*; that is not a concrete
+  correspondence for this geometry.
 
 ```text
 project-owned seed geometry   this document
@@ -137,6 +140,128 @@ figure and no company glyph, and it records **no** standards relationship. It
 deliberately carries no project/document annotation: a tag such as `RO`, an item
 number, a bore value, a tag bubble, and a leader line are authored document data,
 not reusable base geometry, so none is embedded here.
+
+## Seed E — globe valve
+
+ID: `valve.globe`. Purpose: recognizable two-port globe-valve presentation, and one
+of the three basic valve representations added by Issue #132 in the
+`deepplant-default` profile.
+
+```text
+line    (0, 50)  → (28, 50)            west process connection stub
+polygon (28, 34), (28, 66), (50, 50)   left body
+polygon (50, 50), (72, 34), (72, 66)   right body
+line    (72, 50) → (100, 50)           east process connection stub
+circle  centre (50, 50), radius 8, filled
+                                       variant mark: small solid central disc
+```
+
+The intrinsic glyph is the two-triangle valve body plus the **solidly filled**
+central disc, drawn last so the disc reads over the apex. The disc is the *variant
+mark*: it is what makes a globe valve recognizably different from the hollow-circle
+ball valve and from the bare gate valve, so the outer body alone is not the
+identity. The two horizontal stubs are DeepPlant's connection representation of the
+adjacent pipeline, not part of the valve body.
+
+The solid mark is why the primitive vocabulary gained its one boolean
+`Circle.filled` capability: a stroked outline cannot express a filled region. The
+capability is a boolean only — no colour, gradient, opacity, CSS, class, or theme
+object — and `Polygon` deliberately has no fill until an implemented symbol needs
+one.
+
+Deliberately absent: any stem, handwheel, lever, or actuator, any function letter
+code or tag, any flow arrow, and any annotation. Those are composition or document
+data, not reusable base glyph geometry.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The body is symmetric, so no
+inlet/outlet or flow direction is encoded.
+
+Standards state: **no** relationship recorded. `deepplant-default` makes no
+ISO/ISA/PIP conformance claim, so none is required and none is invented; the
+coverage matrix's concept-level ISO reference direction is not a correspondence
+for this geometry (ADR-0007).
+
+## Seed F — check valve
+
+ID: `valve.check`. Purpose: recognizable one-way check-valve presentation, and one
+of the three basic valve representations added by Issue #132.
+
+```text
+line   (0, 50)  → (28, 50)     west process connection stub
+line   (28, 34) → (72, 34)     body top edge
+line   (72, 34) → (72, 66)     body east edge
+line   (72, 66) → (28, 66)     body bottom edge
+line   (28, 66) → (28, 34)     body west edge
+line   (28, 34) → (72, 66)     closing stroke, corner to corner
+line   (72, 50) → (100, 50)    east process connection stub
+circle centre (28, 34), radius 5, filled
+                               hinge peg: small solid corner mark
+```
+
+The intrinsic glyph is a rectangular valve body — deliberately a *different* outer
+body from the bowtie the gate/globe/ball valves use — carrying a corner-to-corner
+closing stroke and a small **solidly filled** hinge peg at one corner, drawn last so
+the peg reads over the corner. The two horizontal stubs are DeepPlant's connection
+representation of the adjacent pipeline.
+
+The glyph is asymmetric, because a check valve is recognized by its one-way closing
+element. That asymmetry is a recognizability mark and **not** a flow-direction
+contract: the anchors stay the neutral two-port `port_a`/`port_b` pair, and no
+`inlet`/`outlet`/`upstream`/`downstream` name, and no flow-direction field, is added
+to `SymbolAnchor`.
+
+Deliberately absent: any tag, arrow, leader, or annotation.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`.
+
+Standards state: **no** relationship recorded, for the same reason as seed E.
+
+## Seed G — ball valve
+
+ID: `valve.ball`. Purpose: recognizable two-port ball-valve presentation, and one
+of the three basic valve representations added by Issue #132.
+
+```text
+line    (0, 50)  → (18, 50)    west process connection stub
+line    (18, 34) → (18, 66)    left outer vertical body edge
+line    (18, 34) → (38, 41)    upper-left side edge to circle circumference
+line    (18, 66) → (38, 59)    lower-left side edge to circle circumference
+line    (82, 34) → (82, 66)    right outer vertical body edge
+line    (62, 41) → (82, 34)    upper-right side edge from circle circumference
+line    (62, 59) → (82, 66)    lower-right side edge from circle circumference
+line    (82, 50) → (100, 50)   east process connection stub
+circle  centre (50, 50), radius 15     hollow central body element
+```
+
+The intrinsic glyph is a **large hollow central circle** and left/right body-side
+geometry: the outer vertical body edges connect by four diagonals that terminate
+on the circle circumference. The circle is a structural body element, not a mark
+painted over a completed bowtie, so its interior remains clean and no line passes
+through it. The vertical outer edges join both diagonals on their respective sides,
+forming continuous, symmetric wedges. Its hollow outline distinguishes the ball
+valve from the globe valve's solid disc. The two horizontal stubs are DeepPlant's
+connection representation of the adjacent pipeline.
+
+Deliberately absent: any stem, lever, actuator, tag, annotation, or flow arrow.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The body is symmetric, so no
+inlet/outlet or flow direction is encoded.
+
+Standards state: **no** concrete relationship recorded, for the same reason as
+seed E. The qualitative private reference evidence establishes form and
+decomposition only; these normalized coordinates are independently
+DeepPlant-authored and do not establish a standards relationship.
+
+The three seeds E/F/G were authored after a qualitative visual review of the
+operator's curated private reference gallery and, where useful, an actual MVP P&ID
+occurrence. That material informed only the qualitative notation, the occurrence,
+and the structural decomposition into body, variant mark, and connection geometry.
+No private artwork was measured, traced, vectorised, or copied, these coordinates
+are independently DeepPlant-authored, and no private filename, path, drawing
+identifier, tag, or measurement is recorded here.
 
 ## Provenance consequence
 
