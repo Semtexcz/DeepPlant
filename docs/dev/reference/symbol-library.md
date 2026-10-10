@@ -514,7 +514,7 @@ PR review
 | `valve.gate` | `generic-iso` | Gate valve | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two triangles meeting apex to apex on the process axis, with a process line to each view-box edge. |
 | `pump.centrifugal` | `generic-iso` | Centrifugal pump | `pfd`, `pid` | `suction` → `west`, `process`; `discharge` → `east`, `process` | A circular casing with a full horizontal line through it and two lines running from the casing top and bottom to the casing's right-hand point. |
 | `instrument.local` | `generic-iso` | Local/field instrument | `pid` | `tap` → `south`, `process` | A plain instrument circle joined to the process by one vertical functional connection line. |
-| `fitting.restriction_orifice` | `deepplant-default` | Restriction orifice | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | The process axis interrupted by a pair of short parallel transverse strokes around the restriction, with the connection stubs stopping at the restriction and no circle. |
+| `fitting.restriction_orifice` | `deepplant-default` | Restriction orifice | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | Two continuous outer transverse strokes frame a centred split restriction stroke; process stubs stop at the outer strokes, and there is no circle or annotation. |
 
 Each representation is identified by `(notation_profile, symbol_id)`. The exact
 primitive construction of each is recorded in

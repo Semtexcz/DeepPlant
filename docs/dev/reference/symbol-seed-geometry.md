@@ -109,27 +109,28 @@ presentation, and the first `deepplant-default` production representation (Issue
 #130).
 
 ```text
-line    (0, 50)  → (42, 50)     west process connection stub
-line    (42, 34) → (42, 66)     first transverse restriction stroke
-line    (58, 34) → (58, 66)     second transverse restriction stroke
-line    (58, 50) → (100, 50)    east process connection stub
+line    (0, 50)  → (38, 50)     west process connection stub
+line    (38, 32) → (38, 68)     west outer intrinsic stroke
+line    (50, 20) → (50, 43)     upper half of the centred intrinsic restriction stroke
+line    (50, 57) → (50, 80)     lower half of the centred intrinsic restriction stroke
+line    (62, 32) → (62, 68)     east outer intrinsic stroke
+line    (62, 50) → (100, 50)    east process connection stub
 ```
 
-There is deliberately **no** horizontal process-axis line between `x = 42` and
-`x = 58`: the process axis is interrupted at the restriction location, and the pair
-of short parallel transverse strokes is the reusable presentation feature that
-expresses the restriction orifice. The canonical normalized form is DeepPlant-authored
-and drawn horizontally (`port_a` west, `port_b` east); a document that draws the
-component on a vertical process line rotates the placement, which is presentation,
-not this geometry. The qualitative representation — two parallel transverse strokes
-around the restriction in a process line — was identified from an operator-supplied
-private reference; that reference was used **only** to identify the feature that
-makes the item recognizable, and no private artwork was measured, traced, or
-reproduced.
+The intrinsic glyph is the three transverse strokes between the stubs: two
+continuous outer strokes framing a centred stroke split above and below the process
+axis. There is deliberately **no** horizontal process-axis line between `x = 38`
+and `x = 62`; the gap and central split distinguish the restriction indication from
+the adjacent process connection geometry. The canonical normalized form is
+DeepPlant-authored and drawn horizontally (`port_a` west, `port_b` east); a document
+that draws the component on a vertical process line rotates the placement, which is
+presentation, not this geometry. Private reference material was visually inspected
+only to understand this qualitative form; no private artwork was measured, traced,
+or reproduced, and these coordinates are independently DeepPlant-authored.
 
 Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
-`(100, 50)`, orientation `east`, kind `process`. The two stubs stop at the
-restriction, so the process axis is visibly interrupted; inlet/outlet and flow
+`(100, 50)`, orientation `east`, kind `process`. The two stubs stop at the outer
+glyph strokes, so the process axis is visibly interrupted; inlet/outlet and flow
 direction are again deliberately not encoded. This is an independently authored
 DeepPlant practical `deepplant-default` representation — it reproduces no standard
 figure and no company glyph, and it records **no** standards relationship. It

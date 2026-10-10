@@ -368,7 +368,7 @@ still a representation-design question. Only a resolved identity can be a
 | A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | missing | missing base SymbolDefinition |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
-| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`fitting.restriction_orifice`) | — |
+| A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`fitting.restriction_orifice`; two continuous outer strokes framing a centred split restriction stroke) | — |
 | A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | P&ID B (a reducer in series with a check valve) | missing | missing base SymbolDefinition |
 | A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | P&ID A; P&ID B; PFD A (instruments drawn on the PFD too) | **implemented** (`instrument.local`) | — (profile composition unresolved, #124) |
 | A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | P&ID A (a flow element); P&ID B | missing | representation identity unresolved — one reusable identity vs one graphic per measured variable is not decided (question G4) |

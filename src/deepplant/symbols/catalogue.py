@@ -173,10 +173,10 @@ INSTRUMENT_LOCAL = SymbolDefinition(
 )
 
 # DeepPlant-authored project seed geometry for the restriction orifice
-# (docs/dev/reference/symbol-seed-geometry.md, seed D): the process axis is
-# interrupted by a pair of short transverse strokes around the restriction
-# location, with the two horizontal stubs drawn as DeepPlant's connection
-# representation of the adjacent pipeline up to the restriction. This is the first
+# (docs/dev/reference/symbol-seed-geometry.md, seed D): two continuous outer
+# transverse strokes frame a centred, split restriction stroke. The horizontal
+# stubs are DeepPlant's connection representation of the adjacent pipeline up to
+# the outer strokes; they are not part of the intrinsic glyph. This is the first
 # built-in `deepplant-default` representation, so it records no standards
 # relationship at all: the profile makes no ISO/ISA/PIP conformance claim, and no
 # relationship is invented merely to populate the field.
@@ -191,10 +191,12 @@ RESTRICTION_ORIFICE = SymbolDefinition(
     diagram_types=("pid",),
     notation_profile="deepplant-default",
     primitives=(
-        Line(x1=0.0, y1=50.0, x2=42.0, y2=50.0),
-        Line(x1=42.0, y1=34.0, x2=42.0, y2=66.0),
-        Line(x1=58.0, y1=34.0, x2=58.0, y2=66.0),
-        Line(x1=58.0, y1=50.0, x2=100.0, y2=50.0),
+        Line(x1=0.0, y1=50.0, x2=38.0, y2=50.0),
+        Line(x1=38.0, y1=32.0, x2=38.0, y2=68.0),
+        Line(x1=50.0, y1=20.0, x2=50.0, y2=43.0),
+        Line(x1=50.0, y1=57.0, x2=50.0, y2=80.0),
+        Line(x1=62.0, y1=32.0, x2=62.0, y2=68.0),
+        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
     ),
     anchors=(
         SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),

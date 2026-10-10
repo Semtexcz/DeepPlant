@@ -55,9 +55,10 @@ ISO_15519_2 = "ISO 15519-2:2015"
 #: produces (seed D). Pinned so a contract change cannot silently alter geometry.
 RESTRICTION_ORIFICE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
-    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="42" y2="50" />'
-    '<line x1="42" y1="34" x2="42" y2="66" /><line x1="58" y1="34" x2="58" y2="66" />'
-    '<line x1="58" y1="50" x2="100" y2="50" /></svg>\n'
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="38" y2="50" />'
+    '<line x1="38" y1="32" x2="38" y2="68" /><line x1="50" y1="20" x2="50" y2="43" />'
+    '<line x1="50" y1="57" x2="50" y2="80" /><line x1="62" y1="32" x2="62" y2="68" />'
+    '<line x1="62" y1="50" x2="100" y2="50" /></svg>\n'
 )
 
 
@@ -246,14 +247,17 @@ def test_restriction_orifice_contract() -> None:
     ]
     assert {anchor.name for anchor in definition.anchors}.isdisjoint({"inlet", "outlet"})
 
-    # The exact DeepPlant-authored primitive tuple: the process axis is interrupted
-    # by a pair of short transverse strokes, with the connection stubs stopping at
-    # the restriction. No circle is part of this representation (seed D).
+    # The exact DeepPlant-authored primitive tuple: continuous outer transverse
+    # strokes frame a centered split restriction stroke; connection stubs stop at
+    # the outer strokes. No circle or annotation primitive is part of this
+    # representation (seed D).
     assert definition.primitives == (
-        Line(x1=0.0, y1=50.0, x2=42.0, y2=50.0),
-        Line(x1=42.0, y1=34.0, x2=42.0, y2=66.0),
-        Line(x1=58.0, y1=34.0, x2=58.0, y2=66.0),
-        Line(x1=58.0, y1=50.0, x2=100.0, y2=50.0),
+        Line(x1=0.0, y1=50.0, x2=38.0, y2=50.0),
+        Line(x1=38.0, y1=32.0, x2=38.0, y2=68.0),
+        Line(x1=50.0, y1=20.0, x2=50.0, y2=43.0),
+        Line(x1=50.0, y1=57.0, x2=50.0, y2=80.0),
+        Line(x1=62.0, y1=32.0, x2=62.0, y2=68.0),
+        Line(x1=62.0, y1=50.0, x2=100.0, y2=50.0),
     )
     assert [item for item in definition.primitives if isinstance(item, Circle)] == []
 
