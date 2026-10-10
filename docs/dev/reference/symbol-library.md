@@ -581,9 +581,10 @@ created.
    `AGPL-3.0-only`). Do **not** record a locator, table/figure reference,
    registration number, or the standard's own name unless it comes from a
    permitted source or a recorded human verification.
-3. Author the geometry independently from the primitives. Do not trace, extract,
-   or reproduce standard artwork, and do not derive geometry from a company
-   reference drawing.
+3. Author the geometry independently from the primitives. A company reference
+   drawing may inform the qualitative notation/form only; do not copy, trace,
+   measure, or reproduce its artwork, coordinates, proportions, or path data, and
+   never derive normalized seed coordinates from a reference drawing.
 4. Add a `SymbolDefinition` (with explicit anchors, geometric `orientation`, and
    `AssetProvenance`) to `src/deepplant/symbols/catalogue.py`.
 5. Add the coverage-matrix row's status and the structural test for the new

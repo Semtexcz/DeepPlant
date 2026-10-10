@@ -218,8 +218,9 @@ profile says "out of scope"  ->  a recorded reason for "not required", valid onl
 ## Reference material handling
 
 The reference set is a private company bundle, selected by the operator as the MVP
-requirements boundary. Its drawings state requirements; they are **never a source
-of geometry**, and they are not redistributed:
+requirements boundary. Its drawings state requirements and supply qualitative
+notation/form evidence; they are **never a source of copied or measured geometry**,
+and they are not redistributed:
 
 - Nothing from it is committed, quoted, traced, vectorised, or measured. No
   symbol artwork, layout, title block, revision table, equipment data block, note
@@ -236,13 +237,18 @@ of geometry**, and they are not redistributed:
   only a permitted source or a recorded human verification may supply that
   ([standards.md](../workflow/standards.md), ADR-0007).
 - The implemented geometries remain DeepPlant-authored project seed geometry
-  ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). No geometry was
-  derived from this bundle before or after this inspection.
+  ([symbol-seed-geometry.md](../reference/symbol-seed-geometry.md)). The bundle
+  supplies qualitative notation/form evidence only: no coordinate, proportion,
+  path, pixel, dimension, or piece of artwork is measured, traced, vectorised, or
+  copied from it, before or after this inspection, and no normalized seed
+  coordinate is a derivative copy of its artwork.
 
 ```text
 used as      the requirements boundary (which engineering concepts must the MVP represent?)
-             and notation evidence (how does the selected project draw them?)
-not used as  geometry, locator, naming, layout, or compliance evidence
+             and qualitative notation/form evidence (how the selected project depicts
+             them, and which linework is intrinsic glyph versus connection versus
+             annotation)
+not used as  copied or measured geometry, locator, naming, layout, or compliance evidence
 ```
 
 ## Inspected evidence
@@ -678,8 +684,8 @@ this document    selects vocabulary        no production change
   PFD-specific or valve-family identity is introduced.
 - No `notation_profile` assignment changes; `generic-iso` stays the transitional
   profile for all three `generic-iso` definitions.
-- No geometry is authored, adjusted, or measured — and none is taken from the
-  reference set.
+- No geometry is authored, adjusted, or measured — and no copied or measured
+  geometry is taken from the reference set.
 - No standard is claimed, no locator recorded, and no compliance inferred from
   visual similarity, from a production drawing, or from a project legend
   ([standards.md](../workflow/standards.md)).
@@ -742,9 +748,9 @@ What the audit changes, and nothing else:
    requirements rather than as a new entry
 ```
 
-The audit is occurrence evidence only. It is not geometry, naming, layout, or
-compliance evidence, and it promotes no verification state: observing that a sheet
-contains a symbol form establishes no standards relationship
+The audit is occurrence evidence only. It takes no copied or measured geometry, and
+it is not naming, layout, or compliance evidence; it promotes no verification state:
+observing that a sheet contains a symbol form establishes no standards relationship
 ([standards.md](../workflow/standards.md), ADR-0007).
 
 ## Evidence gaps and limitations
@@ -859,7 +865,7 @@ MVP drawing profile v0.1                operator-bundled interpretation aid
 
 None. No external source was used as evidence: no restricted ISO/ISA/IEC content
 was inspected, and the reference set is company-private material used only for
-scoping and notation interpretation.
+scoping and qualitative notation/form interpretation.
 
 ## Related
 
@@ -872,4 +878,5 @@ scoping and notation interpretation.
 - [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) — the geometry
   spec for the implemented representations.
 - [standards-licensing-evidence.md](standards-licensing-evidence.md) — why the
-  reference set may inform scope but never supply geometry or standard detail.
+  reference set may inform scope and qualitative form but never supply copied or
+  measured geometry or standard detail.

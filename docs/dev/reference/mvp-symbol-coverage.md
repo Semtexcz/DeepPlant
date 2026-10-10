@@ -321,16 +321,20 @@ The operator-selected MVP reference bundle — one PFD sheet, two P&ID sheets, a
 the project's piping-elements and instrumentation-and-control notation legends,
 summarised by the operator-bundled *DeepPlant MVP drawing support profile v0.1* —
 is private project material, and it is the authoritative MVP requirements
-boundary. It answers **what must be representable** and **how the selected project
-draws it**; it is never a source of geometry. No symbol is copied, vectorised,
-traced, or measured from it, and no title block, tag, note, document identifier,
-drawing title, or symbol sheet is reproduced
+boundary. It answers **what must be representable**, **how the selected project
+draws it**, and **which linework is intrinsic glyph versus connection versus
+annotation**; it serves as qualitative notation/form evidence, and it is never a
+source of **copied or measured** geometry. No artwork, coordinate, proportion,
+path data, dimension, or pixel is traced, vectorised, measured, or reproduced from
+it, and no title block, tag, note, document identifier, drawing title, or symbol
+sheet is reproduced
 ([standards.md](../workflow/standards.md), ADR-0007). It is referenced only by
-neutral role identifiers ([../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md)).
+neutral role identifiers ([../research/mvp-symbol-core-selection.md](../research/mvp-symbol-core-selection.md)),
+and DeepPlant normalized seed geometry remains independently authored.
 The concept-level selection this matrix records was additionally verified against
 the sheets' **rendered graphics** (symbol form, marker shape, and signal-line
-style); that audit locates forms only, takes no geometry, and establishes no
-standards correspondence ([mvp-symbol-core-selection.md, graphics
+style); that audit locates forms only, takes no copied or measured geometry, and
+establishes no standards correspondence ([mvp-symbol-core-selection.md, graphics
 audit](../research/mvp-symbol-core-selection.md#graphics-audit-of-the-selected-sheets)).
 
 The companies' own conventions (tag prefixes, line designation, DCS/SIS
