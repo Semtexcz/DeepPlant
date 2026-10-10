@@ -366,7 +366,7 @@ requirement from the selected MVP reference content, and the identifiers match t
 | A08 | Gate valve | pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` candidate — external recognizability unresolved (#127) | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`valve.gate`); DeepPlant-authored project seed geometry, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (external recognizability and exact geometry unresolved, per #127) |
 | A09 | Globe valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.globe`); DeepPlant-authored project seed geometry (two-triangle body with a **solid** central-disc variant mark), with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
 | A10 | Check valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.check`); DeepPlant-authored project seed geometry (rectangular body with a corner-to-corner closing stroke and a **solid** hinge mark) whose asymmetry is a recognizability mark only, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
-| A11 | Ball valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.ball`); DeepPlant-authored project seed geometry (two-triangle body with a large **hollow** central-circle variant mark), with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
+| A11 | Ball valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.ball`); DeepPlant-authored project seed geometry (a large **hollow** central body circle with side geometry terminating at its circumference and a clean interior), with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; three-port valve body | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with a spring-loaded indication | missing base SymbolDefinition |
 | A15 | Restriction orifice | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | — | — | **implemented** (`fitting.restriction_orifice`); DeepPlant-authored practical representation (two continuous outer transverse strokes framing a centred split restriction stroke, with no circle), with neutral `port_a` / `port_b` process anchors that embed no flow semantics; no tag or bore annotation is embedded | — (no standards relationship is recorded, and `—` is the absence of a recorded relationship, not a verification state) |
@@ -506,23 +506,27 @@ data, and base-symbol geometry must not embed them.
 | `pump.centrifugal` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `suction` → west, process; `discharge` → east, process |
 | `instrument.local` | `symbol` | `generic-iso` | `deepplant-original`, AGPL-3.0-only | ISO 15519-2:2015 | `candidate-alignment` | `tap` → south, process |
 | `fitting.restriction_orifice` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `valve.globe` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `valve.check` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `valve.ball` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
 
 Everything else is reported per capability in
 [MVP Core coverage](#mvp-core-coverage): each Core entry records its own support
 state and gap type, and no identity-unresolved requirement family is counted as an
 exact missing `SymbolDefinition`. See also the
 [evidence document](../research/mvp-symbol-core-selection.md). No concept outside
-these four is implemented, and no standards relationship is `human-verified`. All
-four geometries are DeepPlant-authored project seed geometry
+these seven is implemented, and no standards relationship is `human-verified`. All
+seven geometries are DeepPlant-authored project seed geometry
 ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not derived from a standard's
 artwork or from a company drawing. The three `generic-iso` representations are
 recorded at `candidate-alignment` because the project intends them to correspond to
 the named ISO family, with no human check claimed: because `generic-iso` *means*
 that intended correspondence, a definition in that profile must record at least one
 relationship at `candidate-alignment` or `human-verified`, and a bare `reference`
-cannot carry the profile. The `deepplant-default` restriction orifice (A15)
-records **no** standards relationship at all: `deepplant-default` makes no
-ISO/ISA/PIP conformance claim, so none is required and none is invented
+cannot carry the profile. The four `deepplant-default` representations — the
+restriction orifice (A15) and globe, check, and ball valves (A09/A10/A11) — record
+**no** standards relationship at all: `deepplant-default` makes no ISO/ISA/PIP
+conformance claim, so none is required and none is invented
 ([symbol-library.md](symbol-library.md)).
 
 The #127 profile classification for the three `generic-iso` definitions is

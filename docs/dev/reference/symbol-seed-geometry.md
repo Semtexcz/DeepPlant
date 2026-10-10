@@ -224,26 +224,34 @@ ID: `valve.ball`. Purpose: recognizable two-port ball-valve presentation, and on
 of the three basic valve representations added by Issue #132.
 
 ```text
-line    (0, 50)  → (28, 50)            west process connection stub
-polygon (28, 34), (28, 66), (50, 50)   left body
-polygon (50, 50), (72, 34), (72, 66)   right body
-line    (72, 50) → (100, 50)           east process connection stub
-circle  centre (50, 50), radius 15     variant mark: large hollow ball
+line    (0, 50)  → (28, 50)     west process connection stub
+line    (28, 34) → (28, 66)     left outer vertical body edge
+line    (28, 34) → (38, 41)     upper-left side edge to circle circumference
+line    (28, 66) → (38, 59)     lower-left side edge to circle circumference
+line    (62, 41) → (72, 34)     upper-right side edge from circle circumference
+line    (62, 59) → (72, 66)     lower-right side edge from circle circumference
+line    (72, 50) → (100, 50)    east process connection stub
+circle  centre (50, 50), radius 15     hollow central body element
 ```
 
-The intrinsic glyph is the two-triangle valve body plus a **large hollow** central
-circle that nearly spans the body height. That hollow outline is the variant mark,
-and it is exactly what distinguishes the ball valve from the globe valve's solid
-disc. The two horizontal stubs are DeepPlant's connection representation of the
-adjacent pipeline.
+The intrinsic glyph is a **large hollow central circle** and left/right body-side
+geometry: the outer vertical body edges connect by four diagonals that terminate
+on the circle circumference. The circle is a structural body element, not a mark
+painted over a completed bowtie, so its interior remains clean and no line passes
+through it. Its hollow outline distinguishes the ball valve from the globe valve's
+solid disc. The two horizontal stubs are DeepPlant's connection representation of
+the adjacent pipeline.
 
-Deliberately absent: any stem, lever, actuator, tag, or flow arrow.
+Deliberately absent: any stem, lever, actuator, tag, annotation, or flow arrow.
 
 Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
 `(100, 50)`, orientation `east`, kind `process`. The body is symmetric, so no
 inlet/outlet or flow direction is encoded.
 
-Standards state: **no** relationship recorded, for the same reason as seed E.
+Standards state: **no** concrete relationship recorded, for the same reason as
+seed E. The qualitative private reference evidence establishes form and
+decomposition only; these normalized coordinates are independently
+DeepPlant-authored and do not establish a standards relationship.
 
 The three seeds E/F/G were authored after a qualitative visual review of the
 operator's curated private reference gallery and, where useful, an actual MVP P&ID

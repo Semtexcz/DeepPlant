@@ -106,7 +106,9 @@ CHECK_VALVE_DOCUMENT = (
 BALL_VALVE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="28" y2="50" />'
-    '<polygon points="28,34 28,66 50,50" /><polygon points="50,50 72,34 72,66" />'
+    '<line x1="28" y1="34" x2="28" y2="66" /><line x1="28" y1="34" x2="38" y2="41" />'
+    '<line x1="28" y1="66" x2="38" y2="59" /><line x1="62" y1="41" x2="72" y2="34" />'
+    '<line x1="62" y1="59" x2="72" y2="66" />'
     '<line x1="72" y1="50" x2="100" y2="50" /><circle cx="50" cy="50" r="15" /></svg>\n'
 )
 
@@ -504,18 +506,30 @@ def test_valve_ball_contract() -> None:
     definition = _basic_valve("valve.ball")
 
     assert definition.name == "Ball valve"
-    # Two-triangle body with a large hollow central circle as the variant mark
-    # (seed G); the hollow outline is what distinguishes it from the globe's disc.
+    # The hollow central circle is a structural body element. Four side-body
+    # diagonals terminate at its circumference, preserving its clean interior
+    # (seed G); the hollow outline distinguishes it from the globe's solid disc.
     assert definition.primitives == (
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
-        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
-        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Line(x1=28.0, y1=34.0, x2=28.0, y2=66.0),
+        Line(x1=28.0, y1=34.0, x2=38.0, y2=41.0),
+        Line(x1=28.0, y1=66.0, x2=38.0, y2=59.0),
+        Line(x1=62.0, y1=41.0, x2=72.0, y2=34.0),
+        Line(x1=62.0, y1=59.0, x2=72.0, y2=66.0),
         Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
         Circle(cx=50.0, cy=50.0, r=15.0),
     )
     assert [item for item in definition.primitives if isinstance(item, Circle)] == [
         Circle(cx=50.0, cy=50.0, r=15.0)
     ]
+    # Every side-body diagonal ends on the central circle, never inside it.
+    body_diagonals = tuple(
+        primitive for primitive in definition.primitives[2:6] if isinstance(primitive, Line)
+    )
+    assert len(body_diagonals) == 4
+    assert [
+        (line.x2, line.y2) if line.x1 < 50.0 else (line.x1, line.y1) for line in body_diagonals
+    ] == [(38.0, 41.0), (38.0, 59.0), (62.0, 41.0), (62.0, 59.0)]
 
 
 def test_only_the_globe_and_check_valves_use_a_filled_circle() -> None:

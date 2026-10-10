@@ -31,9 +31,12 @@ the DeepPlant project specification recorded in
 ``docs/dev/reference/symbol-seed-geometry.md``, and it carries
 ``AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")``. It is
 not derived from normative standard artwork: no standard figure, table content,
-or normative text was copied, traced, extracted, or embedded, and nothing was
-taken from the company reference drawings. These shapes are DeepPlant geometry,
-not claimed to be exact ISO geometry.
+or normative text was copied, traced, extracted, or embedded. The private
+references informed qualitative graphical form and structural decomposition
+only. The normalized coordinates and primitive construction are independently
+DeepPlant-authored; no artwork, source coordinates, dimensions, paths, or pixel
+geometry were copied, traced, vectorized, or mechanically transferred. These
+shapes are DeepPlant geometry, not claimed to be exact ISO geometry.
 
 Standards relationship
 ----------------------
@@ -262,12 +265,13 @@ CHECK_VALVE = SymbolDefinition(
 )
 
 # DeepPlant-authored project seed geometry for the ball valve
-# (docs/dev/reference/symbol-seed-geometry.md, seed G): the two-triangle valve
-# body carries a large, hollow central circle that nearly spans the body height,
-# which is the ball valve's variant mark. The two horizontal stubs are DeepPlant's
-# connection representation of the adjacent pipeline, not part of the valve body.
+# (docs/dev/reference/symbol-seed-geometry.md, seed G): a large, hollow central
+# circle is a structural body element. Four side-body diagonals run from the
+# outer vertical edges to the circle circumference, so no body line passes through
+# the clean circle interior. The two horizontal stubs are DeepPlant's connection
+# representation of the adjacent pipeline, not part of the valve body.
 #
-# The mark is a stroked outline (not filled), which is exactly what separates it
+# The circle is a stroked outline (not filled), which is exactly what separates it
 # from the globe valve's solid disc. No stem, lever, actuator, tag, or flow arrow
 # belongs to the reusable base glyph, and the anchors stay a symmetric neutral
 # `port_a`/`port_b` pair.
@@ -279,8 +283,11 @@ BALL_VALVE = SymbolDefinition(
     notation_profile="deepplant-default",
     primitives=(
         Line(x1=0.0, y1=50.0, x2=28.0, y2=50.0),
-        Polygon(points=((28.0, 34.0), (28.0, 66.0), (50.0, 50.0))),
-        Polygon(points=((50.0, 50.0), (72.0, 34.0), (72.0, 66.0))),
+        Line(x1=28.0, y1=34.0, x2=28.0, y2=66.0),
+        Line(x1=28.0, y1=34.0, x2=38.0, y2=41.0),
+        Line(x1=28.0, y1=66.0, x2=38.0, y2=59.0),
+        Line(x1=62.0, y1=41.0, x2=72.0, y2=34.0),
+        Line(x1=62.0, y1=59.0, x2=72.0, y2=66.0),
         Line(x1=72.0, y1=50.0, x2=100.0, y2=50.0),
         Circle(cx=50.0, cy=50.0, r=15.0),
     ),

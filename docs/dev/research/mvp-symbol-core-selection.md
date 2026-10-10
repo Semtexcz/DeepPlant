@@ -371,7 +371,7 @@ still a representation-design question. Only a resolved identity can be a
 | A08 | Gate valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`valve.gate`) | — (external recognizability and exact geometry unresolved, per #127) |
 | A09 | Globe valve | pid | `symbol` | required | resolved | P&ID A | **implemented** (`valve.globe`; two-triangle body with a solid central-disc variant mark) | — |
 | A10 | Check valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`valve.check`; rectangular body with a corner-to-corner closing stroke and a solid hinge mark) | — |
-| A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | **implemented** (`valve.ball`; two-triangle body with a large hollow central-circle variant mark) | — |
+| A11 | Ball valve | pid | `symbol` | required | resolved | P&ID B | **implemented** (`valve.ball`; hollow central body circle with left/right side geometry terminating at its circumference) | — |
 | A12 | Three-way valve | pid | `symbol` | required | resolved | P&ID A | missing | missing base SymbolDefinition |
 | A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | P&ID B (several, with set pressure); P&ID A | missing | missing base SymbolDefinition |
 | A15 | Restriction orifice | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`fitting.restriction_orifice`; two continuous outer strokes framing a centred split restriction stroke) | — |
