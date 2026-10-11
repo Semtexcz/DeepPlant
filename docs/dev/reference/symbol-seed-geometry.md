@@ -418,7 +418,7 @@ ID: `fitting.reducer.eccentric`. Purpose: recognizable one-flat-side reducer
 presentation, added by Issue #135. The second form of A16.
 
 ```text
-line    (0, 50)  → (25, 50)                     west stub, at the larger end face centre
+line    (0, 32)  → (25, 32)                     west stub, on the level connection axis
 polygon (25, 14), (75, 14), (75, 50), (25, 86)  tapering body, flat side, one-sided
 line    (75, 32) → (100, 32)                    east stub, at the smaller end face centre
 ```
@@ -435,27 +435,26 @@ offset is what distinguishes this form from seed K, and it cannot be produced by
 rotating the two-sloping-side form, which stays symmetric about the axis under
 rotation.
 
-Each connection stub leaves through the **centre of its own end face**, as on every
-other inline representation in this library: `port_a` is the centre of the larger west
-face `(25, 14)–(25, 86)` and `port_b` the centre of the smaller east face
-`(75, 14)–(75, 50)`. The two anchors are therefore offset by 18 units, which is
-exactly half the end-size difference — the eccentricity the fitting exists to create —
-and the larger west end keeps the same face centre, and the same stub, as seed K.
-Placing each connection point at its own face centre is deliberate: drawing both stubs
-collinear with the flat side would put them on the end *corners* instead of through
-the middle of the ends.
+Both connection stubs leave on one **level connection axis**, the centre line of the
+smaller east end face `(75, 14)–(75, 50)`, so a process line runs straight through the
+fitting instead of jogging at it. The larger west end face is offset by the
+eccentricity about that axis — 18 units, exactly half the end-size difference — so the
+flat side stays flush with the run while the larger end drops away from it. That
+level axis stays inside both end faces, so neither stub meets an end *corner* and no
+stub passes through the body: `port_a` leaves the west face 18 units above its centre
+and `port_b` the centre of the smaller east face.
 
-That anchor offset is geometry and **not** a semantic direction: no
-`flat_on_top`/`flat_on_bottom` field, and no `inlet`/`outlet` name, is added to the
-anchors.
+The body offset and the level connection axis are geometry and **not** a semantic
+direction: no `flat_on_top`/`flat_on_bottom` field, and no `inlet`/`outlet` name, is
+added to the anchors.
 
 Deliberately absent: any tag, size value, or leader line, for the same reason as seed
 K.
 
-Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
-`(100, 32)`, orientation `east`, kind `process`. As with seed K, the canonical form is
-drawn horizontally with the larger end west, and a document may mirror or rotate the
-placement.
+Anchors: `port_a` at `(0, 32)`, orientation `west`, kind `process`; `port_b` at
+`(100, 32)`, orientation `east`, kind `process`. Both anchors are therefore collinear
+with the run. As with seed K, the canonical form is drawn horizontally with the larger
+end west, and a document may mirror or rotate the placement.
 
 Standards state: **no** relationship recorded, for the same reason as seed K.
 

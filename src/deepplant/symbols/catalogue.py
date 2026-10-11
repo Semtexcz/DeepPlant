@@ -520,12 +520,12 @@ CONCENTRIC_REDUCER = SymbolDefinition(
 # slopes. The two stubs are DeepPlant's connection representation of the adjacent
 # pipeline, not part of the fitting body.
 #
-# Each stub leaves through the *centre of its own end face*, as on every other
-# inline representation in this catalogue, so `port_a` sits at the centre of the
-# larger west face and `port_b` at the centre of the smaller east face. The two
-# anchors are therefore offset by half the end-size difference, which is exactly the
-# eccentricity the fitting exists to create. That offset is geometry: it encodes no
-# flow direction and no `flat_on_top`/`flat_on_bottom` state, because no
+# Both connection stubs leave on one *level connection axis*, the centre line of the
+# smaller east end face, so a process line runs straight through the fitting instead
+# of jogging at it. The larger west end face is offset by the eccentricity about that
+# axis - 18 units, exactly half the end-size difference - so the flat side stays flush
+# with the run while the larger end drops away from it. That offset is geometry: it
+# encodes no flow direction and no `flat_on_top`/`flat_on_bottom` state, because no
 # `inlet`/`outlet` name and no direction field is added to the anchors. As with seed
 # K, the canonical form is drawn horizontally with the larger end west, and a
 # document may mirror or rotate the placement; no nominal size or bore is embedded.
@@ -536,13 +536,13 @@ ECCENTRIC_REDUCER = SymbolDefinition(
     diagram_types=("pid",),
     notation_profile="deepplant-default",
     primitives=(
-        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),  # west stub, at the larger end centre
+        Line(x1=0.0, y1=32.0, x2=25.0, y2=32.0),  # west stub, on the level connection axis
         # Flat side parallel to the process axis; the whole reduction is one-sided.
         Polygon(points=((25.0, 14.0), (75.0, 14.0), (75.0, 50.0), (25.0, 86.0))),
         Line(x1=75.0, y1=32.0, x2=100.0, y2=32.0),  # east stub, at the smaller end centre
     ),
     anchors=(
-        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_a", x=0.0, y=32.0, orientation="west", kind="process"),
         SymbolAnchor(name="port_b", x=100.0, y=32.0, orientation="east", kind="process"),
     ),
     provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,

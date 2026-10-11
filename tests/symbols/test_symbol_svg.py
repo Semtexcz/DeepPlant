@@ -167,7 +167,7 @@ CONCENTRIC_REDUCER_DOCUMENT = (
 
 ECCENTRIC_REDUCER_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
-    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="25" y2="50" />'
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="32" x2="25" y2="32" />'
     '<polygon points="25,14 75,14 75,50 25,86" />'
     '<line x1="75" y1="32" x2="100" y2="32" /></svg>\n'
 )
@@ -904,15 +904,15 @@ def test_eccentric_reducer_contract() -> None:
     # One polygon whose flat side runs parallel to the process axis while the opposite
     # side carries the whole reduction, so the one-sided offset is visible (seed L).
     assert definition.primitives == (
-        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),
+        Line(x1=0.0, y1=32.0, x2=25.0, y2=32.0),
         Polygon(points=((25.0, 14.0), (75.0, 14.0), (75.0, 50.0), (25.0, 86.0))),
         Line(x1=75.0, y1=32.0, x2=100.0, y2=32.0),
     )
-    # Each stub leaves through the centre of its own end face, so the anchors are
-    # offset by exactly the eccentricity: the larger west face is 72 units tall and the
-    # smaller east face 36, giving half the difference, 18, as the offset.
+    # Both stubs leave on the same level connection axis, the centre line of the smaller
+    # east face, so the anchors are collinear and a line runs straight through; the
+    # eccentricity is the larger end's offset about that axis, not an anchor offset.
     assert [(anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors] == [
-        ("west", 0.0, 50.0),
+        ("west", 0.0, 32.0),
         ("east", 100.0, 32.0),
     ]
 
@@ -980,7 +980,7 @@ def test_the_reducer_bodies_read_as_a_tall_compact_taper() -> None:
         assert 0.0 <= east_lower < east_higher <= 100.0
 
 
-def test_each_reducer_stub_leaves_through_its_own_end_face_centre() -> None:
+def test_each_reducer_connects_on_one_level_axis_through_its_smaller_end() -> None:
     for symbol_id in ("fitting.reducer.concentric", "fitting.reducer.eccentric"):
         definition = _remaining(symbol_id)
         points = _reducer_body(symbol_id)
@@ -994,10 +994,16 @@ def test_each_reducer_stub_leaves_through_its_own_end_face_centre() -> None:
         west_stub, east_stub = stubs
         assert (west_stub.x1, west_stub.x2) == (0.0, 25.0)
         assert (east_stub.x1, east_stub.x2) == (75.0, 100.0)
-        # Each stub is horizontal and sits on the centre of its own independently
-        # authored end face.
-        assert west_stub.y1 == west_stub.y2 == (west_lower + west_higher) / 2.0
-        assert east_stub.y1 == east_stub.y2 == (east_lower + east_higher) / 2.0
+        # Both stubs are horizontal and level with each other, on the centre line of the
+        # smaller end face, so a process line runs straight through the fitting. On the
+        # two-sloping-side form both faces are centred on that axis; on the one-flat-side
+        # form the larger face is offset about it by the eccentricity.
+        assert west_stub.y1 == west_stub.y2 == east_stub.y1 == east_stub.y2
+        assert east_stub.y1 == (east_lower + east_higher) / 2.0
+        # The connection axis stays inside both end faces, so no stub meets an end corner
+        # or leaves the body outline.
+        assert west_lower < west_stub.y1 < west_higher
+        assert east_lower < east_stub.y1 < east_higher
         # Each external anchor coincides with the far end of its own stub, and the pair
         # is exactly two neutral process anchors.
         assert [(anchor.x, anchor.y) for anchor in definition.anchors] == [
@@ -1062,26 +1068,26 @@ def test_the_two_reducer_forms_share_their_connection_and_end_geometry() -> None
         Line(x1=75.0, y1=50.0, x2=100.0, y2=50.0),
     ]
 
-    # One-flat-side form: both stubs still leave through the centre of their own end
-    # face (the larger west face centre at y = 50 and the smaller east face centre at
-    # y = 32), so the anchor offset is exactly the eccentricity, half the end-size
-    # difference, and the shared west end keeps the same centre and stub as the
-    # two-sloping-side form.
+    # One-flat-side form: both stubs leave on the same level connection axis, which is
+    # the centre line of the smaller east face at y = 32, so a line runs straight
+    # through the fitting instead of jogging at it.
     assert [
         (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in eccentric.anchors
     ] == [
-        ("port_a", "west", 0.0, 50.0),
+        ("port_a", "west", 0.0, 32.0),
         ("port_b", "east", 100.0, 32.0),
     ]
     assert [item for item in eccentric.primitives if isinstance(item, Line)] == [
-        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),
+        Line(x1=0.0, y1=32.0, x2=25.0, y2=32.0),
         Line(x1=75.0, y1=32.0, x2=100.0, y2=32.0),
     ]
-    # Measured upwards (SVG `y` grows downward), the smaller end's centre sits exactly
-    # the eccentricity above the larger end's centre.
+    # The eccentricity is the body's offset about that level axis: measured downwards
+    # (SVG `y` grows downward), the larger west face centre sits exactly half the
+    # end-size difference below the connection axis, so the larger end drops away from
+    # the straight run while the flat side stays flush with it.
     west_height, east_height = 72.0, 36.0
-    eccentric_offset = eccentric.anchors[0].y - eccentric.anchors[1].y
-    assert eccentric_offset == (west_height - east_height) / 2.0 == 18.0
+    west_centre = sum(_body_face(_reducer_body(eccentric.symbol_id), 25.0)) / 2.0
+    assert west_centre - eccentric.anchors[0].y == (west_height - east_height) / 2.0 == 18.0
 
 
 # ---------------------------------------------------------------------------
