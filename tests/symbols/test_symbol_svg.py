@@ -40,10 +40,15 @@ FORBIDDEN_ATTRIBUTES = {"href", "style", "class", "font-family", "onload"}
 
 #: Every built-in graphical representation, as ``(notation_profile, symbol_id)``.
 BUILTIN_REPRESENTATIONS = (
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.concentric"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.eccentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.safety_relief.angle"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.safety_relief.straight"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.three_way"),
     (GENERIC_ISO_NOTATION_PROFILE, "instrument.local"),
     (GENERIC_ISO_NOTATION_PROFILE, "pump.centrifugal"),
     (GENERIC_ISO_NOTATION_PROFILE, "valve.gate"),
@@ -118,6 +123,83 @@ BASIC_VALVES = (
     ("valve.globe", GLOBE_VALVE_DOCUMENT),
     ("valve.check", CHECK_VALVE_DOCUMENT),
     ("valve.ball", BALL_VALVE_DOCUMENT),
+)
+
+#: Fragments that would prove a project/company tag or convention leaked into
+#: The exact #135 documents the independently authored project seed geometry
+#: produces (seeds H/L). Pinned so a contract change cannot silently alter geometry,
+#: and so each representation's real structural distinction is visible in the pinned
+#: bytes: the three-port convergence, the spring-loaded indication on both
+#: safety/relief forms, and the symmetric versus one-sided reducer taper.
+THREE_WAY_VALVE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="40" x2="24" y2="40" />'
+    '<polygon points="24,22 24,58 50,40" /><polygon points="76,22 76,58 50,40" />'
+    '<polygon points="32,74 68,74 50,40" />'
+    '<line x1="76" y1="40" x2="100" y2="40" />'
+    '<line x1="50" y1="74" x2="50" y2="100" /></svg>\n'
+)
+
+SAFETY_RELIEF_VALVE_STRAIGHT_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="60" x2="28" y2="60" />'
+    '<polygon points="28,44 28,76 50,60" /><polygon points="50,60 72,44 72,76" />'
+    '<line x1="72" y1="60" x2="100" y2="60" /><line x1="50" y1="60" x2="50" y2="16" />'
+    '<line x1="44" y1="40" x2="56" y2="32" /><line x1="44" y1="32" x2="56" y2="24" />'
+    '<line x1="44" y1="24" x2="56" y2="16" /></svg>\n'
+)
+
+SAFETY_RELIEF_VALVE_ANGLE_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="48" x2="24" y2="48" />'
+    '<polygon points="24,28 24,64 50,48" /><polygon points="32,80 68,80 50,48" />'
+    '<line x1="50" y1="80" x2="50" y2="100" /><line x1="50" y1="48" x2="50" y2="18" />'
+    '<line x1="44" y1="36" x2="56" y2="28" /><line x1="44" y1="28" x2="56" y2="20" />'
+    '<line x1="44" y1="20" x2="56" y2="12" /></svg>\n'
+)
+
+CONCENTRIC_REDUCER_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="46" x2="26" y2="46" />'
+    '<polygon points="26,30 74,38 74,54 26,62" />'
+    '<line x1="74" y1="46" x2="100" y2="46" /></svg>\n'
+)
+
+ECCENTRIC_REDUCER_DOCUMENT = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="46" x2="26" y2="46" />'
+    '<polygon points="26,46 74,46 74,62 26,78" />'
+    '<line x1="74" y1="46" x2="100" y2="46" /></svg>\n'
+)
+
+#: The reusable spring-loaded indication every safety/relief form carries, drawn on
+#: the body axis above the junction: the stem plus its three load marks. Shared
+#: verbatim by both forms, so the mark - not the body orientation - identifies the
+#: device family.
+SAFETY_RELIEF_SPRING_MARKS = (
+    Line(x1=44.0, y1=40.0, x2=56.0, y2=32.0),
+    Line(x1=44.0, y1=32.0, x2=56.0, y2=24.0),
+    Line(x1=44.0, y1=24.0, x2=56.0, y2=16.0),
+)
+
+#: The five #135 `deepplant-default` base representations, as
+#: ``(symbol_id, name, category, document)``.
+REMAINING_MVP_SYMBOLS = (
+    ("valve.three_way", "Three-way valve", "valve", THREE_WAY_VALVE_DOCUMENT),
+    (
+        "valve.safety_relief.straight",
+        "Safety/relief valve, straight",
+        "valve",
+        SAFETY_RELIEF_VALVE_STRAIGHT_DOCUMENT,
+    ),
+    (
+        "valve.safety_relief.angle",
+        "Safety/relief valve, angle",
+        "valve",
+        SAFETY_RELIEF_VALVE_ANGLE_DOCUMENT,
+    ),
+    ("fitting.reducer.concentric", "Concentric reducer", "fitting", CONCENTRIC_REDUCER_DOCUMENT),
+    ("fitting.reducer.eccentric", "Eccentric reducer", "fitting", ECCENTRIC_REDUCER_DOCUMENT),
 )
 
 #: Fragments that would prove a project/company tag or convention leaked into
@@ -567,6 +649,291 @@ def test_a_filled_circle_renders_only_the_themeable_current_colour_fill() -> Non
     # Exactly one extra attribute, and only the themeable `currentColor`: no literal
     # colour, CSS, `style`, or `class` is introduced by the capability.
     assert set(circles[0].attrib) == {"cx", "cy", "r", "fill"}
+
+
+# ---------------------------------------------------------------------------
+# The #135 remaining MVP base P&ID representations (deepplant-default)
+# ---------------------------------------------------------------------------
+
+
+def _remaining(symbol_id: str) -> SymbolDefinition:
+    """Resolve one #135 representation by its explicit identity."""
+    return SYMBOLS.get(symbol_id, notation_profile=DEEPPLANT_DEFAULT_NOTATION_PROFILE)
+
+
+@pytest.mark.parametrize(("symbol_id", "_name", "_category", "document"), REMAINING_MVP_SYMBOLS)
+def test_the_rendered_remaining_mvp_symbol_document_is_unchanged(
+    symbol_id: str, _name: str, _category: str, document: str
+) -> None:
+    assert render_symbol_svg(_remaining(symbol_id)) == document
+
+
+@pytest.mark.parametrize(("symbol_id", "name", "category", "_document"), REMAINING_MVP_SYMBOLS)
+def test_remaining_mvp_symbol_identity_contract(
+    symbol_id: str, name: str, category: str, _document: str
+) -> None:
+    definition = _remaining(symbol_id)
+
+    assert definition.name == name
+    assert definition.category == category
+    assert definition.diagram_types == ("pid",)
+    assert definition.notation_profile == DEEPPLANT_DEFAULT_NOTATION_PROFILE
+    # `deepplant-default` makes no conformance claim, so no standards relationship is
+    # recorded and none is invented to populate the field (ADR-0007). A14 and A16
+    # record none even though the coverage matrix names a concept-level ISO reference
+    # direction for them: that direction is not a correspondence for this geometry,
+    # and a relief set pressure is authored document data (D04), never base geometry.
+    assert definition.standards == ()
+    assert definition.provenance == AssetProvenance(
+        origin="deepplant-original", license="AGPL-3.0-only"
+    )
+
+
+@pytest.mark.parametrize(("symbol_id", "_name", "_category", "_document"), REMAINING_MVP_SYMBOLS)
+def test_remaining_mvp_symbols_use_neutral_process_anchors(
+    symbol_id: str, _name: str, _category: str, _document: str
+) -> None:
+    definition = _remaining(symbol_id)
+
+    # Every port is a neutral graphical connection point, so neither a bent body, a
+    # third port, nor an asymmetric reducer offset silently becomes process-flow
+    # semantics: no `inlet`/`outlet`/`common`/`upstream`/`downstream` name is encoded
+    # and no flow-direction field exists on the anchor.
+    assert {anchor.name for anchor in definition.anchors}.isdisjoint(
+        {"inlet", "outlet", "common", "upstream", "downstream"}
+    )
+    assert all(anchor.kind == "process" for anchor in definition.anchors)
+    assert all(anchor.orientation for anchor in definition.anchors)
+    assert "flow_direction" not in {
+        field.name for field in dataclasses.fields(definition.anchors[0])
+    }
+
+
+def test_no_variant_selector_was_added_to_the_definition_model() -> None:
+    # A14 and A16 are each one Core requirement whose reviewed notation has two forms.
+    # #135 models each form as its own definition, so the definition model gains no
+    # `variant`, `selector`, `style`, or `option` field and no variant framework: the
+    # forms are distinguished by their real geometry.
+    assert {field.name for field in dataclasses.fields(SymbolDefinition)} == {
+        "symbol_id",
+        "name",
+        "category",
+        "diagram_types",
+        "notation_profile",
+        "primitives",
+        "anchors",
+        "provenance",
+        "standards",
+        "view_box",
+    }
+
+
+def test_the_remaining_mvp_symbols_add_no_new_primitive_capability() -> None:
+    # #135 needed no renderer, primitive, or styling expansion: every new body, taper,
+    # and spring mark is an existing `Line` or `Polygon`.
+    for symbol_id, _name, _category, _document in REMAINING_MVP_SYMBOLS:
+        definition = _remaining(symbol_id)
+
+        assert all(isinstance(item, Line | Polygon) for item in definition.primitives), symbol_id
+
+
+def test_three_way_valve_contract() -> None:
+    definition = _remaining("valve.three_way")
+
+    assert definition.name == "Three-way valve"
+    # Three triangular body halves meeting at one junction point, so the third
+    # connection is real body geometry and not a mark painted on a two-port bowtie
+    # (seed H). The three stubs are DeepPlant's connection representation of the
+    # adjacent pipeline.
+    assert definition.primitives == (
+        Line(x1=0.0, y1=40.0, x2=24.0, y2=40.0),
+        Polygon(points=((24.0, 22.0), (24.0, 58.0), (50.0, 40.0))),
+        Polygon(points=((76.0, 22.0), (76.0, 58.0), (50.0, 40.0))),
+        Polygon(points=((32.0, 74.0), (68.0, 74.0), (50.0, 40.0))),
+        Line(x1=76.0, y1=40.0, x2=100.0, y2=40.0),
+        Line(x1=50.0, y1=74.0, x2=50.0, y2=100.0),
+    )
+
+
+def test_the_three_way_valve_bodies_meet_at_one_junction() -> None:
+    definition = _remaining("valve.three_way")
+    bodies = [item for item in definition.primitives if isinstance(item, Polygon)]
+
+    # Exactly three bodies sharing exactly one point is what makes this a three-port
+    # body; no body overlaps another and none is a mark on a completed glyph.
+    assert len(bodies) == 3
+    for body in bodies:
+        assert (50.0, 40.0) in body.points
+
+
+def test_the_three_way_valve_exposes_three_neutral_process_ports() -> None:
+    definition = _remaining("valve.three_way")
+
+    # One port per body, named neutrally: which path is open is a document or
+    # operating state, not a graphical property of the reusable base representation.
+    assert [
+        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
+        for anchor in definition.anchors
+    ] == [
+        ("port_a", "west", "process", 0.0, 40.0),
+        ("port_b", "east", "process", 100.0, 40.0),
+        ("port_c", "south", "process", 50.0, 100.0),
+    ]
+
+
+def test_straight_safety_relief_valve_contract() -> None:
+    definition = _remaining("valve.safety_relief.straight")
+
+    # Straight form: both process connections stay on one axis, and the spring-loaded
+    # indication sits on the body's perpendicular stem (seed I).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=60.0, x2=28.0, y2=60.0),
+        Polygon(points=((28.0, 44.0), (28.0, 76.0), (50.0, 60.0))),
+        Polygon(points=((50.0, 60.0), (72.0, 44.0), (72.0, 76.0))),
+        Line(x1=72.0, y1=60.0, x2=100.0, y2=60.0),
+        Line(x1=50.0, y1=60.0, x2=50.0, y2=16.0),
+        Line(x1=44.0, y1=40.0, x2=56.0, y2=32.0),
+        Line(x1=44.0, y1=32.0, x2=56.0, y2=24.0),
+        Line(x1=44.0, y1=24.0, x2=56.0, y2=16.0),
+    )
+    assert [(anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors] == [
+        ("west", 0.0, 60.0),
+        ("east", 100.0, 60.0),
+    ]
+
+
+def test_angle_safety_relief_valve_contract() -> None:
+    definition = _remaining("valve.safety_relief.angle")
+
+    # Angle form: the second process connection leaves the body orthogonally instead
+    # of continuing the axis, and the spring indication is drawn on the junction so it
+    # reads as the valve's stem and load (seed J). This is a real connection-topology
+    # difference, not a rotated straight form.
+    assert definition.primitives == (
+        Line(x1=0.0, y1=48.0, x2=24.0, y2=48.0),
+        Polygon(points=((24.0, 28.0), (24.0, 64.0), (50.0, 48.0))),
+        Polygon(points=((32.0, 80.0), (68.0, 80.0), (50.0, 48.0))),
+        Line(x1=50.0, y1=80.0, x2=50.0, y2=100.0),
+        Line(x1=50.0, y1=48.0, x2=50.0, y2=18.0),
+        Line(x1=44.0, y1=36.0, x2=56.0, y2=28.0),
+        Line(x1=44.0, y1=28.0, x2=56.0, y2=20.0),
+        Line(x1=44.0, y1=20.0, x2=56.0, y2=12.0),
+    )
+    assert [(anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors] == [
+        ("west", 0.0, 48.0),
+        ("south", 50.0, 100.0),
+    ]
+
+
+def test_the_safety_relief_forms_share_the_spring_indication_but_not_the_topology() -> None:
+    straight = _remaining("valve.safety_relief.straight")
+    angle = _remaining("valve.safety_relief.angle")
+
+    # A14 is one Core requirement with two reviewed forms, so the pair is two
+    # independent definitions: different ids, different names, and a genuinely
+    # different second connection (collinear east versus orthogonal south). The angle
+    # form therefore cannot be a rotation of the straight form.
+    assert straight.symbol_id != angle.symbol_id
+    assert straight.name != angle.name
+    assert {(anchor.x, anchor.y) for anchor in straight.anchors} == {(0.0, 60.0), (100.0, 60.0)}
+    assert {(anchor.x, anchor.y) for anchor in angle.anchors} == {(0.0, 48.0), (50.0, 100.0)}
+
+    # The reusable device mark is the same on both forms: a stem on the body junction
+    # plus three parallel load marks crossing it. The mark is what identifies a
+    # safety/relief valve, so no set pressure, tag, or annotation carries it.
+    for definition in (straight, angle):
+        lines = [item for item in definition.primitives if isinstance(item, Line)]
+        marks = [line for line in lines if line.x1 != line.x2 and line.y1 != line.y2]
+
+        assert len(marks) == 3
+        assert all(line.x2 - line.x1 == 12.0 for line in marks)
+        assert all(line.y1 - line.y2 == 8.0 for line in marks)
+        # Evenly spaced load marks, crossing a stem that starts at the body junction.
+        assert [line.y1 for line in marks] == [
+            marks[0].y1 - 8.0 * index for index in range(len(marks))
+        ]
+        assert any(line.x1 == line.x2 == 50.0 and line.y1 in {60.0, 48.0} for line in lines)
+
+
+def test_concentric_reducer_contract() -> None:
+    definition = _remaining("fitting.reducer.concentric")
+
+    assert definition.name == "Concentric reducer"
+    assert definition.category == "fitting"
+    # One polygon tapering symmetrically about the process axis, so both connection
+    # faces stay centred on the same axis (seed K).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
+        Polygon(points=((26.0, 30.0), (74.0, 38.0), (74.0, 54.0), (26.0, 62.0))),
+        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+    )
+
+
+def test_eccentric_reducer_contract() -> None:
+    definition = _remaining("fitting.reducer.eccentric")
+
+    assert definition.name == "Eccentric reducer"
+    assert definition.category == "fitting"
+    # One polygon whose flat side lies on the process axis while the opposite side
+    # carries the whole reduction, so the eccentric offset is visible (seed L).
+    assert definition.primitives == (
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
+        Polygon(points=((26.0, 46.0), (74.0, 46.0), (74.0, 62.0), (26.0, 78.0))),
+        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+    )
+
+
+def test_the_two_reducer_forms_are_distinguished_by_symmetry_not_by_rotation() -> None:
+    concentric = _remaining("fitting.reducer.concentric")
+    eccentric = _remaining("fitting.reducer.eccentric")
+    axis_y = 46.0
+
+    bodies: dict[str, Polygon] = {}
+    for definition in (concentric, eccentric):
+        polygons = [item for item in definition.primitives if isinstance(item, Polygon)]
+
+        assert len(polygons) == 1, definition.symbol_id
+        bodies[definition.symbol_id] = polygons[0]
+
+    # Concentric: every end offset is mirrored about the process axis.
+    for x, y in bodies[concentric.symbol_id].points:
+        assert (x, 2.0 * axis_y - y) in bodies[concentric.symbol_id].points
+
+    # Eccentric: one straight edge is collinear with the process axis and the whole
+    # reduction is one-sided, so the form is not symmetric about that axis. A rotated
+    # concentric reducer would still be symmetric, so this cannot be a rotation.
+    eccentric_points = bodies[eccentric.symbol_id].points
+    assert (26.0, axis_y) in eccentric_points
+    assert (74.0, axis_y) in eccentric_points
+    assert any((x, 2.0 * axis_y - y) not in eccentric_points for x, y in eccentric_points)
+
+
+def test_the_two_reducer_forms_share_their_connection_and_end_geometry() -> None:
+    concentric = _remaining("fitting.reducer.concentric")
+    eccentric = _remaining("fitting.reducer.eccentric")
+
+    # The forms differ only in eccentricity: same neutral anchors, same connection
+    # stubs, same end-face planes, and the same end sizes (32 units west, 16 units
+    # east). No nominal size, bore, or `DN` value is embedded in either.
+    for definition in (concentric, eccentric):
+        assert [
+            (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors
+        ] == [
+            ("port_a", "west", 0.0, 46.0),
+            ("port_b", "east", 100.0, 46.0),
+        ]
+        assert [item for item in definition.primitives if isinstance(item, Line)] == [
+            Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
+            Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+        ]
+
+        body = next(item for item in definition.primitives if isinstance(item, Polygon))
+        west_face = sorted(y for x, y in body.points if x == 26.0)
+        east_face = sorted(y for x, y in body.points if x == 74.0)
+
+        assert len(west_face) == 2 and len(east_face) == 2
+        assert west_face[-1] - west_face[0] == 32.0
+        assert east_face[-1] - east_face[0] == 16.0
 
 
 # ---------------------------------------------------------------------------

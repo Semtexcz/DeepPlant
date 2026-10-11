@@ -1,7 +1,7 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130/#132).
+"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130/#132/#135).
 
 The catalogue intentionally spans two notation profiles. The first Issue #119
 slice implements three representative ``generic-iso`` representations: a
@@ -21,6 +21,18 @@ outer body, so each is authored separately from its own review. Building them
 also established that a solid variant mark cannot be expressed by a stroked
 outline, which is why :class:`~deepplant.symbols.definition.Circle` gained one
 boolean ``filled`` capability rather than a styling system.
+
+Issue #135 completes the five remaining MVP base P&ID representations in the same
+profile: the three-port valve body (``valve.three_way``), the two safety/relief
+variants (``valve.safety_relief.straight``, ``valve.safety_relief.angle``), and the
+two reducer variants (``fitting.reducer.concentric``,
+``fitting.reducer.eccentric``). A14 and A16 are each one Core requirement whose
+reviewed notation has two forms, so each form is its own definition rather than one
+definition with a variant switch: nothing in this slice needs a variant framework,
+and no :class:`~deepplant.symbols.definition.SymbolDefinition` gains a selector,
+variant, style, or option field. #135 also reuses the existing primitive vocabulary
+unchanged - every new body, taper, and spring mark is an existing ``Line`` or
+``Polygon``.
 
 Geometry provenance
 ------------------
@@ -46,8 +58,9 @@ The three ``generic-iso`` definitions record the ISO document their geometry is
 *intended* to correspond to, at the canonical ``candidate-alignment`` state,
 because the geometry is DeepPlant-original, the project intends it to correspond
 to that ISO family, and no human has yet compared it against an authorized copy.
-The four ``deepplant-default`` definitions (the restriction orifice and the three
-#132 basic valves) record no standards relationship at all (``standards=()``):
+The nine ``deepplant-default`` definitions (the restriction orifice, the three
+#132 basic valves, and the five #135 base representations) record no standards
+relationship at all (``standards=()``):
 ``deepplant-default`` makes no ISO/ISA/PIP conformance claim, so it requires none,
 and none is invented merely to populate the field (ADR-0007). The coverage matrix
 may still record a concept-level ISO reference *direction* for a `deepplant-default`
@@ -337,6 +350,197 @@ RESTRICTION_ORIFICE = SymbolDefinition(
     standards=(),
 )
 
+# DeepPlant-authored project seed geometry for the three-way valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed H): three triangular body
+# halves meet at one junction point, so this is a *three-port* valve body and not
+# the two-port bowtie reused unchanged. A west body and an east body lie on the
+# process axis, and a third body leaves that axis orthogonally to the south. The
+# three stubs are DeepPlant's connection representation of the adjacent pipeline
+# (a presentation choice, not part of the valve body).
+#
+# Deliberately absent: any stem, handwheel, lever, or actuator, any flow arrow or
+# selected-path mark, any tag or line number, and any annotation. The glyph states
+# nothing about which path is open: path selection is a document or operating
+# state, not a graphical property of the reusable base representation.
+# `port_a`/`port_b`/`port_c` are neutral graphical connection ports whose
+# orientations are routing geometry only, so no `inlet`, `outlet`, `common`, or
+# flow-direction semantics is encoded.
+THREE_WAY_VALVE = SymbolDefinition(
+    symbol_id="valve.three_way",
+    name="Three-way valve",
+    category="valve",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=40.0, x2=24.0, y2=40.0),  # west process connection stub
+        Polygon(points=((24.0, 22.0), (24.0, 58.0), (50.0, 40.0))),  # west body
+        Polygon(points=((76.0, 22.0), (76.0, 58.0), (50.0, 40.0))),  # east body
+        Polygon(points=((32.0, 74.0), (68.0, 74.0), (50.0, 40.0))),  # south body
+        Line(x1=76.0, y1=40.0, x2=100.0, y2=40.0),  # east process connection stub
+        Line(x1=50.0, y1=74.0, x2=50.0, y2=100.0),  # south process connection stub
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=40.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=40.0, orientation="east", kind="process"),
+        SymbolAnchor(name="port_c", x=50.0, y=100.0, orientation="south", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    # No standards relationship, for the same reason as seeds E/F/G: the profile
+    # makes no ISO/ISA/PIP conformance claim, so none is recorded and none is
+    # invented to populate the field (ADR-0007).
+    standards=(),
+)
+
+# DeepPlant-authored project seed geometry for the straight safety/relief valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed I): the reusable safety/relief
+# glyph is a two-port valve body carrying a *spring-loaded indication*, so the
+# intrinsic body mark - not a tag, letter code, or annotation - is what makes the
+# device recognizable as a safety/relief valve. The two horizontal stubs are
+# DeepPlant's connection representation of the adjacent pipeline (a presentation
+# choice, not part of the valve body).
+#
+# This is the straight form: both process connections stay on one axis, and the
+# spring-loaded indication sits on the body's perpendicular stem. It and the angle
+# form (seed J) are two independent definitions of one Core requirement (A14)
+# rather than one definition with a variant selector, because they differ in real
+# connection topology and not merely in presentation.
+#
+# Deliberately absent: any discharge or flow-direction arrow, any set-pressure
+# value, tag, or annotation. Set pressure is authored document data (D04) and is
+# never embedded in reusable base geometry. `port_a`/`port_b` stay the neutral
+# two-port pair, so the spring mark is a recognizability mark and not a
+# flow-direction contract.
+SAFETY_RELIEF_VALVE_STRAIGHT = SymbolDefinition(
+    symbol_id="valve.safety_relief.straight",
+    name="Safety/relief valve, straight",
+    category="valve",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=60.0, x2=28.0, y2=60.0),  # west process connection stub
+        Polygon(points=((28.0, 44.0), (28.0, 76.0), (50.0, 60.0))),  # west body
+        Polygon(points=((50.0, 60.0), (72.0, 44.0), (72.0, 76.0))),  # east body
+        Line(x1=72.0, y1=60.0, x2=100.0, y2=60.0),  # east process connection stub
+        # Spring-loaded indication: a stem on the body axis and its load marks.
+        Line(x1=50.0, y1=60.0, x2=50.0, y2=16.0),
+        Line(x1=44.0, y1=40.0, x2=56.0, y2=32.0),
+        Line(x1=44.0, y1=32.0, x2=56.0, y2=24.0),
+        Line(x1=44.0, y1=24.0, x2=56.0, y2=16.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=60.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=60.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(),
+)
+
+# DeepPlant-authored project seed geometry for the angle safety/relief valve
+# (docs/dev/reference/symbol-seed-geometry.md, seed J): the same reusable
+# safety/relief form as seed I - a valve body plus the spring-loaded indication -
+# but with the second process connection leaving the body orthogonally instead of
+# continuing the axis. The two stubs are DeepPlant's connection representation of
+# the adjacent pipeline, not part of the valve body.
+#
+# The spring-loaded indication is drawn here on the body axis, above the junction,
+# so it reads as the valve's stem and load rather than as an actuator or as a line
+# treatment on the process line.
+#
+# Deliberately absent: any discharge or flow-direction arrow, any set-pressure
+# value, tag, or annotation. The bent body is a real connection-topology difference
+# and not a rotated straight form, so `port_b` is a south process anchor; both
+# anchor names stay neutral and no flow direction is encoded.
+SAFETY_RELIEF_VALVE_ANGLE = SymbolDefinition(
+    symbol_id="valve.safety_relief.angle",
+    name="Safety/relief valve, angle",
+    category="valve",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=48.0, x2=24.0, y2=48.0),  # west process connection stub
+        Polygon(points=((24.0, 28.0), (24.0, 64.0), (50.0, 48.0))),  # west body
+        Polygon(points=((32.0, 80.0), (68.0, 80.0), (50.0, 48.0))),  # south body
+        Line(x1=50.0, y1=80.0, x2=50.0, y2=100.0),  # south process connection stub
+        # Spring-loaded indication: a stem on the body axis and its load marks.
+        Line(x1=50.0, y1=48.0, x2=50.0, y2=18.0),
+        Line(x1=44.0, y1=36.0, x2=56.0, y2=28.0),
+        Line(x1=44.0, y1=28.0, x2=56.0, y2=20.0),
+        Line(x1=44.0, y1=20.0, x2=56.0, y2=12.0),
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=48.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=50.0, y=100.0, orientation="south", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(),
+)
+
+# DeepPlant-authored project seed geometry for the concentric reducer
+# (docs/dev/reference/symbol-seed-geometry.md, seed K): one polygon tapers
+# symmetrically about the process axis from the larger west end to the smaller east
+# end, so the two connection faces stay centred on the same axis. The two stubs are
+# DeepPlant's connection representation of the adjacent pipeline, not part of the
+# fitting body.
+#
+# The canonical normalized form is DeepPlant-authored and drawn horizontally
+# (`port_a` west, `port_b` east) with the taper running west to east; a document that
+# draws the fitting the other way round, or on a vertical process line, rotates or
+# mirrors the placement, which is presentation and not this geometry. No nominal
+# size, bore, or `DN` value is embedded.
+CONCENTRIC_REDUCER = SymbolDefinition(
+    symbol_id="fitting.reducer.concentric",
+    name="Concentric reducer",
+    category="fitting",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),  # west process connection stub
+        # Symmetric taper: equal end offsets on both sides of the process axis.
+        Polygon(points=((26.0, 30.0), (74.0, 38.0), (74.0, 54.0), (26.0, 62.0))),
+        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),  # east process connection stub
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=46.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=46.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(),
+)
+
+# DeepPlant-authored project seed geometry for the eccentric reducer
+# (docs/dev/reference/symbol-seed-geometry.md, seed L): the same end sizes and the
+# same taper as the concentric form, but the taper is deliberately one-sided. One
+# side is a straight edge collinear with the process axis, so the offset - the whole
+# point of an eccentric reducer - is visible, while the other side carries the whole
+# reduction. The two stubs are DeepPlant's connection representation of the adjacent
+# pipeline, not part of the fitting body.
+#
+# The flat side is drawn on the process axis, which is the conventional way the
+# fitting is placed on a line, so both `port_a` and `port_b` remain collinear and
+# connectable. The graphical offset is a recognizability mark and not a semantic
+# direction: no `flat_on_top`/`flat_on_bottom` field, and no inlet/outlet name, is
+# added to the anchors. As with seed K, the canonical form is drawn horizontally and
+# a document may mirror or rotate the placement; no nominal size or bore is embedded.
+ECCENTRIC_REDUCER = SymbolDefinition(
+    symbol_id="fitting.reducer.eccentric",
+    name="Eccentric reducer",
+    category="fitting",
+    diagram_types=("pid",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),  # west process connection stub
+        # One-sided taper: the flat side stays on the process axis.
+        Polygon(points=((26.0, 46.0), (74.0, 46.0), (74.0, 62.0), (26.0, 78.0))),
+        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),  # east process connection stub
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=46.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=46.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(),
+)
+
 #: The definitions the built-in catalogue currently exposes, across both notation
 #: profiles. The registry orders them by ``(notation_profile, symbol_id)``, so the
 #: declaration order here does not affect lookup.
@@ -345,6 +549,11 @@ IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     GLOBE_VALVE,
     CHECK_VALVE,
     BALL_VALVE,
+    THREE_WAY_VALVE,
+    SAFETY_RELIEF_VALVE_STRAIGHT,
+    SAFETY_RELIEF_VALVE_ANGLE,
+    CONCENTRIC_REDUCER,
+    ECCENTRIC_REDUCER,
     PUMP_CENTRIFUGAL,
     INSTRUMENT_LOCAL,
     RESTRICTION_ORIFICE,

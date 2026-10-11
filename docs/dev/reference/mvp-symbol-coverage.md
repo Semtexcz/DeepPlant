@@ -80,10 +80,15 @@ identity is still undecided. Under that derivation the Core is:
 capability-specific implementation state
   base graphical requirements   17 families
     stable identities resolved  13
-      implemented                7   (valve.gate, pump.centrifugal, instrument.local,
+      implemented               10   concepts (12 SymbolDefinitions)
+                                     (valve.gate, pump.centrifugal, instrument.local,
                                       fitting.restriction_orifice, valve.globe,
-                                      valve.check, valve.ball)
-      resolved but missing       6
+                                      valve.check, valve.ball, valve.three_way,
+                                      valve.safety_relief.straight,
+                                      valve.safety_relief.angle,
+                                      fitting.reducer.concentric,
+                                      fitting.reducer.eccentric)
+      resolved but missing       3
     identity / granularity unresolved  4
   composed        0 implemented / 5 missing
   connections     1 implemented / 1 partial / 4 missing
@@ -93,7 +98,7 @@ capability-specific implementation state
                                   connection is representation-design question G10)
 ```
 
-Arithmetic: `17 = 13 + 4`; `13 = 7 + 6`; `6 = 1 + 1 + 4`; `11 = 1 + 1 + 9`;
+Arithmetic: `17 = 13 + 4`; `13 = 10 + 3`; `6 = 1 + 1 + 4`; `11 = 1 + 1 + 9`;
 `40 = 17 + 5 + 6 + 11 + 1`.
 
 Three earlier summaries are withdrawn. "28 Core entries / 3 implemented / 25
@@ -185,16 +190,21 @@ standards relationship     separate evidence axis, never a profile
 
 The three legacy representations — `valve.gate`, `pump.centrifugal`,
 `instrument.local` — are `generic-iso` because #125 did not migrate them. The
-`deepplant-default` profile now holds four built-in representations: the
-restriction orifice (A15, Issue #130) and the three basic P&ID valves (A09, A10,
-A11, Issue #132). `generic-iso` is **not** the automatic future MVP
+`deepplant-default` profile now holds nine built-in representations: the
+restriction orifice (A15, Issue #130), the three basic P&ID valves (A09, A10, A11,
+Issue #132), and the five remaining base P&ID representations (A12, A14, A16, Issue
+#135 — two valves and two reducers, so A14 and A16 each contribute two
+definitions). `generic-iso` is **not** the automatic future MVP
 target notation for every new Core concept:
 
 ```text
 Current profile          the profile an actually-implemented representation carries today
                          (`generic-iso` for the three legacy definitions and
                          `deepplant-default` for `fitting.restriction_orifice`,
-                         `valve.globe`, `valve.check` and `valve.ball`; `—` for a Core
+                         `valve.globe`, `valve.check`, `valve.ball`,
+                         `valve.three_way`, `valve.safety_relief.straight`,
+                         `valve.safety_relief.angle`, `fitting.reducer.concentric`
+                         and `fitting.reducer.eccentric`; `—` for a Core
                          concept whose representation does not exist yet, and for a
                          capability that cannot carry a notation profile at all)
 Target MVP notation      the intended notation direction for the required representation
@@ -367,10 +377,10 @@ requirement from the selected MVP reference content, and the identifiers match t
 | A09 | Globe valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.globe`); DeepPlant-authored project seed geometry (two-triangle body with a **solid** central-disc variant mark), with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
 | A10 | Check valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.check`); DeepPlant-authored project seed geometry (rectangular body with a corner-to-corner closing stroke and a **solid** hinge mark) whose asymmetry is a recognizability mark only, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
 | A11 | Ball valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.ball`); DeepPlant-authored project seed geometry (a large **hollow** central body circle with side geometry terminating at its circumference and a clean interior), with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (the representation records no standards relationship; the ISO column is concept-level reference direction only) |
-| A12 | Three-way valve | pid | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; three-port valve body | missing base SymbolDefinition |
-| A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; valve body with a spring-loaded indication | missing base SymbolDefinition |
+| A12 | Three-way valve | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | — | — | **implemented** (`valve.three_way`); DeepPlant-authored project seed geometry (three triangular body halves meeting at one junction point, so the third connection is real body geometry rather than a mark on a two-port body), with neutral `port_a` / `port_b` / `port_c` process anchors that embed no flow or path-selection semantics | — (no standards relationship is recorded, and `—` is the absence of a recorded relationship, not a verification state) |
+| A14 | Safety / relief valve (spring-loaded indication) | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`valve.safety_relief.straight` and `valve.safety_relief.angle`); DeepPlant-authored project seed geometry (a valve body plus a spring-loaded indication), with neutral `port_a` / `port_b` process anchors. The two forms differ in real connection topology (collinear versus orthogonal), so each form is its own definition and not a variant selector; no set-pressure value is embedded, because that is authored document data (D04) | — (the representations record no standards relationship; the ISO column is concept-level reference direction only) |
 | A15 | Restriction orifice | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | — | — | **implemented** (`fitting.restriction_orifice`); DeepPlant-authored practical representation (two continuous outer transverse strokes framing a centred split restriction stroke, with no circle), with neutral `port_a` / `port_b` process anchors that embed no flow semantics; no tag or bore annotation is embedded | — (no standards relationship is recorded, and `—` is the absence of a recorded relationship, not a verification state) |
-| A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | — | `deepplant-default` target | ISO 10628-2:2012 | `reference` | missing; inline fitting on the piping axis | missing base SymbolDefinition |
+| A16 | Reducer (concentric / eccentric) | pid | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`fitting.reducer.concentric` and `fitting.reducer.eccentric`); DeepPlant-authored project seed geometry (one tapering polygon — symmetric about the process axis versus one-sided with a flat side on it), with collinear neutral `port_a` / `port_b` process anchors. The forms are distinguished by symmetry, since a rotated concentric reducer stays symmetric, and no nominal size is embedded | — (the representations record no standards relationship; the ISO column is concept-level reference direction only) |
 | A17 | Instrument base graphic, field-mounted | pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` candidate — standards-specific composition unresolved (#124) | ISO 15519-2:2015 | `candidate-alignment` | **implemented** (`instrument.local`); DeepPlant-authored project seed geometry, with no function letters, tag, or mandatory signal anchor embedded | — (profile composition unresolved, #124) |
 | A18 | Measurement sensor / primary element (inline on the process) (requirement family) | pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | ISO 15519-2:2015 (measurement symbols) | `reference` | missing; a small measurement graphic, and one reusable identity vs one graphic per measured variable is not decided (G4) | representation identity unresolved — design decision required before SymbolDefinition implementation |
 
@@ -509,22 +519,29 @@ data, and base-symbol geometry must not embed them.
 | `valve.globe` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
 | `valve.check` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
 | `valve.ball` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `valve.three_way` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process; `port_c` → south, process |
+| `valve.safety_relief.straight` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `valve.safety_relief.angle` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → south, process |
+| `fitting.reducer.concentric` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `fitting.reducer.eccentric` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
 
 Everything else is reported per capability in
 [MVP Core coverage](#mvp-core-coverage): each Core entry records its own support
 state and gap type, and no identity-unresolved requirement family is counted as an
 exact missing `SymbolDefinition`. See also the
 [evidence document](../research/mvp-symbol-core-selection.md). No concept outside
-these seven is implemented, and no standards relationship is `human-verified`. All
-seven geometries are DeepPlant-authored project seed geometry
+these twelve definitions is implemented, and no standards relationship is
+`human-verified`. All
+twelve geometries are DeepPlant-authored project seed geometry
 ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not derived from a standard's
 artwork or from a company drawing. The three `generic-iso` representations are
 recorded at `candidate-alignment` because the project intends them to correspond to
 the named ISO family, with no human check claimed: because `generic-iso` *means*
 that intended correspondence, a definition in that profile must record at least one
 relationship at `candidate-alignment` or `human-verified`, and a bare `reference`
-cannot carry the profile. The four `deepplant-default` representations — the
-restriction orifice (A15) and globe, check, and ball valves (A09/A10/A11) — record
+cannot carry the profile. The nine `deepplant-default` representations — the
+restriction orifice (A15), the globe, check, and ball valves (A09/A10/A11) and the
+three-way valve, the two safety/relief forms and the two reducers (A12/A14/A16) — record
 **no** standards relationship at all: `deepplant-default` makes no ISO/ISA/PIP
 conformance claim, so none is required and none is invented
 ([symbol-library.md](symbol-library.md)).
