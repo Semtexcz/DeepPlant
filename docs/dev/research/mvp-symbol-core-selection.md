@@ -543,16 +543,21 @@ here, and the preserved boundaries are `ProcessStep != Equipment`,
 
 ## Representation-design questions (12, tracked outside the Core)
 
-Recorded rather than decided. None of them authorizes a new identity.
+Recorded rather than decided, except where a later operator decision answered one;
+none of them authorizes a new identity. Ten stay open (G1, G2, G4, G5, G7, G8, G9,
+G10, G11, G12), and **G3 and G6 are resolved** by the operator decision recorded in
+[Issue #135](https://github.com/Semtexcz/DeepPlant/issues/135). They stay in the
+table as resolved decision records — the list remains 12 — so the resolution replaces
+the open question rather than removing its context.
 
 | # | Question | Raised by |
 |---|---|---|
 | G1 | One cross-context representation per equipment concept, or context-specific forms? Four base concepts are required in both the PFD and the P&ID (filter A01, pump A06, heat-transfer equipment A03, vessel / tank / drum A07), and the composed control-valve requirement (B01) is required in both contexts too; only `pump.centrifugal` (A06) currently establishes that one representation can be available in both contexts, so the filter, heat-transfer-equipment and vessel / tank / drum identities stay unresolved | Selected PFD and P&ID content |
 | G2 | Does the A07 family need one reusable identity, or separate vessel / tank / drum / column identities (the selected PFD draws a column / tower item)? | MVP PFD reference A |
-| G3 | Are both concentric and eccentric reducer forms required (A16)? | MVP P&ID reference B |
+| G3 | **Resolved — both forms are required.** Are both concentric and eccentric reducer forms required (A16)? Yes: both are required, so each is its own concrete `deepplant-default` representation (`fitting.reducer.concentric`, `fitting.reducer.eccentric`) rather than one chosen MVP variant. A16 stays **one** Core requirement family. Operator decision, [Issue #135](https://github.com/Semtexcz/DeepPlant/issues/135) | MVP P&ID reference B |
 | G4 | One reusable measurement-sensor representation, or one graphic per measured variable (A18)? | MVP P&ID references A and B |
 | G5 | Which actuator graphics does the selected content require (diaphragm, cylinder, motor, solenoid, manual, positioner)? | MVP P&ID references A and B; legend B |
-| G6 | Straight or angle relief-valve forms, and where the set pressure is carried (A14, D04)? | MVP P&ID reference B |
+| G6 | **Resolved — both forms are required, and the set pressure stays D04.** Straight or angle relief-valve forms, and where the set pressure is carried (A14, D04)? Both the straight and the angle form are required, so each is its own concrete `deepplant-default` representation (`valve.safety_relief.straight`, `valve.safety_relief.angle`), because the two differ in real connection topology rather than in presentation; the relief set pressure is not embedded in the glyph and remains D04 authored annotation. A14 stays **one** Core requirement family. Operator decision, [Issue #135](https://github.com/Semtexcz/DeepPlant/issues/135) | MVP P&ID reference B |
 | G7 | Does the MVP need automatic stream-table rendering, or only the authored data (D02)? The selected PFD draws a property table; the information is preserved without it | MVP PFD reference A |
 | G8 | Does line treatment need graphical decoration, or only the authored property (C07)? | MVP P&ID reference A |
 | G9 | Is the selected *legend* vocabulary itself MVP-required, widening the Core by the not-required list above? | Recorded scope question |
