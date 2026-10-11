@@ -168,8 +168,8 @@ CONCENTRIC_REDUCER_DOCUMENT = (
 ECCENTRIC_REDUCER_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="46" x2="26" y2="46" />'
-    '<polygon points="26,46 74,46 74,62 26,78" />'
-    '<line x1="74" y1="46" x2="100" y2="46" /></svg>\n'
+    '<polygon points="26,30 74,30 74,46 26,62" />'
+    '<line x1="74" y1="38" x2="100" y2="38" /></svg>\n'
 )
 
 #: The reusable spring-loaded indication every safety/relief form carries, drawn on
@@ -874,13 +874,20 @@ def test_eccentric_reducer_contract() -> None:
 
     assert definition.name == "Eccentric reducer"
     assert definition.category == "fitting"
-    # One polygon whose flat side lies on the process axis while the opposite side
-    # carries the whole reduction, so the eccentric offset is visible (seed L).
+    # One polygon whose flat side runs parallel to the process axis while the opposite
+    # side carries the whole reduction, so the eccentric offset is visible (seed L).
     assert definition.primitives == (
         Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
-        Polygon(points=((26.0, 46.0), (74.0, 46.0), (74.0, 62.0), (26.0, 78.0))),
-        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+        Polygon(points=((26.0, 30.0), (74.0, 30.0), (74.0, 46.0), (26.0, 62.0))),
+        Line(x1=74.0, y1=38.0, x2=100.0, y2=38.0),
     )
+    # Each stub leaves through the centre of its own end face, so the anchors are
+    # offset by exactly the eccentricity: the larger west face is 32 units tall and the
+    # smaller east face 16, giving half the difference, 8, as the offset.
+    assert [(anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors] == [
+        ("west", 0.0, 46.0),
+        ("east", 100.0, 38.0),
+    ]
 
 
 def test_the_two_reducer_forms_are_distinguished_by_symmetry_not_by_rotation() -> None:
@@ -899,12 +906,13 @@ def test_the_two_reducer_forms_are_distinguished_by_symmetry_not_by_rotation() -
     for x, y in bodies[concentric.symbol_id].points:
         assert (x, 2.0 * axis_y - y) in bodies[concentric.symbol_id].points
 
-    # Eccentric: one straight edge is collinear with the process axis and the whole
-    # reduction is one-sided, so the form is not symmetric about that axis. A rotated
-    # concentric reducer would still be symmetric, so this cannot be a rotation.
+    # Eccentric: the flat side is a straight edge parallel to the process axis at one
+    # end size, and the whole reduction is one-sided, so the form is not symmetric
+    # about that axis. A rotated concentric reducer would still be symmetric, so this
+    # cannot be a rotation.
     eccentric_points = bodies[eccentric.symbol_id].points
-    assert (26.0, axis_y) in eccentric_points
-    assert (74.0, axis_y) in eccentric_points
+    flat_side = [(x, y) for x, y in eccentric_points if x in {26.0, 74.0} and y == 30.0]
+    assert sorted(flat_side) == [(26.0, 30.0), (74.0, 30.0)]
     assert any((x, 2.0 * axis_y - y) not in eccentric_points for x, y in eccentric_points)
 
 
@@ -912,28 +920,50 @@ def test_the_two_reducer_forms_share_their_connection_and_end_geometry() -> None
     concentric = _remaining("fitting.reducer.concentric")
     eccentric = _remaining("fitting.reducer.eccentric")
 
-    # The forms differ only in eccentricity: same neutral anchors, same connection
-    # stubs, same end-face planes, and the same end sizes (32 units west, 16 units
-    # east). No nominal size, bore, or `DN` value is embedded in either.
+    # The forms differ only in eccentricity: the same neutral anchor names, the same
+    # end-face planes, the same body extent, and the same end sizes (32 units west,
+    # 16 units east). No nominal size, bore, or `DN` value is embedded in either.
     for definition in (concentric, eccentric):
-        assert [
-            (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors
-        ] == [
-            ("port_a", "west", 0.0, 46.0),
-            ("port_b", "east", 100.0, 46.0),
-        ]
-        assert [item for item in definition.primitives if isinstance(item, Line)] == [
-            Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
-            Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
-        ]
-
         body = next(item for item in definition.primitives if isinstance(item, Polygon))
         west_face = sorted(y for x, y in body.points if x == 26.0)
         east_face = sorted(y for x, y in body.points if x == 74.0)
 
         assert len(west_face) == 2 and len(east_face) == 2
-        assert west_face[-1] - west_face[0] == 32.0
+        assert west_face == [30.0, 62.0]
         assert east_face[-1] - east_face[0] == 16.0
+
+    # Concentric: the axis runs through the centre of both end faces, so `port_a` and
+    # `port_b` are collinear and each one is a face centre.
+    assert [
+        (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in concentric.anchors
+    ] == [
+        ("port_a", "west", 0.0, 46.0),
+        ("port_b", "east", 100.0, 46.0),
+    ]
+    assert [item for item in concentric.primitives if isinstance(item, Line)] == [
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
+        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+    ]
+
+    # Eccentric: both stubs still leave through the centre of their own end face (the
+    # larger west face centre at y = 46 and the smaller east face centre at y = 38), so
+    # the anchor offset is exactly the eccentricity, half the end-size difference, and
+    # the shared west end keeps the same centre and stub as the concentric form.
+    assert [
+        (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in eccentric.anchors
+    ] == [
+        ("port_a", "west", 0.0, 46.0),
+        ("port_b", "east", 100.0, 38.0),
+    ]
+    assert [item for item in eccentric.primitives if isinstance(item, Line)] == [
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
+        Line(x1=74.0, y1=38.0, x2=100.0, y2=38.0),
+    ]
+    # Measured upwards (SVG `y` grows downward), the smaller end's centre sits exactly
+    # the eccentricity above the larger end's centre.
+    west_height, east_height = 32.0, 16.0
+    eccentric_offset = eccentric.anchors[0].y - eccentric.anchors[1].y
+    assert eccentric_offset == (west_height - east_height) / 2.0 == 8.0
 
 
 # ---------------------------------------------------------------------------

@@ -508,19 +508,22 @@ CONCENTRIC_REDUCER = SymbolDefinition(
 )
 
 # DeepPlant-authored project seed geometry for the eccentric reducer
-# (docs/dev/reference/symbol-seed-geometry.md, seed L): the same end sizes and the
-# same taper as the concentric form, but the taper is deliberately one-sided. One
-# side is a straight edge collinear with the process axis, so the offset - the whole
-# point of an eccentric reducer - is visible, while the other side carries the whole
-# reduction. The two stubs are DeepPlant's connection representation of the adjacent
-# pipeline, not part of the fitting body.
+# (docs/dev/reference/symbol-seed-geometry.md, seed L): the same end sizes, the same
+# end-face planes and the same body extent as the concentric form, but the taper is
+# deliberately one-sided. The flat side is a straight edge parallel to the process
+# axis and the opposite side carries the whole reduction, so the offset - the whole
+# point of an eccentric reducer - is visible. The two stubs are DeepPlant's
+# connection representation of the adjacent pipeline, not part of the fitting body.
 #
-# The flat side is drawn on the process axis, which is the conventional way the
-# fitting is placed on a line, so both `port_a` and `port_b` remain collinear and
-# connectable. The graphical offset is a recognizability mark and not a semantic
-# direction: no `flat_on_top`/`flat_on_bottom` field, and no inlet/outlet name, is
-# added to the anchors. As with seed K, the canonical form is drawn horizontally and
-# a document may mirror or rotate the placement; no nominal size or bore is embedded.
+# Each stub leaves through the *centre of its own end face*, as on every other
+# inline representation in this catalogue, so `port_a` sits at the centre of the
+# larger west face and `port_b` at the centre of the smaller east face. The two
+# anchors are therefore offset by half the end-size difference, which is exactly the
+# eccentricity the fitting exists to create. That offset is geometry: it encodes no
+# flow direction and no `flat_on_top`/`flat_on_bottom` state, because no
+# `inlet`/`outlet` name and no direction field is added to the anchors. As with seed
+# K, the canonical form is drawn horizontally with the larger end west, and a
+# document may mirror or rotate the placement; no nominal size or bore is embedded.
 ECCENTRIC_REDUCER = SymbolDefinition(
     symbol_id="fitting.reducer.eccentric",
     name="Eccentric reducer",
@@ -528,14 +531,14 @@ ECCENTRIC_REDUCER = SymbolDefinition(
     diagram_types=("pid",),
     notation_profile="deepplant-default",
     primitives=(
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),  # west process connection stub
-        # One-sided taper: the flat side stays on the process axis.
-        Polygon(points=((26.0, 46.0), (74.0, 46.0), (74.0, 62.0), (26.0, 78.0))),
-        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),  # east process connection stub
+        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),  # west stub, at the larger end centre
+        # Flat side parallel to the process axis; the whole reduction is one-sided.
+        Polygon(points=((26.0, 30.0), (74.0, 30.0), (74.0, 46.0), (26.0, 62.0))),
+        Line(x1=74.0, y1=38.0, x2=100.0, y2=38.0),  # east stub, at the smaller end centre
     ),
     anchors=(
         SymbolAnchor(name="port_a", x=0.0, y=46.0, orientation="west", kind="process"),
-        SymbolAnchor(name="port_b", x=100.0, y=46.0, orientation="east", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=38.0, orientation="east", kind="process"),
     ),
     provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
     standards=(),

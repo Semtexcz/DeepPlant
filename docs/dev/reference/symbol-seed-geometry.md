@@ -412,22 +412,30 @@ ID: `fitting.reducer.eccentric`. Purpose: recognizable eccentric reducer present
 added by Issue #135. The second form of A16.
 
 ```text
-line    (0, 46)  → (26, 46)                                west process connection stub
-polygon (26, 46), (74, 46), (74, 62), (26, 78)             tapering body, one-sided
-line    (74, 46) → (100, 46)                               east process connection stub
+line    (0, 46)  → (26, 46)               west stub, at the larger end face centre
+polygon (26, 30), (74, 30), (74, 46), (26, 62)   tapering body, flat side, one-sided
+line    (74, 38) → (100, 38)              east stub, at the smaller end face centre
 ```
 
-The intrinsic glyph is a single closed polygon with the **same end sizes as seed K** —
-32 units at the west end plane `x = 26`, 16 units at the east end plane `x = 74` — but
-with a **one-sided** taper: the edge from `(26, 46)` to `(74, 46)` is a straight edge
-collinear with the process axis, and the opposite edge `(26, 78)` to `(74, 62)` carries
-the whole reduction. That offset is what distinguishes an eccentric from a concentric
-reducer, and it cannot be produced by rotating the concentric form, which stays
-symmetric about the axis under rotation.
+The intrinsic glyph is a single closed polygon with the **same end sizes, the same
+end-face planes and the same body extent as seed K** — 32 units at the west end plane
+`x = 26` and 16 units at the east end plane `x = 74` — but with a **one-sided** taper.
+The edge from `(26, 30)` to `(74, 30)` is a straight side parallel to the process axis,
+and the opposite edge `(26, 62)` to `(74, 46)` carries the whole reduction. That offset
+is what distinguishes an eccentric from a concentric reducer, and it cannot be produced
+by rotating the concentric form, which stays symmetric about the axis under rotation.
 
-The flat side is drawn on the process axis, which is how the fitting is conventionally
-placed on a line, so both anchors remain collinear and connectable. The graphical
-offset is a recognizability mark and **not** a semantic direction: no
+Each connection stub leaves through the **centre of its own end face**, as on every
+other inline representation in this library: `port_a` is the centre of the larger west
+face `(26, 30)–(26, 62)` and `port_b` the centre of the smaller east face
+`(74, 30)–(74, 46)`. The two anchors are therefore offset by 8 units, which is exactly
+half the end-size difference — the eccentricity the fitting exists to create — and the
+larger west end keeps the same face centre, and the same stub, as the concentric form.
+Placing each connection point at its own face centre is deliberate: drawing both stubs
+collinear with the flat side would put them on the end *corners* instead of through the
+middle of the ends.
+
+That anchor offset is geometry and **not** a semantic direction: no
 `flat_on_top`/`flat_on_bottom` field, and no `inlet`/`outlet` name, is added to the
 anchors.
 
@@ -435,8 +443,9 @@ Deliberately absent: any tag, size value, or leader line, for the same reason as
 K.
 
 Anchors: `port_a` at `(0, 46)`, orientation `west`, kind `process`; `port_b` at
-`(100, 46)`, orientation `east`, kind `process`. As with seed K, the canonical form is
-drawn horizontally and a document may mirror or rotate the placement.
+`(100, 38)`, orientation `east`, kind `process`. As with seed K, the canonical form is
+drawn horizontally with the larger end west, and a document may mirror or rotate the
+placement.
 
 Standards state: **no** relationship recorded, for the same reason as seed K.
 
