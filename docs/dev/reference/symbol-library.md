@@ -31,7 +31,7 @@ superseded_by: null
 This is the developer-only contract for `deepplant.symbols` (Issue #119). It is
 deliberately narrow: it describes the built-in representations and the minimum
 machinery around them. The catalogue spans two notation profiles — three legacy
-`generic-iso` representations and, since Issues #130, #132 and #135, nine
+`generic-iso` representations and, since Issues #130, #132, #135 and #137, eleven
 `deepplant-default` representations — and a representation is identified by
 `(notation_profile, symbol_id)`.
 
@@ -45,7 +45,7 @@ Two different symbol mechanisms exist, and they are not the same thing:
 | Scope | standard PFD/P&ID representations | DeepPlant-original process/PFD fallback glyphs |
 | Identity | stable symbol id (`valve.gate`) | presentation symbol role (`pump`) |
 | Asset provenance | required per definition (`origin`, `license`) | recorded in the packaged pack README |
-| Standards relationship | required by the `generic-iso` notation profile, which the three legacy representations satisfy at `candidate-alignment` (intended, not human-verified); optional in `deepplant-default`, where no present-day representation records one | `reference` / non-normative |
+| Standards relationship | required by the `generic-iso` notation profile, which the three legacy representations satisfy at `candidate-alignment` (intended, not human-verified); optional in `deepplant-default`, where nine representations record none and the two #137 equipment representations record the state their own review supports (both `candidate-alignment`) | `reference` / non-normative |
 
 `docs/dev/reference/svg-symbols.md` and ADR-0008 remain in force for the
 process pack. ADR-0017 records why the standard library takes the
@@ -334,7 +334,7 @@ asset provenance (origin, licence)  !=  standards correspondence (reference, sta
 
 Consequences:
 
-- all twelve definitions in the implemented catalogue are
+- all fourteen definitions in the implemented catalogue are
   `origin="deepplant-original"`, `license="AGPL-3.0-only"`;
 - a future company, project, or custom definition is a perfectly valid definition
   without a standards reference and must not be given a fake ISO reference, while
@@ -413,10 +413,11 @@ SYMBOLS.default_notation_profile  # -> read-only, construction-time
   no mutable global profile selection.
 - **Ordering.** `list()` is ordered by `notation_profile` then `symbol_id`, so it
   is deterministic regardless of catalogue declaration order. The mixed-profile
-  catalogue therefore lists the nine `deepplant-default` representations
-  (`fitting.reducer.concentric`, `fitting.reducer.eccentric`,
-  `fitting.restriction_orifice`, `valve.ball`, `valve.check`, `valve.globe`,
-  `valve.safety_relief.angle`, `valve.safety_relief.straight`, `valve.three_way`)
+  catalogue therefore lists the eleven `deepplant-default` representations
+  (`compressor.general`, `fitting.reducer.concentric`, `fitting.reducer.eccentric`,
+  `fitting.restriction_orifice`, `mixer.inline`,
+  `valve.ball`, `valve.check`, `valve.globe`, `valve.safety_relief.angle`,
+  `valve.safety_relief.straight`, `valve.three_way`)
   first, followed by the three `generic-iso` representations in symbol-id order.
 - **Duplicate representation.** Registering the same
   `(notation_profile, symbol_id)` pair twice is rejected at construction, and the
@@ -434,8 +435,8 @@ SYMBOLS.default_notation_profile  # -> read-only, construction-time
 - **Migration default.** The built-in registry's convenience default is still
   `generic-iso`: the three legacy representations are authored in it, so
   `SYMBOLS.get("valve.gate")` keeps resolving. `deepplant-default` is the target
-  product default defined by Issue #124 and now holds its first representation
-  (`fitting.restriction_orifice`, Issue #130), but this slice switches no default:
+  product default defined by Issue #124 and now holds eleven representations, but
+  this slice switches no default:
   a `deepplant-default` lookup must request the profile explicitly, and an
   omitted-profile lookup of a `deepplant-default`-only symbol fails closed instead
   of falling back. This is the migration state, not the target state.
@@ -539,12 +540,15 @@ PR review
 | `fitting.reducer.concentric` | `deepplant-default` | Concentric reducer | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | One tall, compact polygon tapering steeply and symmetrically about the process axis, so both end faces — a dominant larger one and a smaller one about half its height — stay centred on the same axis and both anchors stay collinear. |
 | `fitting.reducer.eccentric` | `deepplant-default` | Eccentric reducer | `pid` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | The same tall, compact end sizes and end faces as the concentric form with a one-sided taper: a flat side parallel to the process axis and the whole reduction carried by one steep diagonal on the opposite side. Both stubs leave on one **level connection axis** at the smaller end's centre, so a line runs straight through and the eccentricity shows as the larger end offset about it, without becoming a semantic direction. |
 
+| `compressor.general` | `deepplant-default` | Compressor | `pfd` | `port_a` → `west`, `process`; `port_b` → `east`, `process` | A circular casing interrupted by its two connection stubs, carrying a compression indication inside: two chords mirrored about the process axis whose separation narrows towards the east. No line crosses the casing, and neither the casing nor the band encodes a flow direction. |
+| `mixer.inline` | `deepplant-default` | Inline mixer | `pfd` | `port_a` → `west`, `process`; `port_b` → `east`, `process`; `port_c` → `north`, `process` | A rectangular in-line body with one bent mixing element inside it (down-stroke, diagonal, opposite up-stroke), so the body edge stays the glyph/piping boundary. Three fixed process connections let it take two streams in and one out; which port is an inlet is document data. |
+
 Each representation is identified by `(notation_profile, symbol_id)`. The exact
 primitive construction of each is recorded in
 [symbol-seed-geometry.md](symbol-seed-geometry.md) — the project-owned spec all
-twelve are authored from.
+fourteen are authored from.
 
-All twelve are DeepPlant-authored project seed geometry under `AGPL-3.0-only`
+All fourteen are DeepPlant-authored project seed geometry under `AGPL-3.0-only`
 (`AssetProvenance(origin="deepplant-original", license="AGPL-3.0-only")`): no
 standard figure or company asset was copied, traced, or embedded, and none is
 claimed to be exact ISO geometry. The three `generic-iso` representations record
@@ -552,13 +556,24 @@ their standards relationship conservatively at `candidate-alignment` — ISO
 10628-2:2012 for the valve and the pump, ISO 15519-2:2015 for the instrument —
 meaning the geometry is *intended* to correspond to that document, but no human
 has checked it against an authorized copy; `candidate-alignment` claims no human
-verification, and none of the three is `reference` or `human-verified`. The nine
-`deepplant-default` representations — the restriction orifice, the three basic
-P&ID valves (#132), and the five base representations added by Issue #135 — record
-**no** standards relationship at all: the profile makes no
+verification, and none of the three is `reference` or `human-verified`. Nine of the
+eleven `deepplant-default` representations — the restriction orifice, the three
+basic P&ID valves (#132), and the five base representations added by Issue #135 —
+record **no** standards relationship at all: the profile makes no
 ISO/ISA/PIP conformance claim, so none is required and none is invented. Their
 geometry is an independently DeepPlant-authored practical form and is not
-presented as corresponding to any standard. A concept-level ISO reference
+presented as corresponding to any standard. The two Issue #137 equipment
+representations are the exception, because they are the first whose reviewed
+graphical evidence is the standard symbol set rather than a project drawing, and
+each records the state its own review supports instead of being pre-assigned one:
+`compressor.general` and `mixer.inline` record `candidate-alignment` (their
+distinctive marks are the reviewed standard forms, with no human check claimed).
+The reaction/burning PFD requirement creates no generic built-in equipment symbol:
+it is a *process step*, not one established reusable equipment identity
+(`ProcessStep != Equipment`), so a project represents it with an applicable
+standard equipment representation or with a project/company-specific graphic
+([mvp-symbol-coverage.md](mvp-symbol-coverage.md), A05). A concept-level ISO
+reference
 *direction* may still be recorded for a `deepplant-default` concept in the coverage
 matrix, but that is not a correspondence for a concrete geometry. The coverage
 matrix records the concepts still to come
@@ -569,18 +584,25 @@ generic-iso legacy definitions (valve.gate, pump.centrifugal, instrument.local)
     standards relationship   candidate-alignment required — an intended correspondence
     verification             candidate-alignment (no human check claimed)
 
-deepplant-default definitions
+deepplant-default definitions recording none
     (fitting.restriction_orifice, valve.globe, valve.check, valve.ball,
      valve.three_way, valve.safety_relief.straight, valve.safety_relief.angle,
      fitting.reducer.concentric, fitting.reducer.eccentric)
     standards relationship   none recorded
     verification             not applicable (`—` is not a verification state)
+
+deepplant-default #137 equipment definitions
+    (compressor.general, mixer.inline)
+    standards relationship   ISO 10628-2:2012, intended correspondence
+    verification             candidate-alignment (no human check claimed)
 ```
 
 The notation-profile architecture is notation-aware without migrating anything:
 Issue #125 made the model and registry profile-aware, Issue #130 added the first
-`deepplant-default` representation, and Issues #132 and #135 added eight more (three
-basic valves, then the remaining five base P&ID representations), each time changing
+`deepplant-default` representation, Issues #132 and #135 added eight more (three
+basic valves, then the remaining five base P&ID representations), and Issue #137
+added the two remaining MVP PFD equipment representations that establish a reusable
+built-in identity, each time changing
 no existing definition. The three legacy representations stay
 `generic-iso`, their rendered SVG stays byte-for-byte unchanged, and the built-in
 convenience default stays `generic-iso`.

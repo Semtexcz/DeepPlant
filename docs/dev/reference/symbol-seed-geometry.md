@@ -43,14 +43,20 @@ definition → registry → renderer architecture, not to reproduce a standard.
   `generic-iso` geometries record the conservative `candidate-alignment` state — an
   *intended* correspondence with no human check claimed — which is what that
   profile requires, because a bare `reference` claims no correspondence for a
-  concrete geometry. The nine `deepplant-default` geometries (the restriction
-  orifice, the three Issue #132 basic valves, and the five Issue #135 base
-  representations) record **no** standards relationship at all, which their profile
-  permits because they make no
+  concrete geometry. Nine of the eleven `deepplant-default` geometries (the
+  restriction orifice, the three Issue #132 basic valves, and the five Issue #135
+  base representations) record **no** standards relationship at all, which their
+  profile permits because they make no
   ISO/ISA/PIP conformance claim
-  ([workflow/standards.md](../workflow/standards.md)). A coverage-matrix entry may
-  still name a concept-level ISO reference *direction*; that is not a concrete
-  correspondence for this geometry.
+  ([workflow/standards.md](../workflow/standards.md)). The two Issue #137
+  equipment representations are the exception, and each one records the state its
+  own review supports rather than being pre-assigned one: seeds M and N adopt a
+  reviewed standard form's distinctive mark and record `candidate-alignment`. A
+  coverage-matrix entry may still name a concept-level ISO reference *direction*;
+  that is not a concrete correspondence for this geometry. Issue #137 defines no
+  reactor/burner seed geometry: the reaction/burning PFD requirement is a process
+  step, and it establishes no single reusable built-in equipment identity (see the
+  A05 note below).
 
 ```text
 project-owned seed geometry   this document
@@ -482,6 +488,113 @@ the stable ids, the shared end-face planes and end sizes, and the connection
 decomposition are unchanged, and no source dimension, pixel proportion, or traced
 geometry was copied or transferred — these coordinates remain independently
 DeepPlant-authored.
+
+## Seed M — compressor
+
+ID: `compressor.general`. Purpose: recognizable generic PFD compressor
+presentation, added by Issue #137 and one of the two remaining resolved MVP PFD
+base representations with a reusable built-in identity. Requirement A02.
+
+```text
+line    (0, 50)  → (24, 50)    west process connection stub
+circle  centre (50, 50), radius 26
+                               casing; both stubs stop on its circumference
+line    (32, 34) → (72, 44)    upper compression stroke
+line    (32, 66) → (72, 56)    lower compression stroke
+line    (76, 50) → (100, 50)   east process connection stub
+```
+
+The intrinsic glyph is the circular casing **plus** the two compression strokes
+inside it: two chords mirrored about the process axis whose separation narrows
+towards the symbol's east side, so the pair reads as one compression indication
+rather than as two unrelated diagonals. Both chords stay strictly inside the
+circumference, and no horizontal line crosses the casing — which is what keeps this
+form distinct from seed B's pump casing, whose internal lines meet at one point on
+the circumference and which carries a full through-line.
+
+Deliberately absent: any `suction`/`discharge` nozzle name, any drive, gearbox, or
+energy connection (a driver is a separate composed concern, and whether the pump
+carries a driver anchor is still open), any tag, and any flow-direction arrow. The
+reviewed material draws the adjacent pipeline as line segments meeting the casing,
+so DeepPlant draws each connection as a stub to the view-box edge instead.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The narrowing band is the canonical
+orientation and **not** a flow direction: a document that mirrors or rotates the
+placement changes presentation only.
+
+Standards state: `candidate-alignment` against ISO 10628-2:2012. The reviewed
+standard material supplies this family's distinctive mark — a circular compressor
+casing carrying a compression indication — so the geometry is *intended* to
+correspond to that reviewed form, and no human has compared it against an authorized
+copy. No locator, standard-authored name, or verifier is recorded.
+
+## Seed N — in-line mixer
+
+ID: `mixer.inline`. Purpose: recognizable generic PFD mixer presentation for a mixer
+that takes two or more process streams, added by Issue #137. Requirement A04.
+
+```text
+line    (0, 50)  → (24, 50)                                west process connection stub
+polygon (24, 26), (76, 26), (76, 74), (24, 74)             in-line mixing body
+line    (36, 36) → (36, 52)                                element, left down-stroke
+line    (36, 36) → (64, 64)                                element, long diagonal
+line    (64, 64) → (64, 48)                                element, right up-stroke
+line    (76, 50) → (100, 50)                               east process connection stub
+line    (50, 26) → (50, 0)                                 north process connection stub
+```
+
+The intrinsic glyph is the rectangular in-line body **plus** the single bent mixing
+element inside it: a short down-stroke, the long diagonal, and the opposite
+up-stroke. The element stays strictly inside the body, so the body edge remains the
+boundary between the intrinsic glyph and the adjacent piping. The reviewed material
+draws mixing sections of differing length, so how many elements a document shows is
+document data rather than a distinguishing property of this base identity; the base
+carries the single smallest element.
+
+A04 requires a mixer with **two or more process inlets**, so the representation
+carries three process connections: the west and east stubs continue the piping axis
+through the body and the north stub leaves the body's top edge. That three-port
+shape is fixed geometry and not a dynamic port mechanism, and the ports stay
+neutral — `port_a`/`port_b`/`port_c` say only where a line connects and which way it
+leaves the symbol — so which stream enters where remains authored document data.
+
+Deliberately absent: any tag, stream label, element count, mixer-type legend, or
+annotation.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`; `port_c` at `(50, 0)`, orientation
+`north`, kind `process`.
+
+Standards state: `candidate-alignment` against ISO 10628-2:2012, for the same reason
+as seed M — the reviewed standard material supplies this family's distinctive mark (a
+mixing body carrying a bent mixing element) together with its connection directions,
+and no human check is claimed.
+
+## A05 — no reactor/burner seed geometry
+
+Requirement A05 (`Reactor / burner`, `pfd`) is a **required** MVP graphical need:
+the selected MVP PFD contains a reaction/burning process step, and that step must be
+representable.
+
+It does **not** establish one reusable DeepPlant built-in equipment glyph. A process
+step is not equipment (`ProcessStep != Equipment`), and the selected drawing shows
+one project's occurrence of that step rather than one universal equipment identity.
+The earlier "internals-bearing equipment outline" reading was a project/process-step
+requirement converted into a synthetic universal equipment identity, which the
+architecture forbids.
+
+A project should instead select an appropriate standard equipment representation
+when the actual equipment used has one, or provide a project/company-specific
+graphical representation.
+
+Therefore no `reactor_burner.general` seed geometry is defined, no
+`reactor.*` / `burner.*` / `furnace.*` identity is created, and Requirement A05
+stays a required MVP graphical need whose stable built-in identity is **not**
+established. The gap this leaves is representation selection / project-specific
+presentation capability — not a missing exact `SymbolDefinition` that a built-in
+generic glyph should close, and not a reason to invent a universal equipment
+identity for a process step.
 
 ## Provenance consequence
 
