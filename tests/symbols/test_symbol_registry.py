@@ -30,22 +30,33 @@ from deepplant.symbols.profiles import (
 #: deterministic registry order: ``deepplant-default`` before ``generic-iso``, then
 #: by symbol id.
 BUILTIN_REPRESENTATIONS = (
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.concentric"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.eccentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.safety_relief.angle"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.safety_relief.straight"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.three_way"),
     (GENERIC_ISO_NOTATION_PROFILE, "instrument.local"),
     (GENERIC_ISO_NOTATION_PROFILE, "pump.centrifugal"),
     (GENERIC_ISO_NOTATION_PROFILE, "valve.gate"),
 )
 
 #: The `deepplant-default`-only ids, which the omitted-profile (generic-iso)
-#: convenience lookup must fail closed for. Issue #132 adds three of them.
+#: convenience lookup must fail closed for. Issue #132 adds three of them and
+#: Issue #135 adds five more, so the fail-closed behaviour is pinned for every one.
 DEEPPLANT_DEFAULT_ONLY_IDS = (
+    "fitting.reducer.concentric",
+    "fitting.reducer.eccentric",
     "fitting.restriction_orifice",
     "valve.ball",
     "valve.check",
     "valve.globe",
+    "valve.safety_relief.angle",
+    "valve.safety_relief.straight",
+    "valve.three_way",
 )
 
 #: An intended-correspondence relationship, which the ``generic-iso`` profile
