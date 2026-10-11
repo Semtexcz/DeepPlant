@@ -43,18 +43,20 @@ definition → registry → renderer architecture, not to reproduce a standard.
   `generic-iso` geometries record the conservative `candidate-alignment` state — an
   *intended* correspondence with no human check claimed — which is what that
   profile requires, because a bare `reference` claims no correspondence for a
-  concrete geometry. Nine of the twelve `deepplant-default` geometries (the
+  concrete geometry. Nine of the eleven `deepplant-default` geometries (the
   restriction orifice, the three Issue #132 basic valves, and the five Issue #135
   base representations) record **no** standards relationship at all, which their
   profile permits because they make no
   ISO/ISA/PIP conformance claim
-  ([workflow/standards.md](../workflow/standards.md)). The three Issue #137
+  ([workflow/standards.md](../workflow/standards.md)). The two Issue #137
   equipment representations are the exception, and each one records the state its
   own review supports rather than being pre-assigned one: seeds M and N adopt a
-  reviewed standard form's distinctive mark and record `candidate-alignment`, while
-  seed O was informed at structure level only and records `reference`. A
+  reviewed standard form's distinctive mark and record `candidate-alignment`. A
   coverage-matrix entry may still name a concept-level ISO reference *direction*;
-  that is not a concrete correspondence for this geometry.
+  that is not a concrete correspondence for this geometry. Issue #137 defines no
+  reactor/burner seed geometry: the reaction/burning PFD requirement is a process
+  step, and it establishes no single reusable built-in equipment identity (see the
+  A05 note below).
 
 ```text
 project-owned seed geometry   this document
@@ -490,8 +492,8 @@ DeepPlant-authored.
 ## Seed M — compressor
 
 ID: `compressor.general`. Purpose: recognizable generic PFD compressor
-presentation, added by Issue #137 and one of the three remaining resolved MVP PFD
-base representations. Requirement A02.
+presentation, added by Issue #137 and one of the two remaining resolved MVP PFD
+base representations with a reusable built-in identity. Requirement A02.
 
 ```text
 line    (0, 50)  → (24, 50)    west process connection stub
@@ -569,54 +571,30 @@ as seed M — the reviewed standard material supplies this family's distinctive 
 mixing body carrying a bent mixing element) together with its connection directions,
 and no human check is claimed.
 
-## Seed O — reactor/burner equipment outline
+## A05 — no reactor/burner seed geometry
 
-ID: `reactor_burner.general`. Purpose: recognizable generic PFD presentation for the
-reactor/burner equipment outline, added by Issue #137. Requirement A05.
+Requirement A05 (`Reactor / burner`, `pfd`) is a **required** MVP graphical need:
+the selected MVP PFD contains a reaction/burning process step, and that step must be
+representable.
 
-```text
-line    (0, 50)  → (24, 50)                    west process connection stub
-polygon (24, 14), (76, 14), (76, 86), (24, 86) equipment outline
-line    (34, 36) → (66, 36)                    upper internal structure stroke
-line    (34, 64) → (66, 64)                    lower internal structure stroke
-line    (50, 14) → (50, 0)                     north process connection stub
-line    (50, 86) → (50, 100)                   south process connection stub
-```
+It does **not** establish one reusable DeepPlant built-in equipment glyph. A process
+step is not equipment (`ProcessStep != Equipment`), and the selected drawing shows
+one project's occurrence of that step rather than one universal equipment identity.
+The earlier "internals-bearing equipment outline" reading was a project/process-step
+requirement converted into a synthetic universal equipment identity, which the
+architecture forbids.
 
-The intrinsic glyph is a closed equipment outline carrying **two internal structure
-strokes** inside it. Those internals are the mark that identifies this family, and
-both strokes stay strictly inside the outline and clear of the west connection
-entry, so they read as structure rather than as a line running straight through the
-body.
+A project should instead select an appropriate standard equipment representation
+when the actual equipment used has one, or provide a project/company-specific
+graphical representation.
 
-A05 is **one** resolved Core requirement — `Reactor / burner` — whose reviewed
-evidence is an equipment outline *with internals*, so this is one representation and
-not a `reactor.*` / `burner.*` / `furnace.*` family, and no such plural identity is
-created alongside it. The outline and its internals are the reusable part; the
-equipment's own role, the reaction or combustion taking place inside it, and any
-flame or temperature state are semantic and document data that a base graphic
-deliberately does not embed. The reviewed standard material does distinguish other
-heat-generating equipment forms from one another, but A05's selected evidence is the
-internals-bearing equipment outline and the Core records one resolved identity for
-the family, so this slice implements that one representation; introducing a distinct
-fuel-burner or furnace identity would be a separate evidence-based decision, not an
-extension of this one.
-
-Deliberately absent: any flame mark, bed-type legend, catalyst or duty label, tag,
-nozzle designation, or annotation. In particular no `inlet`/`outlet` name is added,
-even though the canonical form draws one connection on each of three sides.
-
-Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
-`(50, 0)`, orientation `north`, kind `process`; `port_c` at `(50, 100)`, orientation
-`south`, kind `process`.
-
-Standards state: `reference` — deliberately weaker than seeds M and N, and the state
-this representation's own review supports. The reviewed standard material informed
-its *structure* (that this family is an internals-bearing equipment outline, and
-which sides its connections leave from), not a distinctive standard glyph, so no
-correspondence is claimed for the concrete geometry and no state is invented to
-populate the field. A bare `reference` claims no correspondence for a concrete
-geometry, which is exactly the honest relationship here.
+Therefore no `reactor_burner.general` seed geometry is defined, no
+`reactor.*` / `burner.*` / `furnace.*` identity is created, and Requirement A05
+stays a required MVP graphical need whose stable built-in identity is **not**
+established. The gap this leaves is representation selection / project-specific
+presentation capability — not a missing exact `SymbolDefinition` that a built-in
+generic glyph should close, and not a reason to invent a universal equipment
+identity for a process step.
 
 ## Provenance consequence
 

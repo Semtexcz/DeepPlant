@@ -45,7 +45,6 @@ BUILTIN_REPRESENTATIONS = (
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.eccentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "mixer.inline"),
-    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "reactor_burner.general"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),

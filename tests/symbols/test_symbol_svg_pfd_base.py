@@ -1,12 +1,18 @@
 """Structural contracts for the #137 remaining MVP PFD base representations.
 
-Issue #137 adds the three remaining resolved MVP PFD base representations in the
-``deepplant-default`` profile: the compressor (``compressor.general``), the in-line
-mixer (``mixer.inline``), and the reactor/burner equipment outline
-(``reactor_burner.general``). They are the first *equipment* symbols authored in
-that profile, so this module pins their exact rendered bytes, their identity, their
-neutral process anchors, their structural decomposition, and the standards state
-each representation's own review supports.
+Issue #137 adds the two remaining resolved MVP PFD base representations that
+establish one reusable built-in identity, in the ``deepplant-default`` profile: the
+compressor (``compressor.general``) and the in-line mixer (``mixer.inline``). They
+are the first *equipment* symbols authored in that profile, so this module pins
+their exact rendered bytes, their identity, their neutral process anchors, their
+structural decomposition, and the standards state each representation's own review
+supports.
+
+Issue #137 deliberately adds no reactor/burner built-in symbol: the selected PFD
+requires the reaction/burning *process step* to be representable, which does not
+establish one reusable built-in equipment identity (``ProcessStep != Equipment``), so
+that requirement is covered by a project-selected standard equipment representation
+or a project/company-specific graphic instead.
 
 It is a separate module from ``test_symbol_svg.py`` on purpose: that module already
 carries the #119/#125/#130/#132/#135 contracts and sits close to the test-module
@@ -37,11 +43,10 @@ from deepplant.symbols.profiles import DEEPPLANT_DEFAULT_NOTATION_PROFILE
 ISO_10628_2 = "ISO 10628-2:2012"
 
 #: The exact #137 documents the independently authored project seed geometry
-#: produces (seeds M/N/O). Pinned so a contract change cannot silently alter
-#: geometry, and so each representation's real structural distinction stays visible
-#: in the pinned bytes: the circular casing with its narrowing compression band, the
-#: mixing body with its single bent element and its third (north) connection, and
-#: the internals-bearing equipment outline with its three connections.
+#: produces (seeds M/N). Pinned so a contract change cannot silently alter geometry,
+#: and so each representation's real structural distinction stays visible in the
+#: pinned bytes: the circular casing with its narrowing compression band, and the
+#: mixing body with its single bent element and its third (north) connection.
 COMPRESSOR_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="24" y2="50" />'
@@ -59,31 +64,20 @@ MIXER_DOCUMENT = (
     "</svg>\n"
 )
 
-REACTOR_BURNER_DOCUMENT = (
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
-    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="24" y2="50" />'
-    '<polygon points="24,14 76,14 76,86 24,86" /><line x1="34" y1="36" x2="66" y2="36" />'
-    '<line x1="34" y1="64" x2="66" y2="64" /><line x1="50" y1="14" x2="50" y2="0" />'
-    '<line x1="50" y1="86" x2="50" y2="100" /></svg>\n'
-)
-
-#: The three #137 `deepplant-default` PFD base representations, as
+#: The two #137 `deepplant-default` PFD base representations, as
 #: ``(symbol_id, name, document)``.
 PFD_BASE_SYMBOLS = (
     ("compressor.general", "Compressor", COMPRESSOR_DOCUMENT),
     ("mixer.inline", "Inline mixer", MIXER_DOCUMENT),
-    ("reactor_burner.general", "Reactor/burner", REACTOR_BURNER_DOCUMENT),
 )
 
-#: The standards state each representation's own review supports: the compressor and
-#: the mixer adopt the distinctive mark of a reviewed ISO 10628-2:2012 equipment form
-#: (intended correspondence, `candidate-alignment`), while the reactor/burner outline
-#: was informed at structure level only and records `reference`, which claims no
-#: correspondence for a concrete geometry.
+#: The standards state each representation's own review supports: both adopt the
+#: distinctive mark of a reviewed ISO 10628-2:2012 equipment form, so both record an
+#: intended correspondence at `candidate-alignment`, which claims no human check for
+#: a concrete geometry.
 PFD_BASE_STANDARDS = (
     ("compressor.general", "candidate-alignment"),
     ("mixer.inline", "candidate-alignment"),
-    ("reactor_burner.general", "reference"),
 )
 
 #: Fragments that would prove a project/company tag, code, or convention leaked into
@@ -317,56 +311,11 @@ def test_the_mixer_element_stays_inside_its_body() -> None:
     assert len(_bodies(definition)) == 1
 
 
-def test_reactor_burner_contract() -> None:
-    definition = _pfd_base("reactor_burner.general")
-
-    # One closed equipment outline, two internal structure strokes, and three
-    # connection stubs (seed O). A05 is one resolved Core requirement, so this is one
-    # representation and not a reactor/burner/furnace family: the internals are the
-    # structural mark, and no flame, duty state, or role is embedded.
-    assert definition.primitives == (
-        Line(x1=0.0, y1=50.0, x2=24.0, y2=50.0),
-        Polygon(points=((24.0, 14.0), (76.0, 14.0), (76.0, 86.0), (24.0, 86.0))),
-        Line(x1=34.0, y1=36.0, x2=66.0, y2=36.0),
-        Line(x1=34.0, y1=64.0, x2=66.0, y2=64.0),
-        Line(x1=50.0, y1=14.0, x2=50.0, y2=0.0),
-        Line(x1=50.0, y1=86.0, x2=50.0, y2=100.0),
-    )
-    assert [
-        (anchor.name, anchor.orientation, anchor.kind, anchor.x, anchor.y)
-        for anchor in definition.anchors
-    ] == [
-        ("port_a", "west", "process", 0.0, 50.0),
-        ("port_b", "north", "process", 50.0, 0.0),
-        ("port_c", "south", "process", 50.0, 100.0),
-    ]
-
-
-def test_the_reactor_burner_internals_stay_inside_the_outline() -> None:
-    definition = _pfd_base("reactor_burner.general")
-    internal = [
-        line
-        for line in _lines(definition)
-        if all(
-            24.0 < x < 76.0 and 14.0 < y < 86.0 for x, y in ((line.x1, line.y1), (line.x2, line.y2))
-        )
-    ]
-
-    # Two internal strokes, both strictly inside the body and both clear of the west
-    # connection entry, so the internals read as structure rather than as a line
-    # running straight through the body.
-    assert len(internal) == 2
-    assert all(line.y1 == line.y2 for line in internal)
-    assert all(line.y1 != 50.0 for line in internal)
-    assert all(24.0 < line.x1 and line.x2 < 76.0 for line in internal)
-    assert len(_bodies(definition)) == 1
-
-
-def test_the_three_pfd_base_representations_are_distinct() -> None:
+def test_the_two_pfd_base_representations_are_distinct() -> None:
     # No shared equipment glyph: each family is its own geometry and its own
     # document, so a consumer can never substitute one for another.
     definitions = [_pfd_base(symbol_id) for symbol_id, _name, _document in PFD_BASE_SYMBOLS]
 
-    assert len({definition.primitives for definition in definitions}) == 3
-    assert len({render_symbol_svg(definition) for definition in definitions}) == 3
-    assert len({definition.symbol_id for definition in definitions}) == 3
+    assert len({definition.primitives for definition in definitions}) == 2
+    assert len({render_symbol_svg(definition) for definition in definitions}) == 2
+    assert len({definition.symbol_id for definition in definitions}) == 2

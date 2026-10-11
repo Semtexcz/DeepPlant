@@ -34,16 +34,23 @@ variant, style, or option field. #135 also reuses the existing primitive vocabul
 unchanged - every new body, taper, and spring mark is an existing ``Line`` or
 ``Polygon``.
 
-Issue #137 extends the same profile with the three remaining resolved MVP PFD base
-representations: the compressor (``compressor.general``), the in-line mixer
-(``mixer.inline``), and the reactor/burner equipment outline
-(``reactor_burner.general``). These are the first equipment symbols added under
-``deepplant-default``, and the first slice whose reviewed graphical evidence is the
-operator-curated ISO 10628-2:2012 symbol set rather than a project drawing, so each
-one records the relationship its own review actually supports (see `Standards
-relationship` below) instead of defaulting to an empty tuple. All three reuse the
-existing primitive vocabulary unchanged, and no symbol needed a driver/energy
-anchor, a dynamic process-port mechanism, or any annotation.
+Issue #137 extends the same profile with the two remaining resolved MVP PFD base
+representations that establish one reusable built-in identity: the compressor
+(``compressor.general``) and the in-line mixer (``mixer.inline``). These are the
+first equipment symbols added under ``deepplant-default``, and the first slice whose
+reviewed graphical evidence is the operator-curated ISO 10628-2:2012 symbol set
+rather than a project drawing, so each one records the relationship its own review
+actually supports (see `Standards relationship` below) instead of defaulting to an
+empty tuple. Both reuse the existing primitive vocabulary unchanged, and neither
+needed a driver/energy anchor, a dynamic process-port mechanism, or any annotation.
+
+Issue #137 deliberately adds **no** reactor/burner glyph. The selected MVP PFD
+requires the reaction/burning *process step* to be representable, but that
+requirement does not establish one reusable built-in **equipment** identity -
+``ProcessStep != Equipment``. A project represents such a step with an applicable
+standard equipment representation, or with a project/company-specific graphical
+representation, so no ``reactor.*``/``burner.*``/``furnace.*`` built-in symbol
+exists here and none is invented merely to close the coverage count.
 
 
 Geometry provenance
@@ -70,21 +77,18 @@ The three ``generic-iso`` definitions record the ISO document their geometry is
 *intended* to correspond to, at the canonical ``candidate-alignment`` state,
 because the geometry is DeepPlant-original, the project intends it to correspond
 to that ISO family, and no human has yet compared it against an authorized copy.
-Of the twelve ``deepplant-default`` definitions, nine (the restriction orifice, the
+Of the eleven ``deepplant-default`` definitions, nine (the restriction orifice, the
 three #132 basic valves, and the five #135 base representations) record no standards
 relationship at all (``standards=()``): `deepplant-default` makes no ISO/ISA/PIP
 conformance claim, so it requires none, and none is invented merely to populate the
-field (ADR-0007). The #137 equipment representations are the exception, and the
+field (ADR-0007). The two #137 equipment representations are the exception, and the
 state is decided per representation from that representation's own review rather
 than pre-assumed: ``compressor.general`` and ``mixer.inline`` adopt the distinctive
 mark of a reviewed ISO 10628-2:2012 equipment form, so both record
 ``candidate-alignment`` - a concrete geometry *intended* to correspond, with no
-human check claimed - while ``reactor_burner.general`` was informed by the reviewed
-standard material at structure level only (an internals-bearing equipment outline
-and its connection directions) and therefore records ``reference``, which claims no
-correspondence for a concrete geometry. The coverage matrix may still record a
-concept-level ISO reference *direction* for a ``deepplant-default`` concept, but a
-concept-level reference is not a concrete correspondence for this geometry.
+human check claimed. The coverage matrix may still record a concept-level ISO
+reference *direction* for a ``deepplant-default`` concept, but a concept-level
+reference is not a concrete correspondence for this geometry.
 ``candidate-alignment`` claims no human verification, and human verification is
 **not** a prerequisite for it (``docs/dev/workflow/standards.md``, ADR-0007).
 Only a recorded human check against an authorized copy may promote a symbol's
@@ -662,53 +666,6 @@ MIXER_INLINE = SymbolDefinition(
     ),
 )
 
-# DeepPlant-authored project seed geometry for the reactor/burner equipment
-# (docs/dev/reference/symbol-seed-geometry.md, seed O): a closed equipment outline
-# carrying two internal structure strokes - the internals mark that identifies this
-# family - with three process connection stubs.
-#
-# A05 is one resolved Core requirement ("Reactor / burner") whose reviewed evidence
-# is an equipment outline *with internals*, so this is one representation and not a
-# `reactor.*`/`burner.*`/`furnace.*` family: the two internal strokes are the real
-# structural mark, and the outline itself separates the glyph from the adjacent
-# piping. The three neutral process anchors describe connection geometry only - the
-# equipment's own role, the reaction or combustion taking place inside it, and any
-# flame or temperature state are document and semantic data that this base graphic
-# deliberately does not embed.
-#
-# Deliberately absent: any flame, bed-type legend, catalyst or duty label, tag,
-# nozzle designation, or annotation.
-REACTOR_BURNER_GENERAL = SymbolDefinition(
-    symbol_id="reactor_burner.general",
-    name="Reactor/burner",
-    category="equipment",
-    diagram_types=("pfd",),
-    notation_profile="deepplant-default",
-    primitives=(
-        Line(x1=0.0, y1=50.0, x2=24.0, y2=50.0),  # west process connection stub
-        # Tall equipment outline: the internals-bearing body of the family.
-        Polygon(points=((24.0, 14.0), (76.0, 14.0), (76.0, 86.0), (24.0, 86.0))),
-        Line(x1=34.0, y1=36.0, x2=66.0, y2=36.0),  # upper internal structure stroke
-        Line(x1=34.0, y1=64.0, x2=66.0, y2=64.0),  # lower internal structure stroke
-        Line(x1=50.0, y1=14.0, x2=50.0, y2=0.0),  # north process connection stub
-        Line(x1=50.0, y1=86.0, x2=50.0, y2=100.0),  # south process connection stub
-    ),
-    anchors=(
-        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
-        SymbolAnchor(name="port_b", x=50.0, y=0.0, orientation="north", kind="process"),
-        SymbolAnchor(name="port_c", x=50.0, y=100.0, orientation="south", kind="process"),
-    ),
-    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
-    standards=(
-        # `reference`, deliberately weaker than the two marks above: the reviewed
-        # standard material informed this representation's *structure* (an
-        # internals-bearing equipment outline and its connection directions), not a
-        # distinctive standard glyph, so no correspondence is claimed for the
-        # concrete geometry and no state is invented for it (ADR-0007).
-        StandardsReference(standard="ISO 10628-2:2012", verification="reference"),
-    ),
-)
-
 #: The definitions the built-in catalogue currently exposes, across both notation
 #: profiles. The registry orders them by ``(notation_profile, symbol_id)``, so the
 #: declaration order here does not affect lookup.
@@ -727,5 +684,4 @@ IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     RESTRICTION_ORIFICE,
     COMPRESSOR_GENERAL,
     MIXER_INLINE,
-    REACTOR_BURNER_GENERAL,
 )
