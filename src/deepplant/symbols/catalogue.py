@@ -475,12 +475,15 @@ SAFETY_RELIEF_VALVE_ANGLE = SymbolDefinition(
     standards=(),
 )
 
-# DeepPlant-authored project seed geometry for the concentric reducer
+# DeepPlant-authored project seed geometry for the two-sloping-side reducer form
 # (docs/dev/reference/symbol-seed-geometry.md, seed K): one polygon tapers
-# symmetrically about the process axis from the larger west end to the smaller east
-# end, so the two connection faces stay centred on the same axis. The two stubs are
-# DeepPlant's connection representation of the adjacent pipeline, not part of the
-# fitting body.
+# symmetrically about the process axis from the taller west end to the smaller east
+# end, so the two connection faces stay centred on the same axis. The body is
+# deliberately tall and compact rather than long and shallow: the west end face is
+# the dominant face, the east end face is about half its height, the end faces are
+# closer together than either is tall, and both connecting sides therefore rise
+# steeply into the small end. The two stubs are DeepPlant's connection
+# representation of the adjacent pipeline, not part of the fitting body.
 #
 # The canonical normalized form is DeepPlant-authored and drawn horizontally
 # (`port_a` west, `port_b` east) with the taper running west to east; a document that
@@ -494,26 +497,28 @@ CONCENTRIC_REDUCER = SymbolDefinition(
     diagram_types=("pid",),
     notation_profile="deepplant-default",
     primitives=(
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),  # west process connection stub
+        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),  # west process connection stub
         # Symmetric taper: equal end offsets on both sides of the process axis.
-        Polygon(points=((26.0, 30.0), (74.0, 38.0), (74.0, 54.0), (26.0, 62.0))),
-        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),  # east process connection stub
+        Polygon(points=((25.0, 14.0), (75.0, 32.0), (75.0, 68.0), (25.0, 86.0))),
+        Line(x1=75.0, y1=50.0, x2=100.0, y2=50.0),  # east process connection stub
     ),
     anchors=(
-        SymbolAnchor(name="port_a", x=0.0, y=46.0, orientation="west", kind="process"),
-        SymbolAnchor(name="port_b", x=100.0, y=46.0, orientation="east", kind="process"),
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
     ),
     provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
     standards=(),
 )
 
-# DeepPlant-authored project seed geometry for the eccentric reducer
+# DeepPlant-authored project seed geometry for the one-flat-side reducer form
 # (docs/dev/reference/symbol-seed-geometry.md, seed L): the same end sizes, the same
-# end-face planes and the same body extent as the concentric form, but the taper is
-# deliberately one-sided. The flat side is a straight edge parallel to the process
-# axis and the opposite side carries the whole reduction, so the offset - the whole
-# point of an eccentric reducer - is visible. The two stubs are DeepPlant's
-# connection representation of the adjacent pipeline, not part of the fitting body.
+# end-face planes and the same body extent as the two-sloping-side form, but the
+# taper is deliberately one-sided. The flat side is a straight edge parallel to the
+# process axis and the opposite side carries the whole reduction, so the offset - the
+# whole point of this form - is visible. That form is as tall and compact as seed K:
+# the offset long edge is carried by one steep diagonal rather than by two shallow
+# slopes. The two stubs are DeepPlant's connection representation of the adjacent
+# pipeline, not part of the fitting body.
 #
 # Each stub leaves through the *centre of its own end face*, as on every other
 # inline representation in this catalogue, so `port_a` sits at the centre of the
@@ -531,14 +536,14 @@ ECCENTRIC_REDUCER = SymbolDefinition(
     diagram_types=("pid",),
     notation_profile="deepplant-default",
     primitives=(
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),  # west stub, at the larger end centre
+        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),  # west stub, at the larger end centre
         # Flat side parallel to the process axis; the whole reduction is one-sided.
-        Polygon(points=((26.0, 30.0), (74.0, 30.0), (74.0, 46.0), (26.0, 62.0))),
-        Line(x1=74.0, y1=38.0, x2=100.0, y2=38.0),  # east stub, at the smaller end centre
+        Polygon(points=((25.0, 14.0), (75.0, 14.0), (75.0, 50.0), (25.0, 86.0))),
+        Line(x1=75.0, y1=32.0, x2=100.0, y2=32.0),  # east stub, at the smaller end centre
     ),
     anchors=(
-        SymbolAnchor(name="port_a", x=0.0, y=46.0, orientation="west", kind="process"),
-        SymbolAnchor(name="port_b", x=100.0, y=38.0, orientation="east", kind="process"),
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=32.0, orientation="east", kind="process"),
     ),
     provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
     standards=(),

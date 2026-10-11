@@ -127,10 +127,10 @@ BASIC_VALVES = (
 
 #: Fragments that would prove a project/company tag or convention leaked into
 #: The exact #135 documents the independently authored project seed geometry
-#: produces (seeds H/L). Pinned so a contract change cannot silently alter geometry,
-#: and so each representation's real structural distinction is visible in the pinned
-#: bytes: the three-port convergence, the spring-loaded indication on both
-#: safety/relief forms, and the symmetric versus one-sided reducer taper.
+#: produces (seeds H/I/J/K/L). Pinned so a contract change cannot silently alter
+#: geometry, and so each representation's real structural distinction is visible in
+#: the pinned bytes: the three-port convergence, the spring-loaded indication on both
+#: safety/relief forms, and the two-sloping-side versus one-flat-side reducer body.
 THREE_WAY_VALVE_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
     'stroke="currentColor" stroke-width="2"><line x1="0" y1="40" x2="24" y2="40" />'
@@ -160,16 +160,16 @@ SAFETY_RELIEF_VALVE_ANGLE_DOCUMENT = (
 
 CONCENTRIC_REDUCER_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
-    'stroke="currentColor" stroke-width="2"><line x1="0" y1="46" x2="26" y2="46" />'
-    '<polygon points="26,30 74,38 74,54 26,62" />'
-    '<line x1="74" y1="46" x2="100" y2="46" /></svg>\n'
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="25" y2="50" />'
+    '<polygon points="25,14 75,32 75,68 25,86" />'
+    '<line x1="75" y1="50" x2="100" y2="50" /></svg>\n'
 )
 
 ECCENTRIC_REDUCER_DOCUMENT = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" '
-    'stroke="currentColor" stroke-width="2"><line x1="0" y1="46" x2="26" y2="46" />'
-    '<polygon points="26,30 74,30 74,46 26,62" />'
-    '<line x1="74" y1="38" x2="100" y2="38" /></svg>\n'
+    'stroke="currentColor" stroke-width="2"><line x1="0" y1="50" x2="25" y2="50" />'
+    '<polygon points="25,14 75,14 75,50 25,86" />'
+    '<line x1="75" y1="32" x2="100" y2="32" /></svg>\n'
 )
 
 #: The reusable spring-loaded indication every safety/relief form carries, drawn on
@@ -855,6 +855,33 @@ def test_the_safety_relief_forms_share_the_spring_indication_but_not_the_topolog
         assert any(line.x1 == line.x2 == 50.0 and line.y1 in {60.0, 48.0} for line in lines)
 
 
+def _reducer_body(symbol_id: str) -> tuple[tuple[float, float], ...]:
+    """Resolve one reducer form's single body outline, read from the definition."""
+    polygons = [item for item in _remaining(symbol_id).primitives if isinstance(item, Polygon)]
+
+    assert len(polygons) == 1, symbol_id
+    return polygons[0].points
+
+
+def _body_sides(points: tuple[tuple[float, float], ...]) -> list[tuple[float, float]]:
+    """Each body side as ``(run, rise)``, pairing consecutive vertices and closing."""
+    return [
+        (
+            points[(index + 1) % len(points)][0] - points[index][0],
+            points[(index + 1) % len(points)][1] - points[index][1],
+        )
+        for index in range(len(points))
+    ]
+
+
+def _body_face(points: tuple[tuple[float, float], ...], x: float) -> tuple[float, float]:
+    """The end face at ``x`` as ``(lower, higher)`` y."""
+    face = sorted(y for point_x, y in points if point_x == x)
+
+    assert len(face) == 2, x
+    return (face[0], face[1])
+
+
 def test_concentric_reducer_contract() -> None:
     definition = _remaining("fitting.reducer.concentric")
 
@@ -863,9 +890,9 @@ def test_concentric_reducer_contract() -> None:
     # One polygon tapering symmetrically about the process axis, so both connection
     # faces stay centred on the same axis (seed K).
     assert definition.primitives == (
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
-        Polygon(points=((26.0, 30.0), (74.0, 38.0), (74.0, 54.0), (26.0, 62.0))),
-        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),
+        Polygon(points=((25.0, 14.0), (75.0, 32.0), (75.0, 68.0), (25.0, 86.0))),
+        Line(x1=75.0, y1=50.0, x2=100.0, y2=50.0),
     )
 
 
@@ -875,25 +902,116 @@ def test_eccentric_reducer_contract() -> None:
     assert definition.name == "Eccentric reducer"
     assert definition.category == "fitting"
     # One polygon whose flat side runs parallel to the process axis while the opposite
-    # side carries the whole reduction, so the eccentric offset is visible (seed L).
+    # side carries the whole reduction, so the one-sided offset is visible (seed L).
     assert definition.primitives == (
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
-        Polygon(points=((26.0, 30.0), (74.0, 30.0), (74.0, 46.0), (26.0, 62.0))),
-        Line(x1=74.0, y1=38.0, x2=100.0, y2=38.0),
+        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),
+        Polygon(points=((25.0, 14.0), (75.0, 14.0), (75.0, 50.0), (25.0, 86.0))),
+        Line(x1=75.0, y1=32.0, x2=100.0, y2=32.0),
     )
     # Each stub leaves through the centre of its own end face, so the anchors are
-    # offset by exactly the eccentricity: the larger west face is 32 units tall and the
-    # smaller east face 16, giving half the difference, 8, as the offset.
+    # offset by exactly the eccentricity: the larger west face is 72 units tall and the
+    # smaller east face 36, giving half the difference, 18, as the offset.
     assert [(anchor.orientation, anchor.x, anchor.y) for anchor in definition.anchors] == [
-        ("west", 0.0, 46.0),
-        ("east", 100.0, 38.0),
+        ("west", 0.0, 50.0),
+        ("east", 100.0, 32.0),
     ]
+
+
+def test_the_two_sloping_side_reducer_is_two_end_faces_between_two_slopes() -> None:
+    sides = _body_sides(_reducer_body("fitting.reducer.concentric"))
+
+    # The two-sloping-side form is a four-sided outline: a larger vertical end face, a
+    # smaller vertical end face, and two sloping sides that carry the whole reduction
+    # between them, so no long body side is horizontal (seed K).
+    assert len(sides) == 4
+    assert len([side for side in sides if side[0] == 0.0]) == 2
+    assert len([side for side in sides if side[0] != 0.0 and side[1] != 0.0]) == 2
+    assert all(side[1] != 0.0 for side in sides)
+
+
+def test_the_one_flat_side_reducer_is_two_end_faces_a_flat_edge_and_a_slope() -> None:
+    points = _reducer_body("fitting.reducer.eccentric")
+    sides = _body_sides(points)
+
+    # The one-flat-side form is a four-sided outline: a larger vertical end face, a
+    # smaller vertical end face, one long horizontal side, and one long sloping side
+    # (seed L).
+    assert len(sides) == 4
+    assert len([side for side in sides if side[0] == 0.0]) == 2
+    flat = [side for side in sides if side[0] != 0.0 and side[1] == 0.0]
+    sloping = [side for side in sides if side[0] != 0.0 and side[1] != 0.0]
+    assert len(flat) == 1
+    assert len(sloping) == 1
+
+    # The flat side spans both end faces at the larger end's size and stays parallel to
+    # the process axis, while the single sloping side carries the whole reduction in
+    # one steep diagonal.
+    body_length = 75.0 - 25.0
+    west_lower, west_higher = _body_face(points, 25.0)
+    east_lower, east_higher = _body_face(points, 75.0)
+    assert abs(flat[0][0]) == body_length
+    assert abs(sloping[0][0]) == body_length
+    assert abs(sloping[0][1]) == (west_higher - west_lower) - (east_higher - east_lower)
+    assert abs(sloping[0][1]) > abs(flat[0][1])
+
+
+def test_the_reducer_bodies_read_as_a_tall_compact_taper() -> None:
+    # Both reducer forms were re-authored after an operator visual review found the
+    # first authored pass too long and too shallow. The larger end is the visually
+    # dominant face, the smaller end is about half its height and still reads as a face
+    # rather than as a line, and the outline is taller than it is long, so the reduction
+    # is steep instead of a shallow horizontal transition. These are DeepPlant-authored
+    # project proportions, not measurements taken from any reference artwork.
+    for symbol_id in ("fitting.reducer.concentric", "fitting.reducer.eccentric"):
+        points = _reducer_body(symbol_id)
+        west_lower, west_higher = _body_face(points, 25.0)
+        east_lower, east_higher = _body_face(points, 75.0)
+        large_height = west_higher - west_lower
+        small_height = east_higher - east_lower
+        body_length = 75.0 - 25.0
+
+        assert (west_lower, west_higher) == (14.0, 86.0)
+        assert small_height == large_height / 2.0
+        # Taller than long: the body is a compact taper, not a stretched duct length.
+        assert large_height > body_length
+        # Both faces stay inside the canonical view box, so the taller body is drawn at
+        # the same display scale as every other normalized symbol.
+        assert 0.0 <= west_lower < west_higher <= 100.0
+        assert 0.0 <= east_lower < east_higher <= 100.0
+
+
+def test_each_reducer_stub_leaves_through_its_own_end_face_centre() -> None:
+    for symbol_id in ("fitting.reducer.concentric", "fitting.reducer.eccentric"):
+        definition = _remaining(symbol_id)
+        points = _reducer_body(symbol_id)
+        stubs = [item for item in definition.primitives if isinstance(item, Line)]
+        west_lower, west_higher = _body_face(points, 25.0)
+        east_lower, east_higher = _body_face(points, 75.0)
+
+        # One stub per end face, and each stub stops at the face plane it belongs to, so
+        # no stub passes through the reducer body.
+        assert len(stubs) == 2
+        west_stub, east_stub = stubs
+        assert (west_stub.x1, west_stub.x2) == (0.0, 25.0)
+        assert (east_stub.x1, east_stub.x2) == (75.0, 100.0)
+        # Each stub is horizontal and sits on the centre of its own independently
+        # authored end face.
+        assert west_stub.y1 == west_stub.y2 == (west_lower + west_higher) / 2.0
+        assert east_stub.y1 == east_stub.y2 == (east_lower + east_higher) / 2.0
+        # Each external anchor coincides with the far end of its own stub, and the pair
+        # is exactly two neutral process anchors.
+        assert [(anchor.x, anchor.y) for anchor in definition.anchors] == [
+            (west_stub.x1, west_stub.y1),
+            (east_stub.x2, east_stub.y2),
+        ]
+        assert len(definition.anchors) == 2
+        assert {anchor.kind for anchor in definition.anchors} == {"process"}
 
 
 def test_the_two_reducer_forms_are_distinguished_by_symmetry_not_by_rotation() -> None:
     concentric = _remaining("fitting.reducer.concentric")
     eccentric = _remaining("fitting.reducer.eccentric")
-    axis_y = 46.0
+    axis_y = 50.0
 
     bodies: dict[str, Polygon] = {}
     for definition in (concentric, eccentric):
@@ -902,17 +1020,17 @@ def test_the_two_reducer_forms_are_distinguished_by_symmetry_not_by_rotation() -
         assert len(polygons) == 1, definition.symbol_id
         bodies[definition.symbol_id] = polygons[0]
 
-    # Concentric: every end offset is mirrored about the process axis.
+    # The two-sloping-side form: every end offset is mirrored about the process axis.
     for x, y in bodies[concentric.symbol_id].points:
         assert (x, 2.0 * axis_y - y) in bodies[concentric.symbol_id].points
 
-    # Eccentric: the flat side is a straight edge parallel to the process axis at one
-    # end size, and the whole reduction is one-sided, so the form is not symmetric
-    # about that axis. A rotated concentric reducer would still be symmetric, so this
-    # cannot be a rotation.
+    # The one-flat-side form: the flat side is a straight edge parallel to the process
+    # axis at one end size, and the whole reduction is one-sided, so the form is not
+    # symmetric about that axis. A rotated two-sloping-side body would still be
+    # symmetric, so this cannot be a rotation.
     eccentric_points = bodies[eccentric.symbol_id].points
-    flat_side = [(x, y) for x, y in eccentric_points if x in {26.0, 74.0} and y == 30.0]
-    assert sorted(flat_side) == [(26.0, 30.0), (74.0, 30.0)]
+    flat_side = [(x, y) for x, y in eccentric_points if x in {25.0, 75.0} and y == 14.0]
+    assert sorted(flat_side) == [(25.0, 14.0), (75.0, 14.0)]
     assert any((x, 2.0 * axis_y - y) not in eccentric_points for x, y in eccentric_points)
 
 
@@ -920,50 +1038,50 @@ def test_the_two_reducer_forms_share_their_connection_and_end_geometry() -> None
     concentric = _remaining("fitting.reducer.concentric")
     eccentric = _remaining("fitting.reducer.eccentric")
 
-    # The forms differ only in eccentricity: the same neutral anchor names, the same
-    # end-face planes, the same body extent, and the same end sizes (32 units west,
-    # 16 units east). No nominal size, bore, or `DN` value is embedded in either.
+    # The forms differ only in the taper's symmetry: the same neutral anchor names, the
+    # same end-face planes, the same body extent, and the same end sizes (72 units west,
+    # 36 units east). No nominal size, bore, or `DN` value is embedded in either.
     for definition in (concentric, eccentric):
-        body = next(item for item in definition.primitives if isinstance(item, Polygon))
-        west_face = sorted(y for x, y in body.points if x == 26.0)
-        east_face = sorted(y for x, y in body.points if x == 74.0)
+        points = _reducer_body(definition.symbol_id)
+        west_lower, west_higher = _body_face(points, 25.0)
+        east_lower, east_higher = _body_face(points, 75.0)
 
-        assert len(west_face) == 2 and len(east_face) == 2
-        assert west_face == [30.0, 62.0]
-        assert east_face[-1] - east_face[0] == 16.0
+        assert (west_lower, west_higher) == (14.0, 86.0)
+        assert east_higher - east_lower == 36.0
 
-    # Concentric: the axis runs through the centre of both end faces, so `port_a` and
-    # `port_b` are collinear and each one is a face centre.
+    # Two-sloping-side form: the axis runs through the centre of both end faces, so
+    # `port_a` and `port_b` are collinear and each one is a face centre.
     assert [
         (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in concentric.anchors
     ] == [
-        ("port_a", "west", 0.0, 46.0),
-        ("port_b", "east", 100.0, 46.0),
+        ("port_a", "west", 0.0, 50.0),
+        ("port_b", "east", 100.0, 50.0),
     ]
     assert [item for item in concentric.primitives if isinstance(item, Line)] == [
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
-        Line(x1=74.0, y1=46.0, x2=100.0, y2=46.0),
+        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),
+        Line(x1=75.0, y1=50.0, x2=100.0, y2=50.0),
     ]
 
-    # Eccentric: both stubs still leave through the centre of their own end face (the
-    # larger west face centre at y = 46 and the smaller east face centre at y = 38), so
-    # the anchor offset is exactly the eccentricity, half the end-size difference, and
-    # the shared west end keeps the same centre and stub as the concentric form.
+    # One-flat-side form: both stubs still leave through the centre of their own end
+    # face (the larger west face centre at y = 50 and the smaller east face centre at
+    # y = 32), so the anchor offset is exactly the eccentricity, half the end-size
+    # difference, and the shared west end keeps the same centre and stub as the
+    # two-sloping-side form.
     assert [
         (anchor.name, anchor.orientation, anchor.x, anchor.y) for anchor in eccentric.anchors
     ] == [
-        ("port_a", "west", 0.0, 46.0),
-        ("port_b", "east", 100.0, 38.0),
+        ("port_a", "west", 0.0, 50.0),
+        ("port_b", "east", 100.0, 32.0),
     ]
     assert [item for item in eccentric.primitives if isinstance(item, Line)] == [
-        Line(x1=0.0, y1=46.0, x2=26.0, y2=46.0),
-        Line(x1=74.0, y1=38.0, x2=100.0, y2=38.0),
+        Line(x1=0.0, y1=50.0, x2=25.0, y2=50.0),
+        Line(x1=75.0, y1=32.0, x2=100.0, y2=32.0),
     ]
     # Measured upwards (SVG `y` grows downward), the smaller end's centre sits exactly
     # the eccentricity above the larger end's centre.
-    west_height, east_height = 32.0, 16.0
+    west_height, east_height = 72.0, 36.0
     eccentric_offset = eccentric.anchors[0].y - eccentric.anchors[1].y
-    assert eccentric_offset == (west_height - east_height) / 2.0 == 8.0
+    assert eccentric_offset == (west_height - east_height) / 2.0 == 18.0
 
 
 # ---------------------------------------------------------------------------

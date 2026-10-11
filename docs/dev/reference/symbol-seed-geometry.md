@@ -375,28 +375,34 @@ Anchors: `port_a` at `(0, 48)`, orientation `west`, kind `process`; `port_b` at
 
 Standards state: **no** relationship recorded, for the same reason as seed I.
 
-## Seed K — concentric reducer
+## Seed K — two-sloping-side reducer
 
-ID: `fitting.reducer.concentric`. Purpose: recognizable concentric reducer
+ID: `fitting.reducer.concentric`. Purpose: recognizable two-sloping-side reducer
 presentation, added by Issue #135. One of the two forms of Core requirement A16.
 
 ```text
-line    (0, 46)  → (26, 46)                                west process connection stub
-polygon (26, 30), (74, 38), (74, 54), (26, 62)             tapering body, symmetric
-line    (74, 46) → (100, 46)                               east process connection stub
+line    (0, 50)  → (25, 50)                       west process connection stub
+polygon (25, 14), (75, 32), (75, 68), (25, 86)    tapering body, symmetric
+line    (75, 50) → (100, 50)                      east process connection stub
 ```
 
 The intrinsic glyph is a single closed polygon that tapers **symmetrically** about the
-process axis: the west end plane at `x = 26` is 32 units tall and the east end plane
-at `x = 74` is 16 units tall, with equal offsets on each side of the axis, so both
-connection faces stay centred on the same axis and both anchors stay collinear. No
-nominal size, bore, or `DN` value is embedded.
+process axis: the west end plane at `x = 25` is 72 units tall and the east end plane
+at `x = 75` is 36 units tall, with equal offsets on each side of the axis, so both
+connection faces stay centred on the same axis and both anchors stay collinear.
+
+The body is authored **tall and compact**, not long and shallow: the larger end is the
+visually dominant vertical face, the smaller end is about half its height and still
+reads as a face rather than as a line, and the two end faces are closer together than
+either of them is tall, so both connecting sides rise **steeply** into the small end.
+The silhouette is a tall taper, not a shallow length of duct. No nominal size, bore,
+or `DN` value is embedded.
 
 Deliberately absent: any tag, size value, tag bubble, or leader line, which are
 authored document data rather than reusable base geometry.
 
-Anchors: `port_a` at `(0, 46)`, orientation `west`, kind `process`; `port_b` at
-`(100, 46)`, orientation `east`, kind `process`. The canonical normalized form is
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The canonical normalized form is
 DeepPlant-authored and drawn horizontally with the taper running west to east; a
 document that mirrors it or draws the fitting on a vertical process line rotates or
 mirrors the placement, which is presentation rather than this geometry. No flow
@@ -406,34 +412,38 @@ Standards state: **no** relationship recorded, for the same reason as seeds E/F/
 coverage matrix names a concept-level ISO reference direction for A16; that is not a
 correspondence for this geometry.
 
-## Seed L — eccentric reducer
+## Seed L — one-flat-side reducer
 
-ID: `fitting.reducer.eccentric`. Purpose: recognizable eccentric reducer presentation,
-added by Issue #135. The second form of A16.
+ID: `fitting.reducer.eccentric`. Purpose: recognizable one-flat-side reducer
+presentation, added by Issue #135. The second form of A16.
 
 ```text
-line    (0, 46)  → (26, 46)               west stub, at the larger end face centre
-polygon (26, 30), (74, 30), (74, 46), (26, 62)   tapering body, flat side, one-sided
-line    (74, 38) → (100, 38)              east stub, at the smaller end face centre
+line    (0, 50)  → (25, 50)                     west stub, at the larger end face centre
+polygon (25, 14), (75, 14), (75, 50), (25, 86)  tapering body, flat side, one-sided
+line    (75, 32) → (100, 32)                    east stub, at the smaller end face centre
 ```
 
 The intrinsic glyph is a single closed polygon with the **same end sizes, the same
-end-face planes and the same body extent as seed K** — 32 units at the west end plane
-`x = 26` and 16 units at the east end plane `x = 74` — but with a **one-sided** taper.
-The edge from `(26, 30)` to `(74, 30)` is a straight side parallel to the process axis,
-and the opposite edge `(26, 62)` to `(74, 46)` carries the whole reduction. That offset
-is what distinguishes an eccentric from a concentric reducer, and it cannot be produced
-by rotating the concentric form, which stays symmetric about the axis under rotation.
+end-face planes, the same body extent and the same tall/compact proportions as seed
+K** — 72 units at the west end plane `x = 25` and 36 units at the east end plane
+`x = 75` — but with a **one-sided** taper. The edge from `(25, 14)` to `(75, 14)` is a
+straight side parallel to the process axis along the top of the larger face, and the
+opposite edge `(25, 86)` to `(75, 50)` carries the whole reduction. The form is
+therefore one long horizontal side plus one long **sloping** side whose diagonal is
+clearly steeper than either slope of seed K, rather than a shallow trapezoid. That
+offset is what distinguishes this form from seed K, and it cannot be produced by
+rotating the two-sloping-side form, which stays symmetric about the axis under
+rotation.
 
 Each connection stub leaves through the **centre of its own end face**, as on every
 other inline representation in this library: `port_a` is the centre of the larger west
-face `(26, 30)–(26, 62)` and `port_b` the centre of the smaller east face
-`(74, 30)–(74, 46)`. The two anchors are therefore offset by 8 units, which is exactly
-half the end-size difference — the eccentricity the fitting exists to create — and the
-larger west end keeps the same face centre, and the same stub, as the concentric form.
+face `(25, 14)–(25, 86)` and `port_b` the centre of the smaller east face
+`(75, 14)–(75, 50)`. The two anchors are therefore offset by 18 units, which is
+exactly half the end-size difference — the eccentricity the fitting exists to create —
+and the larger west end keeps the same face centre, and the same stub, as seed K.
 Placing each connection point at its own face centre is deliberate: drawing both stubs
-collinear with the flat side would put them on the end *corners* instead of through the
-middle of the ends.
+collinear with the flat side would put them on the end *corners* instead of through
+the middle of the ends.
 
 That anchor offset is geometry and **not** a semantic direction: no
 `flat_on_top`/`flat_on_bottom` field, and no `inlet`/`outlet` name, is added to the
@@ -442,8 +452,8 @@ anchors.
 Deliberately absent: any tag, size value, or leader line, for the same reason as seed
 K.
 
-Anchors: `port_a` at `(0, 46)`, orientation `west`, kind `process`; `port_b` at
-`(100, 38)`, orientation `east`, kind `process`. As with seed K, the canonical form is
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 32)`, orientation `east`, kind `process`. As with seed K, the canonical form is
 drawn horizontally with the larger end west, and a document may mirror or rotate the
 placement.
 
@@ -463,6 +473,16 @@ semantics and authored document data rather than reusable base geometry. No priv
 artwork was measured, traced, vectorised, or copied, these coordinates are
 independently DeepPlant-authored, and no private filename, path, drawing identifier,
 tag, or measurement is recorded here.
+
+A later operator visual review of the same curated material corrected the **body
+proportions** of seeds K and L, whose first authored pass read as too long and too
+shallow beside the selected reference silhouettes. Both forms were re-authored as a
+steeper, taller and more compact taper with a visually dominant larger end, as
+described above. That correction changed qualitative shape only: the two topologies,
+the stable ids, the shared end-face planes and end sizes, and the connection
+decomposition are unchanged, and no source dimension, pixel proportion, or traced
+geometry was copied or transferred — these coordinates remain independently
+DeepPlant-authored.
 
 ## Provenance consequence
 
