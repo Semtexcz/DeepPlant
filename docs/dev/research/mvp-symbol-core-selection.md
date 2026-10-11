@@ -47,9 +47,15 @@ superseded_by: null
   **rendered graphics**, sheet by sheet at tile resolution and with targeted
   crops of the symbol forms in question (**2026-10-10**), so symbol
   form, marker shape, and signal-line style were inspected directly rather than
-  inferred, and no geometry was measured, traced, or copied. No restricted
-  ISO/ISA/IEC content was inspected, and no standards locator, figure, table, or
-  item number is recorded.
+  inferred, and no geometry was measured, traced, or copied. In this document's own
+  investigation no restricted ISO/ISA/IEC content was inspected, and no standards
+  locator, figure, table, or item number is recorded. The later Issue #137 symbol
+  slice inspected the operator-curated ISO 10628-2:2012 symbol set as its
+  graphical evidence, under the operator's explicit authorization and the
+  repository standards policy; that slice records its per-symbol findings in
+  [symbol-seed-geometry.md](../reference/symbol-seed-geometry.md) and the
+  [coverage matrix](../reference/mvp-symbol-coverage.md), and it changes nothing
+  in this document's Core derivation.
 - **Conclusions:**
   - The operator-selected reference directory is the **authoritative requirements
     boundary**. The bundled profile and the repository coverage matrix are
@@ -63,7 +69,7 @@ superseded_by: null
     G10). Project conventions (13), semantic gaps (6), and representation-design
     questions (12) are tracked **outside** the Core count.
   - Base requirement families separate two states: **13** carry a resolved stable
-    graphical identity (10 implemented, 3 resolved but missing), and **4** carry an
+    graphical identity (13 implemented, 0 resolved but missing), and **4** carry an
     unresolved identity / granularity (filter, heat-transfer equipment, vessel /
     tank / drum, measurement sensor / primary element), so those four are not
     counted as exact missing `SymbolDefinition`s. Composed representations 0
@@ -362,10 +368,10 @@ still a representation-design question. Only a resolved identity can be a
 | # | Concept | Context | Classification | Requirement | Stable identity | Selected evidence | Current support | Gap type |
 |---|---|---|---|---|---|---|---|---|
 | A01 | Filter | pfd + pid | `symbol` | required | **unresolved** | PFD A (gas and liquid filtration steps); P&ID B (filter equipment) | missing | representation identity unresolved — one cross-context identity vs context-specific forms must be decided before SymbolDefinition implementation (question G1) |
-| A02 | Compressor | pfd | `symbol` | required | resolved | PFD A | missing | missing base SymbolDefinition |
+| A02 | Compressor | pfd | `symbol` | required | resolved | PFD A | **implemented** (`compressor.general`, `diagram_types = ("pfd",)`) | — (records an intended ISO 10628-2:2012 correspondence at `candidate-alignment`, with no human check claimed, per Issue #137) |
 | A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (requirement family) | pfd + pid | `symbol` | required | **unresolved** | PFD A (several heat-transfer duties); P&ID B (evaporator equipment) | missing | representation identity unresolved — one reusable identity vs several duty / equipment identities is not decided (question G11) |
-| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | PFD A | missing | missing base SymbolDefinition |
-| A05 | Reactor / burner | pfd | `symbol` | required | resolved | PFD A | missing | missing base SymbolDefinition |
+| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | PFD A | **implemented** (`mixer.inline`, `diagram_types = ("pfd",)`) | — (records an intended ISO 10628-2:2012 correspondence at `candidate-alignment`, with no human check claimed, per Issue #137) |
+| A05 | Reactor / burner | pfd | `symbol` | required | resolved | PFD A | **implemented** (`reactor_burner.general`, `diagram_types = ("pfd",)`) | — (records ISO 10628-2:2012 as a reference direction only, so no correspondence is claimed for the geometry, per Issue #137) |
 | A06 | Pump | pfd + pid | `symbol` | required | resolved | PFD A; P&ID A (duty and stand-by instances) | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`) | — (geometry review before any profile migration, per #127) |
 | A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | PFD A; P&ID A; P&ID B | missing | representation identity unresolved — one reusable identity vs separate vessel / tank / drum / column identities is not decided (question G2) |
 | A08 | Gate valve | pid | `symbol` | required | resolved | P&ID A; P&ID B | **implemented** (`valve.gate`) | — (external recognizability and exact geometry unresolved, per #127) |
@@ -574,16 +580,18 @@ connection, or an identity-unresolved requirement family is never reported as a
 ```text
 base graphical requirements        17 families
   stable identities resolved       13
-    implemented                    10   valve.gate, pump.centrifugal, instrument.local,
+    implemented                    13   valve.gate, pump.centrifugal, instrument.local,
+                                       compressor.general, mixer.inline,
+                                       reactor_burner.general,
                                        fitting.restriction_orifice, valve.globe,
                                        valve.check, valve.ball, valve.three_way,
                                        valve.safety_relief.straight,
                                        valve.safety_relief.angle,
                                        fitting.reducer.concentric,
                                        fitting.reducer.eccentric
-                                       (10 concepts, 12 definitions: A14 and A16 each
+                                       (13 concepts, 15 definitions: A14 and A16 each
                                        contribute two forms)
-    resolved but missing            3   compressor (A02), mixer (A04), reactor / burner (A05)
+    resolved but missing            0
   identity / granularity unresolved  4   filter (A01, cross-context identity, G1),
                                          heat-transfer equipment (A03),
                                          vessel / tank / drum (A07),
@@ -632,19 +640,21 @@ tracked outside the Core
 
 base graphical requirement families  17
   stable identities resolved         13
-    implemented                      10   valve.gate, pump.centrifugal, instrument.local,
+    implemented                      13   valve.gate, pump.centrifugal, instrument.local,
+                                          compressor.general, mixer.inline,
+                                          reactor_burner.general,
                                           fitting.restriction_orifice, valve.globe,
                                           valve.check, valve.ball, valve.three_way,
                                           valve.safety_relief.straight,
                                           valve.safety_relief.angle,
                                           fitting.reducer.concentric,
                                           fitting.reducer.eccentric
-    resolved but missing              3
+    resolved but missing              0
   identity / granularity unresolved   4
 ```
 
 Reconciliation, counting every Core row exactly once:
-`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 10 + 3`;
+`40 = 17 + 5 + 6 + 11 + 1`; base `17 = 13 + 4`; resolved base `13 = 13 + 0`;
 composed `5 = 0 + 5`; connections `6 = 1 + 1 + 4`; annotations `11 = 1 + 1 + 9`;
 classification-unresolved capability `1`.
 

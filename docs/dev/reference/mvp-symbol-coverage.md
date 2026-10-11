@@ -80,15 +80,17 @@ identity is still undecided. Under that derivation the Core is:
 capability-specific implementation state
   base graphical requirements   17 families
     stable identities resolved  13
-      implemented               10   concepts (12 SymbolDefinitions)
+      implemented               13   concepts (15 SymbolDefinitions)
                                      (valve.gate, pump.centrifugal, instrument.local,
+                                      compressor.general, mixer.inline,
+                                      reactor_burner.general,
                                       fitting.restriction_orifice, valve.globe,
                                       valve.check, valve.ball, valve.three_way,
                                       valve.safety_relief.straight,
                                       valve.safety_relief.angle,
                                       fitting.reducer.concentric,
                                       fitting.reducer.eccentric)
-      resolved but missing       3
+      resolved but missing       0
     identity / granularity unresolved  4
   composed        0 implemented / 5 missing
   connections     1 implemented / 1 partial / 4 missing
@@ -98,7 +100,7 @@ capability-specific implementation state
                                   connection is representation-design question G10)
 ```
 
-Arithmetic: `17 = 13 + 4`; `13 = 10 + 3`; `6 = 1 + 1 + 4`; `11 = 1 + 1 + 9`;
+Arithmetic: `17 = 13 + 4`; `13 = 13 + 0`; `6 = 1 + 1 + 4`; `11 = 1 + 1 + 9`;
 `40 = 17 + 5 + 6 + 11 + 1`.
 
 Three earlier summaries are withdrawn. "28 Core entries / 3 implemented / 25
@@ -190,17 +192,20 @@ standards relationship     separate evidence axis, never a profile
 
 The three legacy representations — `valve.gate`, `pump.centrifugal`,
 `instrument.local` — are `generic-iso` because #125 did not migrate them. The
-`deepplant-default` profile now holds nine built-in representations: the
+`deepplant-default` profile now holds twelve built-in representations: the
 restriction orifice (A15, Issue #130), the three basic P&ID valves (A09, A10, A11,
-Issue #132), and the five remaining base P&ID representations (A12, A14, A16, Issue
+Issue #132), the five remaining base P&ID representations (A12, A14, A16, Issue
 #135 — two valves and two reducers, so A14 and A16 each contribute two
-definitions). `generic-iso` is **not** the automatic future MVP
+definitions), and the three remaining PFD base representations (A02, A04, A05,
+Issue #137). `generic-iso` is **not** the automatic future MVP
 target notation for every new Core concept:
 
 ```text
 Current profile          the profile an actually-implemented representation carries today
                          (`generic-iso` for the three legacy definitions and
-                         `deepplant-default` for `fitting.restriction_orifice`,
+                         `deepplant-default` for `compressor.general`,
+                         `mixer.inline`, `reactor_burner.general`,
+                         `fitting.restriction_orifice`,
                          `valve.globe`, `valve.check`, `valve.ball`,
                          `valve.three_way`, `valve.safety_relief.straight`,
                          `valve.safety_relief.angle`, `fitting.reducer.concentric`
@@ -367,10 +372,10 @@ requirement from the selected MVP reference content, and the identifiers match t
 | # | Concept | Context | Classification | Requirement | Stable identity | Current profile | Target MVP notation | Standards relationship | Verification | Current support & representation | Gap type |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | A01 | Filter | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | — | — | missing; equipment outline with process anchors | representation identity unresolved — one cross-context identity vs context-specific forms must be decided before SymbolDefinition implementation (G1) |
-| A02 | Compressor | pfd | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; equipment outline with process anchors | missing base SymbolDefinition |
+| A02 | Compressor | pfd | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`compressor.general`); DeepPlant-authored project seed geometry (a circular casing interrupted by its two connection stubs, carrying a compression indication of two mirrored chords that narrow towards one side, so no line crosses the casing), with neutral `port_a` / `port_b` process anchors that embed no flow or nozzle-role semantics | — (the representation records an intended correspondence at `candidate-alignment`, with no human check claimed) |
 | A03 | Heat-transfer equipment — heater, superheater, preheater, evaporator, exchanger (requirement family) | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | — | — | missing; a heat-transfer duty family must be representable, and one reusable identity vs several duty / equipment identities is not decided (G11) | representation identity unresolved — design decision required before SymbolDefinition implementation |
-| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; equipment outline with multiple process anchors | missing base SymbolDefinition |
-| A05 | Reactor / burner | pfd | `symbol` | required | resolved | — | `deepplant-default` target | — | — | missing; equipment outline with anchored connections | missing base SymbolDefinition |
+| A04 | Mixer (two or more process inlets) | pfd | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`mixer.inline`); DeepPlant-authored project seed geometry (a rectangular in-line body with one bent mixing element inside it, so the body edge stays the glyph/piping boundary), with three neutral `port_a` / `port_b` / `port_c` process anchors so the fixed representation can take two process streams in and one out without encoding which port is an inlet | — (the representation records an intended correspondence at `candidate-alignment`, with no human check claimed) |
+| A05 | Reactor / burner | pfd | `symbol` | required | resolved | `deepplant-default` | `deepplant-default` | ISO 10628-2:2012 | `reference` | **implemented** (`reactor_burner.general`); DeepPlant-authored project seed geometry (a closed equipment outline carrying two internal structure strokes — the internals mark that identifies the family — with one connection on each of three sides), one representation for the one resolved requirement, with neutral `port_a` / `port_b` / `port_c` process anchors that embed no equipment role, flame, or duty state | — (the standard is recorded as a reference direction only, so no correspondence is claimed for this geometry) |
 | A06 | Pump | pfd + pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` unresolved — focused review required before migration (#127) | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`pump.centrifugal`, `diagram_types = ("pfd", "pid")`); DeepPlant-authored project seed geometry ([symbol-seed-geometry.md](symbol-seed-geometry.md)) | — (geometry review before any notation-profile migration, per #127) |
 | A07 | Vessel / tank / drum with nozzles (requirement family) | pfd + pid | `symbol` | required | **unresolved** | — | unresolved pending representation design | — | — | missing; a containment outline with nozzles, and one reusable identity vs separate vessel / tank / drum / column identities is not decided (G2) | representation identity unresolved — design decision required before SymbolDefinition implementation |
 | A08 | Gate valve | pid | `symbol` | required | resolved | `generic-iso` | `deepplant-default` candidate — external recognizability unresolved (#127) | ISO 10628-2:2012 | `candidate-alignment` | **implemented** (`valve.gate`); DeepPlant-authored project seed geometry, with neutral `port_a` / `port_b` process anchors that embed no flow semantics | — (external recognizability and exact geometry unresolved, per #127) |
@@ -524,27 +529,37 @@ data, and base-symbol geometry must not embed them.
 | `valve.safety_relief.angle` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → south, process |
 | `fitting.reducer.concentric` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
 | `fitting.reducer.eccentric` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | — | — | `port_a` → west, process; `port_b` → east, process |
+| `compressor.general` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `port_a` → west, process; `port_b` → east, process |
+| `mixer.inline` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `candidate-alignment` | `port_a` → west, process; `port_b` → east, process; `port_c` → north, process |
+| `reactor_burner.general` | `symbol` | `deepplant-default` | `deepplant-original`, AGPL-3.0-only | ISO 10628-2:2012 | `reference` | `port_a` → west, process; `port_b` → north, process; `port_c` → south, process |
 
 Everything else is reported per capability in
 [MVP Core coverage](#mvp-core-coverage): each Core entry records its own support
 state and gap type, and no identity-unresolved requirement family is counted as an
 exact missing `SymbolDefinition`. See also the
 [evidence document](../research/mvp-symbol-core-selection.md). No concept outside
-these twelve definitions is implemented, and no standards relationship is
+these fifteen definitions is implemented, and no standards relationship is
 `human-verified`. All
-twelve geometries are DeepPlant-authored project seed geometry
+fifteen geometries are DeepPlant-authored project seed geometry
 ([symbol-seed-geometry.md](symbol-seed-geometry.md)), not derived from a standard's
 artwork or from a company drawing. The three `generic-iso` representations are
 recorded at `candidate-alignment` because the project intends them to correspond to
 the named ISO family, with no human check claimed: because `generic-iso` *means*
 that intended correspondence, a definition in that profile must record at least one
 relationship at `candidate-alignment` or `human-verified`, and a bare `reference`
-cannot carry the profile. The nine `deepplant-default` representations — the
+cannot carry the profile. Nine of the twelve `deepplant-default` representations — the
 restriction orifice (A15), the globe, check, and ball valves (A09/A10/A11) and the
 three-way valve, the two safety/relief forms and the two reducers (A12/A14/A16) — record
 **no** standards relationship at all: `deepplant-default` makes no ISO/ISA/PIP
 conformance claim, so none is required and none is invented
-([symbol-library.md](symbol-library.md)).
+([symbol-library.md](symbol-library.md)). The three #137 equipment representations
+are the first `deepplant-default` symbols whose reviewed graphical evidence is the
+standard symbol set, so each records the state its own review supports rather than
+being pre-assigned one: `compressor.general` (A02) and `mixer.inline` (A04) record
+`candidate-alignment`, their distinctive marks being the reviewed standard forms,
+while `reactor_burner.general` (A05) records `reference`, because the reviewed
+standard material informed its structure only and no correspondence is claimed for
+its concrete geometry.
 
 The #127 profile classification for the three `generic-iso` definitions is
 preserved unchanged, and keeps DeepPlant-default suitability apart from
@@ -574,9 +589,13 @@ instrument.local
   `candidate-alignment`, and any promotion to `human-verified` requires a human
   comparison against an authorized copy, recorded with the standard, the symbol,
   the date, and the verifier ([standards.md](../workflow/standards.md)).
-  `candidate-alignment` itself requires no human check. The `deepplant-default`
-  restriction orifice records no standards relationship at all, so no
-  correspondence question is open for it.
+  `candidate-alignment` itself requires no human check. The two #137
+  `candidate-alignment` representations (`compressor.general`, `mixer.inline`)
+  carry the same open question, and the #137 `reactor_burner.general` record is a
+  bare `reference`, which claims no correspondence for its geometry, so no
+  correspondence question is open for it. The remaining nine `deepplant-default`
+  representations record no standards relationship at all, so none is open for
+  them either.
 - A permitted or human-recorded locator for each representation has not been
   recorded, so `StandardsReference.locator`, `.name`, `.verified_by`, and
   `.verified_on` stay unset; human verification can add that evidence later.

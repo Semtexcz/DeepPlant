@@ -1,7 +1,7 @@
 # Copyright (C) 2026 DeepPlant contributors
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130/#132/#135).
+"""The built-in machine-rendered symbol catalogue (Issue #119, expanded by #130/#132/#135/#137).
 
 The catalogue intentionally spans two notation profiles. The first Issue #119
 slice implements three representative ``generic-iso`` representations: a
@@ -34,6 +34,18 @@ variant, style, or option field. #135 also reuses the existing primitive vocabul
 unchanged - every new body, taper, and spring mark is an existing ``Line`` or
 ``Polygon``.
 
+Issue #137 extends the same profile with the three remaining resolved MVP PFD base
+representations: the compressor (``compressor.general``), the in-line mixer
+(``mixer.inline``), and the reactor/burner equipment outline
+(``reactor_burner.general``). These are the first equipment symbols added under
+``deepplant-default``, and the first slice whose reviewed graphical evidence is the
+operator-curated ISO 10628-2:2012 symbol set rather than a project drawing, so each
+one records the relationship its own review actually supports (see `Standards
+relationship` below) instead of defaulting to an empty tuple. All three reuse the
+existing primitive vocabulary unchanged, and no symbol needed a driver/energy
+anchor, a dynamic process-port mechanism, or any annotation.
+
+
 Geometry provenance
 ------------------
 
@@ -58,16 +70,23 @@ The three ``generic-iso`` definitions record the ISO document their geometry is
 *intended* to correspond to, at the canonical ``candidate-alignment`` state,
 because the geometry is DeepPlant-original, the project intends it to correspond
 to that ISO family, and no human has yet compared it against an authorized copy.
-The nine ``deepplant-default`` definitions (the restriction orifice, the three
-#132 basic valves, and the five #135 base representations) record no standards
-relationship at all (``standards=()``):
-``deepplant-default`` makes no ISO/ISA/PIP conformance claim, so it requires none,
-and none is invented merely to populate the field (ADR-0007). The coverage matrix
-may still record a concept-level ISO reference *direction* for a `deepplant-default`
-concept, but a concept-level reference is not a concrete correspondence for this
-geometry. ``candidate-alignment`` claims no human verification, and human
-verification is **not** a prerequisite for it
-(``docs/dev/workflow/standards.md``, ADR-0007).
+Of the twelve ``deepplant-default`` definitions, nine (the restriction orifice, the
+three #132 basic valves, and the five #135 base representations) record no standards
+relationship at all (``standards=()``): `deepplant-default` makes no ISO/ISA/PIP
+conformance claim, so it requires none, and none is invented merely to populate the
+field (ADR-0007). The #137 equipment representations are the exception, and the
+state is decided per representation from that representation's own review rather
+than pre-assumed: ``compressor.general`` and ``mixer.inline`` adopt the distinctive
+mark of a reviewed ISO 10628-2:2012 equipment form, so both record
+``candidate-alignment`` - a concrete geometry *intended* to correspond, with no
+human check claimed - while ``reactor_burner.general`` was informed by the reviewed
+standard material at structure level only (an internals-bearing equipment outline
+and its connection directions) and therefore records ``reference``, which claims no
+correspondence for a concrete geometry. The coverage matrix may still record a
+concept-level ISO reference *direction* for a ``deepplant-default`` concept, but a
+concept-level reference is not a concrete correspondence for this geometry.
+``candidate-alignment`` claims no human verification, and human verification is
+**not** a prerequisite for it (``docs/dev/workflow/standards.md``, ADR-0007).
 Only a recorded human check against an authorized copy may promote a symbol's
 correspondence to ``human-verified``, and until then no locator, standard-authored
 name, or other detail that is only available from restricted material is recorded
@@ -549,6 +568,147 @@ ECCENTRIC_REDUCER = SymbolDefinition(
     standards=(),
 )
 
+# DeepPlant-authored project seed geometry for the compressor
+# (docs/dev/reference/symbol-seed-geometry.md, seed M): a circular casing carrying
+# the compression indication - two chords that narrow towards the symbol's east
+# side - plus the two horizontal stubs as DeepPlant's connection representation of
+# the adjacent pipeline. Both stubs stop on the casing circumference, so the process
+# axis is visibly interrupted by the casing.
+#
+# The narrowing band is the recognizable compressor mark. It is geometry and not a
+# flow direction: the canonical normalized form is drawn horizontally with the band
+# narrowing east, exactly as seeds K/L are drawn with their taper running west to
+# east, so a document that mirrors or rotates the placement changes presentation
+# only. `port_a`/`port_b` state where a line connects and which way it leaves the
+# symbol, never an inlet or an outlet.
+#
+# Deliberately absent: any `suction`/`discharge` name, any drive or energy
+# connection (a driver is a separate composed concern, and the pump's own
+# driver-anchor question is still open), any tag, and any flow arrow.
+COMPRESSOR_GENERAL = SymbolDefinition(
+    symbol_id="compressor.general",
+    name="Compressor",
+    category="equipment",
+    diagram_types=("pfd",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=24.0, y2=50.0),  # west process connection stub
+        Circle(cx=50.0, cy=50.0, r=26.0),
+        # Compression indication: two chords mirrored about the axis, narrowing east.
+        Line(x1=32.0, y1=34.0, x2=72.0, y2=44.0),
+        Line(x1=32.0, y1=66.0, x2=72.0, y2=56.0),
+        Line(x1=76.0, y1=50.0, x2=100.0, y2=50.0),  # east process connection stub
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        # Intended correspondence only, with no human verification claimed: the
+        # geometry is DeepPlant-authored, the compression mark is the reviewed
+        # standard form, and no locator, standard-authored name, or verifier
+        # evidence is recorded until a human check against an authorized copy
+        # supplies it (ADR-0007).
+        StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+    ),
+)
+
+# DeepPlant-authored project seed geometry for the in-line mixer
+# (docs/dev/reference/symbol-seed-geometry.md, seed N): a rectangular in-line mixing
+# body carrying one bent mixing element, with three process connection stubs. The
+# west and east stubs continue the piping axis through the body and the north stub
+# leaves the body's top edge, so the representation can carry two process streams in
+# and one out - the Core's A04 requirement - while every port stays neutral. The
+# three-port shape is fixed, not a dynamic port mechanism.
+#
+# The bent element (a down-stroke, the long diagonal, and the opposite up-stroke) is
+# the recognizable mixing mark. It is drawn inside the body only, so the body edge
+# stays the boundary between the intrinsic glyph and the adjacent piping. The
+# `port_a`/`port_b`/`port_c` anchors describe connection geometry only: no
+# `inlet`/`outlet`/`common` name and no flow-direction field is added, because which
+# stream enters where is document data.
+#
+# Deliberately absent: any tag, stream label, element count, mixer-type legend, or
+# annotation.
+MIXER_INLINE = SymbolDefinition(
+    symbol_id="mixer.inline",
+    name="Inline mixer",
+    category="equipment",
+    diagram_types=("pfd",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=24.0, y2=50.0),  # west process connection stub
+        # In-line mixing body: a closed rectangle centred on the piping axis.
+        Polygon(points=((24.0, 26.0), (76.0, 26.0), (76.0, 74.0), (24.0, 74.0))),
+        # One bent mixing element: down-stroke, diagonal, opposite up-stroke.
+        Line(x1=36.0, y1=36.0, x2=36.0, y2=52.0),
+        Line(x1=36.0, y1=36.0, x2=64.0, y2=64.0),
+        Line(x1=64.0, y1=64.0, x2=64.0, y2=48.0),
+        Line(x1=76.0, y1=50.0, x2=100.0, y2=50.0),  # east process connection stub
+        Line(x1=50.0, y1=26.0, x2=50.0, y2=0.0),  # north process connection stub
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=100.0, y=50.0, orientation="east", kind="process"),
+        SymbolAnchor(name="port_c", x=50.0, y=0.0, orientation="north", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        # Intended correspondence only, for the same reason as the compressor: the
+        # body, the bent mixing element, and the three connection directions are the
+        # reviewed standard in-line mixer form, and no human check is claimed.
+        StandardsReference(standard="ISO 10628-2:2012", verification="candidate-alignment"),
+    ),
+)
+
+# DeepPlant-authored project seed geometry for the reactor/burner equipment
+# (docs/dev/reference/symbol-seed-geometry.md, seed O): a closed equipment outline
+# carrying two internal structure strokes - the internals mark that identifies this
+# family - with three process connection stubs.
+#
+# A05 is one resolved Core requirement ("Reactor / burner") whose reviewed evidence
+# is an equipment outline *with internals*, so this is one representation and not a
+# `reactor.*`/`burner.*`/`furnace.*` family: the two internal strokes are the real
+# structural mark, and the outline itself separates the glyph from the adjacent
+# piping. The three neutral process anchors describe connection geometry only - the
+# equipment's own role, the reaction or combustion taking place inside it, and any
+# flame or temperature state are document and semantic data that this base graphic
+# deliberately does not embed.
+#
+# Deliberately absent: any flame, bed-type legend, catalyst or duty label, tag,
+# nozzle designation, or annotation.
+REACTOR_BURNER_GENERAL = SymbolDefinition(
+    symbol_id="reactor_burner.general",
+    name="Reactor/burner",
+    category="equipment",
+    diagram_types=("pfd",),
+    notation_profile="deepplant-default",
+    primitives=(
+        Line(x1=0.0, y1=50.0, x2=24.0, y2=50.0),  # west process connection stub
+        # Tall equipment outline: the internals-bearing body of the family.
+        Polygon(points=((24.0, 14.0), (76.0, 14.0), (76.0, 86.0), (24.0, 86.0))),
+        Line(x1=34.0, y1=36.0, x2=66.0, y2=36.0),  # upper internal structure stroke
+        Line(x1=34.0, y1=64.0, x2=66.0, y2=64.0),  # lower internal structure stroke
+        Line(x1=50.0, y1=14.0, x2=50.0, y2=0.0),  # north process connection stub
+        Line(x1=50.0, y1=86.0, x2=50.0, y2=100.0),  # south process connection stub
+    ),
+    anchors=(
+        SymbolAnchor(name="port_a", x=0.0, y=50.0, orientation="west", kind="process"),
+        SymbolAnchor(name="port_b", x=50.0, y=0.0, orientation="north", kind="process"),
+        SymbolAnchor(name="port_c", x=50.0, y=100.0, orientation="south", kind="process"),
+    ),
+    provenance=DEEPP_LANT_ORIGINAL_PROVENANCE,
+    standards=(
+        # `reference`, deliberately weaker than the two marks above: the reviewed
+        # standard material informed this representation's *structure* (an
+        # internals-bearing equipment outline and its connection directions), not a
+        # distinctive standard glyph, so no correspondence is claimed for the
+        # concrete geometry and no state is invented for it (ADR-0007).
+        StandardsReference(standard="ISO 10628-2:2012", verification="reference"),
+    ),
+)
+
 #: The definitions the built-in catalogue currently exposes, across both notation
 #: profiles. The registry orders them by ``(notation_profile, symbol_id)``, so the
 #: declaration order here does not affect lookup.
@@ -565,4 +725,7 @@ IMPLEMENTED_SYMBOLS: tuple[SymbolDefinition, ...] = (
     PUMP_CENTRIFUGAL,
     INSTRUMENT_LOCAL,
     RESTRICTION_ORIFICE,
+    COMPRESSOR_GENERAL,
+    MIXER_INLINE,
+    REACTOR_BURNER_GENERAL,
 )

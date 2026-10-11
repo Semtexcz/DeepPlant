@@ -40,9 +40,12 @@ FORBIDDEN_ATTRIBUTES = {"href", "style", "class", "font-family", "onload"}
 
 #: Every built-in graphical representation, as ``(notation_profile, symbol_id)``.
 BUILTIN_REPRESENTATIONS = (
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "compressor.general"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.concentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.eccentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "mixer.inline"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "reactor_burner.general"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),

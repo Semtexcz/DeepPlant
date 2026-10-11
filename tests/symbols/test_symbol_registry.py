@@ -30,9 +30,12 @@ from deepplant.symbols.profiles import (
 #: deterministic registry order: ``deepplant-default`` before ``generic-iso``, then
 #: by symbol id.
 BUILTIN_REPRESENTATIONS = (
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "compressor.general"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.concentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.reducer.eccentric"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "fitting.restriction_orifice"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "mixer.inline"),
+    (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "reactor_burner.general"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.ball"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.check"),
     (DEEPPLANT_DEFAULT_NOTATION_PROFILE, "valve.globe"),
@@ -45,12 +48,16 @@ BUILTIN_REPRESENTATIONS = (
 )
 
 #: The `deepplant-default`-only ids, which the omitted-profile (generic-iso)
-#: convenience lookup must fail closed for. Issue #132 adds three of them and
-#: Issue #135 adds five more, so the fail-closed behaviour is pinned for every one.
+#: convenience lookup must fail closed for. Issue #132 adds three of them, Issue
+#: #135 adds five more, and Issue #137 adds the three PFD equipment
+#: representations, so the fail-closed behaviour is pinned for every one.
 DEEPPLANT_DEFAULT_ONLY_IDS = (
+    "compressor.general",
     "fitting.reducer.concentric",
     "fitting.reducer.eccentric",
     "fitting.restriction_orifice",
+    "mixer.inline",
+    "reactor_burner.general",
     "valve.ball",
     "valve.check",
     "valve.globe",

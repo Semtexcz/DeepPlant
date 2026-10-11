@@ -43,14 +43,18 @@ definition → registry → renderer architecture, not to reproduce a standard.
   `generic-iso` geometries record the conservative `candidate-alignment` state — an
   *intended* correspondence with no human check claimed — which is what that
   profile requires, because a bare `reference` claims no correspondence for a
-  concrete geometry. The nine `deepplant-default` geometries (the restriction
-  orifice, the three Issue #132 basic valves, and the five Issue #135 base
-  representations) record **no** standards relationship at all, which their profile
-  permits because they make no
+  concrete geometry. Nine of the twelve `deepplant-default` geometries (the
+  restriction orifice, the three Issue #132 basic valves, and the five Issue #135
+  base representations) record **no** standards relationship at all, which their
+  profile permits because they make no
   ISO/ISA/PIP conformance claim
-  ([workflow/standards.md](../workflow/standards.md)). A coverage-matrix entry may
-  still name a concept-level ISO reference *direction*; that is not a concrete
-  correspondence for this geometry.
+  ([workflow/standards.md](../workflow/standards.md)). The three Issue #137
+  equipment representations are the exception, and each one records the state its
+  own review supports rather than being pre-assigned one: seeds M and N adopt a
+  reviewed standard form's distinctive mark and record `candidate-alignment`, while
+  seed O was informed at structure level only and records `reference`. A
+  coverage-matrix entry may still name a concept-level ISO reference *direction*;
+  that is not a concrete correspondence for this geometry.
 
 ```text
 project-owned seed geometry   this document
@@ -482,6 +486,137 @@ the stable ids, the shared end-face planes and end sizes, and the connection
 decomposition are unchanged, and no source dimension, pixel proportion, or traced
 geometry was copied or transferred — these coordinates remain independently
 DeepPlant-authored.
+
+## Seed M — compressor
+
+ID: `compressor.general`. Purpose: recognizable generic PFD compressor
+presentation, added by Issue #137 and one of the three remaining resolved MVP PFD
+base representations. Requirement A02.
+
+```text
+line    (0, 50)  → (24, 50)    west process connection stub
+circle  centre (50, 50), radius 26
+                               casing; both stubs stop on its circumference
+line    (32, 34) → (72, 44)    upper compression stroke
+line    (32, 66) → (72, 56)    lower compression stroke
+line    (76, 50) → (100, 50)   east process connection stub
+```
+
+The intrinsic glyph is the circular casing **plus** the two compression strokes
+inside it: two chords mirrored about the process axis whose separation narrows
+towards the symbol's east side, so the pair reads as one compression indication
+rather than as two unrelated diagonals. Both chords stay strictly inside the
+circumference, and no horizontal line crosses the casing — which is what keeps this
+form distinct from seed B's pump casing, whose internal lines meet at one point on
+the circumference and which carries a full through-line.
+
+Deliberately absent: any `suction`/`discharge` nozzle name, any drive, gearbox, or
+energy connection (a driver is a separate composed concern, and whether the pump
+carries a driver anchor is still open), any tag, and any flow-direction arrow. The
+reviewed material draws the adjacent pipeline as line segments meeting the casing,
+so DeepPlant draws each connection as a stub to the view-box edge instead.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`. The narrowing band is the canonical
+orientation and **not** a flow direction: a document that mirrors or rotates the
+placement changes presentation only.
+
+Standards state: `candidate-alignment` against ISO 10628-2:2012. The reviewed
+standard material supplies this family's distinctive mark — a circular compressor
+casing carrying a compression indication — so the geometry is *intended* to
+correspond to that reviewed form, and no human has compared it against an authorized
+copy. No locator, standard-authored name, or verifier is recorded.
+
+## Seed N — in-line mixer
+
+ID: `mixer.inline`. Purpose: recognizable generic PFD mixer presentation for a mixer
+that takes two or more process streams, added by Issue #137. Requirement A04.
+
+```text
+line    (0, 50)  → (24, 50)                                west process connection stub
+polygon (24, 26), (76, 26), (76, 74), (24, 74)             in-line mixing body
+line    (36, 36) → (36, 52)                                element, left down-stroke
+line    (36, 36) → (64, 64)                                element, long diagonal
+line    (64, 64) → (64, 48)                                element, right up-stroke
+line    (76, 50) → (100, 50)                               east process connection stub
+line    (50, 26) → (50, 0)                                 north process connection stub
+```
+
+The intrinsic glyph is the rectangular in-line body **plus** the single bent mixing
+element inside it: a short down-stroke, the long diagonal, and the opposite
+up-stroke. The element stays strictly inside the body, so the body edge remains the
+boundary between the intrinsic glyph and the adjacent piping. The reviewed material
+draws mixing sections of differing length, so how many elements a document shows is
+document data rather than a distinguishing property of this base identity; the base
+carries the single smallest element.
+
+A04 requires a mixer with **two or more process inlets**, so the representation
+carries three process connections: the west and east stubs continue the piping axis
+through the body and the north stub leaves the body's top edge. That three-port
+shape is fixed geometry and not a dynamic port mechanism, and the ports stay
+neutral — `port_a`/`port_b`/`port_c` say only where a line connects and which way it
+leaves the symbol — so which stream enters where remains authored document data.
+
+Deliberately absent: any tag, stream label, element count, mixer-type legend, or
+annotation.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(100, 50)`, orientation `east`, kind `process`; `port_c` at `(50, 0)`, orientation
+`north`, kind `process`.
+
+Standards state: `candidate-alignment` against ISO 10628-2:2012, for the same reason
+as seed M — the reviewed standard material supplies this family's distinctive mark (a
+mixing body carrying a bent mixing element) together with its connection directions,
+and no human check is claimed.
+
+## Seed O — reactor/burner equipment outline
+
+ID: `reactor_burner.general`. Purpose: recognizable generic PFD presentation for the
+reactor/burner equipment outline, added by Issue #137. Requirement A05.
+
+```text
+line    (0, 50)  → (24, 50)                    west process connection stub
+polygon (24, 14), (76, 14), (76, 86), (24, 86) equipment outline
+line    (34, 36) → (66, 36)                    upper internal structure stroke
+line    (34, 64) → (66, 64)                    lower internal structure stroke
+line    (50, 14) → (50, 0)                     north process connection stub
+line    (50, 86) → (50, 100)                   south process connection stub
+```
+
+The intrinsic glyph is a closed equipment outline carrying **two internal structure
+strokes** inside it. Those internals are the mark that identifies this family, and
+both strokes stay strictly inside the outline and clear of the west connection
+entry, so they read as structure rather than as a line running straight through the
+body.
+
+A05 is **one** resolved Core requirement — `Reactor / burner` — whose reviewed
+evidence is an equipment outline *with internals*, so this is one representation and
+not a `reactor.*` / `burner.*` / `furnace.*` family, and no such plural identity is
+created alongside it. The outline and its internals are the reusable part; the
+equipment's own role, the reaction or combustion taking place inside it, and any
+flame or temperature state are semantic and document data that a base graphic
+deliberately does not embed. The reviewed standard material does distinguish other
+heat-generating equipment forms from one another, but A05's selected evidence is the
+internals-bearing equipment outline and the Core records one resolved identity for
+the family, so this slice implements that one representation; introducing a distinct
+fuel-burner or furnace identity would be a separate evidence-based decision, not an
+extension of this one.
+
+Deliberately absent: any flame mark, bed-type legend, catalyst or duty label, tag,
+nozzle designation, or annotation. In particular no `inlet`/`outlet` name is added,
+even though the canonical form draws one connection on each of three sides.
+
+Anchors: `port_a` at `(0, 50)`, orientation `west`, kind `process`; `port_b` at
+`(50, 0)`, orientation `north`, kind `process`; `port_c` at `(50, 100)`, orientation
+`south`, kind `process`.
+
+Standards state: `reference` — deliberately weaker than seeds M and N, and the state
+this representation's own review supports. The reviewed standard material informed
+its *structure* (that this family is an internals-bearing equipment outline, and
+which sides its connections leave from), not a distinctive standard glyph, so no
+correspondence is claimed for the concrete geometry and no state is invented to
+populate the field. A bare `reference` claims no correspondence for a concrete
+geometry, which is exactly the honest relationship here.
 
 ## Provenance consequence
 
