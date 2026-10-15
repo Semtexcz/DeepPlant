@@ -196,8 +196,13 @@ Invariants:
    semantic invalidity, and is reported on the representation that failed.
 5. **Transport failure** (transport/session unavailable, request failure) is an
    operational condition and is separate from model validity.
-6. The Status Bar and any global validity surface communicate **model/project
-   validity** — not view renderability and not transport health.
+6. The **model-validity indicator** in the Status Bar communicates **model/project
+   validity**. View availability/renderability and transport health, when shown in
+   the Status Bar or on another global surface, use **distinct indicators/state**
+   and are never presented as model validity. Keeping the dimensions
+   distinguishable does not require physically separate UI surfaces: one Status
+   Bar may truthfully display several independent dimensions as long as they
+   remain distinguishable.
 7. The active editor representation communicates **its own availability/renderability**,
    and states the reason when it cannot represent the current project.
 8. No frontend behavior may weaken, bypass, re-implement, or hide backend/domain

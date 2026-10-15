@@ -45,8 +45,9 @@ superseded_by: null
 > scope the MVP covers** (Issue #68, [product.md](../planning/product.md)). It
 > selects no framework or library, adds no dependency, creates no `frontend/`
 > directory, and authorizes no implementation. It is the interaction authority
-> the first executable GUI slice must follow when one is selected by the
-> [active milestone](../planning/roadmap.md).
+> the delivered read-only Process/PFD editor slice follows, and the one each
+> further GUI slice follows when the
+> [active milestone](../planning/roadmap.md) selects it.
 
 ## Outcome card
 
@@ -58,7 +59,10 @@ superseded_by: null
   AI chat" assembled as unrelated tools?
 - **Status:** open design evidence. It states durable interaction rules and
   required capabilities; it records unresolved UX questions rather than
-  resolving them by invention. No GUI exists.
+  resolving them by invention. A read-only Process/PFD editor slice now exists
+  ([frontend/index.md](../frontend/index.md)); this document remains the
+  interaction architecture and design evidence for the broader Engineering
+  Editor workspace and its future interaction behavior.
 - **Inspection scope and date:** the authoritative product, planning,
   architecture, contract, and decision documents; the loadable
   [realistic fragment](../../../examples/realistic-process-fragment/plant.yaml);
@@ -105,10 +109,12 @@ superseded_by: null
   [plant-model.md](../../contracts/plant-model.md),
   [physical-piping.md](../../contracts/physical-piping.md),
   [rendering.md](../../contracts/rendering.md)) and the frontend engineering
-  contract ([frontend/index.md](../frontend/index.md)). No editor is implemented
-  yet.
+  contract ([frontend/index.md](../frontend/index.md)), which owns the current
+  implementation state. The delivered read-only Process/PFD editor slice is the
+  first executable GUI slice; the broader Engineering Editor workspace described
+  here is not implemented yet.
 - **Conditions for revisiting:** when the [active milestone](../planning/roadmap.md)
-  selects the first GUI slice, when Issue #70's reuse-first architecture
+  selects a further GUI slice, when Issue #70's reuse-first architecture
   constrains a surface, or when real user evidence shows a permanent surface is
   missing, redundant, or wrong.
 
