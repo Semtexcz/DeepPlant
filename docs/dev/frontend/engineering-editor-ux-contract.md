@@ -213,6 +213,12 @@ editing/reconciliation backend exists today. Draft persistence, diffing
 mechanism, and the reconciliation implementation remain unimplemented until a
 selected Issue delivers them.
 
+A YAML editor may be presented alongside a graphical view of the same project. The
+side-by-side composition is a layout choice owned by Figma; it does not create a
+synchronization channel. Both surfaces observe the same accepted model and the same
+semantic selection, and the draft/reconciliation rules above still apply: neither
+pane silently rewrites the other.
+
 ## Problems and validation
 
 Diagnostics are navigable items, not dead-end text.
