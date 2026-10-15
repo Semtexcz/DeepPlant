@@ -57,11 +57,13 @@ functionality.
 **Current reality (implemented).** DeepPlant has the authoritative engineering
 documents (see [architecture.md](../architecture/index.md),
 [contracts/](../../contracts/index.md)) and the canonical frontend engineering
-contract for `apps/editor/` ([frontend/index.md](index.md)). It has **no** Figma
-file under version control, **no** UX-contract directory, **no** `design/tokens/`
-tree, **no** Figma MCP integration, and **no** design-token generation pipeline.
-This document therefore defines the workflow to follow when that UI work starts;
-it must not be read as a description of implemented tooling.
+contract for `apps/editor/` ([frontend/index.md](index.md)). The repository tracks
+one Figma visual-design artifact,
+[Engineering Editor Figma Design](../research/engineering-editor-design/README.md).
+It has **no** UX-contract directory, **no** `design/tokens/` tree, **no** Figma
+MCP integration, and **no** design-token generation pipeline. This document
+therefore defines the workflow to follow when that UI work starts; it must not be
+read as a description of implemented tooling.
 
 No new ADR is created. The source-of-truth boundaries below restate accepted
 boundaries — [ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),

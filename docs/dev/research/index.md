@@ -77,6 +77,16 @@ boundaries, instrumentation/signals, and presentation/graphics.
 |---|---|---|---|
 | [engineering-editor-reuse-architecture.md](engineering-editor-reuse-architecture.md) | Which reusable GUI technologies should underpin the DeepPlant Engineering Editor, and where are their boundaries? | Selects a small reuse-first stack — Vue 3 + TypeScript + Vite (foundation), Vue Flow (canvas, behind a DeepPlant projection/adapter), Reka UI (primitives) — and defers/rejects Dockview, Monaco, ELK/elkjs, Pinia, VueUse, shadcn-vue, X6, and Cytoscape.js, each with an adoption trigger; keeps semantic/presentation/framework state separated, undo/redo at the application-command boundary, and the existing renderer/symbol contract reused; no new ADR and no dependency added | the read-only Process/PFD editor slice (Issue #75) is its first implementation consumer; informs [roadmap.md](../planning/roadmap.md) |
 
+## Engineering editor design artifacts
+
+This section records design inputs, not investigations. The
+[Engineering Editor Figma Design](engineering-editor-design/README.md)
+(`deepplant-editor.fig`) is the repository-tracked Figma artifact for the
+Engineering Editor. It owns approved visual intent only; behaviour stays with the
+[design-to-code workflow](../frontend/design-to-code.md) and the
+[UX architecture](engineering-editor-ux.md), and engineering semantics stay with
+[contracts/](../../contracts/index.md) and the ADRs.
+
 ## Reuse, standards, and asset evidence
 
 | Document | Question investigated | Outcome | Operationalized by |
