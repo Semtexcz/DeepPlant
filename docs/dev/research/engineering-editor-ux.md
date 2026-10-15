@@ -45,8 +45,9 @@ superseded_by: null
 > scope the MVP covers** (Issue #68, [product.md](../planning/product.md)). It
 > selects no framework or library, adds no dependency, creates no `frontend/`
 > directory, and authorizes no implementation. It is the interaction authority
-> the first executable GUI slice must follow when one is selected by the
-> [active milestone](../planning/roadmap.md).
+> the delivered read-only Process/PFD editor slice follows, and the one each
+> further GUI slice follows when the
+> [active milestone](../planning/roadmap.md) selects it.
 
 ## Outcome card
 
@@ -58,7 +59,10 @@ superseded_by: null
   AI chat" assembled as unrelated tools?
 - **Status:** open design evidence. It states durable interaction rules and
   required capabilities; it records unresolved UX questions rather than
-  resolving them by invention. No GUI exists.
+  resolving them by invention. A read-only Process/PFD editor slice now exists
+  ([frontend/index.md](../frontend/index.md)); this document remains the
+  interaction architecture and design evidence for the broader Engineering
+  Editor workspace and its future interaction behavior.
 - **Inspection scope and date:** the authoritative product, planning,
   architecture, contract, and decision documents; the loadable
   [realistic fragment](../../../examples/realistic-process-fragment/plant.yaml);
@@ -95,15 +99,22 @@ superseded_by: null
   and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md);
   no new durable rule cleared the ADR threshold (see
   [ADR threshold](#adr-threshold)).
-- **Current contracts operationalizing the result:** none yet — no editor is
-  implemented. The semantic contracts it depends on
+- **Current contracts operationalizing the result:** the approved Engineering
+  Editor behavior is now recorded as a Git-tracked behavioral UX contract,
+  [ux/engineering-editor/index.md](../frontend/ux/engineering-editor/index.md)
+  (Issue #115). This document stays the interaction architecture and design
+  evidence behind that contract; operationalizing it does not move semantic or
+  domain authority, which remains with the engineering contracts it depends on
   ([process-model.md](../../contracts/process-model.md),
   [plant-model.md](../../contracts/plant-model.md),
   [physical-piping.md](../../contracts/physical-piping.md),
-  [rendering.md](../../contracts/rendering.md)) continue to describe the current
-  model.
+  [rendering.md](../../contracts/rendering.md)) and the frontend engineering
+  contract ([frontend/index.md](../frontend/index.md)), which owns the current
+  implementation state. The delivered read-only Process/PFD editor slice is the
+  first executable GUI slice; the broader Engineering Editor workspace described
+  here is not implemented yet.
 - **Conditions for revisiting:** when the [active milestone](../planning/roadmap.md)
-  selects the first GUI slice, when Issue #70's reuse-first architecture
+  selects a further GUI slice, when Issue #70's reuse-first architecture
   constrains a surface, or when real user evidence shows a permanent surface is
   missing, redundant, or wrong.
 
