@@ -290,7 +290,7 @@ validate-docs:
 	@test -f docs/dev/frontend/testing.md
 	@test -f docs/dev/frontend/accessibility.md
 	@test -f docs/dev/frontend/design-to-code.md
-	@test -f docs/dev/frontend/engineering-editor-ux-contract.md
+	@test -f docs/dev/frontend/ux/engineering-editor/index.md
 	@test -f docs/dev/python/index.md
 	@test -f docs/dev/python/architecture.md
 	@test -f docs/dev/python/conventions.md

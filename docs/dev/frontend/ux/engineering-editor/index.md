@@ -18,7 +18,9 @@ depends_on:
   - docs/dev/frontend/design-to-code.md
   - docs/dev/frontend/accessibility.md
   - docs/dev/research/engineering-editor-ux.md
+  - docs/dev/planning/roadmap.md
   - docs/contracts/index.md
+  - docs/contracts/rendering.md
 decision:
   - docs/dev/decisions/ADR-0002-semantic-model-is-the-core.md
   - docs/dev/decisions/ADR-0003-separate-semantic-and-presentation-models.md
@@ -41,7 +43,7 @@ superseded_by: null
 This is the canonical, Git-tracked behavioral UX contract for the Engineering
 Editor. It records behavior for the approved design; it does not authorize a
 capability merely because that capability appears in the design, and it does not
-itself change product scope ([roadmap.md](../planning/roadmap.md)).
+itself change product scope ([roadmap.md](../../../planning/roadmap.md)).
 
 ## Artifact and source-of-truth contract
 
@@ -67,7 +69,7 @@ Figma demonstrates representative interactions; it is not executable product log
 If the design conflicts with this contract, repository architecture, or the
 engineering contracts, the conflict is reconciled before implementation rather
 than silently resolved toward a visual approximation
-([design-to-code.md](design-to-code.md#precedence--repository-governance-constrains-figma)).
+([design-to-code.md](../../design-to-code.md#precedence--repository-governance-constrains-figma)).
 
 ## Application shell behavior
 
@@ -78,10 +80,10 @@ The shell provides the following regions:
   Explorer; collapsible, and its absence never makes the central workspace
   unusable.
 - **Central editor workspace** — the open engineering views and the controls that
-  belong to the active view.
+  belong to the focused pane/representation.
 - **Right Inspector, and a future Copilot surface** — the Inspector is
   selection-driven; Copilot is a future contextual surface, never a second
-  mutation path ([future interaction layer](../research/engineering-editor-ux.md)).
+  mutation path ([future interaction layer](../../../research/engineering-editor-ux.md)).
 - **Global Status Bar** — always-available compact workspace, validity, and
   project status; it remains present when detail surfaces are hidden.
 - **Bottom Panel** — a contextual surface (including Problems) that can open,
@@ -91,8 +93,14 @@ Behavioral invariants:
 
 - Opening, collapsing, or closing a secondary surface never discards the accepted
   project state, diagnostics, or semantic selection.
-- Exactly one editor view is active at a time; switching the active view changes
-  the projection and its view-specific controls, not the semantic model.
+- **Exactly one editor workspace/tab is primary at a time. A primary workspace may
+  contain multiple representation panes, such as YAML + PFD. Focus identifies the
+  active pane; semantic selection and the accepted model remain shared according to
+  the representation contracts.** Multiple visible panes do not imply multiple
+  competing canonical models, and view-specific controls stay scoped to the
+  pane/representation they belong to.
+- Switching the primary workspace changes the projection and its view-specific
+  controls, not the semantic model.
 - Responsive behavior preserves access to the central workspace and the Status
   Bar. At narrower widths, optional sidebars and secondary surfaces collapse,
   hide behind an explicit affordance, or become on-demand surfaces; they may not
@@ -118,10 +126,12 @@ capabilities allow:
 - **Read-only today** — the delivered editor slice is read-only Process/PFD, so no
   surface may present a working save/persistence capability. Persistence stays
   deferred until a selected Issue delivers it
-  ([roadmap.md](../planning/roadmap.md)).
+  ([roadmap.md](../../../planning/roadmap.md)).
 
 An empty, loading, or error workspace is never presented as a valid empty engineering
-model.
+model. Workspace state, model validity, and representation availability are
+independent dimensions and are kept distinguishable
+([Model validity, view availability, and transport](#model-validity-view-availability-and-transport)).
 
 ## Representation and ownership boundaries
 
@@ -132,20 +142,73 @@ global application modes:
 Process/PFD  !=  Physical/P&ID  !=  Simulation
 ```
 
-- Switching the active editor view changes the projection, never the canonical
-  engineering state or the Process/Physical boundary.
+- Switching the primary workspace or the active representation changes the
+  projection, never the canonical engineering state or the Process/Physical
+  boundary.
 - Graphical-only controls belong only to graphical editors. A YAML or other text
   editor must not inherit canvas instrument controls (zoom, pan, fit, placement).
-- Control availability follows the **active view**, not a global application mode.
+- Control availability follows the **focused representation pane**, not a global
+  application mode.
 - The Engineering Explorer navigates engineering concepts and views; it is not a
   filesystem-first replacement for the semantic model.
 
 These boundaries are established by
-[ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
-[ADR-0003](../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
-[ADR-0004](../decisions/ADR-0004-yaml-is-a-serialization-format.md) and
-[ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md), and
+[ADR-0002](../../../decisions/ADR-0002-semantic-model-is-the-core.md),
+[ADR-0003](../../../decisions/ADR-0003-separate-semantic-and-presentation-models.md),
+[ADR-0004](../../../decisions/ADR-0004-yaml-is-a-serialization-format.md) and
+[ADR-0016](../../../decisions/ADR-0016-process-physical-realization-boundary.md), and
 must not be relaxed to match a design frame.
+
+## Model validity, view availability, and transport
+
+Model validity and view availability are **independent axes**. The project can be
+semantically valid while the currently selected representation cannot be produced,
+and neither condition may be reported as the other:
+
+```text
+project/model validity          none | valid | invalid
+active representation/view      available | unavailable | rendering-error
+transport/loading               idle | loading | error
+```
+
+This is a behavioral model, not an implementation schema. The application state
+boundary may represent these dimensions however it requires, but it must keep them
+**distinguishable** and must never derive one dimension from another.
+
+The durable authority for this split already exists in Git: the milestone criterion
+that semantic validity and Process/PFD view availability are shown as distinct
+states, so a valid-but-unprojectable model is not presented as an error
+([roadmap.md](../../../planning/roadmap.md), the Issue #99 criterion), and the
+frontend status boundary that maps workspace/projection/error to status text
+(`empty != invalid`, [architecture.md](../../architecture.md)). A valid model with
+an unavailable PFD/P&ID view is therefore **not** an invalid project. What counts
+as a rendering failure is owned by the renderer contract
+([rendering.md](../../../../contracts/rendering.md)).
+
+Invariants:
+
+1. A **valid** model may have an **unavailable** current representation.
+2. A valid model with an unavailable PFD/P&ID view is **not** an invalid project.
+3. A **missing Process model** may produce an informational or empty PFD state —
+   for example when the loaded project has no Process content — rather than a
+   validation error.
+4. Presentation, symbol, or rendering failure is a **view/rendering** problem, not
+   semantic invalidity, and is reported on the representation that failed.
+5. **Transport failure** (transport/session unavailable, request failure) is an
+   operational condition and is separate from model validity.
+6. The Status Bar and any global validity surface communicate **model/project
+   validity** — not view renderability and not transport health.
+7. The active editor representation communicates **its own availability/renderability**,
+   and states the reason when it cannot represent the current project.
+8. No frontend behavior may weaken, bypass, re-implement, or hide backend/domain
+   validation to make UI status visually consistent
+   ([architecture.md](../../architecture.md)). The frontend consumes validity; it
+   never redefines it.
+
+Model validity is a semantic outcome; view availability, rendering failure, and
+transport state are presentation/operational outcomes. The same truthfulness rule
+that governs diagnostics applies here: a state is only shown as current when it is
+truthfully known.
 
 ## Selection and navigation
 
@@ -171,10 +234,10 @@ Synchronization rules:
 - Navigation never fabricates an engineering relationship. In particular it must
   not invent a Process-to-Physical realization, a source location, or a view that
   cannot honestly represent the target
-  ([ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md)).
+  ([ADR-0016](../../../decisions/ADR-0016-process-physical-realization-boundary.md)).
 - Inspector content is semantic, plus explicitly labelled presentation facts. It
   never exposes framework fields such as canvas coordinates, node/edge ids, or
-  handles ([architecture.md](architecture.md)).
+  handles ([architecture.md](../../architecture.md)).
 
 ## Add Object and placement
 
@@ -196,7 +259,7 @@ pending placement **without** issuing a creation command. Completion likewise en
 pending placement, so a second placement requires a new selection. Placement is a
 presentation act; the semantic creation is the command, and the accepted model
 changes only when that command succeeds
-([semantic source-of-truth direction](../research/engineering-editor-ux.md)).
+([semantic source-of-truth direction](../../../research/engineering-editor-ux.md)).
 
 This contract never implies that a currently unavailable object type, its
 engineering semantics, or its backend behavior is implemented.
@@ -204,7 +267,7 @@ engineering semantics, or its backend behavior is implemented.
 ## YAML editing and reconciliation
 
 YAML is a serialization format, not a second domain model
-([ADR-0004](../decisions/ADR-0004-yaml-is-a-serialization-format.md)). The UI
+([ADR-0004](../../../decisions/ADR-0004-yaml-is-a-serialization-format.md)). The UI
 distinguishes these states and must not collapse them:
 
 | State | Meaning |
@@ -229,6 +292,10 @@ Behavioral rules:
   directly.
 - Unsaved/dirty state is distinguishable from invalid and from
   reconciliation-required state.
+- An invalid draft is a **draft-level** condition. It never makes the accepted
+  model invalid: project validity continues to describe the accepted model, and the
+  draft's own state is reported on the surface that owns the draft
+  ([Model validity, view availability, and transport](#model-validity-view-availability-and-transport)).
 
 This contract specifies behavior only: it does not assert that a full YAML
 editing/reconciliation backend exists today. Draft persistence, diffing
@@ -309,7 +376,7 @@ Future/Unavailable + Focus
 Focus must never erase the semantic meaning of the component: a focused control
 keeps its selected/active/dirty/invalid/error/future cue, and a focus indicator
 must not be the only distinction where the semantic state also matters
-([accessibility.md](accessibility.md)).
+([accessibility.md](../../accessibility.md)).
 
 Implementation-level details remain implementation responsibilities where they are
 not yet specified: ARIA roles and exact screen-reader text, final tab order, and
@@ -330,6 +397,11 @@ must be conveyable without relying on colour alone:
 | **Invalid** | Current input fails syntactic or semantic acceptance. |
 | **Error** | An operation or the current view failed and requires an explicit outcome. |
 
+`Invalid`, `Error`, and `Loading` are always qualified by the dimension they belong
+to — model/project, representation/view, or transport. A view that could not be
+rendered is not an invalid model, and a failed request is not a failed validation
+([Model validity, view availability, and transport](#model-validity-view-availability-and-transport)).
+
 A designed **Future** or **Unavailable** state is **not** implementation
 authorization. In particular, none of the following may be presented as
 implemented merely because it appears in the design:
@@ -342,7 +414,7 @@ implemented merely because it appears in the design:
 - Output/Terminal behavior;
 - future symbol fidelity;
 - any other deferred capability recorded in the
-  [anti-roadmap](../planning/roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely).
+  [anti-roadmap](../../../planning/roadmap.md#anti-roadmap--what-must-not-be-implemented-prematurely).
 
 Where such a capability appears in the design, it is represented as future or
 unavailable and labelled as such.
@@ -369,11 +441,11 @@ route, a component boundary, or an engineering relationship.
 ## Design-to-code ownership constraints
 
 The implementation target is unchanged: a Vue 3 + TypeScript + Vite SPA under
-`apps/editor/` ([index.md](index.md)). This contract adds no directory tree, and
+`apps/editor/` ([index.md](../../index.md)). This contract adds no directory tree, and
 the Figma hierarchy does not prescribe one.
 
 - Preserve **feature first, responsibility second** ownership inside the existing
-  feature modules ([architecture.md](architecture.md)).
+  feature modules ([architecture.md](../../architecture.md)).
 - The current Process/PFD implementation stays owned by `process-pfd/`. A screen in
   the design does not by itself justify a new feature module.
 - Vue Flow integration stays isolated behind the existing feature
@@ -389,18 +461,21 @@ the Figma hierarchy does not prescribe one.
 
 ## Related
 
-- [index.md](index.md) — frontend engineering contract, topics, and review checklist.
-- [design-to-code.md](design-to-code.md) — the Figma → behavior → Issue →
+- [index.md](../../index.md) — frontend engineering contract, topics, and review checklist.
+- [design-to-code.md](../../design-to-code.md) — the Figma → behavior → Issue →
   implementation workflow and its source-of-truth rules.
-- [architecture.md](architecture.md) — current frontend ownership and the Vue Flow
+- [architecture.md](../../architecture.md) — current frontend ownership and the Vue Flow
   containment boundary.
-- [accessibility.md](accessibility.md) — the accessibility baseline this contract's
+- [accessibility.md](../../accessibility.md) — the accessibility baseline this contract's
   focus and state rules must honor.
-- [engineering-editor-ux.md](../research/engineering-editor-ux.md) — the
+- [rendering.md](../../../../contracts/rendering.md) — the renderer contract that owns
+  what constitutes a rendering failure, and the read-only projection this contract's
+  view states consume.
+- [engineering-editor-ux.md](../../../research/engineering-editor-ux.md) — the
   interaction architecture and rationale this contract operationalizes.
-- [engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)
+- [engineering-editor-reuse-architecture.md](../../../research/engineering-editor-reuse-architecture.md)
   — the reuse-first stack evidence behind `apps/editor/`.
-- [contracts/index.md](../../contracts/index.md) — the engineering semantics this
+- [contracts/index.md](../../../../contracts/index.md) — the engineering semantics this
   UI consumes and never redefines.
-- [roadmap.md](../planning/roadmap.md) — milestones and the anti-roadmap that
+- [roadmap.md](../../../planning/roadmap.md) — milestones and the anti-roadmap that
   governs deferred capabilities.

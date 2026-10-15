@@ -95,13 +95,18 @@ superseded_by: null
   and [ADR-0016](../decisions/ADR-0016-process-physical-realization-boundary.md);
   no new durable rule cleared the ADR threshold (see
   [ADR threshold](#adr-threshold)).
-- **Current contracts operationalizing the result:** none yet — no editor is
-  implemented. The semantic contracts it depends on
+- **Current contracts operationalizing the result:** the approved Engineering
+  Editor behavior is now recorded as a Git-tracked behavioral UX contract,
+  [ux/engineering-editor/index.md](../frontend/ux/engineering-editor/index.md)
+  (Issue #115). This document stays the interaction architecture and design
+  evidence behind that contract; operationalizing it does not move semantic or
+  domain authority, which remains with the engineering contracts it depends on
   ([process-model.md](../../contracts/process-model.md),
   [plant-model.md](../../contracts/plant-model.md),
   [physical-piping.md](../../contracts/physical-piping.md),
-  [rendering.md](../../contracts/rendering.md)) continue to describe the current
-  model.
+  [rendering.md](../../contracts/rendering.md)) and the frontend engineering
+  contract ([frontend/index.md](../frontend/index.md)). No editor is implemented
+  yet.
 - **Conditions for revisiting:** when the [active milestone](../planning/roadmap.md)
   selects the first GUI slice, when Issue #70's reuse-first architecture
   constrains a surface, or when real user evidence shows a permanent surface is
