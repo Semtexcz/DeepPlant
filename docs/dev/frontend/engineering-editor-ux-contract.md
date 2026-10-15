@@ -101,6 +101,28 @@ Behavioral invariants:
 Pixel measurements, breakpoints, spacing, and colour composition are visual intent
 owned by Figma. Only behavior that must hold regardless of layout is a rule here.
 
+## Project and workspace states
+
+The workspace is only as populated as the current project and the implemented
+capabilities allow:
+
+- **No active project** — the shell renders an explicit empty workspace that invites
+  opening a project. It fabricates no placeholder engineering objects, views, or
+  diagnostics.
+- **Opening a project** — the workspace shows a loading state, and then either the
+  accepted model with its views and diagnostics, or an explicit error state that
+  explains the failure without destroying the previous state.
+- **Unsaved changes** — dirty state is visible before it matters (save or close), and
+  leaving or closing with unsaved changes requires an explicit decision. Cancelling
+  that decision leaves the accepted model and the draft unchanged.
+- **Read-only today** — the delivered editor slice is read-only Process/PFD, so no
+  surface may present a working save/persistence capability. Persistence stays
+  deferred until a selected Issue delivers it
+  ([roadmap.md](../planning/roadmap.md)).
+
+An empty, loading, or error workspace is never presented as a valid empty engineering
+model.
+
 ## Representation and ownership boundaries
 
 PFD, P&ID and YAML are **representations/views** over engineering information, not
