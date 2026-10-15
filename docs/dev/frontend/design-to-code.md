@@ -56,12 +56,16 @@ functionality.
 
 **Current reality (implemented).** DeepPlant has the authoritative engineering
 documents (see [architecture.md](../architecture/index.md),
-[contracts/](../../contracts/index.md)) and the canonical frontend engineering
-contract for `apps/editor/` ([frontend/index.md](index.md)). It has **no** Figma
-file under version control, **no** UX-contract directory, **no** `design/tokens/`
-tree, **no** Figma MCP integration, and **no** design-token generation pipeline.
-This document therefore defines the workflow to follow when that UI work starts;
-it must not be read as a description of implemented tooling.
+[contracts/](../../contracts/index.md)), the canonical frontend engineering
+contract for `apps/editor/` ([frontend/index.md](index.md)), the approved
+[DeepPlant Editor Figma design](https://www.figma.com/design/2Y9J76cXBYEIMvDymF8npl/DeepPlant-Editor),
+and the canonical behavioral UX contract it was designed against
+([engineering-editor-ux-contract.md](engineering-editor-ux-contract.md)). It has no
+Figma MCP integration and no design-token generation pipeline, and it does not
+store a Figma artifact under version control; the design lives in Figma and is
+referenced by link. This document defines the workflow for implementation work; it
+must not be read as a description of implemented frontend capability, and the
+behavioral rules themselves live in the UX contract rather than here.
 
 No new ADR is created. The source-of-truth boundaries below restate accepted
 boundaries — [ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
@@ -113,8 +117,8 @@ in Git           primitives
 
 | Source | Owns | Must never own |
 |---|---|---|
-| Figma | the approved visual intent — within repository governance only | domain semantics, behavior, architecture |
-| UX contract in Git | behavioral intent | visual detail, engineering meaning |
+| [DeepPlant Editor in Figma](https://www.figma.com/design/2Y9J76cXBYEIMvDymF8npl/DeepPlant-Editor) | the approved visual intent — within repository governance only | domain semantics, behavior, architecture |
+| [Engineering Editor UX contract](engineering-editor-ux-contract.md) in Git | behavioral intent | visual detail, engineering meaning |
 | domain documentation / schemas | engineering semantics | presentation and UI layout |
 | API contracts | transport, commands, queries | UX intent, domain rules |
 | Vue implementation | implementation only | new UX or new domain semantics |
@@ -189,6 +193,13 @@ Git-tracked UI/UX documentation owns **what the UI does**:
 Behavior is authoritative in Git, not in Figma and not in a prototype. A Figma
 prototype may *demonstrate* behavior; it does not own it.
 
+For the Engineering Editor MVP, the current canonical behavioral contract is
+[engineering-editor-ux-contract.md](engineering-editor-ux-contract.md), which
+covers the approved
+[DeepPlant Editor design](https://www.figma.com/design/2Y9J76cXBYEIMvDymF8npl/DeepPlant-Editor).
+New UI surfaces extend that contract (or add a sibling contract under
+`docs/dev/frontend/`) instead of restating behavior in a second place.
+
 ### Domain model — engineering semantics
 
 Existing DeepPlant domain documentation and schemas own engineering meaning:
@@ -222,16 +233,17 @@ new domain semantics: if the required behavior is not in the UX contract, or the
 required concept is not in the domain or API contracts, the gap is resolved in the
 owning document first (see [Reconciliation](#stage-j--reconciliation)).
 
-## UI behavior documentation (`docs/dev/frontend/ux/`) — canonical rule
+## UI behavior documentation — canonical rule
 
-Behavioral intent is documented in Git in a dedicated, developer-owned UX layer
-inside the existing frontend documentation section:
+Behavioral intent is documented in Git in a dedicated, developer-owned layer inside
+the existing frontend documentation section (`docs/dev/frontend/`), for example:
 
 ```text
-docs/dev/frontend/ux/
-    pfd-editor/
-        index.md
-        equipment-inspector.md
+docs/dev/frontend/
+    engineering-editor-ux-contract.md     the current canonical contract
+    ux/
+        <surface>/                        only when a surface needs its own contract
+            equipment-inspector.md
 ```
 
 The location is deliberate. `docs/dev/workflow/conventions.md` establishes that
@@ -240,19 +252,22 @@ root `docs/` hierarchy holds only `index.md` plus the `contracts/`, `dev/`, and
 `user/` trees. A `docs/ui/` root would conflict with that architecture, so this
 workflow does not introduce one.
 
-This is the **intended convention**, not a directory that exists today: this
-document creates no `docs/dev/frontend/ux/` tree, and none should be created until
-a real UI surface needs a behavior contract. One file per UI surface, named for the
-domain concept rather than for a screen position. Keep it small: a UX contract
-states behavior, not pixels, and it links to the domain and API contracts instead
-of restating them.
+The tree above is the **intended convention for future surfaces**, not a directory
+that exists today: this document creates no `docs/dev/frontend/ux/` tree, and none
+should be created until a real UI surface needs a contract that the canonical
+contract does not already own. One file per UI surface, named for the domain
+concept rather than for a screen position. Keep it small: a UX contract states
+behavior, not pixels, and it links to the domain and API contracts instead of
+restating them. The first such contract — the Engineering Editor MVP behavior —
+lives at [engineering-editor-ux-contract.md](engineering-editor-ux-contract.md),
+directly under `docs/dev/frontend/` rather than in a `ux/` subdirectory.
 
 ## Lifecycle of a UI feature — canonical rule
 
 | Stage | Output | Owner |
 |---|---|---|
 | A | user workflow / product requirement | product scope + the GitHub Issue |
-| B | UX contract draft | behavior documentation (`docs/dev/frontend/ux/`) |
+| B | UX contract draft | behavior documentation ([engineering-editor-ux-contract.md](engineering-editor-ux-contract.md), or a sibling contract under `docs/dev/frontend/`) |
 | C | Figma wireframe | design |
 | D | design review | design + engineering review |
 | E | final Figma design (frames/states) | design |
@@ -810,8 +825,10 @@ Implement the smallest coherent slice satisfying the acceptance criteria.
 - [styling.md](styling.md) — the current semantic-token and styling ownership.
 - [accessibility.md](accessibility.md) — the accessibility baseline a design and
   implementation must honor.
-- [conventions.md](../workflow/conventions.md) — the documentation architecture
-  that places the UX behavior contracts under `docs/dev/frontend/ux/`.
+- [conventions.md](../workflow/conventions.md) — the documentation architecture that
+  places developer-owned behavior contracts under `docs/dev/frontend/`.
+- [engineering-editor-ux-contract.md](engineering-editor-ux-contract.md) — the
+  canonical behavioral UX contract for the approved DeepPlant Editor Figma design.
 - [engineering-editor-ux.md](../research/engineering-editor-ux.md) — the
   interaction authority and the permanent-surface vocabulary.
 - [engineering-editor-reuse-architecture.md](../research/engineering-editor-reuse-architecture.md)

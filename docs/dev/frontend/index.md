@@ -58,6 +58,7 @@ editor product behavior.
 | Frontend testing pyramid and its ownership | [testing.md](testing.md) |
 | Accessibility baseline | [accessibility.md](accessibility.md) |
 | Figma design → coding agent → Vue implementation workflow | [design-to-code.md](design-to-code.md) |
+| Engineering Editor behavioral UX contract | [engineering-editor-ux-contract.md](engineering-editor-ux-contract.md) |
 | Commands and the enforced gates | [quality.md](../workflow/quality.md) |
 
 ## Current vs canonical vs deferred
