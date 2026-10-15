@@ -59,13 +59,12 @@ documents (see [architecture.md](../architecture/index.md),
 [contracts/](../../contracts/index.md)), the canonical frontend engineering
 contract for `apps/editor/` ([frontend/index.md](index.md)), the approved
 [DeepPlant Editor Figma design](https://www.figma.com/design/2Y9J76cXBYEIMvDymF8npl/DeepPlant-Editor),
-and the canonical behavioral UX contract it was designed against
+and the canonical behavioral UX contract implementation must follow
 ([engineering-editor-ux-contract.md](engineering-editor-ux-contract.md)). It has no
-Figma MCP integration and no design-token generation pipeline, and it does not
-store a Figma artifact under version control; the design lives in Figma and is
-referenced by link. This document defines the workflow for implementation work; it
-must not be read as a description of implemented frontend capability, and the
-behavioral rules themselves live in the UX contract rather than here.
+Figma MCP integration and no design-token generation pipeline. This document
+defines the workflow for implementation work; it must not be read as a description
+of implemented frontend capability, and the behavioral rules themselves live in the
+UX contract rather than here.
 
 No new ADR is created. The source-of-truth boundaries below restate accepted
 boundaries — [ADR-0002](../decisions/ADR-0002-semantic-model-is-the-core.md),
